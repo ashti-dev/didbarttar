@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>دید برتر توران تجارت | تجهیزات امنیتی و نظارتی</title>
+<meta name="description" content="تأمین‌کننده تخصصی دوربین مداربسته، سیستم ردیابی و تجهیزات امنیتی با مجوز رسمی فعالیت">
+
+<!-- فونت‌ها -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;900&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+<style>
+/* ============================================================
+   DESIGN SYSTEM — دید برتر توران تجارت (نسخه دمو)
+   ============================================================ */
+:root{
+  --color-navy:#1A2E4A; --color-navy-mid:#2A4A72; --color-navy-light:#3D6A9E;
+  --color-navy-lighter:#6B9EC4; --color-navy-pale:#A8C5DC; --color-navy-paler:#D4E5F0;
+  --color-orange:#E8680A; --color-orange-mid:#F07C28;
+  --bg-white:#FFFFFF; --bg-section:#F4F7FA; --bg-dark:#0F1E30;
+  --text-dark:#0F1E30; --text-mid:#4A6077; --text-light:#8BA3B8; --text-on-navy:#A8C5DC;
+  --border:#DDE6EF; --border-strong:#C5D5E5;
+  --status-success:#4CAF88; --status-error:#E84040; --status-warning:#F5A060;
+  --font-fa:'Vazirmatn',sans-serif; --font-en:'Inter',sans-serif;
+  --radius-sm:4px; --radius-md:6px; --radius-lg:8px; --radius-xl:12px; --radius-2xl:16px;
+  --shadow-card:0 1px 3px rgba(26,46,74,.06);
+  --shadow-hover:0 8px 24px rgba(26,46,74,.10);
+  --shadow-product:0 8px 28px rgba(26,46,74,.10);
+  --transition:.15s ease;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-fa);font-size:14px;line-height:1.7;color:var(--text-dark);background:var(--bg-white);-webkit-font-smoothing:antialiased}
+img,svg{display:block;max-width:100%}
+a{color:inherit;text-decoration:none;transition:color var(--transition)}
+ul{list-style:none}
+button{font-family:inherit;border:none;background:none;cursor:pointer}
+h1,h2,h3,h4{line-height:1.25;color:var(--text-dark)}
+h1{font-size:46px;font-weight:900;line-height:1.2}
+h2{font-size:34px;font-weight:900;line-height:1.25}
+h3{font-size:18px;font-weight:700;line-height:1.35}
+h4{font-size:16px;font-weight:700;line-height:1.4}
+p{color:var(--text-mid)}
+.container{max-width:1200px;margin:0 auto;padding:0 24px}
+.section{padding:80px 0}
+.section-alt{background:var(--bg-section)}
+.section-dark{background:var(--bg-dark)}
+.icon{fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+
+/* ---------- Section Head ---------- */
+.section-head{margin-bottom:48px}
+.section-head.center{text-align:center}
+.section-head.center .section-sub{margin:12px auto 0}
+.section-label{display:inline-flex;align-items:center;gap:8px;color:var(--color-orange);font-size:12px;font-weight:700;margin-bottom:10px}
+.section-label::before{content:'';width:24px;height:2px;background:var(--color-orange);border-radius:2px}
+.section-head h2{color:var(--color-navy);max-width:560px}
+.section-head.center h2{margin:0 auto}
+.section-dark .section-head h2{color:#fff}
+.section-sub{color:var(--text-mid);font-size:16px;line-height:1.8;max-width:600px}
+.section-dark .section-sub{color:var(--text-on-navy)}
+
+/* ---------- Buttons ---------- */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-family:var(--font-fa);font-size:13px;font-weight:700;padding:9px 20px;border-radius:var(--radius-md);transition:background var(--transition),color var(--transition),border-color var(--transition),box-shadow var(--transition),transform var(--transition);white-space:nowrap}
+.btn-primary{background:var(--color-orange);color:#fff}
+.btn-primary:hover{background:var(--color-orange-mid)}
+.btn-outline{background:transparent;color:var(--color-navy);border:1.5px solid var(--color-navy);padding:8px 18px;font-weight:600}
+.btn-outline:hover{background:var(--color-navy);color:#fff}
+.btn-ghost{background:transparent;color:var(--text-on-navy);border:1.5px solid rgba(168,197,220,.35);font-size:15px;font-weight:600;padding:14px 28px;border-radius:var(--radius-lg)}
+.btn-ghost:hover{color:#fff;border-color:#fff}
+.btn-hero{font-size:15px;font-weight:700;padding:14px 28px;border-radius:var(--radius-lg)}
+.btn-service{color:var(--color-orange);border:1.5px solid rgba(232,104,10,.4);background:transparent;padding:9px 18px}
+.btn-service:hover{background:rgba(232,104,10,.12);border-color:var(--color-orange)}
+
+/* ---------- Badges ---------- */
+.badge{font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;color:#fff}
+.badge-hot{background:var(--color-orange)}
+.badge-new{background:var(--color-navy);color:var(--text-on-navy)}
+.badge-sale{background:var(--status-error)}
+.badge-trust{background:rgba(232,104,10,.15);border:1px solid rgba(232,104,10,.35);color:var(--status-warning);font-size:12px;font-weight:600;padding:5px 12px;border-radius:20px;display:inline-flex;align-items:center;gap:6px}
+.badge-trust .dot{width:6px;height:6px;border-radius:50%;background:var(--status-success);animation:blink 2s infinite}
+
+/* ---------- Topbar ---------- */
+.topbar{background:#0B1624;color:var(--text-on-navy);font-size:12px;padding:8px 0}
+.topbar .container{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
+.topbar-group{display:flex;align-items:center;gap:20px}
+.topbar-item{display:flex;align-items:center;gap:6px}
+.topbar-item svg{width:14px;height:14px;stroke:var(--text-on-navy)}
+.topbar .live{color:var(--status-success);display:flex;align-items:center;gap:6px}
+.topbar .live .dot{width:7px;height:7px;border-radius:50%;background:var(--status-success);animation:blink 2s infinite}
+
+/* ---------- Header ---------- */
+.site-header{position:sticky;top:0;z-index:100;background:rgba(26,46,74,.92);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid rgba(168,197,220,.12);transition:box-shadow var(--transition)}
+.site-header.scrolled{box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.header-inner{display:flex;align-items:center;justify-content:space-between;gap:24px;padding:14px 0}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-mark{width:40px;height:40px;background:var(--color-orange);border-radius:var(--radius-lg);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.logo-mark svg{width:22px;height:22px;stroke:#fff}
+.logo-text strong{display:block;color:#fff;font-size:16px;font-weight:900;line-height:1.3}
+.logo-text span{display:block;color:var(--text-on-navy);font-size:11px}
+.nav-links{display:flex;align-items:center;gap:28px}
+.nav-links a{color:var(--text-on-navy);font-size:14px;font-weight:500;position:relative;padding:6px 0}
+.nav-links a::after{content:'';position:absolute;bottom:0;right:0;width:0;height:2px;background:var(--color-orange);border-radius:2px;transition:width .2s ease}
+.nav-links a:hover,.nav-links a.active{color:#fff}
+.nav-links a:hover::after,.nav-links a.active::after{width:100%}
+.header-actions{display:flex;align-items:center;gap:12px}
+.cart-btn{position:relative;width:40px;height:40px;border:1px solid rgba(168,197,220,.25);border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;color:var(--text-on-navy);transition:all var(--transition)}
+.cart-btn:hover{border-color:var(--color-orange);color:var(--color-orange)}
+.cart-btn .count{position:absolute;top:-6px;left:-6px;width:18px;height:18px;background:var(--color-orange);color:#fff;font-size:10px;font-weight:700;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-en)}
+.menu-toggle{display:none;width:40px;height:40px;color:#fff;align-items:center;justify-content:center}
+
+/* ---------- Hero ---------- */
+.hero{background:var(--bg-dark);position:relative;overflow:hidden;padding:72px 0 64px}
+.hero::before{content:'';position:absolute;inset:0;background-image:linear-gradient(rgba(168,197,220,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(168,197,220,.04) 1px,transparent 1px);background-size:56px 56px;pointer-events:none}
+.hero::after{content:'';position:absolute;top:-20%;left:-10%;width:520px;height:520px;background:radial-gradient(circle,rgba(232,104,10,.14),transparent 65%);pointer-events:none}
+.hero-inner{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;position:relative;z-index:2}
+.hero h1{color:#fff;margin:18px 0 20px}
+.hero h1 .hl{color:var(--color-orange);position:relative;display:inline-block}
+.hero h1 .hl::after{content:'';position:absolute;bottom:6px;right:0;left:0;height:10px;background:rgba(232,104,10,.22);border-radius:4px;z-index:-1}
+.hero-sub{color:var(--text-on-navy);font-size:16px;line-height:1.8;max-width:500px;margin-bottom:32px}
+.hero-actions{display:flex;gap:16px;flex-wrap:wrap}
+.hero-stats{display:flex;gap:40px;margin-top:44px;padding-top:28px;border-top:1px solid rgba(168,197,220,.15)}
+.hstat b{display:block;font-family:var(--font-en);font-size:28px;font-weight:700;color:#fff;line-height:1.1}
+.hstat b i{font-style:normal;color:var(--color-orange)}
+.hstat span{font-size:12px;color:var(--text-on-navy)}
+
+/* Device mockup */
+.hero-visual{position:relative}
+.device{position:relative;aspect-ratio:1;max-width:460px;margin:0 auto;border-radius:50%;background:radial-gradient(circle at 32% 30%,rgba(61,106,158,.35),transparent 55%),radial-gradient(circle,#16283F 0%,#0B1624 72%);border:1px solid rgba(168,197,220,.18);box-shadow:0 0 80px rgba(232,104,10,.12),inset 0 0 60px rgba(0,0,0,.55);overflow:hidden}
+.device .ring{position:absolute;inset:12%;border:1px dashed rgba(168,197,220,.18);border-radius:50%}
+.device .ring.r2{inset:26%}
+.device .cross::before,.device .cross::after{content:'';position:absolute;background:rgba(168,197,220,.14)}
+.device .cross::before{top:8%;bottom:8%;left:50%;width:1px}
+.device .cross::after{right:8%;left:8%;top:50%;height:1px}
+.device .lens{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:26%;height:26%;border-radius:50%;background:radial-gradient(circle,var(--color-orange) 0%,rgba(232,104,10,.25) 45%,transparent 72%);animation:pulse 2.4s ease-in-out infinite}
+.device .scanline{position:absolute;right:0;left:0;height:2px;background:linear-gradient(90deg,transparent,rgba(232,104,10,.85),transparent);animation:scan 3.2s ease-in-out infinite}
+.device .corner{position:absolute;font-family:var(--font-en);font-size:10px;color:var(--text-light);letter-spacing:.5px;line-height:1.6}
+.device .corner.tl{top:6%;right:8%;text-align:right}
+.device .corner.bl{bottom:8%;right:8%;text-align:right}
+.recbar{position:absolute;bottom:6%;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:10px;background:rgba(11,22,36,.85);border:1px solid rgba(168,197,220,.18);border-radius:20px;padding:6px 14px;font-family:var(--font-en);font-size:11px;color:var(--text-on-navy)}
+.recbar .rec{color:var(--status-error);font-weight:700;display:flex;align-items:center;gap:5px}
+.recbar .rec .dot{width:6px;height:6px;border-radius:50%;background:var(--status-error);animation:blink 1.4s infinite}
+.spec-chips{display:flex;justify-content:center;gap:12px;margin-top:24px;flex-wrap:wrap}
+.spec-chip{background:rgba(255,255,255,.05);border:1px solid rgba(168,197,220,.15);border-radius:var(--radius-lg);padding:10px 18px;text-align:center;min-width:110px}
+.spec-chip small{display:block;font-size:10px;color:var(--text-light);letter-spacing:1px;font-family:var(--font-en)}
+.spec-chip b{display:block;color:#fff;font-size:14px;font-family:var(--font-en);font-weight:700;margin-top:2px}
+@keyframes scan{0%{top:10%;opacity:0}20%{opacity:1}80%{opacity:1}100%{top:90%;opacity:0}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+@keyframes pulse{0%,100%{transform:translate(-50%,-50%) scale(1);opacity:.75}50%{transform:translate(-50%,-50%) scale(1.15);opacity:1}}
+
+/* ---------- Trust bar ---------- */
+.trustbar{background:var(--bg-white);border-bottom:1px solid var(--border)}
+.trustbar .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:18px 24px}
+.trust-item{display:flex;align-items:center;gap:10px;font-size:13px;font-weight:600;color:var(--color-navy)}
+.trust-item svg{width:20px;height:20px;stroke:var(--color-navy-light)}
+
+/* ---------- Categories ---------- */
+.cat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.cat-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius-xl);padding:28px 24px;box-shadow:var(--shadow-card);transition:border-color var(--transition),transform var(--transition),box-shadow var(--transition)}
+.cat-card:hover{border-color:var(--color-navy-light);transform:translateY(-3px);box-shadow:var(--shadow-hover)}
+.icon-box-navy{width:52px;height:52px;background:var(--color-navy);border-radius:var(--radius-xl);display:flex;align-items:center;justify-content:center;margin-bottom:18px;transition:background var(--transition)}
+.icon-box-navy svg{width:24px;height:24px;stroke:var(--text-on-navy)}
+.cat-card:hover .icon-box-navy{background:var(--color-orange)}
+.cat-card:hover .icon-box-navy svg{stroke:#fff}
+.cat-count{font-size:12px;color:var(--text-light);margin-bottom:4px}
+.cat-card h3{font-size:15px;color:var(--color-navy);margin-bottom:8px}
+.cat-card p{font-size:13px;line-height:1.6;margin-bottom:16px;min-height:42px}
+.cat-link{display:inline-flex;align-items:center;gap:6px;color:var(--color-orange);font-size:13px;font-weight:600}
+.cat-link svg{width:14px;height:14px;stroke:currentColor;transition:transform var(--transition)}
+.cat-link:hover svg{transform:translateX(-4px)}
+
+/* ---------- Products ---------- */
+.prod-head{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap;margin-bottom:40px}
+.prod-head .section-head{margin-bottom:0}
+.prod-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.prod-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius-xl);overflow:hidden;box-shadow:var(--shadow-card);transition:box-shadow var(--transition),transform var(--transition)}
+.prod-card:hover{box-shadow:var(--shadow-product);transform:translateY(-2px)}
+.prod-media{position:relative;aspect-ratio:4/3;background:linear-gradient(160deg,#EDF3F8,#F4F7FA);display:flex;align-items:center;justify-content:center;overflow:hidden}
+.prod-media svg{width:88px;height:88px;stroke:var(--color-navy-lighter);stroke-width:1.4;transition:transform .3s ease}
+.prod-card:hover .prod-media svg{transform:scale(1.08)}
+.prod-media .led{position:absolute;top:16px;left:16px;width:8px;height:8px;border-radius:50%;background:var(--status-success);animation:blink 2s infinite}
+.prod-media .badge{position:absolute;top:12px;right:12px}
+.prod-body{padding:20px 20px 0}
+.prod-cat{font-size:13px;color:var(--color-navy-light);font-weight:600;margin-bottom:6px}
+.prod-body h3{font-size:15px;margin-bottom:8px}
+.prod-body h3 a:hover{color:var(--color-orange)}
+.prod-desc{font-size:13px;line-height:1.6;margin-bottom:16px;min-height:42px}
+.prod-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 20px;border-top:1px solid var(--border)}
+.price{font-family:var(--font-en);font-size:20px;font-weight:700;color:var(--color-navy);line-height:1}
+.price small{font-family:var(--font-fa);font-size:11px;font-weight:400;color:var(--text-light);margin-right:4px}
+.price del{display:block;font-size:12px;font-weight:400;color:var(--text-light)}
+
+/* ---------- Services (dark) ---------- */
+.srv-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.service-card{background:rgba(255,255,255,.06);border:1px solid rgba(168,197,220,.15);border-radius:var(--radius-xl);padding:32px;transition:background var(--transition),border-color var(--transition)}
+.service-card:hover{background:rgba(255,255,255,.10);border-color:rgba(168,197,220,.30)}
+.icon-box-orange{width:52px;height:52px;background:rgba(232,104,10,.15);border:1px solid rgba(232,104,10,.25);border-radius:var(--radius-xl);display:flex;align-items:center;justify-content:center;margin-bottom:20px}
+.icon-box-orange svg{width:24px;height:24px;stroke:var(--color-orange)}
+.service-card h3{font-size:18px;color:#fff;margin-bottom:10px}
+.service-card>p{font-size:14px;color:var(--text-on-navy);line-height:1.8;margin-bottom:20px}
+.srv-list{margin-bottom:24px}
+.srv-list li{position:relative;padding:7px 20px 7px 0;font-size:13px;color:var(--text-on-navy)}
+.srv-list li::before{content:'';position:absolute;right:0;top:15px;width:6px;height:6px;border-radius:50%;background:var(--color-orange)}
+
+/* ---------- Why us ---------- */
+.why-grid{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center}
+.why-list{display:flex;flex-direction:column;gap:28px;margin-top:8px}
+.why-item{display:flex;gap:18px}
+.why-num{font-family:var(--font-en);font-size:14px;font-weight:700;color:var(--color-orange);background:rgba(232,104,10,.1);border:1px solid rgba(232,104,10,.25);width:36px;height:36px;border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.why-item h4{margin-bottom:6px}
+.why-item p{font-size:14px;line-height:1.8}
+.metrics-panel{background:var(--bg-section);border:1px solid var(--border);border-radius:var(--radius-2xl);padding:32px}
+.metrics-panel h4{font-family:var(--font-en);font-size:12px;letter-spacing:1.5px;color:var(--text-light);margin-bottom:24px;text-align:left}
+.metric{margin-bottom:20px}
+.metric-row{display:flex;justify-content:space-between;font-size:13px;margin-bottom:8px}
+.metric-row b{font-family:var(--font-en);color:var(--color-navy)}
+.metric-bar{height:6px;background:var(--border);border-radius:99px;overflow:hidden}
+.metric-fill{height:100%;width:0;background:linear-gradient(90deg,var(--color-navy-light),var(--color-navy));border-radius:99px;transition:width 1.2s cubic-bezier(.22,1,.36,1)}
+.metric-chips{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:28px;padding-top:24px;border-top:1px solid var(--border)}
+.mchip{text-align:center;background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 8px}
+.mchip b{display:block;font-family:var(--font-en);font-size:20px;font-weight:700;color:var(--color-navy)}
+.mchip b i{font-style:normal;color:var(--color-orange)}
+.mchip span{font-size:11px;color:var(--text-mid)}
+
+/* ---------- Testimonials ---------- */
+.test-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.test-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius-xl);padding:28px;box-shadow:var(--shadow-card);transition:box-shadow var(--transition),transform var(--transition);position:relative}
+.test-card:hover{box-shadow:var(--shadow-hover);transform:translateY(-2px)}
+.stars{display:flex;gap:3px;margin-bottom:16px}
+.stars svg{width:15px;height:15px;fill:var(--color-orange);stroke:none}
+.test-card blockquote{font-size:14px;line-height:1.9;color:var(--text-mid);margin-bottom:22px;min-height:100px}
+.test-author{display:flex;align-items:center;gap:12px;padding-top:18px;border-top:1px solid var(--border)}
+.avatar{width:44px;height:44px;border-radius:50%;background:var(--color-navy);color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.test-author b{display:block;font-size:14px}
+.test-author span{font-size:12px;color:var(--text-light)}
+
+/* ---------- CTA ---------- */
+.cta{background:linear-gradient(135deg,var(--color-navy) 0%,var(--bg-dark) 100%);position:relative;overflow:hidden;text-align:center;padding:88px 0}
+.cta::before{content:'';position:absolute;top:-40%;left:-15%;width:560px;height:560px;background:radial-gradient(circle,rgba(232,104,10,.16),transparent 68%)}
+.cta .container{position:relative}
+.cta h2{color:#fff;font-size:40px;margin:14px 0 16px}
+.cta h2 span{color:var(--color-orange)}
+.cta p{color:var(--text-on-navy);font-size:16px;max-width:560px;margin:0 auto 36px}
+.cta-actions{display:flex;gap:16px;justify-content:center;flex-wrap:wrap}
+
+/* ---------- Footer ---------- */
+.site-footer{background:var(--bg-dark);color:var(--text-on-navy);padding-top:64px}
+.footer-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:40px;padding-bottom:48px}
+.footer-about p{font-size:13px;line-height:1.9;margin:16px 0 20px}
+.socials{display:flex;gap:10px}
+.socials a{width:36px;height:36px;border:1px solid rgba(168,197,220,.2);border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;transition:all var(--transition)}
+.socials a svg{width:17px;height:17px;stroke:var(--text-on-navy)}
+.socials a:hover{background:var(--color-orange);border-color:var(--color-orange)}
+.socials a:hover svg{stroke:#fff}
+.footer-col h4{color:#fff;font-size:15px;margin-bottom:18px}
+.footer-col li{margin-bottom:10px}
+.footer-col a{font-size:13px;color:var(--text-on-navy)}
+.footer-col a:hover{color:var(--color-orange)}
+.footer-contact li{display:flex;gap:8px;align-items:flex-start;font-size:13px;margin-bottom:12px}
+.footer-contact svg{width:16px;height:16px;stroke:var(--color-orange);flex-shrink:0;margin-top:3px}
+.footer-bottom{border-top:1px solid rgba(168,197,220,.12);padding:18px 0;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--text-light)}
+.footer-badges{display:flex;gap:16px}
+.footer-badges span{display:flex;align-items:center;gap:6px}
+.footer-badges svg{width:14px;height:14px;stroke:var(--status-success)}
+
+/* ---------- Scroll Reveal ---------- */
+[data-reveal]{opacity:0;transition:opacity .8s cubic-bezier(.22,1,.36,1),transform .8s cubic-bezier(.22,1,.36,1);will-change:opacity,transform}
+[data-reveal="up"]{transform:translateY(36px)}
+[data-reveal="right"]{transform:translateX(36px)}
+[data-reveal="left"]{transform:translateX(-36px)}
+[data-reveal="scale"]{transform:scale(.94)}
+[data-reveal].revealed{opacity:1;transform:none}
+
+/* ---------- Responsive ---------- */
+@media (max-width:1024px){
+  .cat-grid{grid-template-columns:repeat(2,1fr)}
+  .prod-grid{grid-template-columns:repeat(2,1fr)}
+  .why-grid{grid-template-columns:1fr;gap:40px}
+  .footer-grid{grid-template-columns:1fr 1fr}
+}
+@media (max-width:768px){
+  h1,.hero h1{font-size:32px}
+  h2{font-size:26px}
+  .cta h2{font-size:30px}
+  .section{padding:60px 0}
+  .topbar .container{justify-content:center}
+  .nav-links{display:none;position:absolute;top:100%;right:0;left:0;background:var(--color-navy);flex-direction:column;align-items:flex-start;padding:20px 24px;gap:14px;border-bottom:1px solid rgba(168,197,220,.15)}
+  .site-header.nav-open .nav-links{display:flex}
+  .menu-toggle{display:flex}
+  .hero-inner{grid-template-columns:1fr;gap:40px}
+  .hero-visual{display:none}
+  .hero-stats{gap:24px;flex-wrap:wrap}
+  .prod-grid{grid-template-columns:1fr}
+  .srv-grid{grid-template-columns:1fr}
+  .test-grid{grid-template-columns:1fr}
+  .footer-grid{grid-template-columns:1fr}
+  .trustbar .container{justify-content:center}
+}
+@media (max-width:480px){
+  .cat-grid{grid-template-columns:1fr}
+  .hero-actions .btn{width:100%}
+  .metric-chips{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}
+  [data-reveal]{opacity:1!important;transform:none!important}
+}
+</style>
+<noscript><style>[data-reveal]{opacity:1!important;transform:none!important}</style></noscript>
+</head>
+<body>
+
+<!-- ===================== TOPBAR ===================== -->
+<div class="topbar">
+  <div class="container">
+    <div class="topbar-group">
+      <span class="live"><span class="dot"></span> پشتیبانی فعال</span>
+      <span class="topbar-item"><svg class="icon" viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg> ارسال سراسری ایران</span>
+      <span class="topbar-item"><svg class="icon" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> گارانتی اصالت کالا</span>
+    </div>
+    <div class="topbar-group">
+      <a class="topbar-item" href="tel:02188000000"><svg class="icon" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg> ۰۲۱-۸۸۰۰۰۰۰۰</a>
+      <a class="topbar-item" href="mailto:info@didbarttar.ir"><svg class="icon" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> info@didbarttar.ir</a>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== HEADER ===================== -->
+<header class="site-header" id="siteHeader">
+  <div class="container header-inner">
+    <a class="logo" href="#">
+      <span class="logo-mark"><svg class="icon" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></span>
+      <span class="logo-text"><strong>دید برتر</strong><span>توران تجارت</span></span>
+    </a>
+    <nav class="nav-links" id="navLinks">
+      <a href="#" class="active">خانه</a>
+      <a href="#products">محصولات</a>
+      <a href="#services">خدمات</a>
+      <a href="#why">درباره ما</a>
+      <a href="#testimonials">نظرات</a>
+      <a href="#cta">تماس</a>
+    </nav>
+    <div class="header-actions">
+      <button class="cart-btn" aria-label="سبد خرید"><svg class="icon" width="19" height="19" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg><span class="count">2</span></button>
+      <a href="#products" class="btn btn-primary">فروشگاه</a>
+      <button class="menu-toggle" id="menuToggle" aria-label="منو"><svg class="icon" width="24" height="24" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+    </div>
+  </div>
+</header>
+
+<main>
+<!-- ===================== HERO ===================== -->
+<section class="hero">
+  <div class="container hero-inner">
+    <div data-reveal="right">
+      <span class="badge-trust"><span class="dot"></span> دارای مجوز رسمی فعالیت</span>
+      <h1>تجهیزات امنیتی و نظارتی<br>با <span class="hl">دید برتر</span> ببینید</h1>
+      <p class="hero-sub">از دوربین‌های مداربسته حرفه‌ای تا سیستم‌های هوشمند معادن — راهکارهای نظارتی برای خانه، کسب‌وکار و صنعت.</p>
+      <div class="hero-actions">
+        <a href="#products" class="btn btn-primary btn-hero">مشاهده محصولات <svg class="icon" width="16" height="16" viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg></a>
+        <a href="#cta" class="btn btn-ghost">مشاوره رایگان</a>
+      </div>
+      <div class="hero-stats">
+        <div class="hstat"><b><i>+</i>6</b><span>سال تجربه</span></div>
+        <div class="hstat"><b><i>+</i>500</b><span>پروژه اجرا شده</span></div>
+        <div class="hstat"><b>24/7</b><span>پشتیبانی فنی</span></div>
+      </div>
+    </div>
+
+    <div class="hero-visual" data-reveal="left">
+      <div class="device">
+        <span class="ring"></span><span class="ring r2"></span><span class="cross"></span>
+        <span class="lens"></span>
+        <span class="scanline"></span>
+        <span class="corner tl">F/1.8<br>4K UHD<br>IR 30m</span>
+        <span class="corner bl">IP67<br>H.265<br>PoE</span>
+        <span class="recbar"><span class="rec"><span class="dot"></span>REC</span> 1080P · IR ON · <span id="recTime">14:32:07</span></span>
+      </div>
+      <div class="spec-chips">
+        <div class="spec-chip"><small>PROTECTION</small><b>IP67</b></div>
+        <div class="spec-chip"><small>NIGHT VISION</small><b>50m IR</b></div>
+        <div class="spec-chip"><small>RESOLUTION</small><b>4K / 8MP</b></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== TRUST BAR ===================== -->
+<div class="trustbar">
+  <div class="container">
+    <span class="trust-item"><svg class="icon" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg> ضمانت اصالت کالا</span>
+    <span class="trust-item"><svg class="icon" viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg> ارسال سراسری ایران</span>
+    <span class="trust-item"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> گارانتی ۱۲ ماهه</span>
+    <span class="trust-item"><svg class="icon" viewBox="0 0 24 24"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg> پشتیبانی ۲۴/۷</span>
+    <span class="trust-item"><svg class="icon" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg> نصب و راه‌اندازی</span>
+  </div>
+</div>
+
+<!-- ===================== CATEGORIES ===================== -->
+<section class="section" id="categories">
+  <div class="container">
+    <div class="section-head center" data-reveal="up">
+      <span class="section-label">دسته‌بندی محصولات</span>
+      <h2>راهکار برای هر نیاز</h2>
+      <p class="section-sub">از تجهیزات امنیتی خانگی تا سیستم‌های صنعتی و معدنی — همه در یک جا.</p>
+    </div>
+    <div class="cat-grid">
+      <a href="#products" class="cat-card" data-reveal="up">
+        <span class="icon-box-navy"><svg class="icon" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></span>
+        <div class="cat-count">۳۲ محصول</div>
+        <h3>دوربین مداربسته</h3>
+        <p>دوربین‌های IP، آنالوگ و تحت شبکه با کیفیت 4K برای خانه و صنعت</p>
+        <span class="cat-link">مشاهده محصولات <svg class="icon" viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg></span>
+      </a>
+      <a href="#products" class="cat-card" data-reveal="up" data-delay="100">
+        <span class="icon-box-navy"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/></svg></span>
+        <div class="cat-count">۱۴ محصول</div>
+        <h3>دوربین خورشیدی</h3>
+        <p>سیستم‌های نظارتی مستقل با پنل خورشیدی، بدون نیاز به برق</p>
+        <span class="cat-link">مشاهده محصولات <svg class="icon" viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg></span>
+      </a>
+      <a href="#products" class="cat-card" data-reveal="up" data-delay="200">
+        <span class="icon-box-navy"><svg class="icon" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></span>
+        <div class="cat-count">۱۸ محصول</div>
+        <h3>سیستم ردیابی</h3>
+        <p>ردیاب‌های GPS خودرو و ناوگان با مدیریت هوشمند از راه دور</p>
+        <span class="cat-link">مشاهده محصولات <svg class="icon" viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg></span>
+      </a>
+      <a href="#products" class="cat-card" data-reveal="up" data-delay="300">
+        <span class="icon-box-navy"><svg class="icon" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
+        <div class="cat-count">۲۱ محصول</div>
+        <h3>تجهیزات امنیتی</h3>
+        <p>دزدگیر، کنترل تردد، فلزیاب و سیستم‌های اعلام حریق</p>
+        <span class="cat-link">مشاهده محصولات <svg class="icon" viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg></span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== PRODUCTS ===================== -->
+<section class="section section-alt" id="products">
+  <div class="container">
+    <div class="prod-head">
+      <div class="section-head" data-reveal="up">
+        <span class="section-label">پرفروش‌ترین‌ها</span>
+        <h2>محصولات ویژه</h2>
+      </div>
+      <a href="#" class="btn btn-outline" data-reveal="up">مشاهده همه محصولات <svg class="icon" width="14" height="14" viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg></a>
+    </div>
+    <div class="prod-grid">
+      <article class="prod-card" data-reveal="up">
+        <div class="prod-media">
+          <span class="led"></span><span class="badge badge-hot">پرفروش</span>
+          <svg class="icon" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        </div>
+        <div class="prod-body">
+          <div class="prod-cat">دوربین مداربسته</div>
+          <h3><a href="#">دوربین مداربسته 4K تحت شبکه DB-4000</a></h3>
+          <p class="prod-desc">رزولوشن 8MP، دید در شب ۵۰ متر، استاندارد IP67 — مناسب فضای داخلی و خارجی</p>
+        </div>
+        <div class="prod-footer">
+          <span class="price">4,800,000 <small>تومان</small></span>
+          <a href="#" class="btn btn-primary">جزئیات</a>
+        </div>
+      </article>
+      <article class="prod-card" data-reveal="up" data-delay="120">
+        <div class="prod-media">
+          <span class="led"></span><span class="badge badge-new">جدید</span>
+          <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/></svg>
+        </div>
+        <div class="prod-body">
+          <div class="prod-cat">دوربین خورشیدی</div>
+          <h3><a href="#">دوربین سولار 4G بی‌سیم SL-200</a></h3>
+          <p class="prod-desc">پنل خورشیدی یکپارچه، ذخیره 64GB داخلی، مشاهده آنلاین از موبایل</p>
+        </div>
+        <div class="prod-footer">
+          <span class="price">8,800,000 <small>تومان</small></span>
+          <a href="#" class="btn btn-primary">جزئیات</a>
+        </div>
+      </article>
+      <article class="prod-card" data-reveal="up" data-delay="240">
+        <div class="prod-media">
+          <span class="led"></span><span class="badge badge-sale">۱۵٪ تخفیف</span>
+          <svg class="icon" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        </div>
+        <div class="prod-body">
+          <div class="prod-cat">سیستم ردیابی</div>
+          <h3><a href="#">ردیاب مغناطیسی GPS مدل TRK-M1</a></h3>
+          <p class="prod-desc">افزایش قوی، عمر باتری ۶۰ روز، ضدآب IP67 — مناسب ناوگان و خودرو</p>
+        </div>
+        <div class="prod-footer">
+          <span class="price"><del>3,760,000</del>3,200,000 <small>تومان</small></span>
+          <a href="#" class="btn btn-primary">جزئیات</a>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== SERVICES ===================== -->
+<section class="section section-dark" id="services">
+  <div class="container">
+    <div class="section-head center" data-reveal="up">
+      <span class="section-label">خدمات تخصصی</span>
+      <h2>فراتر از فروش محصول</h2>
+      <p class="section-sub">از مشاوره اولیه تا نصب، راه‌اندازی و پشتیبانی دائمی — تیم ما در کنار شماست.</p>
+    </div>
+    <div class="srv-grid">
+      <div class="service-card" data-reveal="right">
+        <span class="icon-box-orange"><svg class="icon" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
+        <h3>هوشمندسازی معادن</h3>
+        <p>طراحی و پیاده‌سازی سیستم‌های نظارتی یکپارچه برای محیط‌های معدنی با شرایط سخت — غبار، لرزش و بدون برق.</p>
+        <ul class="srv-list">
+          <li>دوربین‌های ضدانفجار و ضدگردوغبار</li>
+          <li>سیستم کنترل تردد پرسنل معدن</li>
+          <li>مانیتورینگ آنلاین از مرکز فرماندهی</li>
+          <li>یکپارچه‌سازی با سیستم‌های موجود</li>
+        </ul>
+        <a href="#cta" class="btn btn-service">درخواست مشاوره رایگان</a>
+      </div>
+      <div class="service-card" data-reveal="left">
+        <span class="icon-box-orange"><svg class="icon" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></span>
+        <h3>تعمیرات تخصصی دوربین</h3>
+        <p>تعمیر انواع دوربین‌های مداربسته، IP و آنالوگ با تشخیص دقیق خرابی، تعویض قطعات اصلی و ضمانت تعمیر.</p>
+        <ul class="srv-list">
+          <li>تعمیر سنسور لنز و برد اصلی</li>
+          <li>بازیابی اطلاعات DVR و NVR</li>
+          <li>کالیبراسیون و تنظیم دید شب</li>
+          <li>ضمانت تعمیر ۳ ماهه</li>
+        </ul>
+        <a href="#cta" class="btn btn-service">ارسال دوربین برای تعمیر</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== WHY US ===================== -->
+<section class="section" id="why">
+  <div class="container why-grid">
+    <div data-reveal="right">
+      <div class="section-head">
+        <span class="section-label">چرا دید برتر</span>
+        <h2>تخصص بدون سازش</h2>
+        <p class="section-sub">شش سال تجربه در بازار ایران، به معنای رسمی و تیمی است که پشت محصولاتش می‌ایستد.</p>
+      </div>
+      <div class="why-list">
+        <div class="why-item"><span class="why-num">01</span><div><h4>مجوز رسمی فعالیت</h4><p>دارای مجوز از مراجع ذی‌صلاح — خرید از یک تأمین‌کننده قانونی و پاسخگو.</p></div></div>
+        <div class="why-item"><span class="why-num">02</span><div><h4>تجهیزات صنعتی واقعی</h4><p>محصولاتی که برای محیط‌های سخت طراحی شده‌اند — نه محصولات مصرفی با بسته‌بندی حرفه‌ای.</p></div></div>
+        <div class="why-item"><span class="why-num">03</span><div><h4>پشتیبانی فنی واقعی</h4><p>تیم متخصص برای راهنمایی نصب، رفع عیب و به‌روزرسانی — نه فقط فروش و خداحافظی.</p></div></div>
+      </div>
+    </div>
+    <div class="metrics-panel" data-reveal="left">
+      <h4>PERFORMANCE METRICS</h4>
+      <div class="metric"><div class="metric-row"><span>رضایت مشتریان</span><b>96%</b></div><div class="metric-bar"><span class="metric-fill" data-w="96"></span></div></div>
+      <div class="metric"><div class="metric-row"><span>تحویل به‌موقع</span><b>98%</b></div><div class="metric-bar"><span class="metric-fill" data-w="98"></span></div></div>
+      <div class="metric"><div class="metric-row"><span>اصالت کالا</span><b>100%</b></div><div class="metric-bar"><span class="metric-fill" data-w="100"></span></div></div>
+      <div class="metric"><div class="metric-row"><span>موفقیت تعمیرات</span><b>91%</b></div><div class="metric-bar"><span class="metric-fill" data-w="91"></span></div></div>
+      <div class="metric-chips">
+        <div class="mchip"><b>24<i>/7</i></b><span>پشتیبانی</span></div>
+        <div class="mchip"><b><i>+</i>500</b><span>پروژه</span></div>
+        <div class="mchip"><b><i>+</i>6</b><span>سال تجربه</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== TESTIMONIALS ===================== -->
+<section class="section section-alt" id="testimonials">
+  <div class="container">
+    <div class="section-head center" data-reveal="up">
+      <span class="section-label">نظرات مشتریان</span>
+      <h2>چه می‌گویند؟</h2>
+      <p class="section-sub">بیش از ۵۰۰ پروژه موفق — از نصب خانگی تا هوشمندسازی معدن.</p>
+    </div>
+    <div class="test-grid">
+      <div class="test-card" data-reveal="up">
+        <div class="stars"><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/></svg><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/></svg><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/></svg><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/></svg><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/></svg></div>
+        <blockquote>سیستم دوربین‌های انبارمان را کامل از دید برتر تهیه کردیم. نصب حرفه‌ای، تجهیزات باکیفیت و پشتیبانی بی‌نظیر. یک سال گذشته و هیچ مشکلی نداشته‌ایم.</blockquote>
+        <div class="test-author"><span class="avatar">م</span><div><b>مهندس رضایی</b><span>مدیر عملیات، شرکت لجستیک آرین</span></div></div>
+      </div>
+      <div class="test-card" data-reveal="up" data-delay="120">
+        <div class="stars"><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/></svg><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/></svg><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/></svg><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/></svg><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/></svg></div>
+        <blockquote>برای معدنمون سیستم نظارت خورشیدی نیاز داشتیم. تیم دید برتر از مشاوره تا نصب کنارمون بود. کیفیت تصویر شب فوق‌العاده‌ست.</blockquote>
+        <div class="test-author"><span class="avatar">ع</span><div><b>علیرضا کریمی</b><span>مدیر معدن سنگ آهن شرق</span></div></div>
+      </div>
+      <div class="test-card" data-reveal="up" data-delay="240">
+        <div class="stars"><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/></svg><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/></svg><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/></svg><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/></svg><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/></svg></div>
+        <blockquote>دوربین خورشیدی برای باغ تهیه کردم. واقعاً بدون دردسر کار می‌کنه و کیفیت تصویرش عالیه. ممنون از تیم دید برتر.</blockquote>
+        <div class="test-author"><span class="avatar">ف</span><div><b>فرید حسینی</b><span>مشتری خصوصی</span></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== CTA ===================== -->
+<section class="cta" id="cta">
+  <div class="container">
+    <span class="badge-trust" data-reveal="scale"><span class="dot"></span> پاسخ‌گویی در کمتر از ۲ ساعت</span>
+    <h2 data-reveal="up">نیاز به <span>مشاوره</span> دارید؟</h2>
+    <p data-reveal="up" data-delay="100">کارشناسان ما آماده‌اند بهترین راهکار امنیتی را برای شما پیشنهاد دهند — رایگان و بدون تعهد.</p>
+    <div class="cta-actions" data-reveal="up" data-delay="200">
+      <a href="tel:02188000000" class="btn btn-primary btn-hero">تماس با کارشناس <svg class="icon" width="16" height="16" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg></a>
+      <a href="#products" class="btn btn-ghost">مشاهده کاتالوگ محصولات</a>
+    </div>
+  </div>
+</section>
+</main>
+
+<!-- ===================== FOOTER ===================== -->
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-col footer-about">
+        <a class="logo" href="#"><span class="logo-mark"><svg class="icon" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></span><span class="logo-text"><strong>دید برتر</strong><span>توران تجارت</span></span></a>
+        <p>تأمین‌کننده تخصصی تجهیزات امنیتی، نظارتی و ردیابی با بیش از ۶ سال تجربه در بازار ایران. دارای مجوز رسمی فعالیت.</p>
+        <div class="socials">
+          <a href="#" aria-label="اینستاگرام"><svg class="icon" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a>
+          <a href="#" aria-label="تلگرام"><svg class="icon" viewBox="0 0 24 24"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg></a>
+          <a href="#" aria-label="واتساپ"><svg class="icon" viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h4>محصولات</h4>
+        <ul><li><a href="#">دوربین مداربسته</a></li><li><a href="#">دوربین خورشیدی</a></li><li><a href="#">سیستم ردیابی</a></li><li><a href="#">تجهیزات امنیتی</a></li><li><a href="#">فلزیاب</a></li></ul>
+      </div>
+      <div class="footer-col">
+        <h4>خدمات</h4>
+        <ul><li><a href="#">هوشمندسازی معادن</a></li><li><a href="#">تعمیرات تخصصی</a></li><li><a href="#">نصب و راه‌اندازی</a></li><li><a href="#">مشاوره رایگان</a></li></ul>
+      </div>
+      <div class="footer-col">
+        <h4>دسترسی سریع</h4>
+        <ul class="footer-contact">
+          <li><svg class="icon" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg> ۰۲۱-۸۸۰۰۰۰۰۰</li>
+          <li><svg class="icon" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> info@didbarttar.ir</li>
+          <li><svg class="icon" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> تهران، خیابان حافظ، پاساژ امنیت</li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© ۱۴۰۴ شرکت دید برتر توران تجارت — تمامی حقوق محفوظ است.</span>
+      <div class="footer-badges">
+        <span><svg class="icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> مجوز رسمی فعالیت</span>
+        <span><svg class="icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> گارانتی ۱۲ ماهه</span>
+        <span><svg class="icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> پشتیبانی ۲۴/۷</span>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* ---------- Scroll Reveal ---------- */
+(function(){
+  var els=document.querySelectorAll('[data-reveal]');
+  if(!('IntersectionObserver' in window)){els.forEach(function(e){e.classList.add('revealed')});return}
+  var io=new IntersectionObserver(function(entries){
+    entries.forEach(function(en){
+      if(en.isIntersecting){
+        var d=en.target.getAttribute('data-delay')||0;
+        setTimeout(function(){en.target.classList.add('revealed')},d);
+        io.unobserve(en.target);
+      }
+    });
+  },{threshold:.12,rootMargin:'0px 0px -60px 0px'});
+  els.forEach(function(e){io.observe(e)});
+})();
+
+/* ---------- Metric bars ---------- */
+(function(){
+  var fills=document.querySelectorAll('.metric-fill');
+  if(!fills.length)return;
+  var io=new IntersectionObserver(function(entries){
+    entries.forEach(function(en){
+      if(en.isIntersecting){en.target.style.width=en.target.getAttribute('data-w')+'%';io.unobserve(en.target)}
+    });
+  },{threshold:.4});
+  fills.forEach(function(f){io.observe(f)});
+})();
+
+/* ---------- Header scroll + menu ---------- */
+(function(){
+  var h=document.getElementById('siteHeader'),t=document.getElementById('menuToggle');
+  window.addEventListener('scroll',function(){h.classList.toggle('scrolled',window.scrollY>40)},{passive:true});
+  t.addEventListener('click',function(){h.classList.toggle('nav-open')});
+  document.querySelectorAll('.nav-links a').forEach(function(a){a.addEventListener('click',function(){h.classList.remove('nav-open')})});
+})();
+
+/* ---------- REC clock ---------- */
+(function(){
+  var el=document.getElementById('recTime');if(!el)return;
+  function pad(n){return n<10?'0'+n:n}
+  function tick(){var d=new Date();el.textContent=pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds())}
+  tick();setInterval(tick,1000);
+})();
+</script>
+</body>
+</html>
