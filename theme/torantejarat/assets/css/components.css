@@ -1,0 +1,55 @@
+.torantejarat-skip-link {
+	position: absolute;
+	inset-block-start: 0.5rem;
+	inset-inline-start: 0.5rem;
+	z-index: 100000;
+	padding: 0.5rem 1rem;
+	background: #fff;
+	clip-path: inset(50%);
+	inline-size: 1px;
+	block-size: 1px;
+	overflow: hidden;
+}
+
+.torantejarat-skip-link:focus {
+	clip-path: none;
+	inline-size: auto;
+	block-size: auto;
+	max-inline-size: calc(100% - 1rem);
+}
+
+.torantejarat-site-title {
+	font-weight: 700;
+}
+
+.torantejarat-menu,
+.torantejarat-menu ul {
+	list-style: none;
+	margin-block: 0;
+	padding-inline-start: 0;
+}
+
+.torantejarat-menu {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.5rem 1rem;
+}
+
+.torantejarat-menu li {
+	min-inline-size: 0;
+}
+
+.torantejarat-menu ul {
+	padding-inline-start: 1rem;
+}
+
+.torantejarat-menu a {
+	display: inline-block;
+	padding-block: 0.25rem;
+}
+
+.torantejarat-page-links {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.5rem;
+}
