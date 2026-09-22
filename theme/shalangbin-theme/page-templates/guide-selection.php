@@ -1,0 +1,12 @@
+<?php
+/**
+ * Template Name: راهنمای انتخاب دستگاه
+ *
+ * @package ShalangBin
+ */
+
+get_header();
+?>
+<section class="page-intro"><div class="container"><span class="eyebrow">راهنمای انتخاب</span><h1>قبل از انتخاب دوربین، این ۵ سؤال را بپرسید</h1><p>از قطر ورودی تا نوع کابل؛ یک چک‌لیست برای شروع انتخاب.</p></div></section><section class="section"><article class="container article-layout"><aside class="article-nav"><b>در این راهنما</b><a href="#part-0">قرار است کجا را ببینید؟</a><a href="#part-1">ابعاد مسیر چقدر است؟</a><a href="#part-2">محیط چه شرایطی دارد؟</a><a href="#part-3">از تصویر چه انتظاری دارید؟</a><a href="#part-4">پس از خرید چه چیزهایی نیاز دارید؟</a><a class="text-link" href="<?php echo esc_url( shalangbin_blog_url() ); ?>">همه راهنماها <svg class="icon " width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m14 7-5 5 5 5M9 12h12"/></svg></a></aside><div class="prose"><section id="part-0"><h2>قرار است کجا را ببینید؟</h2><p>کاربرد و محیط بازرسی را دقیق بنویسید. مسیر داخل یک قطعه با مسیر لوله یکسان نیست؛ ابعاد ورودی، پیچ‌ها و دسترسی به محل را برای مشاور توضیح دهید.</p></section><section id="part-1"><h2>ابعاد مسیر چقدر است؟</h2><p>قطر ورودی و طول مسیر را اندازه بگیرید. تنها طول کابل برای انتخاب کافی نیست؛ قطر هد و میزان انعطاف کابل نیز باید با مسیر تطبیق داده شوند.</p></section><section id="part-2"><h2>محیط چه شرایطی دارد؟</h2><p>وجود آب، روغن، حرارت یا مواد شیمیایی را مشخص کنید و سازگاری دستگاه را از روی دفترچه همان مدل بررسی کنید. به عبارت‌های کلی مانند «ضدآب» اکتفا نکنید.</p></section><section id="part-3"><h2>از تصویر چه انتظاری دارید؟</h2><p>از فروشنده نمونه خروجی همان مدل را بخواهید. نیاز به ضبط، نوع نمایشگر و فاصله مشاهده را پیش از تصمیم مشخص کنید.</p></section><section id="part-4"><h2>پس از خرید چه چیزهایی نیاز دارید؟</h2><p>اقلام همراه، قطعات جایگزین، شرایط ضمانت و خدمات را مکتوب بپرسید. فهرست مقایسه سایت نقطه شروع بررسی است و جای تأیید مشخصات را نمی‌گیرد.</p></section><div class="inline-notice">این مطلب راهنمای عمومی انتخاب است. مشخصات و دستورالعمل معتبر سازنده مدل مورد نظر را بررسی کنید.</div><a class="btn btn-primary" href="<?php echo esc_url( shalangbin_quiz_url() ); ?>">پیدا کردن گزینه‌های مرتبط <svg class="icon " width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m14 7-5 5 5 5M9 12h12"/></svg></a></div></article></section>
+<?php
+get_footer();
