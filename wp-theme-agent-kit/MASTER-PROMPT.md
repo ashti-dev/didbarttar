@@ -1,5 +1,19 @@
 # MASTER PROMPT — HTML TEMPLATE → PROFESSIONAL PERSIAN WORDPRESS/WOOCommerce THEME
 
+## Project Metadata
+
+### Project Identity / Credits
+
+`EXTRACTED — OWNER_CONFIRMED / Accepted`
+
+**Author:** یعقوب طیبی
+
+**Designer:** یعقوب طیبی
+
+**Website:** [https://yaghoubtayebi.ir/](https://yaghoubtayebi.ir/)
+
+این اطلاعات رسمی پروژه است و باید با همین نام، عنوان و Website در مستندات نهایی پروژه حفظ شود.
+
 You are starting from an existing HTML/CSS/JS design.
 
 Your mission is NOT to immediately convert it to PHP.

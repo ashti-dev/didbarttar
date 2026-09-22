@@ -1,0 +1,59 @@
+/* Neutral shell only; native content keeps WordPress rendering. */
+.torantejarat-site {
+	margin: 0;
+	background: #fff;
+	color: #202124;
+	font-family: system-ui, sans-serif;
+	line-height: 1.75;
+	overflow-wrap: anywhere;
+}
+
+.torantejarat-site *,
+.torantejarat-site *::before,
+.torantejarat-site *::after {
+	box-sizing: border-box;
+}
+
+.torantejarat-site :focus-visible {
+	outline: 3px solid currentColor;
+	outline-offset: 3px;
+}
+
+.torantejarat-site a {
+	color: #164b80;
+	text-underline-offset: 0.2em;
+}
+
+.torantejarat-site img,
+.torantejarat-site video {
+	max-inline-size: 100%;
+	block-size: auto;
+}
+
+.torantejarat-site iframe {
+	max-inline-size: 100%;
+}
+
+.torantejarat-site pre {
+	max-inline-size: 100%;
+	overflow: auto;
+}
+
+.torantejarat-site .screen-reader-text {
+	position: absolute;
+	inline-size: 1px;
+	block-size: 1px;
+	padding: 0;
+	border: 0;
+	overflow: hidden;
+	clip-path: inset(50%);
+	white-space: nowrap;
+}
+
+.torantejarat-site .screen-reader-text:focus {
+	position: static;
+	inline-size: auto;
+	block-size: auto;
+	clip-path: none;
+	white-space: normal;
+}
