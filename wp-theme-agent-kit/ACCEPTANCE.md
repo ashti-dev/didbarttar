@@ -1,5 +1,28 @@
 # ACCEPTANCE
 
+## Phase 7 — Runtime QA Preparation: current ledger
+
+Reference **`4640054480f7ccf5a29a3ba38f703534fe2bef9e`** on `arena/01a0c314-didbarttar`. Phase 6 remains frozen. [QA.md](QA.md#5-executable-runtime-qa-matrix--f-ac-0112) contains execution steps, prerequisites, fixtures, expected outcomes, evidence and result rules for every criterion. No runtime test or fixture creation has occurred; environment inspection only.
+
+| Criterion | Runtime result | Executed | Current blocker |
+|---|---|---|---|
+| F-AC-01 | BLOCKED / NOT AVAILABLE | No | PHP/WP/MySQL activation and diagnostics environment absent |
+| F-AC-02 | BLOCKED / NOT AVAILABLE | No | Real WP/editor/frontend/browser fixture absent |
+| F-AC-03 | BLOCKED / NOT AVAILABLE | No | Actual template/content/route fixture and browser absent |
+| F-AC-04 | BLOCKED / NOT AVAILABLE | No | Runtime registration/hooks/diagnostics unavailable |
+| F-AC-05 | BLOCKED / NOT AVAILABLE | No | HTTP runtime and actual browser network/console unavailable |
+| F-AC-06 | BLOCKED / NOT AVAILABLE | No | Real Woo/customer/cart/order fixture absent; mode/policy/provider-dependent cases also need their own prerequisites |
+| F-AC-07 | BLOCKED / NOT AVAILABLE | No | Real RTL/responsive/keyboard/focus browser execution unavailable |
+| F-AC-08 | BLOCKED / NOT AVAILABLE | No | Real users/roles/nonces/orders, browser/server and DB observations unavailable |
+| F-AC-09 | BLOCKED / NOT AVAILABLE | No | MySQL before/after observations and write attribution unavailable |
+| F-AC-10 | BLOCKED / NOT AVAILABLE | No | PHP lint/WP smoke and browser regression execution unavailable |
+| F-AC-11 | BLOCKED / NOT AVAILABLE | No | Actual browser request/console/waterfall evidence unavailable |
+| F-AC-12 | BLOCKED / NOT AVAILABLE | No | No deployed runtime/browser/DB artifact to match against the source baseline |
+
+Historical **source-only** F-AC-09/12 PASS remains unchanged below. It is not a Runtime PASS. Case and criterion aggregation follow [QA result rules](QA.md#3-result-rules-and-evidence-contract); partial, conditional and contract-blocked cases cannot be silently promoted. No activation, Woo rendering, Cart, Checkout, order placement/payment, login/logout or browser/database behavior is certified by preparation.
+
+## Historical Phase 6 acceptance context — not current execution status
+
 ## وضعیت جاری — Phase 6، مجوز مستقیم Owner / 2026-09-22
 
 **Phase 6 = IN PROGRESS — HTML → WordPress/WooCommerce Migration.** دستور جدید Owner جای محدودیت قبلی «Foundation only / هیچ فاز بعدی شروع نشود» را برای migration گرفته است. QA اجرا‌نشده Foundation، مرورگر و runtime موارد **Pending پیش از release** هستند، نه مانع عمومی توسعه. معیارهای پذیرش حذف نشده‌اند؛ هیچ compatibility یا release PASS اعلام نشده است. Payment provider، SEO نهایی و داده نهایی کاتالوگ نیز فقط جزء وابسته را متوقف می‌کنند.

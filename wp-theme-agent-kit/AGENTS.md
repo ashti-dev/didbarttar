@@ -1,5 +1,9 @@
 # AGENTS.md — WordPress Theme Agent Operating Rules
 
+## Current task — Phase 7 Runtime QA Preparation (2026-09-22)
+
+Baseline **`4640054480f7ccf5a29a3ba38f703534fe2bef9e`**, branch **`arena/01a0c314-didbarttar`**. Phase 6 stays closed/frozen. Phase 7 is **preparation only**, not runtime execution or migration: see [the executable matrix and minimal fixture plan](QA.md). Do not alter Theme/templates/CSS/JS/assets or frozen test runners, refactor, create fixtures, install dependencies/environments, or implement pending contracts. Inspect environment read-only. Record a discovered defect; no fix during preparation without separate authorization. Current **RUNTIME QA BLOCKED**; no source result can count as real WP/Woo/browser/MySQL PASS.
+
 ## Owner Freeze — effective 2026-09-22
 
 **Phase 6 is FROZEN: IMPLEMENTATION COMPLETE — RUNTIME QA BLOCKED.** No new source iterations, cosmetic fixes/refactors, dependency installation or Phase-6 runtime provisioning. Change frozen code only for a specific demonstrable defect with evidence and a minimal regression-backed fix; do not implement pending contracts. Next phase is **Runtime QA on a real WP/Woo/MySQL/PHP/browser fixture**. Source PASS never becomes runtime PASS. The [Exit Record and baseline inventory](PHASE-6-MIGRATION-REPORT.md) take precedence over earlier “continue migration” instructions below. NOT DONE / NOT READY FOR PRODUCTION.
