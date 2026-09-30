@@ -12,6 +12,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 $torantejarat_products = wc_get_products( array( 'status' => 'publish', 'featured' => true, 'visibility' => 'catalog', 'limit' => 4, 'orderby' => 'date', 'order' => 'DESC' ) );
+if ( ! $torantejarat_products ) {
+	$torantejarat_products = wc_get_products( array( 'status' => 'publish', 'visibility' => 'catalog', 'limit' => 4, 'orderby' => 'date', 'order' => 'DESC' ) );
+}
 $torantejarat_products = array_values( array_filter( $torantejarat_products, static fn( $item ) => $item instanceof \WC_Product && $item->is_visible() ) );
 if ( ! $torantejarat_products ) { return; }
 global $product, $post;
