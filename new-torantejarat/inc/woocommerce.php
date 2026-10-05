@@ -89,6 +89,7 @@ function torantejarat_woocommerce_setup() {
 	add_action( 'woocommerce_after_single_product_summary', __NAMESPACE__ . '\\torantejarat_related_section', 20 );
 	add_filter( 'woocommerce_single_product_image_thumbnail_html', __NAMESPACE__ . '\\torantejarat_main_image_tag', 10, 2 );
 	add_filter( 'gettext', __NAMESPACE__ . '\\torantejarat_related_heading', 10, 3 );
+	add_filter( 'woocommerce_no_available_payment_methods_message', __NAMESPACE__ . '\\torantejarat_no_payment_message' );
 	add_filter( 'formatted_woocommerce_price', __NAMESPACE__ . '\\torantejarat_price_digits' );
 	add_filter( 'woocommerce_price_format', __NAMESPACE__ . '\\torantejarat_price_format' );
 	add_action( 'add_meta_boxes', __NAMESPACE__ . '\\torantejarat_product_meta_boxes' );
@@ -769,7 +770,22 @@ function torantejarat_related_heading( $translated, $text, $domain ) {
 			return $map[ $text ];
 		}
 	}
+	if ( 'woocommerce' === $domain && str_contains( (string) $text, 'Your personal data will be used to process your order' ) ) {
+		return __( 'اطلاعات شما فقط برای پردازش سفارش و پشتیبانی استفاده می‌شود. جزئیات در [privacy_policy].', 'torantejarat' );
+	}
 	return $translated;
+}
+
+/**
+ * No gateway configured yet: honest dead-end with a path forward.
+ */
+function torantejarat_no_payment_message() {
+	$contact = get_page_by_path( 'contact' );
+	$message = __( 'تسویه آنلاین هنوز فعال نشده است. برای نهایی کردن خرید، درخواست خود را ثبت کنید تا کارشناس با شما تماس بگیرد.', 'torantejarat' );
+	if ( $contact ) {
+		$message .= ' <a class="torantejarat-btn torantejarat-btn-primary" href="' . esc_url( get_permalink( $contact ) ) . '">' . esc_html__( 'ثبت درخواست خرید', 'torantejarat' ) . '</a>';
+	}
+	return $message;
 }
 
 /**
