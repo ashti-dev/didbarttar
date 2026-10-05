@@ -20,7 +20,14 @@ get_header();
 		<?php get_template_part( 'template-parts/page-intro', null, array( 'title' => get_the_title() ) ); ?>
 		<section class="torantejarat-section"><div class="torantejarat-container torantejarat-request-layout<?php echo $torantejarat_has_aside ? '' : ' torantejarat-no-aside'; ?>">
 			<?php if ( $torantejarat_has_aside ) : ?><aside class="torantejarat-request-guide"><?php if ( ! post_password_required() ) { if ( has_excerpt() ) { the_excerpt(); } if ( has_post_thumbnail() ) { the_post_thumbnail( 'large' ); } } ?></aside><?php endif; ?>
-			<div class="torantejarat-request-form torantejarat-prose"><?php the_content(); wp_link_pages(); ?></div>
+			<div class="torantejarat-request-form torantejarat-prose"><?php the_content(); wp_link_pages(); ?>
+				<?php
+				$torantejarat_request_type = get_post_field( 'post_name', get_the_ID() );
+				if ( ! post_password_required() && in_array( $torantejarat_request_type, array( 'contact', 'rent', 'repairs' ), true ) ) {
+					torantejarat_request_form( $torantejarat_request_type );
+				}
+				?>
+			</div>
 		</div></section>
 	<?php endwhile; ?>
 </main>

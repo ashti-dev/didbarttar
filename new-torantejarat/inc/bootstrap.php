@@ -16,9 +16,13 @@ require_once __DIR__ . '/patterns.php';
 require_once __DIR__ . '/setup.php';
 require_once __DIR__ . '/assets.php';
 require_once __DIR__ . '/woocommerce.php';
+require_once __DIR__ . '/requests.php';
 
 add_action( 'after_setup_theme', __NAMESPACE__ . '\\torantejarat_setup' );
 add_action( 'after_setup_theme', __NAMESPACE__ . '\\torantejarat_woocommerce_setup' );
+add_action( 'init', __NAMESPACE__ . '\\torantejarat_register_request_type' );
+add_action( 'admin_post_nopriv_torantejarat_request', __NAMESPACE__ . '\\torantejarat_handle_request' );
+add_action( 'admin_post_torantejarat_request', __NAMESPACE__ . '\\torantejarat_handle_request' );
 add_action( 'wp_enqueue_scripts', __NAMESPACE__ . '\\torantejarat_enqueue_assets' );
 add_action( 'wp_head', __NAMESPACE__ . '\\torantejarat_font_preload', 1 );
 add_action( 'admin_notices', __NAMESPACE__ . '\\torantejarat_woocommerce_notice' );

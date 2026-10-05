@@ -549,7 +549,7 @@ function torantejarat_product_actions() {
 		echo ' ' . esc_html__( 'مقایسه با دستگاه‌های دیگر', 'torantejarat' ) . '</a>';
 	}
 	if ( $contact ) {
-		$url = add_query_arg( 'product', $product->get_id(), get_permalink( $contact ) );
+		$url = add_query_arg( 'device', $product->get_id(), get_permalink( $contact ) );
 		echo '<a href="' . esc_url( $url ) . '">';
 		torantejarat_icon( 'search' );
 		echo ' ' . esc_html__( 'مشاوره انتخاب', 'torantejarat' ) . '</a>';
@@ -652,7 +652,7 @@ function torantejarat_product_video_section() {
 			<div class="torantejarat-pdp-video-placeholder">
 				<?php torantejarat_icon( 'search' ); ?>
 				<p><?php esc_html_e( 'ویدیوی تأییدشده این مدل هنوز بارگذاری نشده است.', 'torantejarat' ); ?></p>
-				<?php if ( $contact ) : ?><a class="torantejarat-btn torantejarat-btn-outline" href="<?php echo esc_url( add_query_arg( array( 'product' => $product->get_id(), 'topic' => 'video' ), get_permalink( $contact ) ) ); ?>"><?php esc_html_e( 'درخواست نمونه تصویر', 'torantejarat' ); ?> <?php torantejarat_icon( 'arrow' ); ?></a><?php endif; ?>
+				<?php if ( $contact ) : ?><a class="torantejarat-btn torantejarat-btn-outline" href="<?php echo esc_url( add_query_arg( array( 'device' => $product->get_id(), 'topic' => 'video' ), get_permalink( $contact ) ) ); ?>"><?php esc_html_e( 'درخواست نمونه تصویر', 'torantejarat' ); ?> <?php torantejarat_icon( 'arrow' ); ?></a><?php endif; ?>
 			</div>
 		<?php endif; ?>
 	</section></div>
