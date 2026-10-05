@@ -54,12 +54,7 @@
 .torantejarat-site ul.products.torantejarat-product-grid .button,.torantejarat-site ul.products.torantejarat-product-grid .added_to_cart{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px;border:1px solid #d9e1ce;border-radius:8px;background:#edf2e5;margin:0 17px 15px;font-size:12px;font-weight:600;color:var(--ink);line-height:1.9;white-space:normal}
 .torantejarat-site ul.products.torantejarat-product-grid .button:hover{background:#e0e8d5}
 .torantejarat-site ul.products.torantejarat-product-grid .onsale{position:absolute;inset-block-start:12px;inset-inline-start:12px;inset-inline-end:auto;margin:0;min-height:0;min-width:0;border-radius:5px;padding:3px 9px;background:#ffffffed;color:var(--ink);line-height:1.9;font-size:9px;pointer-events:none}
-/* Unified breadcrumbs: same container, rhythm and type on every template. */
-.torantejarat-woo-breadcrumb{display:flex;flex-wrap:wrap;align-items:center;gap:9px;font-size:12px;color:#69766c;padding-block:20px}
-.torantejarat-woo-breadcrumb:not(.torantejarat-container){width:min(1280px,100% - 96px);margin-inline:auto}
-.torantejarat-woo-breadcrumb a{color:inherit}
-@media(max-width:900px){.torantejarat-woo-breadcrumb:not(.torantejarat-container){width:calc(100% - 40px)}}
-@media(max-width:600px){.torantejarat-woo-breadcrumb{font-size:10px;padding-block:16px}.torantejarat-woo-breadcrumb:not(.torantejarat-container){width:calc(100% - 32px)}}
+/* Breadcrumbs render through the shared .torantejarat-site-crumbs component. */
 .torantejarat-site .woocommerce-products-header h1{font-size:36px;letter-spacing:-1px}
 .torantejarat-site .woocommerce-products-header p{max-width:640px;font-size:12px;margin-top:14px;line-height:2.1}
 .torantejarat-site .woocommerce-result-count,.torantejarat-site .woocommerce-ordering{font-size:11px;margin-bottom:20px}
@@ -182,7 +177,7 @@ body.single-product a.added_to_cart.wc-forward{display:none!important}
 .torantejarat-site .screen-reader-text:focus{clip:auto!important;clip-path:none;height:auto;left:5px;top:5px;width:auto;padding:15px;background:#fff;color:var(--ink);z-index:100000}
 .torantejarat-site.admin-bar .torantejarat-site-header{top:var(--wp-admin--admin-bar--height,32px)}
 .torantejarat-site .torantejarat-shop-intro .woocommerce-products-header{background:none;padding:0;margin:0;border:0}
-.torantejarat-shop-intro .torantejarat-woo-breadcrumb{padding:0;margin-bottom:24px}
+.torantejarat-shop-intro .torantejarat-site-crumbs{padding:0;margin-bottom:24px}
 .torantejarat-site .torantejarat-catalog-toolbar .woocommerce-result-count,.torantejarat-site .torantejarat-catalog-toolbar .woocommerce-ordering{float:none;margin:0}
 .torantejarat-site ul.products.torantejarat-product-grid .stock{font-size:10px;margin:0 0 12px}
 .torantejarat-site .torantejarat-shop-card-specs{margin-inline:0}
@@ -217,7 +212,7 @@ body.single-product a.added_to_cart.wc-forward{display:none!important}
   .torantejarat-authored-sections>:not(.torantejarat-section):not(.torantejarat-benefit-strip){width:calc(100% - 32px)}
   .torantejarat-benefit-strip .torantejarat-container>p{padding:12px 0;font-size:9px;justify-content:flex-start;border:0}
   .torantejarat-benefit-strip .torantejarat-container>p:nth-child(even){padding-inline-start:12px;border-inline-start:1px solid #d6ded0}
-  .torantejarat-shop-intro .torantejarat-woo-breadcrumb{margin-bottom:18px}
+  .torantejarat-shop-intro .torantejarat-site-crumbs{margin-bottom:18px}
   .torantejarat-site .torantejarat-pdp-gallery .woocommerce-product-gallery__image{border-radius:12px}
   .torantejarat-site.woocommerce div.product .woocommerce-tabs ul.tabs{gap:23px;padding:0;margin-top:18px}
   .torantejarat-site.woocommerce div.product .woocommerce-tabs ul.tabs li a{font-size:10px;padding:15px 0}

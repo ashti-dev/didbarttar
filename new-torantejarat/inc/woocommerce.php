@@ -31,7 +31,8 @@ function torantejarat_woocommerce_setup() {
 	remove_action( 'woocommerce_shop_loop_item_title', 'woocommerce_template_loop_product_title', 10 );
 	add_action( 'woocommerce_shop_loop_item_title', __NAMESPACE__ . '\\torantejarat_loop_product_title', 10 );
 	add_filter( 'woocommerce_product_loop_start', __NAMESPACE__ . '\\torantejarat_product_loop_start' );
-	add_filter( 'woocommerce_breadcrumb_defaults', __NAMESPACE__ . '\\torantejarat_woo_breadcrumb' );
+	remove_action( 'woocommerce_before_main_content', 'woocommerce_breadcrumb', 20 );
+	add_action( 'woocommerce_before_main_content', __NAMESPACE__ . '\\torantejarat_woocommerce_breadcrumb', 20 );
 	add_filter( 'woocommerce_add_to_cart_fragments', __NAMESPACE__ . '\\torantejarat_cart_fragments' );
 	add_filter( 'woocommerce_add_to_cart_fragments', __NAMESPACE__ . '\\torantejarat_dropdown_fragments', 20 );
 	add_filter( 'woocommerce_currency_symbol', __NAMESPACE__ . '\\torantejarat_currency_symbol', 10, 2 );
@@ -175,10 +176,67 @@ function torantejarat_product_video_player( $product_id ) {
 	);
 }
 
-function torantejarat_woo_breadcrumb( $defaults ) {
-	$defaults['wrap_before'] = '<nav class="torantejarat-woo-breadcrumb' . ( is_product() ? ' torantejarat-container' : '' ) . '" aria-label="' . esc_attr__( 'مسیر صفحه', 'torantejarat' ) . '">';
-	$defaults['wrap_after']  = '</nav>';
-	return $defaults;
+/**
+ * Unified breadcrumb on Woo templates — same component as every other page.
+ * Shop/category archives render inside .torantejarat-shop-intro;
+ * single products get a contained shell with mobile wrap for long names.
+ */
+function torantejarat_woocommerce_breadcrumb() {
+	$trail = array( torantejarat_home_crumb() );
+	if ( is_product() ) {
+		global $product;
+		if ( wc_get_page_id( 'shop' ) > 0 ) {
+			$trail[] = array( 'label' => get_the_title( wc_get_page_id( 'shop' ) ), 'url' => wc_get_page_permalink( 'shop' ) );
+		}
+		if ( $product instanceof \WC_Product ) {
+			$terms = get_the_terms( $product->get_id(), 'product_cat' );
+			if ( $terms && ! is_wp_error( $terms ) ) {
+				foreach ( array_reverse( get_ancestors( $terms[0]->term_id, 'product_cat' ) ) as $ancestor_id ) {
+					$ancestor = get_term( $ancestor_id, 'product_cat' );
+					if ( $ancestor && ! is_wp_error( $ancestor ) ) {
+						$trail[] = array( 'label' => $ancestor->name, 'url' => get_term_link( $ancestor ) );
+					}
+				}
+				$trail[] = array( 'label' => $terms[0]->name, 'url' => get_term_link( $terms[0] ) );
+			}
+			$trail[] = array( 'label' => $product->get_name() );
+		} else {
+			$trail[] = array( 'label' => get_the_title() );
+		}
+		echo '<div class="torantejarat-container torantejarat-product-breadcrumb-shell">';
+		torantejarat_breadcrumb( $trail );
+		echo '</div>';
+		return;
+	}
+	if ( is_product_taxonomy() ) {
+		if ( wc_get_page_id( 'shop' ) > 0 ) {
+			$trail[] = array( 'label' => get_the_title( wc_get_page_id( 'shop' ) ), 'url' => wc_get_page_permalink( 'shop' ) );
+		}
+		$term = get_queried_object();
+		if ( $term instanceof \WP_Term ) {
+			foreach ( array_reverse( get_ancestors( $term->term_id, $term->taxonomy ) ) as $ancestor_id ) {
+				$ancestor = get_term( $ancestor_id, $term->taxonomy );
+				if ( $ancestor && ! is_wp_error( $ancestor ) ) {
+					$trail[] = array( 'label' => $ancestor->name, 'url' => get_term_link( $ancestor ) );
+				}
+			}
+			$trail[] = array( 'label' => $term->name );
+		}
+	} elseif ( is_shop() || is_cart() || is_checkout() || is_account_page() ) {
+		/* Explicit page titles: on archives get_the_title() would return the
+		   first loop product, not the page. */
+		$torantejarat_title = '';
+		if ( is_shop() && wc_get_page_id( 'shop' ) > 0 ) {
+			$torantejarat_title = get_the_title( wc_get_page_id( 'shop' ) );
+		} elseif ( ( is_cart() || is_checkout() || is_account_page() ) && get_the_ID() ) {
+			$torantejarat_title = get_the_title( get_the_ID() );
+		}
+		if ( '' === $torantejarat_title ) {
+			$torantejarat_title = get_the_title();
+		}
+		$trail[] = array( 'label' => $torantejarat_title );
+	}
+	torantejarat_breadcrumb( $trail );
 }
 
 function torantejarat_product_loop_start( $html ) {

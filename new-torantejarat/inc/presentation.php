@@ -32,6 +32,67 @@ function torantejarat_icon( $name ) {
 	echo '<svg class="' . esc_attr( $class ) . '" width="' . esc_attr( $size ) . '" height="' . esc_attr( $size ) . '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="' . esc_attr( $path ) . '"/></svg>';
 }
 
+/**
+ * Unified breadcrumb trail used by every template.
+ * Items: array of array( 'label' => string, 'url' => string|null ).
+ * The last item is the current page (no URL). Emits JSON-LD BreadcrumbList.
+ */
+function torantejarat_breadcrumb( array $trail ) {
+	$trail = array_values(
+		array_filter(
+			$trail,
+			static fn( $item ) => is_array( $item ) && '' !== trim( (string) ( $item['label'] ?? '' ) )
+		)
+	);
+	if ( ! $trail ) {
+		return;
+	}
+	$home_url = home_url( '/' );
+	?>
+	<nav class="torantejarat-site-crumbs" aria-label="<?php esc_attr_e( 'مسیر صفحه', 'torantejarat' ); ?>"><ol>
+		<?php foreach ( $trail as $torantejarat_index => $torantejarat_crumb ) : ?>
+			<?php
+			$torantejarat_label = (string) $torantejarat_crumb['label'];
+			$torantejarat_url   = $torantejarat_crumb['url'] ?? null;
+			$torantejarat_last  = $torantejarat_index === count( $trail ) - 1;
+			$torantejarat_home  = 0 === $torantejarat_index && $torantejarat_url && trailingslashit( $torantejarat_url ) === trailingslashit( $home_url );
+			?>
+			<li>
+				<?php if ( 0 !== $torantejarat_index ) : ?><?php torantejarat_icon( 'chevron' ); ?><?php endif; ?>
+				<?php if ( $torantejarat_last || ! $torantejarat_url ) : ?>
+					<span class="torantejarat-crumb-current"<?php echo $torantejarat_last ? ' aria-current="page"' : ''; ?>><?php echo esc_html( $torantejarat_label ); ?></span>
+				<?php else : ?>
+					<a href="<?php echo esc_url( $torantejarat_url ); ?>"><?php if ( $torantejarat_home ) { torantejarat_icon( 'home' ); } ?><span><?php echo esc_html( $torantejarat_label ); ?></span></a>
+				<?php endif; ?>
+			</li>
+		<?php endforeach; ?>
+	</ol></nav>
+	<?php
+	$torantejarat_ld = array(
+		'@context'        => 'https://schema.org',
+		'@type'           => 'BreadcrumbList',
+		'itemListElement' => array(),
+	);
+	$torantejarat_pos = 0;
+	foreach ( $trail as $torantejarat_crumb ) {
+		++$torantejarat_pos;
+		$torantejarat_ld['itemListElement'][] = array(
+			'@type'    => 'ListItem',
+			'position' => $torantejarat_pos,
+			'name'     => (string) $torantejarat_crumb['label'],
+			'item'     => ! empty( $torantejarat_crumb['url'] ) ? esc_url_raw( $torantejarat_crumb['url'] ) : esc_url_raw( home_url( add_query_arg( null, null ) ) ),
+		);
+	}
+	echo '<script type="application/ld+json">' . wp_json_encode( $torantejarat_ld, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) . '</script>' . "\n";
+}
+
+/**
+ * Home crumb shared by every trail.
+ */
+function torantejarat_home_crumb() {
+	return array( 'label' => __( 'خانه', 'torantejarat' ), 'url' => home_url( '/' ) );
+}
+
 function torantejarat_menu_title( $location ) {
 	$locations = get_nav_menu_locations();
 	$menu      = isset( $locations[ $location ] ) ? wp_get_nav_menu_object( $locations[ $location ] ) : false;
