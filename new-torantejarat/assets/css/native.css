@@ -500,6 +500,13 @@ body.js .torantejarat-video-cover{display:block}
 .torantejarat-form-notice{border-radius:12px;padding:16px 18px;font-size:13px;margin-top:24px}
 .torantejarat-form-notice.is-success{background:#eef4e6;border:1px solid #cfdcc0}
 .torantejarat-form-notice.is-error{background:#fdf0e8;border:1px solid #f0c9ae}
+/* Checkout redesign: compact 7-field billing form. */
+.torantejarat-site .woocommerce-checkout .woocommerce-billing-fields h3{font-size:18px;margin-bottom:18px}
+.torantejarat-site .woocommerce-checkout .form-row{margin-bottom:16px;padding:0}
+.torantejarat-site .woocommerce-checkout .form-row label{font-size:12px;font-weight:700;display:block;margin-bottom:6px}
+.torantejarat-site .woocommerce-checkout .form-row .required{color:var(--orange);font-weight:800}
+.torantejarat-site .woocommerce-checkout .form-row input,.torantejarat-site .woocommerce-checkout .form-row select{width:100%}
+.torantejarat-site .woocommerce-checkout #place_order{width:100%;min-height:52px;font-size:14px}
 /* Compare AJAX refresh: lightweight loading state, no layout jump. */
 .torantejarat-compare-results{transition:opacity .2s ease}
 .torantejarat-compare-results.is-loading{opacity:.45;min-height:120px;pointer-events:none}

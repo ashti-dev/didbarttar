@@ -49,6 +49,12 @@ function torantejarat_woocommerce_setup() {
 	add_action( 'woocommerce_archive_description', __NAMESPACE__ . '\\torantejarat_archive_categories', 30 );
 	add_action( 'wp_ajax_torantejarat_compare', __NAMESPACE__ . '\\torantejarat_compare_fragment' );
 	add_action( 'wp_ajax_nopriv_torantejarat_compare', __NAMESPACE__ . '\\torantejarat_compare_fragment' );
+	add_filter( 'woocommerce_states', __NAMESPACE__ . '\\torantejarat_ir_states' );
+	add_filter( 'default_checkout_billing_country', static fn() => 'IR' );
+	add_filter( 'default_checkout_shipping_country', static fn() => 'IR' );
+	add_filter( 'woocommerce_checkout_fields', __NAMESPACE__ . '\\torantejarat_checkout_fields', 20 );
+	add_action( 'woocommerce_checkout_process', __NAMESPACE__ . '\\torantejarat_checkout_phone_check', 20 );
+	add_filter( 'woocommerce_checkout_posted_data', __NAMESPACE__ . '\\torantejarat_checkout_force_country' );
 
 	add_action( 'woocommerce_before_cart', __NAMESPACE__ . '\\torantejarat_cart_layout_start', 99 );
 	add_action( 'woocommerce_after_cart', __NAMESPACE__ . '\\torantejarat_cart_layout_end', 1 );
@@ -114,7 +120,7 @@ function torantejarat_woocommerce_wrapper_end() {
 }
 
 function torantejarat_currency_symbol( $symbol, $currency ) {
-	if ( 'IRHT' === $currency ) {
+	if ( in_array( $currency, array( 'IRHT', 'IRT' ), true ) ) {
 		return __( 'تومان', 'torantejarat' );
 	}
 	return $symbol;
@@ -1091,6 +1097,94 @@ function torantejarat_compare_fragment() {
 		)
 	);
 }
+/**
+ * Checkout redesign: minimal Iranian billing form (7 fields only).
+ * Removes company / country (fixed to Iran) / address line 2 / email.
+ */
+function torantejarat_ir_states( $states ) {
+	$states['IR'] = array(
+		'EAZ' => __( 'آذربایجان شرقی', 'torantejarat' ),
+		'WAZ' => __( 'آذربایجان غربی', 'torantejarat' ),
+		'ADL' => __( 'اردبیل', 'torantejarat' ),
+		'ESF' => __( 'اصفهان', 'torantejarat' ),
+		'ABZ' => __( 'البرز', 'torantejarat' ),
+		'ILM' => __( 'ایلام', 'torantejarat' ),
+		'BHR' => __( 'بوشهر', 'torantejarat' ),
+		'THR' => __( 'تهران', 'torantejarat' ),
+		'CHB' => __( 'چهارمحال و بختیاری', 'torantejarat' ),
+		'SKH' => __( 'خراسان جنوبی', 'torantejarat' ),
+		'RKH' => __( 'خراسان رضوی', 'torantejarat' ),
+		'NKH' => __( 'خراسان شمالی', 'torantejarat' ),
+		'KHZ' => __( 'خوزستان', 'torantejarat' ),
+		'ZJN' => __( 'زنجان', 'torantejarat' ),
+		'SMN' => __( 'سمنان', 'torantejarat' ),
+		'SBN' => __( 'سیستان و بلوچستان', 'torantejarat' ),
+		'FRS' => __( 'فارس', 'torantejarat' ),
+		'GZN' => __( 'قزوین', 'torantejarat' ),
+		'QHM' => __( 'قم', 'torantejarat' ),
+		'KRD' => __( 'کردستان', 'torantejarat' ),
+		'KRN' => __( 'کرمان', 'torantejarat' ),
+		'KRH' => __( 'کرمانشاه', 'torantejarat' ),
+		'KBD' => __( 'کهگیلویه و بویراحمد', 'torantejarat' ),
+		'GLS' => __( 'گلستان', 'torantejarat' ),
+		'GIL' => __( 'گیلان', 'torantejarat' ),
+		'LRS' => __( 'لرستان', 'torantejarat' ),
+		'MZN' => __( 'مازندران', 'torantejarat' ),
+		'MKZ' => __( 'مرکزی', 'torantejarat' ),
+		'HRZ' => __( 'هرمزگان', 'torantejarat' ),
+		'HDN' => __( 'همدان', 'torantejarat' ),
+		'YZD' => __( 'یزد', 'torantejarat' ),
+	);
+	return $states;
+}
+
+function torantejarat_checkout_fields( $fields ) {
+	if ( ! isset( $fields['billing'] ) ) {
+		return $fields;
+	}
+	$keep = array(
+		'billing_first_name' => array( 'label' => __( 'نام', 'torantejarat' ), 'placeholder' => '', 'priority' => 10, 'autocomplete' => 'given-name', 'class' => array( 'form-row-first' ) ),
+		'billing_last_name'  => array( 'label' => __( 'نام خانوادگی', 'torantejarat' ), 'placeholder' => '', 'priority' => 20, 'autocomplete' => 'family-name', 'class' => array( 'form-row-last' ) ),
+		'billing_state'      => array( 'label' => __( 'استان', 'torantejarat' ), 'placeholder' => '', 'priority' => 30, 'autocomplete' => 'address-level1', 'class' => array( 'form-row-first' ) ),
+		'billing_city'       => array( 'label' => __( 'شهر', 'torantejarat' ), 'placeholder' => '', 'priority' => 40, 'autocomplete' => 'address-level2', 'class' => array( 'form-row-last' ) ),
+		'billing_address_1'  => array( 'label' => __( 'آدرس خیابان', 'torantejarat' ), 'placeholder' => __( 'نام خیابان، پلاک و واحد', 'torantejarat' ), 'priority' => 50, 'autocomplete' => 'street-address', 'class' => array( 'form-row-wide' ) ),
+		'billing_postcode'   => array( 'label' => __( 'کد پستی', 'torantejarat' ), 'placeholder' => __( 'کد پستی ۱۰ رقمی', 'torantejarat' ), 'priority' => 60, 'autocomplete' => 'postal-code', 'class' => array( 'form-row-first' ), 'custom_attributes' => array( 'dir' => 'ltr', 'inputmode' => 'numeric' ) ),
+		'billing_phone'      => array( 'label' => __( 'تلفن همراه', 'torantejarat' ), 'placeholder' => '09123456789', 'priority' => 70, 'autocomplete' => 'tel', 'class' => array( 'form-row-last' ), 'custom_attributes' => array( 'dir' => 'ltr' ) ),
+	);
+	$billing = array();
+	foreach ( $keep as $key => $overrides ) {
+		if ( ! isset( $fields['billing'][ $key ] ) ) {
+			continue;
+		}
+		$billing[ $key ] = array_merge( $fields['billing'][ $key ], $overrides, array( 'required' => true ) );
+	}
+	$fields['billing'] = $billing;
+	return $fields;
+}
+
+/**
+ * Country field is hidden (fixed to Iran): enforce it on posted data so
+ * state/postcode validate against IR instead of the store base country.
+ */
+function torantejarat_checkout_force_country( $data ) {
+	$data['billing_country']  = 'IR';
+	$data['shipping_country'] = 'IR';
+	return $data;
+}
+
+/**
+ * Strict Iranian mobile validation at checkout (accepts Persian digits).
+ */
+function torantejarat_checkout_phone_check() {
+	if ( empty( $_POST['billing_phone'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Woo validates its own nonce.
+		return;
+	}
+	$phone = torantejarat_request_phone( wp_unslash( $_POST['billing_phone'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
+	if ( '' === $phone ) {
+		wc_add_notice( __( 'شماره موبایل معتبر نیست؛ مثل 09123456789 وارد کنید.', 'torantejarat' ), 'error' );
+	}
+}
+
 function torantejarat_loop_product_title() {
 	$level = in_array( wc_get_loop_prop( 'name' ), array( 'torantejarat-home', 'related', 'up-sells', 'cross-sells' ), true ) ? 3 : 2;
 	$class = apply_filters( 'woocommerce_product_loop_title_classes', 'woocommerce-loop-product__title' );
