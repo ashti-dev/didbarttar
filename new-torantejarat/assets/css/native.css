@@ -586,3 +586,7 @@ body.js .torantejarat-video-cover{display:block}
 .torantejarat-site .product-slide .torantejarat-product-image img{object-fit:contain;background:#f1f0ea;padding:12px}
 .torantejarat-site .product-slide .torantejarat-product-bottom strong{font-size:18px;font-weight:800}
 .torantejarat-site .torantejarat-check-list svg{color:var(--green)}
+/* Compare page empty state (also reused by other pickers). */
+.torantejarat-site .torantejarat-empty-state{display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center;background:#f8f9f5;border:1px dashed #cfd8c6;border-radius:16px;padding:44px 24px;color:var(--muted)}
+.torantejarat-site .torantejarat-empty-state .torantejarat-icon{width:40px;height:40px}
+.torantejarat-site .torantejarat-empty-state p{font-size:13px}
