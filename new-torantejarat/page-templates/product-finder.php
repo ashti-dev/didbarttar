@@ -155,7 +155,7 @@ get_header();
 							<div class="torantejarat-finder-options">
 								<?php foreach ( $torantejarat_step['options'] as $torantejarat_opt_key => $torantejarat_opt_label ) : ?>
 									<label class="torantejarat-finder-option">
-										<input type="radio" name="<?php echo esc_attr( $torantejarat_step_key ); ?>" value="<?php echo esc_attr( $torantejarat_opt_key ); ?>"<?php checked( $torantejarat_answers[ $torantejarat_step_key ], (string) $torantejarat_opt_key ); ?>>
+										<input type="radio" name="<?php echo esc_attr( $torantejarat_step_key ); ?>" value="<?php echo esc_attr( $torantejarat_opt_key ); ?>"<?php echo $torantejarat_submitted ? checked( $torantejarat_answers[ $torantejarat_step_key ], (string) $torantejarat_opt_key, false ) : ''; ?>>
 										<span><?php echo esc_html( $torantejarat_opt_label ); ?></span>
 									</label>
 								<?php endforeach; ?>
