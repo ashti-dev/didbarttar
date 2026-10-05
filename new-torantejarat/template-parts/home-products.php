@@ -11,7 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-$torantejarat_products = wc_get_products( array( 'status' => 'publish', 'featured' => true, 'visibility' => 'catalog', 'limit' => 8, 'orderby' => 'date', 'order' => 'DESC' ) );
+$torantejarat_products = wc_get_products( array( 'status' => 'publish', 'featured' => true, 'visibility' => 'catalog', 'limit' => 8 ) );
 if ( ! $torantejarat_products ) {
 	$torantejarat_products = wc_get_products( array( 'status' => 'publish', 'visibility' => 'catalog', 'limit' => 8, 'orderby' => 'date', 'order' => 'DESC' ) );
 }
@@ -21,9 +21,9 @@ if ( ! $torantejarat_products ) { return; }
 <section class="torantejarat-section torantejarat-soft-section torantejarat-product-slider-section"><div class="torantejarat-container woocommerce">
 	<div class="torantejarat-section-heading">
 		<div>
-			<span class="torantejarat-eyebrow"><?php esc_html_e( 'کاتالوگ تخصصی', 'torantejarat' ); ?></span>
-			<h2><?php esc_html_e( 'هر دستگاه، برای یک مسئله', 'torantejarat' ); ?></h2>
-			<p><?php esc_html_e( 'مشخصات کلیدی را ببینید و گزینه‌های نزدیک را مقایسه کنید.', 'torantejarat' ); ?></p>
+			<span class="torantejarat-eyebrow"><?php esc_html_e( 'منتخب خریداران', 'torantejarat' ); ?></span>
+			<h2><?php esc_html_e( 'دستگاه‌هایی که بیشتر می‌خرند', 'torantejarat' ); ?></h2>
+			<p><?php esc_html_e( 'قیمت و مشخصات کلیدی همه مدل‌ها در یک نگاه — کنار هم مقایسه کنید.', 'torantejarat' ); ?></p>
 		</div>
 		<?php if ( wc_get_page_id( 'shop' ) > 0 ) : ?><a class="torantejarat-text-link" href="<?php echo esc_url( wc_get_page_permalink( 'shop' ) ); ?>"><?php esc_html_e( 'همه دستگاه‌ها', 'torantejarat' ); ?> <?php torantejarat_icon( 'arrow' ); ?></a><?php endif; ?>
 	</div>

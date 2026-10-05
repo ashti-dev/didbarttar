@@ -125,9 +125,9 @@ get_header();
 					<h2><?php esc_html_e( 'فقط تصویر دستگاه کافی نیست؛ خروجی آن را هم ببینید.', 'torantejarat' ); ?></h2>
 					<p><?php esc_html_e( 'برای ارزیابی هر مدل، نمونه تصویر همان دستگاه در شرایط مشابه کارتان را درخواست کنید.', 'torantejarat' ); ?></p>
 					<ul class="torantejarat-check-list">
-						<li><?php torantejarat_icon( 'scan' ); ?> <?php esc_html_e( 'وضوح جزئیات در فاصله کاری', 'torantejarat' ); ?></li>
-						<li><?php torantejarat_icon( 'scan' ); ?> <?php esc_html_e( 'نور و میدان دید در محیط مورد نظر', 'torantejarat' ); ?></li>
-						<li><?php torantejarat_icon( 'scan' ); ?> <?php esc_html_e( 'مشخص بودن مدل و شرایط تصویربرداری', 'torantejarat' ); ?></li>
+						<li><?php torantejarat_icon( 'check' ); ?> <?php esc_html_e( 'وضوح جزئیات در فاصله کاری', 'torantejarat' ); ?></li>
+						<li><?php torantejarat_icon( 'check' ); ?> <?php esc_html_e( 'نور و میدان دید در محیط مورد نظر', 'torantejarat' ); ?></li>
+						<li><?php torantejarat_icon( 'check' ); ?> <?php esc_html_e( 'مشخص بودن مدل و شرایط تصویربرداری', 'torantejarat' ); ?></li>
 					</ul>
 					<?php
 					$torantejarat_contact_page = get_page_by_path( 'contact' );
@@ -148,6 +148,11 @@ get_header();
 
 			<!-- Services Section — rendered by template-parts/home-services.php -->
 			<?php get_template_part( 'template-parts/home-services' ); ?>
+
+			<!-- Latest products bottom slider (auto-hidden on small catalogs) -->
+			<?php if ( torantejarat_woocommerce_available() ) : ?>
+				<?php get_template_part( 'template-parts/home-latest' ); ?>
+			<?php endif; ?>
 
 			<!-- Editorial/Blog Section — exact match to index.html -->
 			<section class="torantejarat-section torantejarat-soft-section"><div class="torantejarat-container">

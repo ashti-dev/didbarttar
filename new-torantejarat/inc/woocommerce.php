@@ -80,7 +80,6 @@ function torantejarat_woocommerce_setup() {
 	add_action( 'woocommerce_after_single_product_summary', __NAMESPACE__ . '\\torantejarat_product_spec_section', 10 );
 	add_action( 'woocommerce_after_single_product_summary', __NAMESPACE__ . '\\torantejarat_product_video_section', 12 );
 	add_action( 'woocommerce_after_single_product_summary', __NAMESPACE__ . '\\torantejarat_product_features', 13 );
-	add_action( 'woocommerce_after_single_product_summary', __NAMESPACE__ . '\\torantejarat_product_package', 15 );
 	add_action( 'woocommerce_after_single_product_summary', __NAMESPACE__ . '\\torantejarat_product_faq', 14 );
 	add_action( 'woocommerce_after_single_product_summary', __NAMESPACE__ . '\\torantejarat_product_details_end', 18 );
 	remove_action( 'woocommerce_after_single_product_summary', 'woocommerce_output_related_products', 20 );
@@ -484,7 +483,8 @@ function torantejarat_product_actions() {
 	if ( ! $contact && ! $compare ) { return; }
 	echo '<div class="torantejarat-pdp-actions">';
 	if ( $compare ) {
-		echo '<a href="' . esc_url( get_permalink( $compare ) ) . '">';
+		$url = add_query_arg( 'add', $product->get_id(), get_permalink( $compare ) );
+		echo '<a href="' . esc_url( $url ) . '">';
 		torantejarat_icon( 'compare' );
 		echo ' ' . esc_html__( 'مقایسه با دستگاه‌های دیگر', 'torantejarat' ) . '</a>';
 	}
@@ -567,7 +567,8 @@ function torantejarat_product_spec_section() {
 }
 
 /**
- * Product video section — split card: guidance copy + framed player.
+ * Product video section — full-width click-to-play facade.
+ * Poster = product image; player markup lives in <template> and loads only on click.
  * Meta key _torantejarat_video is set from the product edit screen (no plugin).
  */
 function torantejarat_product_video_section() {
@@ -576,37 +577,24 @@ function torantejarat_product_video_section() {
 	$contact = get_page_by_path( 'contact' );
 	$player  = torantejarat_product_video_player( $product->get_id() );
 	$embed   = $player['html'];
-	$checks  = array(
-		__( 'وضوح جزئیات در فاصله کاری', 'torantejarat' ),
-		__( 'نور و میدان دید در محیط مورد نظر', 'torantejarat' ),
-		__( 'مشخص بودن مدل و شرایط تصویربرداری', 'torantejarat' ),
-	);
+	$poster  = $product->get_image_id() ? wp_get_attachment_image_url( $product->get_image_id(), 'large' ) : '';
 	?>
 	<div class="torantejarat-container"><section id="torantejarat-product-video" class="torantejarat-pdp-video-section">
-		<div class="torantejarat-pdp-video-grid">
-			<div class="torantejarat-pdp-video-copy">
-				<span class="torantejarat-eyebrow"><?php esc_html_e( 'قبل از خرید، تصویرش را ببینید', 'torantejarat' ); ?></span>
-				<h2><?php esc_html_e( 'کیفیت را با خروجی واقعی بسنجید.', 'torantejarat' ); ?></h2>
-				<p><?php esc_html_e( 'ویدیوی نمونه از عملکرد دستگاه در شرایط واقعی.', 'torantejarat' ); ?></p>
-				<ul class="torantejarat-pdp-video-checks">
-					<?php foreach ( $checks as $check ) : ?><li><?php torantejarat_icon( 'check' ); ?><span><?php echo esc_html( $check ); ?></span></li><?php endforeach; ?>
-				</ul>
-				<?php if ( ! $embed && $contact ) : ?><a class="torantejarat-btn torantejarat-btn-outline" href="<?php echo esc_url( add_query_arg( array( 'product' => $product->get_id(), 'topic' => 'video' ), get_permalink( $contact ) ) ); ?>"><?php esc_html_e( 'درخواست نمونه تصویر', 'torantejarat' ); ?> <?php torantejarat_icon( 'arrow' ); ?></a><?php endif; ?>
+		<?php if ( $embed ) : ?>
+			<div class="torantejarat-pdp-video-frame" data-video-facade>
+				<button type="button" class="torantejarat-video-cover" data-video-cover aria-label="<?php esc_attr_e( 'پخش ویدیوی محصول', 'torantejarat' ); ?>">
+					<?php if ( $poster ) : ?><img src="<?php echo esc_url( $poster ); ?>" alt="" loading="lazy"><?php endif; ?>
+					<span class="torantejarat-video-play" aria-hidden="true"><svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span>
+				</button>
+				<template><?php echo $embed; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Merchant-authored oEmbed/video markup. ?></template>
 			</div>
-			<div class="torantejarat-pdp-video-frame">
-				<span class="torantejarat-pdp-video-badge"><span class="torantejarat-status-dot" aria-hidden="true"></span><?php esc_html_e( 'خروجی واقعی دستگاه', 'torantejarat' ); ?></span>
-				<?php if ( $embed ) : ?>
-					<div class="torantejarat-pdp-video-player">
-						<?php echo $embed; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Merchant-authored oEmbed/video markup. ?>
-					</div>
-				<?php else : ?>
-					<div class="torantejarat-pdp-video-placeholder">
-						<?php torantejarat_icon( 'search' ); ?>
-						<p><?php esc_html_e( 'ویدیوی تأییدشده این مدل هنوز بارگذاری نشده است.', 'torantejarat' ); ?></p>
-					</div>
-				<?php endif; ?>
+		<?php else : ?>
+			<div class="torantejarat-pdp-video-placeholder">
+				<?php torantejarat_icon( 'search' ); ?>
+				<p><?php esc_html_e( 'ویدیوی تأییدشده این مدل هنوز بارگذاری نشده است.', 'torantejarat' ); ?></p>
+				<?php if ( $contact ) : ?><a class="torantejarat-btn torantejarat-btn-outline" href="<?php echo esc_url( add_query_arg( array( 'product' => $product->get_id(), 'topic' => 'video' ), get_permalink( $contact ) ) ); ?>"><?php esc_html_e( 'درخواست نمونه تصویر', 'torantejarat' ); ?> <?php torantejarat_icon( 'arrow' ); ?></a><?php endif; ?>
 			</div>
-		</div>
+		<?php endif; ?>
 	</section></div>
 	<?php
 }
@@ -647,35 +635,6 @@ function torantejarat_product_features() {
 }
 
 /**
- * What's in the box — per-product lines from meta key _torantejarat_package.
- * No invented items: empty meta = no section.
- */
-function torantejarat_product_package() {
-	global $product;
-	if ( ! $product instanceof \WC_Product ) { return; }
-	$raw   = (string) get_post_meta( $product->get_id(), '_torantejarat_package', true );
-	$items = array_values( array_filter( array_map( 'trim', preg_split( '/\r\n|\r|\n/', $raw ) ) ) );
-	if ( ! $items ) { return; }
-	?>
-	<div class="torantejarat-container"><section class="torantejarat-pdp-package">
-		<div class="torantejarat-section-heading">
-			<div>
-				<span class="torantejarat-eyebrow"><?php esc_html_e( 'محتویات جعبه', 'torantejarat' ); ?></span>
-				<h2><?php esc_html_e( 'چه چیزی همراه دستگاه می‌آید؟', 'torantejarat' ); ?></h2>
-			</div>
-		</div>
-		<div class="torantejarat-pdp-package-grid">
-			<?php foreach ( $items as $index => $item ) : ?>
-				<div class="torantejarat-pdp-package-item">
-					<span class="torantejarat-pdp-package-number"><?php echo esc_html( sprintf( '%02d', $index + 1 ) ); ?></span>
-					<span class="torantejarat-pdp-package-label"><?php echo esc_html( $item ); ?></span>
-				</div>
-			<?php endforeach; ?>
-		</div>
-	</section></div>
-	<?php
-}
-
 /**
  * Product FAQ — per-product Q&A from meta key _torantejarat_faq.
  * Format: one per line as "question ||| answer". Falls back to generic guidance.
@@ -687,7 +646,10 @@ function torantejarat_product_faq() {
 	if ( $product instanceof \WC_Product ) {
 		$raw = (string) get_post_meta( $product->get_id(), '_torantejarat_faq', true );
 		foreach ( preg_split( '/\r\n|\r|\n/', $raw ) as $line ) {
-			$parts = array_map( 'trim', explode( '|||', $line, 2 ) );
+			$line = trim( $line );
+			if ( '' === $line ) { continue; }
+			$parts = false !== strpos( $line, '|||' ) ? explode( '|||', $line, 2 ) : explode( '|', $line, 2 );
+			$parts = array_map( 'trim', $parts );
 			if ( 2 === count( $parts ) && '' !== $parts[0] && '' !== $parts[1] ) {
 				$custom[] = array( 'q' => $parts[0], 'a' => $parts[1] );
 			}
@@ -769,15 +731,14 @@ function torantejarat_price_digits( $formatted ) {
  * Native product meta box: video URL + limitation text (no plugin).
  */
 function torantejarat_product_meta_boxes() {
-	add_meta_box( 'torantejarat-product-media', __( 'ویدیو، بسته و پرسش‌ها — توران تجارت', 'torantejarat' ), __NAMESPACE__ . '\\torantejarat_product_meta_box', 'product', 'side', 'default' );
+	add_meta_box( 'torantejarat-product-media', __( 'ویدیو محصول — توران تجارت', 'torantejarat' ), __NAMESPACE__ . '\\torantejarat_product_meta_box', 'product', 'side', 'default' );
+	add_meta_box( 'torantejarat-product-faq', __( 'پرسش‌های اختصاصی — توران تجارت', 'torantejarat' ), __NAMESPACE__ . '\\torantejarat_product_faq_box', 'product', 'side', 'default' );
 }
 
 function torantejarat_product_meta_box( $post ) {
 	wp_nonce_field( 'torantejarat_product_meta', 'torantejarat_product_meta_nonce' );
 	$video      = get_post_meta( $post->ID, '_torantejarat_video', true );
 	$video_id   = (int) get_post_meta( $post->ID, '_torantejarat_video_id', true );
-	$package    = get_post_meta( $post->ID, '_torantejarat_package', true );
-	$faq        = get_post_meta( $post->ID, '_torantejarat_faq', true );
 	$preview    = $video_id > 0 ? wp_get_attachment_url( $video_id ) : $video;
 	$is_file    = (bool) preg_match( '/\.(mp4|webm|ogg)(\?|#|$)/i', $preview );
 	$is_aparat = (bool) preg_match( '#aparat\.com/(?:v/|video/video/embed/videohash/)([a-zA-Z0-9]+)#i', $preview );
@@ -807,12 +768,19 @@ function torantejarat_product_meta_box( $post ) {
 		<?php endif; ?>
 	</div>
 	<p class="description"><?php esc_html_e( 'آپلود mp4 در کتابخانه، یا لینک مستقیم/یوتیوب/آپارات/ویمیو. خالی = حالت «هنوز بارگذاری نشده».', 'torantejarat' ); ?></p>
-	<p><label for="torantejarat-package"><strong><?php esc_html_e( 'محتویات جعبه (هر خط یک قلم)', 'torantejarat' ); ?></strong></label><br>
-	<textarea id="torantejarat-package" name="torantejarat_package" rows="4" style="width:100%" placeholder="<?php esc_attr_e( 'دستگاه اصلی', 'torantejarat' ); ?>"><?php echo esc_textarea( $package ); ?></textarea></p>
-	<p class="description"><?php esc_html_e( 'خالی = بخش «محتویات جعبه» نمایش داده نمی‌شود.', 'torantejarat' ); ?></p>
-	<p><label for="torantejarat-faq"><strong><?php esc_html_e( 'پرسش‌های اختصاصی (هر خط: سؤال ||| پاسخ)', 'torantejarat' ); ?></strong></label><br>
+	<?php
+}
+
+/**
+ * Standalone FAQ meta box: one question per line as "question ||| answer".
+ */
+function torantejarat_product_faq_box( $post ) {
+	wp_nonce_field( 'torantejarat_product_meta', 'torantejarat_product_meta_nonce' );
+	$faq = get_post_meta( $post->ID, '_torantejarat_faq', true );
+	?>
+	<p><label for="torantejarat-faq"><strong><?php esc_html_e( 'پرسش‌های اختصاصی این محصول', 'torantejarat' ); ?></strong></label><br>
 	<textarea id="torantejarat-faq" name="torantejarat_faq" rows="6" dir="rtl" style="width:100%" placeholder="<?php esc_attr_e( 'گارانتی این مدل چقدر است؟ ||| دو سال گارانتی معتبر دارد.', 'torantejarat' ); ?>"><?php echo esc_textarea( $faq ); ?></textarea></p>
-	<p class="description"><?php esc_html_e( 'خالی = سؤالات عمومی نمایش داده می‌شود.', 'torantejarat' ); ?></p>
+	<p class="description"><?php esc_html_e( 'هر خط یک پرسش با این قالب: سؤال ||| پاسخ. خالی = سؤالات عمومی نمایش داده می‌شود.', 'torantejarat' ); ?></p>
 	<?php
 }
 
@@ -827,9 +795,6 @@ function torantejarat_save_product_meta( $post_id, $post, $update ) {
 	}
 	if ( isset( $_POST['torantejarat_video_id'] ) ) {
 		update_post_meta( $post_id, '_torantejarat_video_id', absint( $_POST['torantejarat_video_id'] ) );
-	}
-	if ( isset( $_POST['torantejarat_package'] ) ) {
-		update_post_meta( $post_id, '_torantejarat_package', sanitize_textarea_field( wp_unslash( $_POST['torantejarat_package'] ) ) );
 	}
 	if ( isset( $_POST['torantejarat_faq'] ) ) {
 		update_post_meta( $post_id, '_torantejarat_faq', sanitize_textarea_field( wp_unslash( $_POST['torantejarat_faq'] ) ) );

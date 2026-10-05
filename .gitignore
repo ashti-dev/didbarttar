@@ -1,0 +1,2 @@
+# Build / export artifacts — never commit.
+*.zip

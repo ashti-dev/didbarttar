@@ -65,6 +65,9 @@ function torantejarat_enqueue_assets() {
 		wp_enqueue_script( 'torantejarat-ajax-add-to-cart', get_template_directory_uri() . '/assets/js/ajax-add-to-cart.js', array( 'jquery' ), torantejarat_asset_version( 'assets/js/ajax-add-to-cart.js' ), true );
 		wp_enqueue_script( 'torantejarat-recently-viewed', get_template_directory_uri() . '/assets/js/recently-viewed.js', array(), torantejarat_asset_version( 'assets/js/recently-viewed.js' ), true );
 	}
+	if ( torantejarat_woocommerce_available() && is_page_template( 'page-templates/product-finder.php' ) ) {
+		wp_enqueue_script( 'torantejarat-product-finder', get_template_directory_uri() . '/assets/js/product-finder.js', array(), torantejarat_asset_version( 'assets/js/product-finder.js' ), true );
+	}
 	if ( torantejarat_woocommerce_available() && ( is_front_page() || is_product() || is_cart() ) ) {
 		wp_enqueue_style( 'torantejarat-product-slider', get_template_directory_uri() . '/assets/css/product-slider.css', array( 'torantejarat-source' ), torantejarat_asset_version( 'assets/css/product-slider.css' ) );
 		wp_enqueue_script( 'torantejarat-product-slider', get_template_directory_uri() . '/assets/js/product-slider.js', array(), torantejarat_asset_version( 'assets/js/product-slider.js' ), true );

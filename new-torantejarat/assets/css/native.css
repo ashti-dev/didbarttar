@@ -397,35 +397,25 @@ body.single-product a.added_to_cart.wc-forward{display:none!important}
   .torantejarat-site .torantejarat-pdp-gallery .flex-control-thumbs li{width:calc((100% - 24px)/4)}
 }
 
-/* Product video section — split card: guidance copy + framed player. */
+/* Product video — minimal centered click-to-play player. */
 .torantejarat-pdp-video-section{padding:50px 0}
-.torantejarat-pdp-video-grid{display:grid;grid-template-columns:1fr 1.25fr;gap:40px;align-items:center;background:#f8f9f5;border:1px solid #e6e6e0;border-radius:20px;padding:36px}
-.torantejarat-pdp-video-copy h2{margin:8px 0 12px}
-.torantejarat-pdp-video-copy>p{font-size:13px;color:var(--muted);line-height:2}
-.torantejarat-pdp-video-checks{list-style:none;margin:20px 0 0;padding:0;display:grid;gap:10px}
-.torantejarat-pdp-video-checks li{display:flex;align-items:center;gap:10px;font-size:12px;background:#fff;border:1px solid #e6e6e0;border-radius:10px;padding:10px 14px}
-.torantejarat-pdp-video-checks .torantejarat-icon{width:18px;height:18px;color:var(--green);flex-shrink:0}
-.torantejarat-pdp-video-copy .torantejarat-btn{margin-top:20px}
-.torantejarat-pdp-video-copy .torantejarat-eyebrow{color:#b85c2a}
-.torantejarat-pdp-video-copy h2{color:var(--ink)}
-.torantejarat-pdp-video-copy>p{color:#4d5f50}
-.torantejarat-pdp-video-checks li span{color:var(--ink)}
-.torantejarat-pdp-video-badge{color:var(--ink)}
-.torantejarat-pdp-video-frame{position:relative;min-width:0}
-.torantejarat-pdp-video-badge{position:absolute;top:12px;inset-inline-start:12px;z-index:2;display:inline-flex;align-items:center;gap:8px;background:#fffef5ed;border:1px solid #fff;border-radius:30px;padding:6px 14px;font-size:10px;white-space:nowrap}
-.torantejarat-pdp-video-player{position:relative;border-radius:18px;overflow:hidden;background:#172325;border:1px solid #e6e6e0;aspect-ratio:16/9;padding:12px}
-.torantejarat-pdp-video-player video,.torantejarat-pdp-video-player iframe{width:100%;height:100%;display:block;border:0;border-radius:12px;background:#000}
-.torantejarat-pdp-video-placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:60px 30px;border-radius:18px;background:#f4f3ef;border:1px solid #e6e6e0;text-align:center;aspect-ratio:16/9}
+.torantejarat-pdp-video-frame{position:relative;max-width:880px;margin-inline:auto;border-radius:20px;overflow:hidden;background:#10181a;border:1px solid #e6e6e0;aspect-ratio:16/9}
+.torantejarat-pdp-video-frame video,.torantejarat-pdp-video-frame iframe{width:100%;height:100%;display:block;border:0}
+.torantejarat-video-cover{display:none;position:absolute;inset:0;width:100%;border:0;padding:0;background:#10181a;cursor:pointer;overflow:hidden;font:inherit}
+body.js .torantejarat-video-cover{display:block}
+.torantejarat-video-cover img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.55}
+.torantejarat-video-play{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:grid;place-items:center;width:76px;height:76px;border-radius:50%;background:var(--orange);color:#211e18;transition:transform .25s ease}
+.torantejarat-video-cover:hover .torantejarat-video-play{transform:translate(-50%,-50%) scale(1.08)}
+.torantejarat-pdp-video-placeholder{display:flex;max-width:880px;margin-inline:auto;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:60px 30px;border-radius:20px;background:#f4f3ef;border:1px solid #e6e6e0;text-align:center}
 .torantejarat-pdp-video-placeholder .torantejarat-icon{width:48px;height:48px;color:var(--muted)}
 .torantejarat-pdp-video-placeholder p{font-size:13px;color:var(--muted);max-width:400px;line-height:2}
-@media(max-width:900px){
-  .torantejarat-pdp-video-grid{grid-template-columns:1fr;gap:24px;padding:28px}
-}
 @media(max-width:600px){
   .torantejarat-pdp-video-section{padding:35px 0}
-  .torantejarat-pdp-video-grid{padding:20px;gap:20px;border-radius:16px}
+  .torantejarat-pdp-video-frame{border-radius:16px}
+  .torantejarat-video-play{width:64px;height:64px}
   .torantejarat-pdp-video-placeholder{padding:40px 20px}
 }
+@media(prefers-reduced-motion:reduce){.torantejarat-video-play{transition:none}}
 
 /* Product features grid */
 .torantejarat-pdp-features{padding:50px 0}
@@ -441,18 +431,6 @@ body.single-product a.added_to_cart.wc-forward{display:none!important}
   .torantejarat-pdp-feature-card{padding:12px;gap:10px}
 }
 
-/* Package contents */
-.torantejarat-pdp-package{padding:50px 0}
-.torantejarat-pdp-package-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
-.torantejarat-pdp-package-item{display:flex;align-items:center;gap:14px;padding:20px;border-radius:12px;background:#f8f9f5;border:1px solid #e6e6e0}
-.torantejarat-pdp-package-number{font-size:11px;font-weight:700;color:var(--orange);background:#fff;border:1px solid #e6e6e0;border-radius:8px;padding:4px 10px;flex-shrink:0}
-.torantejarat-pdp-package-label{font-size:13px;font-weight:600}
-@media(max-width:1100px){.torantejarat-pdp-package-grid{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:600px){
-  .torantejarat-pdp-package{padding:35px 0}
-  .torantejarat-pdp-package-grid{grid-template-columns:1fr;gap:10px}
-  .torantejarat-pdp-package-item{padding:16px}
-}
 
 /* Recently viewed strip (client-rendered, horizontal scroll). */
 .torantejarat-recent-grid{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(140px,180px);gap:12px;overflow-x:auto;padding-bottom:8px}
@@ -518,6 +496,13 @@ body.single-product a.added_to_cart.wc-forward{display:none!important}
 @media(max-width:900px){.torantejarat-header-actions{gap:16px}.torantejarat-header-actions .torantejarat-menu-toggle{margin-inline-end:8px}}
 @media(max-width:600px){.torantejarat-cart-dropdown{display:none}}
 
+/* Compare page pickers. */
+.torantejarat-compare-pickers{display:grid;grid-template-columns:repeat(3,1fr) auto;gap:12px;align-items:end;background:#f8f9f5;border:1px solid var(--line);border-radius:16px;padding:20px;margin-bottom:28px}
+.torantejarat-compare-pickers label{display:grid;gap:6px;font-size:12px;font-weight:700}
+.torantejarat-compare-pickers label.torantejarat-compare-diff{display:flex;align-items:center;gap:8px;font-weight:400;white-space:nowrap}
+@media(max-width:900px){.torantejarat-compare-pickers{grid-template-columns:1fr 1fr}}
+@media(max-width:600px){.torantejarat-compare-pickers{grid-template-columns:1fr}}
+
 /* Home mini-compare table (real prices and attributes, scrolls on small screens). */
 .torantejarat-compare-scroll{overflow-x:auto;border:1px solid var(--line);border-radius:16px;background:#fff}
 .torantejarat-compare-table{border-collapse:collapse;width:100%;min-width:640px;font-size:13px}
@@ -532,6 +517,38 @@ body.single-product a.added_to_cart.wc-forward{display:none!important}
   .torantejarat-compare-table{font-size:12px}
   .torantejarat-compare-table th,.torantejarat-compare-table td{padding:12px 10px}
   .torantejarat-compare-photo img,.torantejarat-compare-photo .torantejarat-icon{width:88px;height:88px}
+}
+
+/* Product Finder wizard. */
+.torantejarat-finder{max-width:760px;margin-inline:auto}
+.torantejarat-finder-form{display:grid;gap:20px}
+.torantejarat-finder-step{border:1px solid var(--line);border-radius:16px;padding:24px;background:#fff}
+.torantejarat-finder-step legend{font-size:15px;font-weight:800;padding:0 8px}
+.torantejarat-finder-options{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:16px}
+.torantejarat-finder-option{position:relative;display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:12px;padding:14px 16px;cursor:pointer;transition:border-color .2s,background .2s;font-size:13px}
+.torantejarat-finder-option:hover{border-color:var(--orange)}
+.torantejarat-finder-option input{position:absolute;opacity:0;pointer-events:none}
+.torantejarat-finder-option input:checked+span{color:var(--orange);font-weight:700}
+.torantejarat-finder-option:has(input:checked){border-color:var(--orange);background:#fdf6f0}
+.torantejarat-finder-submit{justify-self:start}
+.js-finder .torantejarat-finder-step{display:none}
+.js-finder .torantejarat-finder-step.is-active{display:block;animation:torantejarat-finder-in .35s ease}
+.js-finder .torantejarat-finder-step.is-done{display:none}
+@keyframes torantejarat-finder-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){.js-finder .torantejarat-finder-step.is-active{animation:none}}
+.torantejarat-finder-results{margin-top:32px}
+.torantejarat-finder-results h2{margin-bottom:16px}
+.torantejarat-finder-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.torantejarat-finder-card{display:flex;flex-direction:column;gap:12px;border:1px solid var(--line);border-radius:16px;padding:16px;background:#fff}
+.torantejarat-finder-card-image{display:block;border-radius:12px;overflow:hidden;background:#f4f3ef;aspect-ratio:1/1}
+.torantejarat-finder-card-image img{width:100%;height:100%;object-fit:cover}
+.torantejarat-finder-card h3{font-size:14px;line-height:1.7}
+.torantejarat-finder-card-specs{display:flex;flex-wrap:wrap;gap:6px}
+.torantejarat-finder-card-specs span{font-size:11px;background:#f4f5f1;border:1px solid #e6e6e0;border-radius:20px;padding:3px 10px;color:#4d5f50}
+.torantejarat-finder-card .torantejarat-btn{margin-top:auto;font-size:12px;min-height:40px}
+@media(max-width:600px){
+  .torantejarat-finder-options{grid-template-columns:1fr}
+  .torantejarat-finder-grid{grid-template-columns:1fr}
 }
 
 /* Sale price in theme product cards (custom torantejarat_card_price markup). */
@@ -563,3 +580,9 @@ body.single-product a.added_to_cart.wc-forward{display:none!important}
   .torantejarat-hero-actions .torantejarat-btn{flex:1 1 200px}
   .torantejarat-hero-foot{margin-top:16px;padding-top:14px}
 }
+/* Home polish 2026-10-05: uniform slider-card frames (mixed photo backgrounds),
+   stronger card price, green field-checklist ticks. */
+.torantejarat-site .product-slide .torantejarat-product-image{aspect-ratio:1/1}
+.torantejarat-site .product-slide .torantejarat-product-image img{object-fit:contain;background:#f1f0ea;padding:12px}
+.torantejarat-site .product-slide .torantejarat-product-bottom strong{font-size:18px;font-weight:800}
+.torantejarat-site .torantejarat-check-list svg{color:var(--green)}
