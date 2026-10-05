@@ -43,6 +43,28 @@ foreach ( $torantejarat_wanted as $torantejarat_raw ) {
 	}
 	if ( count( $torantejarat_ids ) >= 3 ) { break; }
 }
+/* Per-slot choices drive the dropdowns (duplicates preserved); leftover
+   table IDs fill empty slots so ?add= / ?compare= also preselect. */
+$torantejarat_slots = array( 0, 0, 0 );
+foreach ( array( 'p1', 'p2', 'p3' ) as $torantejarat_slot_index => $torantejarat_key ) {
+	if ( isset( $_GET[ $torantejarat_key ] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$torantejarat_slot_id = absint( sanitize_text_field( wp_unslash( $_GET[ $torantejarat_key ] ) ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		if ( $torantejarat_slot_id > 0 && isset( $torantejarat_by_id[ $torantejarat_slot_id ] ) ) {
+			$torantejarat_slots[ $torantejarat_slot_index ] = $torantejarat_slot_id;
+		}
+	}
+}
+foreach ( $torantejarat_ids as $torantejarat_id ) {
+	if ( in_array( $torantejarat_id, $torantejarat_slots, true ) ) {
+		continue;
+	}
+	foreach ( $torantejarat_slots as $torantejarat_slot_index => $torantejarat_slot_value ) {
+		if ( 0 === $torantejarat_slot_value ) {
+			$torantejarat_slots[ $torantejarat_slot_index ] = $torantejarat_id;
+			break;
+		}
+	}
+}
 $torantejarat_only_diff = isset( $_GET['diff'] ) && '1' === sanitize_text_field( wp_unslash( $_GET['diff'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 
 $torantejarat_items = array();
@@ -84,7 +106,7 @@ get_header();
 		<section class="torantejarat-section"><div class="torantejarat-container">
 			<form class="torantejarat-compare-pickers" method="get" action="<?php echo esc_url( get_permalink() ); ?>">
 				<?php for ( $torantejarat_slot = 1; $torantejarat_slot <= 3; $torantejarat_slot++ ) : ?>
-					<?php $torantejarat_current = $torantejarat_ids[ $torantejarat_slot - 1 ] ?? 0; ?>
+					<?php $torantejarat_current = $torantejarat_slots[ $torantejarat_slot - 1 ] ?? 0; ?>
 					<label>
 						<span><?php echo esc_html( sprintf( __( 'دستگاه %s', 'torantejarat' ), number_format_i18n( $torantejarat_slot ) ) ); ?></span>
 						<select name="<?php echo esc_attr( 'p' . $torantejarat_slot ); ?>">
@@ -104,7 +126,7 @@ get_header();
 			<?php if ( count( $torantejarat_items ) < 2 ) : ?>
 				<div class="torantejarat-empty-state">
 					<?php torantejarat_icon( 'compare' ); ?>
-					<p><?php esc_html_e( 'برای مقایسه، دست‌کم دو دستگاه انتخاب کنید.', 'torantejarat' ); ?></p>
+					<p><?php esc_html_e( 'برای مقایسه، دو دستگاه متفاوت انتخاب کنید.', 'torantejarat' ); ?></p>
 				</div>
 			<?php else : ?>
 				<div class="torantejarat-compare-scroll">
