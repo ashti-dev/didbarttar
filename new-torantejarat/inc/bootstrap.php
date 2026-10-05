@@ -17,6 +17,7 @@ require_once __DIR__ . '/setup.php';
 require_once __DIR__ . '/assets.php';
 require_once __DIR__ . '/woocommerce.php';
 require_once __DIR__ . '/requests.php';
+require_once __DIR__ . '/cleanup.php';
 require_once __DIR__ . '/settings/helpers.php';
 
 // Settings panel class loads in admin only (plus WP-CLI so settings stay
@@ -29,6 +30,9 @@ if ( is_admin() || ( defined( 'WP_CLI' ) && WP_CLI ) ) {
 if ( ! is_admin() ) {
 	require_once __DIR__ . '/schema/class-org-schema.php';
 }
+
+add_action( 'init', __NAMESPACE__ . '\\torantejarat_cleanup' );
+add_action( 'wp_default_scripts', __NAMESPACE__ . '\\torantejarat_dequeue_jquery_migrate' );
 
 add_action( 'after_setup_theme', __NAMESPACE__ . '\\torantejarat_setup' );
 add_action( 'after_setup_theme', __NAMESPACE__ . '\\torantejarat_woocommerce_setup' );
