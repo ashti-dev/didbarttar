@@ -94,8 +94,7 @@ final class TT_Settings {
 		),
 		'social'  => array(
 			'label'  => 'شبکه‌های اجتماعی',
-			'icon'   => 'dashicons-share',
-			'fields' => array(
+			'icon'   => 'dashicons-share',			'fields' => array(
 				'instagram' => array(
 					'label'    => 'اینستاگرام',
 					'type'     => 'url',
@@ -123,6 +122,52 @@ final class TT_Settings {
 					'default'  => '',
 					'desc'     => '',
 					'sanitize' => 'esc_url_raw',
+				),
+			),
+		),
+		'business' => array(
+			'label'  => 'کسب‌وکار',
+			'icon'   => 'dashicons-store',
+			'fields' => array(
+				'business_name' => array(
+					'label'    => 'نام کسب‌وکار',
+					'type'     => 'text',
+					'default'  => '',
+					'desc'     => 'پیش‌فرض: نام سایت از تنظیمات وردپرس.',
+					'sanitize' => 'sanitize_text_field',
+				),
+				'business_type' => array(
+					'label'    => 'نوع کسب‌وکار',
+					'type'     => 'select',
+					'default'  => 'Store',
+					'desc'     => 'مستقیم در Schema استفاده می‌شود — مقدار آزاد وارد نکنید.',
+					'options'  => array(
+						'Store'               => 'فروشگاه (Store)',
+						'OnlineStore'         => 'فروشگاه آنلاین (OnlineStore)',
+						'LocalBusiness'       => 'کسب‌وکار محلی (LocalBusiness)',
+						'ProfessionalService' => 'خدمات حرفه‌ای (ProfessionalService)',
+					),
+					'sanitize' => 'sanitize_text_field',
+				),
+				'city'          => array(
+					'label'    => 'شهر',
+					'type'     => 'text',
+					'default'  => 'تهران',
+					'desc'     => 'در addressLocality اسکیما استفاده می‌شود.',
+					'sanitize' => 'sanitize_text_field',
+				),
+				'price_range'   => array(
+					'label'    => 'محدوده قیمت',
+					'type'     => 'select',
+					'default'  => '$$',
+					'desc'     => 'اختیاری — در rich result گوگل نمایش داده می‌شود.',
+					'options'  => array(
+						'$'    => '$ — اقتصادی',
+						'$$'   => '$$ — متوسط',
+						'$$$'  => '$$$ — گران',
+						'$$$$' => '$$$$ — لوکس',
+					),
+					'sanitize' => 'sanitize_text_field',
 				),
 			),
 		),
@@ -184,12 +229,27 @@ final class TT_Settings {
 				$output[ $key ] = sanitize_textarea_field( $raw );
 			} elseif ( 'tel' === $type ) {
 				$output[ $key ] = preg_replace( '/[^0-9+]/', '', (string) $raw );
+			} elseif ( 'select' === $type ) {
+				$output[ $key ] = $this->sanitize_select( $raw, isset( $field['options'] ) && is_array( $field['options'] ) ? $field['options'] : array() );
 			} else {
 				$callback        = isset( $field['sanitize'] ) ? $field['sanitize'] : 'sanitize_text_field';
 				$output[ $key ] = call_user_func( $callback, $raw );
 			}
 		}
 		return $output;
+	}
+
+	/**
+	 * Select accepts only values present in options; tampered input falls
+	 * back to the first allowed value instead of erroring.
+	 *
+	 * @param mixed $raw     Submitted value.
+	 * @param array $allowed option value => label map.
+	 * @return string
+	 */
+	private function sanitize_select( $raw, array $allowed ) {
+		$raw = (string) $raw;
+		return array_key_exists( $raw, $allowed ) ? $raw : (string) array_key_first( $allowed );
 	}
 
 	public function render_page() {
@@ -251,6 +311,20 @@ final class TT_Settings {
 							rows="4"
 							class="large-text"
 						><?php echo esc_textarea( $value ); ?></textarea>
+					<?php elseif ( 'select' === $type && ! empty( $field['options'] ) && is_array( $field['options'] ) ) : ?>
+						<select
+							id="<?php echo esc_attr( $id ); ?>"
+							name="<?php echo esc_attr( $name ); ?>"
+						>
+							<?php foreach ( $field['options'] as $opt_val => $opt_label ) : ?>
+								<option
+									value="<?php echo esc_attr( $opt_val ); ?>"
+									<?php selected( $value, $opt_val ); ?>
+								>
+									<?php echo esc_html( $opt_label ); ?>
+								</option>
+							<?php endforeach; ?>
+						</select>
 					<?php else : ?>
 						<input
 							type="<?php echo esc_attr( $type ); ?>"

@@ -2,12 +2,17 @@
 
 تاریخ: 2026-10-05 — محیط live: `C:\laragon\www\torantejarat-test` روی `http://127.0.0.1:8098` (nginx + پورت 8098)، دیتابیس MySQL، `WP_ENVIRONMENT_TYPE=development`.
 
-## پنل تنظیمات Native (2026-10-06، تکمیل و تست شد)
-- `inc/settings/class-theme-settings.php`: پنل «توران‌تجارت» با Settings API، تب‌های عمومی/تماس/سوشال، sanitize مجزا هر نوع فیلد، CSS ادمین inline؛ فقط ادمین (+WP-CLI).
+## پنل تنظیمات Native (2026-10-06، تکمیل و تست شد)- `inc/settings/class-theme-settings.php`: پنل «توران‌تجارت» با Settings API، تب‌های عمومی/تماس/سوشال، sanitize مجزا هر نوع فیلد، CSS ادمین inline؛ فقط ادمین (+WP-CLI).
 - `inc/settings/helpers.php`: `torantejarat_option()` با کش استاتیک + `torantejarat_has_social()`.
 - اتصال: تاپ‌بار از `general.topbar_text/link` (خالی = توضیح سایت)؛ بلوک تماس/سوشال فوتر فقط وقتی مقداری هست رندر می‌شود.
 - تست: ثبت منو، ذخیره ۳ تب و بازتاب در فرانت (تاپ‌بار لینک‌دار، tel:، اینستاگرام)، بازگشت به پیش‌فرض، لاگ PHP خالی. مقادیر تست پاک شدند.
 - ناهماهنگی spec: اسنیپت Schema سازمان از تب `schema` و `business_name` می‌خواند که تعریف نشده — قدم Schema یک تب `business` اضافه می‌کند.
+
+## تب business + Schema سازمان (2026-10-06، تکمیل و تست شد)
+- تب `business` (نام/نوع/select بسته/شهر/محدوده قیمت) + پشتیبانی `select` در رندر و sanitize (مقدار دستکاری‌شده ← اولین گزینه مجاز).
+- `inc/schema/class-org-schema.php`: فقط صفحه اصلی، فیلد خالی در JSON نمی‌آید، تلفن به E.164، `sameAs` فقط پرشده‌ها، لوگو از custom_logo؛ فیلتر `torantejarat_org_schema` برای تحویل رنک‌مث.
+- انحراف از spec (آگاهانه): `JSON_PRETTY_PRINT` حذف شد (بایت اضافه در هر لود)؛ باگ `ltrim($clean,'9')` در normalize اصلاح شد.
+- تست: حالت پر (telephone/address/priceRange/sameAs + JSON معتبر)، حالت خالی (فقط کلیدهای پایه)، عدم رندر در /compare/، لاگ PHP خالی. مقادیر تست پاک شدند.
 
 ## سئو در حد قالب + تحویل رنک‌مث (2026-10-06)
 - متا/OG دستی پیاده نشد — چون ۴ محصول دموست و کارفرما بعداً رنک‌مث نصب می‌کند (جلوگیری از دوبل‌کاری).

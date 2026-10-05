@@ -25,6 +25,11 @@ if ( is_admin() || ( defined( 'WP_CLI' ) && WP_CLI ) ) {
 	require_once __DIR__ . '/settings/class-theme-settings.php';
 }
 
+// Organization schema: frontend only, homepage only (guarded inside).
+if ( ! is_admin() ) {
+	require_once __DIR__ . '/schema/class-org-schema.php';
+}
+
 add_action( 'after_setup_theme', __NAMESPACE__ . '\\torantejarat_setup' );
 add_action( 'after_setup_theme', __NAMESPACE__ . '\\torantejarat_woocommerce_setup' );
 add_action( 'init', __NAMESPACE__ . '\\torantejarat_register_request_type' );
