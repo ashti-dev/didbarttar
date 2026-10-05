@@ -2,6 +2,13 @@
 
 تاریخ: 2026-10-05 — محیط live: `C:\laragon\www\torantejarat-test` روی `http://127.0.0.1:8098` (nginx + پورت 8098)، دیتابیس MySQL، `WP_ENVIRONMENT_TYPE=development`.
 
+## پنل تنظیمات Native (2026-10-06، تکمیل و تست شد)
+- `inc/settings/class-theme-settings.php`: پنل «توران‌تجارت» با Settings API، تب‌های عمومی/تماس/سوشال، sanitize مجزا هر نوع فیلد، CSS ادمین inline؛ فقط ادمین (+WP-CLI).
+- `inc/settings/helpers.php`: `torantejarat_option()` با کش استاتیک + `torantejarat_has_social()`.
+- اتصال: تاپ‌بار از `general.topbar_text/link` (خالی = توضیح سایت)؛ بلوک تماس/سوشال فوتر فقط وقتی مقداری هست رندر می‌شود.
+- تست: ثبت منو، ذخیره ۳ تب و بازتاب در فرانت (تاپ‌بار لینک‌دار، tel:، اینستاگرام)، بازگشت به پیش‌فرض، لاگ PHP خالی. مقادیر تست پاک شدند.
+- ناهماهنگی spec: اسنیپت Schema سازمان از تب `schema` و `business_name` می‌خواند که تعریف نشده — قدم Schema یک تب `business` اضافه می‌کند.
+
 ## سئو در حد قالب + تحویل رنک‌مث (2026-10-06)
 - متا/OG دستی پیاده نشد — چون ۴ محصول دموست و کارفرما بعداً رنک‌مث نصب می‌کند (جلوگیری از دوبل‌کاری).
 - فاوآیکون fallback: اگر `site_icon` تنظیم نشده باشد، `assets/images/favicon.svg` قالب لود می‌شود (`torantejarat_fallback_icon`)؛ رنک‌مث فاوآیکون را مدیریت نمی‌کند پس تداخلی نیست.

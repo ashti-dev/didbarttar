@@ -24,7 +24,15 @@ if ( ! defined( 'ABSPATH' ) ) {
 <a class="torantejarat-skip" href="#torantejarat-main"><?php esc_html_e( 'رفتن به محتوای اصلی', 'torantejarat' ); ?></a>
 <div class="torantejarat-topbar">
 	<div class="torantejarat-container">
-		<span><?php echo esc_html( get_bloginfo( 'description' ) ); ?></span>
+		<?php
+		$torantejarat_topbar_text = torantejarat_option( 'general', 'topbar_text', get_bloginfo( 'description' ) );
+		$torantejarat_topbar_link = torantejarat_option( 'general', 'topbar_link' );
+		if ( $torantejarat_topbar_link ) {
+			echo '<a href="' . esc_url( $torantejarat_topbar_link ) . '">' . esc_html( $torantejarat_topbar_text ) . '</a>';
+		} else {
+			echo '<span>' . esc_html( $torantejarat_topbar_text ) . '</span>';
+		}
+		?>
 		<?php
 		wp_nav_menu( array( 'theme_location' => 'torantejarat-utility', 'container' => false, 'menu_class' => 'torantejarat-utility-menu', 'fallback_cb' => false, 'depth' => 1 ) );
 		?>

@@ -17,6 +17,13 @@ require_once __DIR__ . '/setup.php';
 require_once __DIR__ . '/assets.php';
 require_once __DIR__ . '/woocommerce.php';
 require_once __DIR__ . '/requests.php';
+require_once __DIR__ . '/settings/helpers.php';
+
+// Settings panel class loads in admin only (plus WP-CLI so settings stay
+// manageable from the command line); helpers serve both sides.
+if ( is_admin() || ( defined( 'WP_CLI' ) && WP_CLI ) ) {
+	require_once __DIR__ . '/settings/class-theme-settings.php';
+}
 
 add_action( 'after_setup_theme', __NAMESPACE__ . '\\torantejarat_setup' );
 add_action( 'after_setup_theme', __NAMESPACE__ . '\\torantejarat_woocommerce_setup' );

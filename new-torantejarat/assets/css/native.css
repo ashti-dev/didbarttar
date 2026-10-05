@@ -507,6 +507,11 @@ body.js .torantejarat-video-cover{display:block}
 .torantejarat-site .woocommerce-checkout .form-row .required{color:var(--orange);font-weight:800}
 .torantejarat-site .woocommerce-checkout .form-row input,.torantejarat-site .woocommerce-checkout .form-row select{width:100%}
 .torantejarat-site .woocommerce-checkout #place_order{width:100%;min-height:52px;font-size:14px}
+/* Footer contact/social row driven by theme settings (hidden when empty). */
+.torantejarat-footer-contact{display:flex;flex-wrap:wrap;gap:8px 16px;margin-top:14px;font-size:12px}
+.torantejarat-footer-contact a{color:inherit;text-decoration:none;border-bottom:1px solid transparent}
+.torantejarat-footer-contact a:hover{border-bottom-color:currentColor}
+.torantejarat-footer-phone{font-weight:800}
 /* Compare AJAX refresh: lightweight loading state, no layout jump. */
 .torantejarat-compare-results{transition:opacity .2s ease}
 .torantejarat-compare-results.is-loading{opacity:.45;min-height:120px;pointer-events:none}
