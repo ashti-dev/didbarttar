@@ -25,6 +25,7 @@ add_action( 'admin_post_nopriv_torantejarat_request', __NAMESPACE__ . '\\torante
 add_action( 'admin_post_torantejarat_request', __NAMESPACE__ . '\\torantejarat_handle_request' );
 add_action( 'wp_enqueue_scripts', __NAMESPACE__ . '\\torantejarat_enqueue_assets' );
 add_action( 'wp_head', __NAMESPACE__ . '\\torantejarat_font_preload', 1 );
+add_action( 'wp_head', __NAMESPACE__ . '\\torantejarat_fallback_icon', 99 );
 add_action( 'admin_notices', __NAMESPACE__ . '\\torantejarat_woocommerce_notice' );
 
 add_action( 'init', __NAMESPACE__ . '\\torantejarat_register_patterns' );

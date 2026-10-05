@@ -83,7 +83,12 @@ function torantejarat_breadcrumb( array $trail ) {
 			'item'     => ! empty( $torantejarat_crumb['url'] ) ? esc_url_raw( $torantejarat_crumb['url'] ) : esc_url_raw( home_url( add_query_arg( null, null ) ) ),
 		);
 	}
-	echo '<script type="application/ld+json">' . wp_json_encode( $torantejarat_ld, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) . '</script>' . "\n";
+	/* Rank Math handoff: if the client enables its breadcrumb/schema module,
+	   set the torantejarat_breadcrumb_schema filter to false to avoid a
+	   duplicate BreadcrumbList. */
+	if ( apply_filters( 'torantejarat_breadcrumb_schema', true ) ) {
+		echo '<script type="application/ld+json">' . wp_json_encode( $torantejarat_ld, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) . '</script>' . "\n";
+	}
 }
 
 /**

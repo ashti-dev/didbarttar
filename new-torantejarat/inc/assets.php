@@ -26,6 +26,22 @@ function torantejarat_asset_version( $relative_path ) {
 }
 
 /**
+ * Favicon fallback: when the owner has not set a site icon in the
+ * Customizer, use the theme's own mark instead of shipping without one.
+ * Rank Math does not manage favicons, so there is no conflict.
+ */
+function torantejarat_fallback_icon() {
+	if ( has_site_icon() ) {
+		return;
+	}
+	$file = get_template_directory() . '/assets/images/favicon.svg';
+	if ( ! is_file( $file ) ) {
+		return;
+	}
+	echo '<link rel="icon" href="' . esc_url( get_template_directory_uri() . '/assets/images/favicon.svg' ) . '" type="image/svg+xml">' . "\n";
+}
+
+/**
  * Preload the variable font so the browser fetches it before first paint.
  */
 function torantejarat_font_preload() {
