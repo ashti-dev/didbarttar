@@ -46,6 +46,8 @@ function torantejarat_woocommerce_setup() {
 	add_action( 'woocommerce_after_single_product_summary', __NAMESPACE__ . '\\torantejarat_recently_viewed_slot', 25 );
 	add_action( 'woocommerce_after_shop_loop', __NAMESPACE__ . '\\torantejarat_recently_viewed_slot', 50 );
 	add_action( 'woocommerce_archive_description', __NAMESPACE__ . '\\torantejarat_archive_categories', 30 );
+	add_action( 'wp_ajax_torantejarat_compare', __NAMESPACE__ . '\\torantejarat_compare_fragment' );
+	add_action( 'wp_ajax_nopriv_torantejarat_compare', __NAMESPACE__ . '\\torantejarat_compare_fragment' );
 
 	add_action( 'woocommerce_before_cart', __NAMESPACE__ . '\\torantejarat_cart_layout_start', 99 );
 	add_action( 'woocommerce_after_cart', __NAMESPACE__ . '\\torantejarat_cart_layout_end', 1 );
@@ -879,6 +881,142 @@ function torantejarat_recently_viewed_slot() {
 	echo '</div></section>';
 }
 
+/**
+ * Compare selection logic shared by the compare page and its AJAX fragment.
+ * Input: raw (already sanitized) keys compare/p1/p2/p3/add/diff.
+ * Returns: ids (deduped table IDs), slots (per-dropdown choices),
+ * items, maps, labels, only_diff.
+ */
+function torantejarat_compare_data( array $raw ) {
+	$catalog = torantejarat_woocommerce_available()
+		? wc_get_products( array( 'status' => 'publish', 'visibility' => 'catalog', 'limit' => 50, 'orderby' => 'name', 'order' => 'ASC' ) )
+		: array();
+	$catalog = array_values( array_filter( $catalog, static fn( $item ) => $item instanceof \WC_Product && $item->is_visible() ) );
+	$by_id   = array();
+	foreach ( $catalog as $item ) {
+		$by_id[ $item->get_id() ] = $item;
+	}
+	$wanted = array();
+	if ( ! empty( $raw['compare'] ) ) {
+		$wanted = array_merge( $wanted, explode( ',', (string) $raw['compare'] ) );
+	}
+	foreach ( array( 'p1', 'p2', 'p3' ) as $key ) {
+		if ( isset( $raw[ $key ] ) ) {
+			$wanted[] = (string) $raw[ $key ];
+		}
+	}
+	if ( ! empty( $raw['add'] ) ) {
+		array_unshift( $wanted, (string) $raw['add'] );
+	}
+	$ids = array();
+	foreach ( $wanted as $raw_id ) {
+		$id = absint( $raw_id );
+		if ( $id > 0 && isset( $by_id[ $id ] ) && ! in_array( $id, $ids, true ) ) {
+			$ids[] = $id;
+		}
+		if ( count( $ids ) >= 3 ) { break; }
+	}
+	/* Per-slot choices drive the dropdowns (duplicates preserved); leftover
+	   table IDs fill empty slots so ?add= / ?compare= also preselect. */
+	$slots = array( 0, 0, 0 );
+	foreach ( array( 'p1', 'p2', 'p3' ) as $slot_index => $key ) {
+		if ( isset( $raw[ $key ] ) ) {
+			$slot_id = absint( (string) $raw[ $key ] );
+			if ( $slot_id > 0 && isset( $by_id[ $slot_id ] ) ) {
+				$slots[ $slot_index ] = $slot_id;
+			}
+		}
+	}
+	foreach ( $ids as $id ) {
+		if ( in_array( $id, $slots, true ) ) {
+			continue;
+		}
+		foreach ( $slots as $slot_index => $slot_value ) {
+			if ( 0 === $slot_value ) {
+				$slots[ $slot_index ] = $id;
+				break;
+			}
+		}
+	}
+	$only_diff = isset( $raw['diff'] ) && '1' === (string) $raw['diff'];
+	$items = array();
+	foreach ( $ids as $id ) {
+		$items[] = $by_id[ $id ];
+	}
+	$maps   = array();
+	$labels = array();
+	foreach ( $items as $item ) {
+		$map = array();
+		foreach ( torantejarat_product_attribute_items( $item, 10 ) as $attr ) {
+			$map[ $attr['label'] ] = $attr['value'];
+			if ( ! in_array( $attr['label'], $labels, true ) && count( $labels ) < 8 ) {
+				$labels[] = $attr['label'];
+			}
+		}
+		$maps[] = $map;
+	}
+	if ( $only_diff && count( $items ) > 1 ) {
+		$labels = array_values(
+			array_filter(
+				$labels,
+				static function ( $label ) use ( $maps ) {
+					$seen = array();
+					foreach ( $maps as $map ) {
+						$seen[] = $map[ $label ] ?? null;
+					}
+					return count( array_unique( $seen ) ) > 1;
+				}
+			)
+		);
+	}
+	return array(
+		'catalog'   => $catalog,
+		'ids'       => $ids,
+		'slots'     => $slots,
+		'items'     => $items,
+		'maps'      => $maps,
+		'labels'    => $labels,
+		'only_diff' => $only_diff,
+	);
+}
+
+/**
+ * Sanitize raw compare input (GET or AJAX) to the torantejarat_compare_data shape.
+ */
+function torantejarat_compare_raw_input( array $input ) {
+	$raw = array();
+	foreach ( array( 'compare', 'p1', 'p2', 'p3', 'add', 'diff' ) as $key ) {
+		if ( isset( $input[ $key ] ) ) {
+			$raw[ $key ] = sanitize_text_field( wp_unslash( $input[ $key ] ) );
+		}
+	}
+	return $raw;
+}
+
+/**
+ * AJAX fragment: refreshed compare results without a full page load.
+ * Read-only public catalog data; nonce verified.
+ */
+function torantejarat_compare_fragment() {
+	check_ajax_referer( 'torantejarat-compare', 'nonce' );
+	$data = torantejarat_compare_data( torantejarat_compare_raw_input( $_GET ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Verified above.
+	ob_start();
+	get_template_part(
+		'template-parts/compare-results',
+		null,
+		array(
+			'items'  => $data['items'],
+			'maps'   => $data['maps'],
+			'labels' => $data['labels'],
+		)
+	);
+	wp_send_json_success(
+		array(
+			'html'  => ob_get_clean(),
+			'count' => count( $data['items'] ),
+		)
+	);
+}
 function torantejarat_loop_product_title() {
 	$level = in_array( wc_get_loop_prop( 'name' ), array( 'torantejarat-home', 'related', 'up-sells', 'cross-sells' ), true ) ? 3 : 2;
 	$class = apply_filters( 'woocommerce_product_loop_title_classes', 'woocommerce-loop-product__title' );

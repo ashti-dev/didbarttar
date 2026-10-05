@@ -496,6 +496,10 @@ body.js .torantejarat-video-cover{display:block}
 @media(max-width:900px){.torantejarat-header-actions{gap:16px}.torantejarat-header-actions .torantejarat-menu-toggle{margin-inline-end:8px}}
 @media(max-width:600px){.torantejarat-cart-dropdown{display:none}}
 
+/* Compare AJAX refresh: lightweight loading state, no layout jump. */
+.torantejarat-compare-results{transition:opacity .2s ease}
+.torantejarat-compare-results.is-loading{opacity:.45;min-height:120px;pointer-events:none}
+
 /* Compare page pickers. */
 .torantejarat-compare-pickers{display:grid;grid-template-columns:repeat(3,1fr) auto;gap:12px;align-items:end;background:#f8f9f5;border:1px solid var(--line);border-radius:16px;padding:20px;margin-bottom:28px}
 .torantejarat-compare-pickers label{display:grid;gap:6px;font-size:12px;font-weight:700}
