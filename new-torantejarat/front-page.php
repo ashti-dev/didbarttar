@@ -45,6 +45,7 @@ get_header();
 				</div>
 				<?php $torantejarat_hero_slides = torantejarat_hero_slides(); ?>
 				<?php if ( $torantejarat_hero_slides ) : ?>
+					<link rel="preload" as="image" fetchpriority="high" href="<?php echo esc_url( $torantejarat_hero_slides[0]['src'] ); ?>">
 					<div class="torantejarat-hero-visual"
 						data-hero-slider-autoplay="7000"
 						data-hero-slider-loop="true"

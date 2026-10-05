@@ -15,6 +15,8 @@ function torantejarat_setup() {
 	load_theme_textdomain( 'torantejarat' );
 	add_theme_support( 'title-tag' );
 	add_theme_support( 'post-thumbnails' );
+	/* Card frame (~380px, up to ~2x DPR): soft bounding box, never crops the product. */
+	add_image_size( 'torantejarat-card', 640, 640, false );
 	add_theme_support( 'custom-logo' );
 	add_theme_support( 'html5', array( 'caption', 'gallery', 'style', 'script', 'search-form' ) );
 	add_theme_support( 'editor-styles' );

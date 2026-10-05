@@ -182,7 +182,7 @@ get_header();
 									<article class="torantejarat-finder-card">
 										<a class="torantejarat-finder-card-image" href="<?php echo esc_url( $torantejarat_item_url ); ?>" tabindex="-1" aria-hidden="true">
 											<?php if ( $torantejarat_item->get_image_id() ) : ?>
-												<?php echo wp_get_attachment_image( $torantejarat_item->get_image_id(), 'medium', false, array( 'loading' => 'lazy' ) ); ?>
+												<?php echo wp_get_attachment_image( $torantejarat_item->get_image_id(), 'torantejarat-card', false, array( 'loading' => 'lazy' ) ); ?>
 											<?php else : ?>
 												<?php torantejarat_icon( 'scan' ); ?>
 											<?php endif; ?>

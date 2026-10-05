@@ -54,7 +54,7 @@ $torantejarat_visible = min( 3, count( $torantejarat_items ) );
 						<div class="torantejarat-product-image">
 							<a href="<?php echo esc_url( $torantejarat_product_url ); ?>" tabindex="-1" aria-hidden="true">
 								<?php if ( $torantejarat_slider_product->get_image_id() ) : ?>
-									<?php echo wp_get_attachment_image( $torantejarat_slider_product->get_image_id(), 'medium', false, array( 'loading' => 'lazy' ) ); ?>
+									<?php echo wp_get_attachment_image( $torantejarat_slider_product->get_image_id(), 'torantejarat-card', false, array( 'loading' => 'lazy' ) ); ?>
 								<?php else : ?>
 									<?php torantejarat_icon( 'scan' ); ?>
 								<?php endif; ?>

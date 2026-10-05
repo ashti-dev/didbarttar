@@ -45,7 +45,7 @@ foreach ( $torantejarat_items as $torantejarat_item ) {
 				<th scope="col">
 					<a class="torantejarat-compare-photo" href="<?php echo esc_url( get_permalink( $torantejarat_item->get_id() ) ); ?>" tabindex="-1" aria-hidden="true">
 						<?php if ( $torantejarat_item->get_image_id() ) : ?>
-							<?php echo wp_get_attachment_image( $torantejarat_item->get_image_id(), 'medium', false, array( 'loading' => 'lazy' ) ); ?>
+							<?php echo wp_get_attachment_image( $torantejarat_item->get_image_id(), 'torantejarat-card', false, array( 'loading' => 'lazy' ) ); ?>
 						<?php else : ?>
 							<?php torantejarat_icon( 'scan' ); ?>
 						<?php endif; ?>

@@ -650,7 +650,7 @@ function torantejarat_product_video_section() {
 		<?php if ( $embed ) : ?>
 			<div class="torantejarat-pdp-video-frame" data-video-facade>
 				<button type="button" class="torantejarat-video-cover" data-video-cover aria-label="<?php esc_attr_e( 'پخش ویدیوی محصول', 'torantejarat' ); ?>">
-					<?php if ( $poster ) : ?><img src="<?php echo esc_url( $poster ); ?>" alt="" loading="lazy"><?php endif; ?>
+					<?php if ( $poster ) : ?><img src="<?php echo esc_url( $poster ); ?>" alt="" width="800" height="450" loading="lazy"><?php endif; ?>
 					<span class="torantejarat-video-play" aria-hidden="true"><svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span>
 				</button>
 				<template><?php echo $embed; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Merchant-authored oEmbed/video markup. ?></template>
