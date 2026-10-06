@@ -27,7 +27,10 @@
 		'.torantejarat-editorial-card',
 		'.torantejarat-compare-photo',
 		'.torantejarat-finder-card',
-		'.torantejarat-check-list li'
+		'.torantejarat-check-list li',
+		'.torantejarat-bestseller-row',
+		'.torantejarat-deal-card',
+		'.torantejarat-contact-card'
 	];
 
 	document.addEventListener('DOMContentLoaded', function () {

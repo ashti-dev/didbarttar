@@ -1256,6 +1256,76 @@ function torantejarat_tracking_email( $fields, $sent_to_admin, $order ) {
 	return $fields;
 }
 
+/**
+ * Best sellers by real completed sales. Only products with proven demand
+ * (total_sales threshold) qualify — never hand-picked, never faked.
+ *
+ * @param int $limit Max items.
+ * @return \WC_Product[]
+ */
+function torantejarat_bestsellers( $limit = 8 ) {
+	if ( ! torantejarat_woocommerce_available() ) {
+		return array();
+	}
+	$candidates = wc_get_products(
+		array(
+			'status'     => 'publish',
+			'visibility' => 'catalog',
+			'limit'      => max( 1, (int) $limit ) * 2,
+			'orderby'    => 'meta_value_num',
+			'meta_key'   => 'total_sales',
+			'order'      => 'DESC',
+		)
+	);
+	$items = array();
+	foreach ( $candidates as $item ) {
+		if ( ! $item instanceof \WC_Product || ! $item->is_visible() ) {
+			continue;
+		}
+		if ( (int) $item->get_total_sales() < 5 ) {
+			continue;
+		}
+		$items[] = $item;
+		if ( count( $items ) >= (int) $limit ) {
+			break;
+		}
+	}
+	return $items;
+}
+
+/**
+ * Real deals only: on-sale products with a genuine price gap,
+ * sorted by discount percent (highest first).
+ *
+ * @param int $limit Max items.
+ * @return array List of array( 'product' => WC_Product, 'percent' => int ).
+ */
+function torantejarat_deals( $limit = 4 ) {
+	if ( ! torantejarat_woocommerce_available() ) {
+		return array();
+	}
+	$candidates = wc_get_products(
+		array( 'status' => 'publish', 'visibility' => 'catalog', 'limit' => 50, 'orderby' => 'date', 'order' => 'DESC' )
+	);
+	$deals = array();
+	foreach ( $candidates as $item ) {
+		if ( ! $item instanceof \WC_Product || ! $item->is_visible() || ! $item->is_on_sale() ) {
+			continue;
+		}
+		$regular = (float) $item->get_regular_price();
+		$price   = (float) $item->get_price();
+		if ( $regular <= 0 || $price >= $regular ) {
+			continue;
+		}
+		$deals[] = array(
+			'product' => $item,
+			'percent' => (int) round( ( $regular - $price ) / $regular * 100 ),
+		);
+	}
+	usort( $deals, static fn( $a, $b ) => $b['percent'] <=> $a['percent'] );
+	return array_slice( $deals, 0, max( 1, (int) $limit ) );
+}
+
 function torantejarat_loop_product_title() {
 	$level = in_array( wc_get_loop_prop( 'name' ), array( 'torantejarat-home', 'related', 'up-sells', 'cross-sells' ), true ) ? 3 : 2;
 	$class = apply_filters( 'woocommerce_product_loop_title_classes', 'woocommerce-loop-product__title' );
