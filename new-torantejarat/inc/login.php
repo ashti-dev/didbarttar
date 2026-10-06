@@ -42,6 +42,9 @@ function torantejarat_login_styles() {
 		body.login .button-primary{background:<?php echo esc_html( $accent ); ?>!important;border-color:<?php echo esc_html( $accent ); ?>!important;width:100%;min-height:46px;font-size:14px;font-weight:700}
 		body.login #nav a,body.login #backtoblog a{color:#ffffffb3!important}
 		body.login #nav a:hover,body.login #backtoblog a:hover{color:#fff!important}
+		body.login #nav,body.login #backtoblog{display:flex;align-items:center;justify-content:center;gap:8px;text-align:center;margin:18px 0 0;padding:0}
+		body.login #nav a,body.login #backtoblog a{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;background:#ffffff14;border:1px solid #ffffff2e;border-radius:30px;padding:9px 18px;text-decoration:none;transition:background .2s,border-color .2s}
+		body.login #nav a:hover,body.login #backtoblog a:hover{background:#ffffff26;border-color:#ffffff4d}
 		.privacy-policy-page-link{display:none}
 		<?php if ( torantejarat_option( 'login', 'login_hide_register' ) ) : ?>#nav a[href*="action=register"]{display:none}<?php endif; ?>
 		<?php if ( torantejarat_option( 'login', 'login_hide_lostpassword' ) ) : ?>#nav a[href*="lostpassword"],.wp-login-lost-password{display:none}<?php endif; ?>
