@@ -491,9 +491,25 @@ body.js .torantejarat-video-cover{display:block}
 @media(max-width:900px){.torantejarat-header-actions{gap:16px}.torantejarat-header-actions .torantejarat-menu-toggle{margin-inline-end:8px}}
 @media(max-width:600px){.torantejarat-cart-dropdown{display:none}}
 
+/* About CTA (kit parity: single primary action to the finder). */
+.torantejarat-about-cta{margin-top:26px}
 /* Request forms (contact / rent / repairs). */
 .torantejarat-request-formfields{display:grid;gap:16px;margin-top:24px}
 .torantejarat-request-formfields p{display:grid;gap:6px;margin:0}
+@media(min-width:700px){
+  .torantejarat-request-formfields p:has(#torantejarat-req-name),
+  .torantejarat-request-formfields p:has(#torantejarat-req-phone){grid-column:span 1}
+  .torantejarat-request-formfields{display:grid;grid-template-columns:1fr 1fr}
+  .torantejarat-request-formfields p:has(textarea),
+  .torantejarat-request-formfields p:has(select),
+  .torantejarat-request-formfields p:has(.torantejarat-btn),
+  .torantejarat-request-formfields p:has(#torantejarat-req-date),
+  .torantejarat-request-formfields p:has(#torantejarat-req-days),
+  .torantejarat-request-formfields p:has(#torantejarat-req-city),
+  .torantejarat-request-formfields p:has(#torantejarat-req-model),
+  .torantejarat-request-formfields .torantejarat-request-context{grid-column:1/-1}
+  .torantejarat-request-formfields p:has(.torantejarat-btn) .torantejarat-btn{justify-self:start}
+}
 .torantejarat-request-formfields label{font-size:12px;font-weight:700}
 .torantejarat-hp-field{display:none!important}
 .torantejarat-request-context{font-size:12px;color:var(--muted);background:#f8f9f5;border:1px solid var(--line);border-radius:10px;padding:10px 14px}
