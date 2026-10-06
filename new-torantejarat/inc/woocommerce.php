@@ -59,6 +59,9 @@ function torantejarat_woocommerce_setup() {
 	add_action( 'woocommerce_process_shop_order_meta', __NAMESPACE__ . '\\torantejarat_tracking_save' );
 	add_action( 'woocommerce_order_details_after_order_table', __NAMESPACE__ . '\\torantejarat_tracking_account' );
 	add_filter( 'woocommerce_email_order_meta_fields', __NAMESPACE__ . '\\torantejarat_tracking_email', 10, 3 );
+	add_action( 'init', __NAMESPACE__ . '\\torantejarat_register_shipped_status' );
+	add_filter( 'wc_order_statuses', __NAMESPACE__ . '\\torantejarat_shipped_status_list' );
+	add_action( 'woocommerce_order_details_before_order_table', __NAMESPACE__ . '\\torantejarat_order_timeline' );
 
 	add_action( 'woocommerce_before_cart', __NAMESPACE__ . '\\torantejarat_cart_layout_start', 99 );
 	add_action( 'woocommerce_after_cart', __NAMESPACE__ . '\\torantejarat_cart_layout_end', 1 );
@@ -1189,6 +1192,12 @@ function torantejarat_checkout_phone_check() {
 	}
 }
 
+function torantejarat_loop_product_title() {
+	$level = in_array( wc_get_loop_prop( 'name' ), array( 'torantejarat-home', 'related', 'up-sells', 'cross-sells' ), true ) ? 3 : 2;
+	$class = apply_filters( 'woocommerce_product_loop_title_classes', 'woocommerce-loop-product__title' );
+	printf( '<h%1$d class="%2$s">%3$s</h%1$d>', $level, esc_attr( $class ), esc_html( get_the_title() ) );
+}
+
 /**
  * Postal tracking code per order: admin field + account display + emails.
  * Meta key: _torantejarat_tracking.
@@ -1326,10 +1335,96 @@ function torantejarat_deals( $limit = 4 ) {
 	return array_slice( $deals, 0, max( 1, (int) $limit ) );
 }
 
-function torantejarat_loop_product_title() {
-	$level = in_array( wc_get_loop_prop( 'name' ), array( 'torantejarat-home', 'related', 'up-sells', 'cross-sells' ), true ) ? 3 : 2;
-	$class = apply_filters( 'woocommerce_product_loop_title_classes', 'woocommerce-loop-product__title' );
-	printf( '<h%1$d class="%2$s">%3$s</h%1$d>', $level, esc_attr( $class ), esc_html( get_the_title() ) );
+/**
+ * Order pipeline: pending → processing → shipped (custom) → completed.
+ * Timeline in the customer account reads status + tracking code; no fake dates.
+ */
+function torantejarat_register_shipped_status() {
+	register_post_status(
+		'wc-shipped',
+		array(
+			'label'                     => __( 'ارسال شد', 'torantejarat' ),
+			'public'                    => true,
+			'exclude_from_search'       => false,
+			'show_in_admin_all_list'    => true,
+			'show_in_admin_status_list' => true,
+			/* translators: %s: number of orders. */
+			'label_count'               => _n_noop( 'ارسال شد (%s)', 'ارسال شد (%s)', 'torantejarat' ),
+		)
+	);
+}
+
+function torantejarat_shipped_status_list( $statuses ) {
+	$ordered = array();
+	foreach ( $statuses as $key => $label ) {
+		$ordered[ $key ] = $label;
+		if ( 'wc-processing' === $key ) {
+			$ordered['wc-shipped'] = __( 'ارسال شد', 'torantejarat' );
+		}
+	}
+	return $ordered;
+}
+
+function torantejarat_order_timeline( $order ) {
+	if ( ! $order instanceof \WC_Order ) {
+		$order = wc_get_order( $order );
+	}
+	if ( ! $order instanceof \WC_Order ) {
+		return;
+	}
+	$status = $order->get_status();
+	if ( in_array( $status, array( 'cancelled', 'refunded', 'failed' ), true ) ) {
+		$messages = array(
+			'cancelled' => __( 'این سفارش لغو شده است. برای ثبت مجدد یا پیگیری با ما در تماس باشید.', 'torantejarat' ),
+			'refunded'  => __( 'مبلغ این سفارش بازگردانده شده است.', 'torantejarat' ),
+			'failed'    => __( 'پرداخت این سفارش ناموفق بود. لطفاً دوباره تلاش کنید.', 'torantejarat' ),
+		);
+		echo '<div class="torantejarat-form-notice is-error" role="alert"><p>' . esc_html( $messages[ $status ] ) . '</p></div>';
+		return;
+	}
+	$stage = 0;
+	if ( in_array( $status, array( 'processing', 'shipped', 'completed' ), true ) ) {
+		$stage = 1;
+	}
+	if ( 'shipped' === $status || 'completed' === $status ) {
+		$stage = 2;
+	}
+	if ( 'completed' === $status ) {
+		$stage = 3;
+	}
+	$tracking = $order->get_meta( '_torantejarat_tracking' );
+	$steps    = array(
+		array(
+			'title' => __( 'ثبت سفارش', 'torantejarat' ),
+			'desc'  => sprintf( __( 'سفارش %s ثبت شد.', 'torantejarat' ), $order->get_date_created()->date( 'Y/m/d' ) ),
+		),
+		array(
+			'title' => __( 'تأیید و آماده‌سازی', 'torantejarat' ),
+			'desc'  => __( 'سفارش تأیید و برای ارسال آماده می‌شود.', 'torantejarat' ),
+		),
+		array(
+			'title' => __( 'ارسال شد', 'torantejarat' ),
+			'desc'  => '' !== $tracking
+				? sprintf( __( 'کد مرسوله: %s', 'torantejarat' ), $tracking )
+				: __( 'پس از ارسال، کد مرسوله اینجا نمایش داده می‌شود.', 'torantejarat' ),
+		),
+		array(
+			'title' => __( 'تحویل شد', 'torantejarat' ),
+			'desc'  => $order->get_date_completed()
+				? sprintf( __( 'تحویل در %s.', 'torantejarat' ), $order->get_date_completed()->date( 'Y/m/d' ) )
+				: __( 'پس از تحویل، اینجا ثبت می‌شود.', 'torantejarat' ),
+		),
+	);
+	echo '<section class="torantejarat-timeline" aria-label="' . esc_attr__( 'مراحل سفارش', 'torantejarat' ) . '"><ol>';
+	$torantejarat_last = count( $steps ) - 1;
+	foreach ( $steps as $index => $step ) {
+		$state = ( $index < $stage || $stage === $torantejarat_last ) ? 'is-done' : ( $index === $stage ? 'is-current' : 'is-todo' );
+		echo '<li class="torantejarat-timeline-step ' . esc_attr( $state ) . '">';
+		echo '<span class="torantejarat-timeline-dot" aria-hidden="true"></span>';
+		echo '<div><strong>' . esc_html( $step['title'] ) . '</strong><span>' . esc_html( $step['desc'] ) . '</span></div>';
+		echo '</li>';
+	}
+	echo '</ol></section>';
 }
 
 function torantejarat_cart_layout_start() { echo '<div class="torantejarat-native-cart-layout">'; }
