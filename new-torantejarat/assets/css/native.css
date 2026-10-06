@@ -553,6 +553,12 @@ body.js .torantejarat-video-cover{display:block}
 .torantejarat-contact-widget li a{font-size:13px;font-weight:600}
 .torantejarat-contact-map iframe{width:100%;height:260px;border:0;border-radius:10px;display:block}
 .torantejarat-contact-map-empty{font-size:12px;color:var(--muted);border:1px dashed #cfd8c6;border-radius:10px;padding:16px;text-align:center}
+/* Scroll reveal (dependency-free): fade-up on entry, reverse on exit. */
+.reveal-init [data-reveal]{opacity:0;transform:translateY(26px);transition:opacity .55s ease var(--reveal-delay,0ms),transform .55s cubic-bezier(.22,1,.36,1) var(--reveal-delay,0ms)}
+.reveal-init [data-reveal].is-visible{opacity:1;transform:none}
+@media(prefers-reduced-motion:reduce){
+  .reveal-init [data-reveal]{opacity:1!important;transform:none!important;transition:none!important}
+}
 /* Compare AJAX refresh: lightweight loading state, no layout jump. */
 .torantejarat-compare-results{transition:opacity .2s ease}
 .torantejarat-compare-results.is-loading{opacity:.45;min-height:120px;pointer-events:none}

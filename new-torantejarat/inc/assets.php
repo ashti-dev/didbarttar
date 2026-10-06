@@ -73,6 +73,7 @@ function torantejarat_enqueue_assets() {
 	if ( has_nav_menu( 'torantejarat-primary' ) ) {
 		wp_enqueue_script( 'torantejarat-navigation', get_template_directory_uri() . '/assets/js/navigation.js', array(), torantejarat_asset_version( 'assets/js/navigation.js' ), array( 'in_footer' => true, 'strategy' => 'defer' ) );
 	}
+	wp_enqueue_script( 'torantejarat-reveal', get_template_directory_uri() . '/assets/js/reveal.js', array(), torantejarat_asset_version( 'assets/js/reveal.js' ), array( 'in_footer' => true, 'strategy' => 'defer' ) );
 	if ( torantejarat_woocommerce_available() && is_product() ) {
 		wp_enqueue_script( 'torantejarat-pdp', get_template_directory_uri() . '/assets/js/pdp.js', array(), torantejarat_asset_version( 'assets/js/pdp.js' ), true );
 		wp_enqueue_script( 'torantejarat-pdp-tabs', get_template_directory_uri() . '/assets/js/pdp-tabs.js', array(), torantejarat_asset_version( 'assets/js/pdp-tabs.js' ), true );
