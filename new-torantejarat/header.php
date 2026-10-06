@@ -17,6 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 <head>
 	<meta charset="<?php echo esc_attr( get_bloginfo( 'charset' ) ); ?>">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<style id="torantejarat-critical">.torantejarat-menu-toggle{display:none}.torantejarat-main-nav{display:flex}@media(max-width:900px){.torantejarat-menu-toggle{display:grid}.torantejarat-main-nav:not(.torantejarat-is-open){display:none}}</style>
 	<?php wp_head(); ?>
 </head>
 <body <?php body_class( 'torantejarat-site' ); ?>>
