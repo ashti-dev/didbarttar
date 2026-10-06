@@ -132,6 +132,61 @@ final class TT_Settings {
 				),
 			),
 		),
+		'login'    => array(
+			'label'  => 'صفحه ورود',
+			'icon'   => 'dashicons-lock',
+			'fields' => array(
+				'login_logo'            => array(
+					'label'    => 'لوگوی صفحه ورود (URL)',
+					'type'     => 'url',
+					'default'  => '',
+					'desc'     => 'خالی = لوگوی سفارشی‌ساز، بعد آیکون قالب.',
+					'sanitize' => 'esc_url_raw',
+				),
+				'login_title'           => array(
+					'label'    => 'تیتر خوش‌آمد',
+					'type'     => 'text',
+					'default'  => '',
+					'desc'     => 'خالی = نام سایت نمایش داده می‌شود.',
+					'sanitize' => 'sanitize_text_field',
+				),
+				'login_text'            => array(
+					'label'    => 'متن زیر تیتر',
+					'type'     => 'textarea',
+					'default'  => '',
+					'desc'     => '',
+					'sanitize' => 'sanitize_textarea_field',
+				),
+				'login_bg'              => array(
+					'label'    => 'رنگ پس‌زمینه',
+					'type'     => 'color',
+					'default'  => '#172325',
+					'desc'     => '',
+					'sanitize' => 'sanitize_hex_color',
+				),
+				'login_accent'          => array(
+					'label'    => 'رنگ دکمه و لینک‌ها',
+					'type'     => 'color',
+					'default'  => '#f77b3e',
+					'desc'     => '',
+					'sanitize' => 'sanitize_hex_color',
+				),
+				'login_hide_register'   => array(
+					'label'    => 'مخفی کردن لینک ثبت‌نام',
+					'type'     => 'checkbox',
+					'default'  => 0,
+					'desc'     => '',
+					'sanitize' => 'absint',
+				),
+				'login_hide_lostpassword' => array(
+					'label'    => 'مخفی کردن «رمز را فراموش کرده‌ام»',
+					'type'     => 'checkbox',
+					'default'  => 0,
+					'desc'     => 'توصیه نمی‌شود — فقط اگر ورود فقط با پیامک است.',
+					'sanitize' => 'absint',
+				),
+			),
+		),
 		'business' => array(
 			'label'  => 'کسب‌وکار',
 			'icon'   => 'dashicons-store',
@@ -240,6 +295,11 @@ final class TT_Settings {
 				$output[ $key ] = preg_replace( '/[^0-9+]/', '', (string) $raw );
 			} elseif ( 'select' === $type ) {
 				$output[ $key ] = $this->sanitize_select( $raw, isset( $field['options'] ) && is_array( $field['options'] ) ? $field['options'] : array() );
+			} elseif ( 'color' === $type ) {
+				$torantejarat_color = sanitize_hex_color( (string) $raw );
+				$output[ $key ]     = $torantejarat_color ? $torantejarat_color : $field['default'];
+			} elseif ( 'checkbox' === $type ) {
+				$output[ $key ] = ! empty( $raw ) ? 1 : 0;
 			} else {
 				$callback        = isset( $field['sanitize'] ) ? $field['sanitize'] : 'sanitize_text_field';
 				$output[ $key ] = call_user_func( $callback, $raw );
@@ -309,9 +369,11 @@ final class TT_Settings {
 			$type  = $field['type'];
 			?>
 			<div class="tt-field">
+				<?php if ( 'checkbox' !== $type ) : ?>
 				<label class="tt-label" for="<?php echo esc_attr( $id ); ?>">
 					<?php echo esc_html( $field['label'] ); ?>
 				</label>
+				<?php endif; ?>
 				<div class="tt-control">
 					<?php if ( 'textarea' === $type || 'embed' === $type ) : ?>
 						<textarea
@@ -320,6 +382,17 @@ final class TT_Settings {
 							rows="4"
 							class="large-text"
 						><?php echo esc_textarea( $value ); ?></textarea>
+					<?php elseif ( 'checkbox' === $type ) : ?>
+						<label class="tt-check">
+							<input
+								type="checkbox"
+								id="<?php echo esc_attr( $id ); ?>"
+								name="<?php echo esc_attr( $name ); ?>"
+								value="1"
+								<?php checked( $value, 1 ); ?>
+							>
+							<?php echo esc_html( $field['label'] ); ?>
+						</label>
 					<?php elseif ( 'select' === $type && ! empty( $field['options'] ) && is_array( $field['options'] ) ) : ?>
 						<select
 							id="<?php echo esc_attr( $id ); ?>"
