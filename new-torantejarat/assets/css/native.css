@@ -523,6 +523,16 @@ body.js .torantejarat-video-cover{display:block}
 .torantejarat-site .woocommerce-checkout .form-row .required{color:var(--orange);font-weight:800}
 .torantejarat-site .woocommerce-checkout .form-row input,.torantejarat-site .woocommerce-checkout .form-row select{width:100%}
 .torantejarat-site .woocommerce-checkout #place_order{width:100%;min-height:52px;font-size:14px}
+/* Request layout: grid blowout guard + mobile order (form first). */
+.torantejarat-request-layout > *,
+.torantejarat-request-formfields > *,
+.torantejarat-contact-cards > *{min-width:0}
+.torantejarat-request-formfields input,
+.torantejarat-request-formfields select,
+.torantejarat-request-formfields textarea{width:100%}
+@media(max-width:900px){
+  .torantejarat-request-layout > .torantejarat-request-form{order:-1}
+}
 /* Footer contact/social row driven by theme settings (hidden when empty). */
 .torantejarat-footer-contact{display:flex;flex-wrap:wrap;gap:8px 16px;margin-top:14px;font-size:12px}
 .torantejarat-footer-contact a{color:inherit;text-decoration:none;border-bottom:1px solid transparent}
