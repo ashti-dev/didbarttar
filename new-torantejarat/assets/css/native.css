@@ -597,6 +597,23 @@ body.js .torantejarat-video-cover{display:block}
 .torantejarat-deals-cards .torantejarat-product-card{background:#fff;border-radius:16px;overflow:hidden}
 .torantejarat-deal-badge{position:absolute;top:10px;inset-inline-start:10px;background:#d33f1f;color:#fff;font-size:11px;font-weight:800;border-radius:20px;padding:4px 12px}
 @media(max-width:900px){.torantejarat-deals-panel{grid-template-columns:1fr}.torantejarat-deals-promo{align-items:center;text-align:center}}
+/* Blog layout with professional sidebar. */
+.torantejarat-blog-layout{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:36px;align-items:start}
+.torantejarat-blog-main{min-width:0}
+.torantejarat-blog-sidebar{display:grid;gap:20px;position:sticky;top:120px}
+.torantejarat-widget{background:#fff;border:1px solid var(--line);border-radius:14px;padding:20px}
+.torantejarat-widget h2{font-size:15px;margin-bottom:14px}
+.torantejarat-widget-cats{list-style:none;margin:0;padding:0;display:grid}
+.torantejarat-widget-cats li{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid #eef1ea;font-size:13px}
+.torantejarat-widget-cats li:last-child{border-bottom:0}
+.torantejarat-widget-cats span{font-size:11px;color:var(--muted);background:#f4f5f1;border-radius:10px;padding:1px 9px}
+.torantejarat-widget-latest{list-style:none;margin:0;padding:0;display:grid;gap:14px}
+.torantejarat-widget-latest li{display:flex;gap:12px;align-items:center;min-width:0}
+.torantejarat-widget-latest img{width:56px;height:56px;object-fit:cover;border-radius:10px;flex-shrink:0}
+.torantejarat-widget-latest a{font-size:12px;font-weight:700;line-height:1.8;display:block}
+.torantejarat-widget-latest time{font-size:11px;color:var(--muted)}
+.torantejarat-widget .torantejarat-header-search{margin:0;max-width:none}
+@media(max-width:900px){.torantejarat-blog-layout{grid-template-columns:1fr}.torantejarat-blog-sidebar{position:static;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}}
 /* Scroll reveal (dependency-free): fade-up on entry, reverse on exit. */
 .reveal-init [data-reveal]{opacity:0;transform:translateY(26px);transition:opacity .55s ease var(--reveal-delay,0ms),transform .55s cubic-bezier(.22,1,.36,1) var(--reveal-delay,0ms)}
 .reveal-init [data-reveal].is-visible{opacity:1;transform:none}

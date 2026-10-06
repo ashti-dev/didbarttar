@@ -23,6 +23,18 @@ function torantejarat_setup() {
 	add_editor_style( array( 'assets/css/source/fonts.css', 'assets/css/source/theme.css', 'assets/css/native.css', 'assets/css/editor.css' ) );
 	add_post_type_support( 'page', 'excerpt' );
 
+	register_sidebar(
+		array(
+			'id'            => 'torantejarat-blog-sidebar',
+			'name'          => __( 'سایدبار بلاگ', 'torantejarat' ),
+			'description'   => __( 'اگر ابزارکی نباشد، بلوک‌های پیش‌فرض (جست‌وجو، دسته‌ها، آخرین مطالب) نمایش داده می‌شود.', 'torantejarat' ),
+			'before_widget' => '<div class="torantejarat-widget %2$s">',
+			'after_widget'  => '</div>',
+			'before_title'  => '<h2>',
+			'after_title'   => '</h2>',
+		)
+	);
+
 	register_nav_menus(
 		array(
 			'torantejarat-primary'        => __( 'منوی اصلی', 'torantejarat' ),
