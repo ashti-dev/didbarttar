@@ -32,6 +32,7 @@ function torantejarat_register_request_type() {
 			'public'       => false,
 			'show_ui'      => true,
 			'show_in_menu' => true,
+			'menu_icon'    => 'dashicons-clipboard',
 			'supports'     => array( 'title' ),
 			'capabilities' => array(
 				'create_posts' => 'do_not_allow',

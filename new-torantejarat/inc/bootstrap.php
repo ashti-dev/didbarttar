@@ -19,6 +19,7 @@ require_once __DIR__ . '/woocommerce.php';
 require_once __DIR__ . '/requests.php';
 require_once __DIR__ . '/cleanup.php';
 require_once __DIR__ . '/login.php';
+require_once __DIR__ . '/admin.php';
 require_once __DIR__ . '/settings/helpers.php';
 
 // Settings panel class loads in admin only (plus WP-CLI so settings stay
@@ -34,6 +35,10 @@ if ( ! is_admin() ) {
 
 add_action( 'init', __NAMESPACE__ . '\\torantejarat_cleanup' );
 add_action( 'wp_default_scripts', __NAMESPACE__ . '\\torantejarat_dequeue_jquery_migrate' );
+add_action( 'wp_dashboard_setup', __NAMESPACE__ . '\\torantejarat_dashboard_cleanup', 20 );
+add_action( 'wp_dashboard_setup', __NAMESPACE__ . '\\torantejarat_store_widget', 30 );
+add_action( 'admin_enqueue_scripts', __NAMESPACE__ . '\\torantejarat_admin_css' );
+add_filter( 'admin_footer_text', __NAMESPACE__ . '\\torantejarat_admin_footer' );
 add_action( 'login_enqueue_scripts', __NAMESPACE__ . '\\torantejarat_login_styles' );
 add_filter( 'login_message', __NAMESPACE__ . '\\torantejarat_login_intro' );
 add_filter( 'login_headerurl', static fn() => home_url( '/' ) );
