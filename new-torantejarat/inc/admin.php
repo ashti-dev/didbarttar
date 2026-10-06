@@ -14,11 +14,19 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 /**
  * Brand palette across wp-admin (scheme-independent CSS override).
+ * Printed on admin_head:99 so it wins over color-scheme stylesheets.
  */
+function torantejarat_admin_assets() {
+	wp_enqueue_style( 'torantejarat-admin-font', get_template_directory_uri() . '/assets/css/source/fonts.css', array(), torantejarat_asset_version( 'assets/css/source/fonts.css' ) );
+}
+
 function torantejarat_admin_css() {
 	?>
 	<style id="torantejarat-admin">
+		body.wp-admin,body.wp-admin #wpbody,body.wp-admin .wrap{font-family:Vazirmatn,Tahoma,Arial,sans-serif}
+		.wrap h1.wp-heading-inline,.wrap>h1{font-weight:800;letter-spacing:-.3px}
 		#adminmenuback,#adminmenuwrap,#adminmenu{background:#172325}
+		#adminmenu,#adminmenu .wp-submenu{font-family:Vazirmatn,Tahoma,Arial,sans-serif}
 		#adminmenu a{color:#cbd2ce}
 		#adminmenu div.wp-menu-image:before{color:#8fa09a}
 		#adminmenu li.menu-top:hover,#adminmenu li.opensub>a.menu-top,#adminmenu li>a.menu-top:focus{background:#232d2e;color:#fff}
@@ -28,8 +36,17 @@ function torantejarat_admin_css() {
 		#adminmenu .wp-submenu a{color:#aeb9b4}
 		#adminmenu .wp-submenu a:hover,#adminmenu .wp-submenu a:focus{color:#f77b3e}
 		#wpadminbar{background:#10181a}
-		.wp-core-ui .button-primary{background:#f77b3e;border-color:#f77b3e}
+		.wp-core-ui .button,.wp-core-ui .button-secondary{border-radius:8px;padding:4px 14px}
+		.wp-core-ui .button-primary{background:#f77b3e;border-color:#f77b3e;border-radius:8px}
 		.wp-core-ui .button-primary:hover{background:#e96a2b;border-color:#e96a2b}
+		.wp-core-ui input[type=text],.wp-core-ui input[type=search],.wp-core-ui input[type=number],.wp-core-ui input[type=email],.wp-core-ui input[type=url],.wp-core-ui input[type=tel],.wp-core-ui select,.wp-core-ui textarea{border-radius:8px;border-color:#d5ddd5}
+		.postbox{border-radius:14px;border-color:#e2e7e2;overflow:hidden}
+		.postbox .postbox-header{border-bottom-color:#eef1ea}
+		.postbox .hndle{font-weight:800}
+		.widefat thead td,.widefat thead th{background:#f4f5f1;font-weight:700}
+		.widefat tbody tr:hover{background:#fafbf7}
+		.notice{border-radius:10px}
+		#dashboard-widgets .postbox-container .empty-container{display:none}
 	</style>
 	<?php
 	$screen = get_current_screen();
