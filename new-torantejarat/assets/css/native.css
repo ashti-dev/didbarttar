@@ -528,6 +528,21 @@ body.js .torantejarat-video-cover{display:block}
 .torantejarat-footer-contact a{color:inherit;text-decoration:none;border-bottom:1px solid transparent}
 .torantejarat-footer-contact a:hover{border-bottom-color:currentColor}
 .torantejarat-footer-phone{font-weight:800}
+/* Contact cards + sidebar widgets (settings-driven). */
+.torantejarat-contact-cards-section{padding-bottom:0}
+.torantejarat-contact-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px}
+.torantejarat-contact-card{display:flex;gap:14px;align-items:flex-start;background:#fff;border:1px solid var(--line);border-radius:14px;padding:20px}
+.torantejarat-contact-card-icon{display:grid;place-items:center;width:46px;height:46px;flex-shrink:0;border-radius:12px;background:#f4f5f1;color:var(--ink)}
+.torantejarat-contact-card-icon .torantejarat-icon{width:24px;height:24px}
+.torantejarat-contact-card h2{font-size:14px;margin-bottom:6px}
+.torantejarat-contact-card a{font-weight:700;font-size:15px;overflow-wrap:anywhere}
+.torantejarat-contact-card p{font-size:13px}
+.torantejarat-contact-widget{border:1px solid var(--line);border-radius:14px;padding:20px;margin-top:20px;background:#fff}
+.torantejarat-contact-widget h2{font-size:15px;margin-bottom:10px}
+.torantejarat-contact-widget ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.torantejarat-contact-widget li a{font-size:13px;font-weight:600}
+.torantejarat-contact-map iframe{width:100%;height:260px;border:0;border-radius:10px;display:block}
+.torantejarat-contact-map-empty{font-size:12px;color:var(--muted);border:1px dashed #cfd8c6;border-radius:10px;padding:16px;text-align:center}
 /* Compare AJAX refresh: lightweight loading state, no layout jump. */
 .torantejarat-compare-results{transition:opacity .2s ease}
 .torantejarat-compare-results.is-loading{opacity:.45;min-height:120px;pointer-events:none}

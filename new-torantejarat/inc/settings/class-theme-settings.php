@@ -90,6 +90,13 @@ final class TT_Settings {
 					'desc'     => '',
 					'sanitize' => 'sanitize_text_field',
 				),
+				'map_embed'     => array(
+					'label'    => 'نقشه (embed)',
+					'type'     => 'embed',
+					'default'  => '',
+					'desc'     => 'کد iframe گوگل‌مپ (Share ← Embed a map). خالی = جعبه راهنما نمایش داده می‌شود.',
+					'sanitize' => 'embed',
+				),
 			),
 		),
 		'social'  => array(
@@ -225,8 +232,10 @@ final class TT_Settings {
 				$output[ $key ] = esc_url_raw( trim( $raw ) );
 			} elseif ( 'email' === $type ) {
 				$output[ $key ] = sanitize_email( $raw );
-			} elseif ( 'textarea' === $type ) {
-				$output[ $key ] = sanitize_textarea_field( $raw );
+			} elseif ( 'textarea' === $type || 'embed' === $type ) {
+				$output[ $key ] = ( 'embed' === $type )
+					? wp_kses( (string) $raw, array( 'iframe' => array( 'src' => true, 'width' => true, 'height' => true, 'style' => true, 'loading' => true, 'title' => true, 'allowfullscreen' => true ) ) )
+					: sanitize_textarea_field( $raw );
 			} elseif ( 'tel' === $type ) {
 				$output[ $key ] = preg_replace( '/[^0-9+]/', '', (string) $raw );
 			} elseif ( 'select' === $type ) {
@@ -304,7 +313,7 @@ final class TT_Settings {
 					<?php echo esc_html( $field['label'] ); ?>
 				</label>
 				<div class="tt-control">
-					<?php if ( 'textarea' === $type ) : ?>
+					<?php if ( 'textarea' === $type || 'embed' === $type ) : ?>
 						<textarea
 							id="<?php echo esc_attr( $id ); ?>"
 							name="<?php echo esc_attr( $name ); ?>"
