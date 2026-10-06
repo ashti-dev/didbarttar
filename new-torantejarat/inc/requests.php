@@ -92,9 +92,17 @@ function torantejarat_request_form( $type ) {
 		return;
 	}
 	if ( '0' === $sent ) {
+		$torantejarat_reasons = array(
+			'name'    => __( 'نام را کامل وارد کنید (حداقل ۲ حرف).', 'torantejarat' ),
+			'phone'   => __( 'شماره موبایل معتبر نیست؛ مثل 09123456789 وارد کنید.', 'torantejarat' ),
+			'details' => __( 'شرح درخواست کوتاه است؛ حداقل ۱۰ حرف بنویسید.', 'torantejarat' ),
+			'extra'   => __( 'فیلدهای اختصاصی را کامل کنید (تاریخ/شهر/مدل).', 'torantejarat' ),
+		);
+		$torantejarat_reason = isset( $_GET['reason'] ) ? sanitize_key( $_GET['reason'] ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only display.
+		$torantejarat_msg    = isset( $torantejarat_reasons[ $torantejarat_reason ] ) ? $torantejarat_reasons[ $torantejarat_reason ] : __( 'اطلاعات را کامل و درست وارد کنید: نام، موبایل معتبر (مثل 09123456789) و شرح درخواست.', 'torantejarat' );
 		echo '<div class="torantejarat-form-notice is-error" role="alert">';
 		echo '<p><strong>' . esc_html__( 'درخواست ثبت نشد.', 'torantejarat' ) . '</strong></p>';
-		echo '<p>' . esc_html__( 'اطلاعات را کامل و درست وارد کنید: نام، موبایل معتبر (مثل 09123456789) و شرح درخواست.', 'torantejarat' ) . '</p>';
+		echo '<p>' . esc_html( $torantejarat_msg ) . '</p>';
 		echo '</div>';
 	}
 	$product = torantejarat_request_context_product();
@@ -141,9 +149,13 @@ function torantejarat_request_form( $type ) {
 }
 
 function torantejarat_handle_request() {
-	$fail = static function ( $page_id ) {
+	$fail = static function ( $page_id, $reason = '' ) {
 		$target = $page_id > 0 ? get_permalink( $page_id ) : home_url( '/' );
-		wp_safe_redirect( add_query_arg( 'sent', '0', $target ) );
+		$args   = array( 'sent' => '0' );
+		if ( '' !== $reason ) {
+			$args['reason'] = $reason;
+		}
+		wp_safe_redirect( add_query_arg( $args, $target ) );
 		exit;
 	};
 	$page_id = isset( $_POST['request_page'] ) ? absint( $_POST['request_page'] ) : 0;
@@ -161,8 +173,14 @@ function torantejarat_handle_request() {
 	$name    = isset( $_POST['name'] ) ? sanitize_text_field( wp_unslash( $_POST['name'] ) ) : '';
 	$phone   = torantejarat_request_phone( isset( $_POST['phone'] ) ? wp_unslash( $_POST['phone'] ) : '' );
 	$details = isset( $_POST['details'] ) ? sanitize_textarea_field( wp_unslash( $_POST['details'] ) ) : '';
-	if ( mb_strlen( $name ) < 2 || '' === $phone || mb_strlen( $details ) < 10 ) {
-		$fail( $page_id );
+	if ( mb_strlen( $name ) < 2 ) {
+		$fail( $page_id, 'name' );
+	}
+	if ( '' === $phone ) {
+		$fail( $page_id, 'phone' );
+	}
+	if ( mb_strlen( $details ) < 10 ) {
+		$fail( $page_id, 'details' );
 	}
 	$meta = array(
 		'type'    => $type,
@@ -179,7 +197,7 @@ function torantejarat_handle_request() {
 		$days = isset( $_POST['days'] ) ? absint( $_POST['days'] ) : 0;
 		$city = isset( $_POST['city'] ) ? sanitize_text_field( wp_unslash( $_POST['city'] ) ) : '';
 		if ( ! preg_match( '/^\d{4}-\d{2}-\d{2}$/', $date ) || $days < 1 || $days > 365 || '' === $city ) {
-			$fail( $page_id );
+			$fail( $page_id, 'extra' );
 		}
 		$meta['date'] = $date;
 		$meta['days'] = $days;
@@ -187,7 +205,7 @@ function torantejarat_handle_request() {
 	} elseif ( 'repairs' === $type ) {
 		$model = isset( $_POST['model'] ) ? sanitize_text_field( wp_unslash( $_POST['model'] ) ) : '';
 		if ( '' === $model ) {
-			$fail( $page_id );
+			$fail( $page_id, 'extra' );
 		}
 		$meta['model'] = $model;
 	}
@@ -231,4 +249,79 @@ function torantejarat_handle_request() {
 	$target = $page_id > 0 ? get_permalink( $page_id ) : home_url( '/' );
 	wp_safe_redirect( add_query_arg( 'sent', '1', $target ) );
 	exit;
+}
+
+/**
+ * Admin list columns: type / name / phone / date instead of bare titles.
+ */
+function torantejarat_request_columns( $columns ) {
+	return array(
+		'cb'       => $columns['cb'],
+		'title'    => __( 'درخواست', 'torantejarat' ),
+		'type'     => __( 'نوع', 'torantejarat' ),
+		'name'     => __( 'نام', 'torantejarat' ),
+		'phone'    => __( 'موبایل', 'torantejarat' ),
+		'date'     => __( 'تاریخ', 'torantejarat' ),
+	);
+}
+
+function torantejarat_request_column_content( $column, $post_id ) {
+	$meta  = (array) get_post_meta( $post_id, '_torantejarat_request', true );
+	$types = torantejarat_request_types();
+	if ( 'type' === $column ) {
+		echo esc_html( $types[ $meta['type'] ] ?? '—' );
+	} elseif ( 'name' === $column ) {
+		echo esc_html( $meta['name'] ?? '—' );
+	} elseif ( 'phone' === $column && ! empty( $meta['phone'] ) ) {
+		echo '<bdi><a href="tel:' . esc_attr( $meta['phone'] ) . '">' . esc_html( $meta['phone'] ) . '</a></bdi>';
+	} elseif ( 'date' === $column ) {
+		echo esc_html( get_the_date( '', $post_id ) );
+	}
+}
+
+/**
+ * Details meta box with one-click reply channels (call / WhatsApp).
+ */
+function torantejarat_request_metabox() {
+	add_meta_box(
+		'torantejarat-request-details',
+		__( 'جزئیات درخواست', 'torantejarat' ),
+		__NAMESPACE__ . '\\torantejarat_request_metabox_html',
+		'torantejarat_request',
+		'normal',
+		'high'
+	);
+}
+
+function torantejarat_request_metabox_html( $post ) {
+	$meta   = (array) get_post_meta( $post->ID, '_torantejarat_request', true );
+	$topics = torantejarat_request_topics();
+	$rows   = array(
+		__( 'نام', 'torantejarat' )    => $meta['name'] ?? '—',
+		__( 'موبایل', 'torantejarat' ) => $meta['phone'] ?? '—',
+	);
+	if ( ! empty( $meta['topic'] ) && isset( $topics[ $meta['topic'] ] ) ) {
+		$rows[ __( 'موضوع', 'torantejarat' ) ] = $topics[ $meta['topic'] ];
+	}
+	foreach ( array( 'date' => __( 'تاریخ شروع', 'torantejarat' ), 'days' => __( 'مدت (روز)', 'torantejarat' ), 'city' => __( 'شهر', 'torantejarat' ), 'model' => __( 'مدل دستگاه', 'torantejarat' ) ) as $key => $label ) {
+		if ( isset( $meta[ $key ] ) && '' !== $meta[ $key ] ) {
+			$rows[ $label ] = $meta[ $key ];
+		}
+	}
+	if ( ! empty( $meta['product_id'] ) ) {
+		$rows[ __( 'محصول مرتبط', 'torantejarat' ) ] = get_the_title( $meta['product_id'] );
+	}
+	echo '<table class="widefat striped"><tbody>';
+	foreach ( $rows as $label => $value ) {
+		echo '<tr><th style="width:140px">' . esc_html( $label ) . '</th><td>' . esc_html( $value ) . '</td></tr>';
+	}
+	echo '<tr><th>' . esc_html__( 'شرح', 'torantejarat' ) . '</th><td>' . esc_html( $meta['details'] ?? '—' ) . '</td></tr>';
+	echo '</tbody></table>';
+	if ( ! empty( $meta['phone'] ) ) {
+		$digits = preg_replace( '/[^0-9]/', '', $meta['phone'] );
+		echo '<p>';
+		echo '<a class="button button-primary" href="tel:' . esc_attr( $meta['phone'] ) . '">' . esc_html__( 'تماس', 'torantejarat' ) . '</a> ';
+		echo '<a class="button" target="_blank" rel="noopener" href="https://wa.me/98' . esc_attr( ltrim( $digits, '0' ) ) . '">' . esc_html__( 'پاسخ در واتساپ', 'torantejarat' ) . '</a>';
+		echo '</p>';
+	}
 }

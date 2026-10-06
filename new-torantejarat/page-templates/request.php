@@ -61,16 +61,16 @@ get_header();
 						foreach ( $torantejarat_socials as $torantejarat_key => $torantejarat_label ) {
 							$torantejarat_url = torantejarat_option( 'social', $torantejarat_key );
 							if ( $torantejarat_url ) {
-								$torantejarat_links[ $torantejarat_key ] = array( 'label' => $torantejarat_label, 'url' => $torantejarat_url );
+								$torantejarat_links[ $torantejarat_key ] = array( 'label' => $torantejarat_label, 'url' => $torantejarat_url, 'icon' => $torantejarat_key );
 							}
 						}
 						if ( $torantejarat_links ) :
 							?>
 							<div class="torantejarat-contact-widget">
 								<h2><?php esc_html_e( 'ما را دنبال کنید', 'torantejarat' ); ?></h2>
-								<ul>
+								<ul class="torantejarat-social-icons">
 									<?php foreach ( $torantejarat_links as $torantejarat_link ) : ?>
-										<li><a href="<?php echo esc_url( $torantejarat_link['url'] ); ?>" target="_blank" rel="noopener noreferrer"><?php echo esc_html( $torantejarat_link['label'] ); ?></a></li>
+										<li><a href="<?php echo esc_url( $torantejarat_link['url'] ); ?>" target="_blank" rel="noopener noreferrer" aria-label="<?php echo esc_attr( $torantejarat_link['label'] ); ?>"><?php torantejarat_icon( $torantejarat_link['icon'] ); ?><span><?php echo esc_html( $torantejarat_link['label'] ); ?></span></a></li>
 									<?php endforeach; ?>
 								</ul>
 							</div>

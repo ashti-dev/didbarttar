@@ -39,6 +39,9 @@ add_action( 'after_setup_theme', __NAMESPACE__ . '\\torantejarat_woocommerce_set
 add_action( 'init', __NAMESPACE__ . '\\torantejarat_register_request_type' );
 add_action( 'admin_post_nopriv_torantejarat_request', __NAMESPACE__ . '\\torantejarat_handle_request' );
 add_action( 'admin_post_torantejarat_request', __NAMESPACE__ . '\\torantejarat_handle_request' );
+add_filter( 'manage_torantejarat_request_posts_columns', __NAMESPACE__ . '\\torantejarat_request_columns' );
+add_action( 'manage_torantejarat_request_posts_custom_column', __NAMESPACE__ . '\\torantejarat_request_column_content', 10, 2 );
+add_action( 'add_meta_boxes_torantejarat_request', __NAMESPACE__ . '\\torantejarat_request_metabox' );
 add_action( 'wp_enqueue_scripts', __NAMESPACE__ . '\\torantejarat_enqueue_assets' );
 add_action( 'wp_head', __NAMESPACE__ . '\\torantejarat_font_preload', 1 );
 add_action( 'wp_head', __NAMESPACE__ . '\\torantejarat_fallback_icon', 99 );
