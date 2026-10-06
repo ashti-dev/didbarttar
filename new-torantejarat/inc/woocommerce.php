@@ -55,6 +55,10 @@ function torantejarat_woocommerce_setup() {
 	add_filter( 'woocommerce_checkout_fields', __NAMESPACE__ . '\\torantejarat_checkout_fields', 20 );
 	add_action( 'woocommerce_checkout_process', __NAMESPACE__ . '\\torantejarat_checkout_phone_check', 20 );
 	add_filter( 'woocommerce_checkout_posted_data', __NAMESPACE__ . '\\torantejarat_checkout_force_country' );
+	add_action( 'woocommerce_admin_order_data_after_shipping_address', __NAMESPACE__ . '\\torantejarat_tracking_field' );
+	add_action( 'woocommerce_process_shop_order_meta', __NAMESPACE__ . '\\torantejarat_tracking_save' );
+	add_action( 'woocommerce_order_details_after_order_table', __NAMESPACE__ . '\\torantejarat_tracking_account' );
+	add_filter( 'woocommerce_email_order_meta_fields', __NAMESPACE__ . '\\torantejarat_tracking_email', 10, 3 );
 
 	add_action( 'woocommerce_before_cart', __NAMESPACE__ . '\\torantejarat_cart_layout_start', 99 );
 	add_action( 'woocommerce_after_cart', __NAMESPACE__ . '\\torantejarat_cart_layout_end', 1 );
@@ -1183,6 +1187,73 @@ function torantejarat_checkout_phone_check() {
 	if ( '' === $phone ) {
 		wc_add_notice( __( 'شماره موبایل معتبر نیست؛ مثل 09123456789 وارد کنید.', 'torantejarat' ), 'error' );
 	}
+}
+
+/**
+ * Postal tracking code per order: admin field + account display + emails.
+ * Meta key: _torantejarat_tracking.
+ */
+function torantejarat_tracking_field() {
+	global $post;
+	if ( ! $post instanceof \WP_Post || 'shop_order' !== $post->post_type ) {
+		return;
+	}
+	$torantejarat_order = wc_get_order( $post->ID );
+	$value              = $torantejarat_order instanceof \WC_Order ? $torantejarat_order->get_meta( '_torantejarat_tracking' ) : '';
+	?>
+	<p class="form-field form-field-wide">
+		<label for="torantejarat_tracking"><?php esc_html_e( 'کد مرسوله پستی', 'torantejarat' ); ?></label>
+		<input type="text" id="torantejarat_tracking" name="torantejarat_tracking" value="<?php echo esc_attr( $value ); ?>" dir="ltr" style="width:100%">
+		<span class="description"><?php esc_html_e( 'خالی = هنوز ارسال نشده. در حساب کاربری و ایمیل مشتری نمایش داده می‌شود.', 'torantejarat' ); ?></span>
+	</p>
+	<?php
+}
+
+function torantejarat_tracking_save( $order_id ) {
+	if ( ! current_user_can( 'edit_shop_order', $order_id ) ) {
+		return;
+	}
+	if ( isset( $_POST['torantejarat_tracking'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Woo verifies its own order nonce.
+		$code = sanitize_text_field( wp_unslash( $_POST['torantejarat_tracking'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		/* HPOS: orders live in custom tables — CRUD only, never postmeta. */
+		$torantejarat_order = wc_get_order( $order_id );
+		if ( ! $torantejarat_order instanceof \WC_Order ) {
+			return;
+		}
+		if ( '' === $code ) {
+			$torantejarat_order->delete_meta_data( '_torantejarat_tracking' );
+		} else {
+			$torantejarat_order->update_meta_data( '_torantejarat_tracking', $code );
+		}
+		$torantejarat_order->save();
+	}
+}
+
+function torantejarat_tracking_account( $order ) {
+	if ( ! $order instanceof \WC_Order ) {
+		return;
+	}
+	$code = $order->get_meta( '_torantejarat_tracking' );
+	if ( '' === $code ) {
+		return;
+	}
+	echo '<section class="torantejarat-tracking-box"><h2>' . esc_html__( 'کد مرسوله پستی', 'torantejarat' ) . '</h2>';
+	echo '<p><strong dir="ltr">' . esc_html( $code ) . '</strong></p>';
+	echo '<p>' . esc_html__( 'با این کد، مرسوله را در سامانه پست پیگیری کنید.', 'torantejarat' ) . '</p></section>';
+}
+
+function torantejarat_tracking_email( $fields, $sent_to_admin, $order ) {
+	if ( $sent_to_admin || ! $order instanceof \WC_Order ) {
+		return $fields;
+	}
+	$code = $order->get_meta( '_torantejarat_tracking' );
+	if ( '' !== $code ) {
+		$fields['torantejarat_tracking'] = array(
+			'label' => __( 'کد مرسوله پستی', 'torantejarat' ),
+			'value' => $code,
+		);
+	}
+	return $fields;
 }
 
 function torantejarat_loop_product_title() {
