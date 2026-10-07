@@ -51,13 +51,13 @@
 .torantejarat-site ul.products.torantejarat-product-grid .price{color:var(--ink);font-weight:700;margin:0;min-width:0;overflow-wrap:anywhere}
 .torantejarat-site ul.products.torantejarat-product-grid .price ins{text-decoration:none;display:inline}
 .torantejarat-site ul.products.torantejarat-product-grid .price del{font-size:.8em;font-weight:400;display:inline}
-.torantejarat-site ul.products.torantejarat-product-grid .button,.torantejarat-site ul.products.torantejarat-product-grid .added_to_cart{display:flex;align-items:center;justify-content:center;gap:10px;padding:12px 14px;border:1px solid transparent;border-radius:10px;background:var(--orange);margin:12px 0 0;font-size:13px;font-weight:800;color:#211e18;line-height:1.9;white-space:normal;width:100%;transition:filter .2s,transform .2s}
+.torantejarat-site #torantejarat-main ul.products.torantejarat-product-grid .button,.torantejarat-site #torantejarat-main ul.products.torantejarat-product-grid .added_to_cart{display:flex;align-items:center;justify-content:center;gap:10px;padding:12px 14px;border:1px solid transparent;border-radius:10px;background:var(--orange);margin:12px 0 0;font-size:13px;font-weight:800;color:#211e18;line-height:1.9;white-space:normal;width:100%;transition:filter .2s,transform .2s}
 .torantejarat-site ul.products.torantejarat-product-grid .button:hover{background:var(--orange);filter:brightness(.94)}
 .torantejarat-site ul.products.torantejarat-product-grid .button.added::after{content:'✓';font-weight:900}
 /* Shop card refresh: hover lift, price row, centered CTA, stock chip. */
 .torantejarat-site ul.products .torantejarat-shop-card{transition:transform .25s ease,box-shadow .25s ease}
 .torantejarat-site ul.products .torantejarat-shop-card:hover{transform:translateY(-4px);box-shadow:0 14px 34px #1723251a}
-.torantejarat-site ul.products.torantejarat-product-grid .torantejarat-product-bottom{display:grid;gap:4px;margin-top:auto;padding-top:13px;border-top:1px solid #edf0e9}
+.torantejarat-site ul.products.torantejarat-product-grid .torantejarat-product-bottom{display:grid;grid-template-columns:minmax(0,1fr);gap:4px;margin-top:auto;padding-top:13px;border-top:1px solid #edf0e9}
 .torantejarat-site ul.products .torantejarat-shop-card .stock{font-size:10px;font-weight:700;margin:8px 0 0;padding:3px 10px;border-radius:20px;width:fit-content;background:#eef4e6;color:#4d6b43}
 .torantejarat-site ul.products .torantejarat-shop-card .stock.out-of-stock{background:#fdeaea;color:#b3402e}
 /* Catalog toolbar: count grows, view controls at the end. */
