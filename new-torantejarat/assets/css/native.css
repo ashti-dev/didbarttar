@@ -604,7 +604,7 @@ body.js .torantejarat-video-cover{display:block}
 .torantejarat-bestseller-body strong{font-size:13px;line-height:1.8;overflow-wrap:anywhere}
 .torantejarat-bestseller-price{font-size:14px;font-weight:800}
 @media(max-width:700px){.torantejarat-bestseller-rows{grid-template-columns:1fr}}
-/* Amazing deals panel (reference: orange promo + cards). */
+/* Amazing deals panel: promo side + slider with distinct centered cards. */
 .torantejarat-deals-panel{display:grid;grid-template-columns:280px minmax(0,1fr);gap:24px;align-items:stretch;background:linear-gradient(135deg,#f97e36,#ef6a1f);border-radius:22px;padding:28px;color:#fff;overflow:hidden}
 .torantejarat-deals-promo{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:12px;min-width:0}
 .torantejarat-deals-promo h2{color:#fff;font-size:30px}
@@ -612,9 +612,19 @@ body.js .torantejarat-video-cover{display:block}
 .torantejarat-deals-percent{display:grid;place-items:center;width:84px;height:84px;border-radius:50%;background:#ffffff2e;font-size:44px;font-weight:900;color:#fff}
 .torantejarat-btn-dark{display:inline-flex;align-items:center;gap:8px;min-height:46px;padding:10px 22px;border-radius:10px;background:var(--ink);color:#fff;font-weight:700;font-size:13px}
 .torantejarat-btn-dark:hover{background:#000}
-.torantejarat-deals-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;min-width:0}
-.torantejarat-deals-cards .torantejarat-product-card{background:#fff;border-radius:16px;overflow:hidden}
-.torantejarat-deal-badge{position:absolute;top:10px;inset-inline-start:10px;background:#d33f1f;color:#fff;font-size:11px;font-weight:800;border-radius:20px;padding:4px 12px}
+.torantejarat-deals-slider{min-width:0}
+.torantejarat-deals-slider .product-slide{padding:4px}
+.torantejarat-deal-card{position:relative;display:flex;flex-direction:column;align-items:center;text-align:center;gap:0;background:#fff;border-radius:18px;padding:34px 18px 20px;height:100%}
+.torantejarat-deal-badge{position:absolute;top:12px;inset-inline-start:12px;background:#d33f1f;color:#fff;font-size:11px;font-weight:800;border-radius:20px;padding:4px 12px}
+.torantejarat-deal-image{display:block;width:100%;aspect-ratio:1/1;border-radius:12px;overflow:hidden;background:#f4f3ef}
+.torantejarat-deal-image img{width:100%;height:100%;object-fit:cover}
+.torantejarat-deal-card h3{font-size:14px;line-height:1.8;margin:14px 0 0;min-height:50px}
+.torantejarat-deal-regular{margin:10px 0 0;font-size:12px;color:var(--muted)}
+.torantejarat-deal-regular del{text-decoration-color:#d33f1f}
+.torantejarat-deal-price{margin:6px 0 0;font-size:19px}
+.torantejarat-deal-price strong{color:#d33f1f;font-weight:800}
+.torantejarat-deal-card .torantejarat-btn{width:100%;justify-content:center;margin-top:14px}
+@media(max-width:900px){.torantejarat-deals-panel{grid-template-columns:1fr}.torantejarat-deals-promo{align-items:center;text-align:center}}
 @media(max-width:900px){.torantejarat-deals-panel{grid-template-columns:1fr}.torantejarat-deals-promo{align-items:center;text-align:center}}
 /* Blog layout with professional sidebar. */
 .torantejarat-blog-layout{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:36px;align-items:start}
