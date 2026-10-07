@@ -725,6 +725,13 @@ details.torantejarat-filter-group>div{padding-bottom:14px}
 @media(min-width:901px){
   .torantejarat-shop-body .torantejarat-catalog-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
 }
+/* Finder + mini-compare: centered stack on mobile, flawless desktop. */
+@media(max-width:700px){
+  .torantejarat-finder-banner{flex-direction:column;text-align:center;align-items:center}
+  .torantejarat-finder-banner>div{display:grid;justify-items:center}
+  .torantejarat-finder-banner>.torantejarat-btn{margin:6px 0 0}
+  .torantejarat-compare-section .torantejarat-section-heading{flex-direction:column;align-items:center;text-align:center;gap:8px}
+}
 /* Attractive AJAX pagination (swapped without reload by shop-filters.js). */
 .woocommerce-pagination{margin-top:28px}
 .woocommerce nav.woocommerce-pagination ul.page-numbers{display:flex;align-items:center;justify-content:center;gap:8px;list-style:none;margin:0;padding:0;border:0;white-space:normal}

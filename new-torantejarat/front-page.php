@@ -95,31 +95,31 @@ get_header();
 				<!-- Amazing deals — one level up, right under categories -->
 				<?php get_template_part( 'template-parts/home-deals' ); ?>
 
+				<!-- Finder Banner — right under deals -->
+				<section class="torantejarat-section"><div class="torantejarat-container">
+					<div class="torantejarat-finder-banner">
+						<div class="torantejarat-finder-symbol"><?php torantejarat_icon( 'scan' ); ?><span>FIND YOUR FIT</span></div>
+						<div>
+							<span class="torantejarat-eyebrow"><?php esc_html_e( 'انتخاب را ساده‌تر کنیم', 'torantejarat' ); ?></span>
+							<h2><?php esc_html_e( 'بین چند مدل مردد هستید؟', 'torantejarat' ); ?></h2>
+							<p><?php esc_html_e( 'کاربرد، طول مسیر و بودجه‌تان را بگویید. گزینه‌های سازگار با پاسخ‌هایتان را بررسی کنید.', 'torantejarat' ); ?></p>
+						</div>
+						<?php
+						$torantejarat_quiz_page = get_page_by_path( 'quiz' );
+						if ( $torantejarat_quiz_page ) :
+							?>
+							<a class="torantejarat-btn torantejarat-btn-primary" href="<?php echo esc_url( get_permalink( $torantejarat_quiz_page ) ); ?>"><?php esc_html_e( 'شروع راهنمای انتخاب', 'torantejarat' ); ?> <?php torantejarat_icon( 'arrow' ); ?></a>
+						<?php endif; ?>
+					</div>
+				</div></section>
+
+				<!-- Mini compare — right under finder -->
+				<?php if ( torantejarat_woocommerce_available() ) : ?>
+					<?php get_template_part( 'template-parts/home-compare' ); ?>
+				<?php endif; ?>
+
 				<!-- Product Grid — exact match to index.html -->
 				<?php get_template_part( 'template-parts/home-products' ); ?>
-			<?php endif; ?>
-
-			<!-- Finder Banner — exact match to index.html -->
-			<section class="torantejarat-section"><div class="torantejarat-container">
-				<div class="torantejarat-finder-banner">
-					<div class="torantejarat-finder-symbol"><?php torantejarat_icon( 'scan' ); ?><span>FIND YOUR FIT</span></div>
-					<div>
-						<span class="torantejarat-eyebrow"><?php esc_html_e( 'انتخاب را ساده‌تر کنیم', 'torantejarat' ); ?></span>
-						<h2><?php esc_html_e( 'بین چند مدل مردد هستید؟', 'torantejarat' ); ?></h2>
-						<p><?php esc_html_e( 'کاربرد، طول مسیر و بودجه‌تان را بگویید. گزینه‌های سازگار با پاسخ‌هایتان را بررسی کنید.', 'torantejarat' ); ?></p>
-					</div>
-					<?php
-					$torantejarat_quiz_page = get_page_by_path( 'quiz' );
-					if ( $torantejarat_quiz_page ) :
-						?>
-						<a class="torantejarat-btn torantejarat-btn-primary" href="<?php echo esc_url( get_permalink( $torantejarat_quiz_page ) ); ?>"><?php esc_html_e( 'شروع راهنمای انتخاب', 'torantejarat' ); ?> <?php torantejarat_icon( 'arrow' ); ?></a>
-					<?php endif; ?>
-				</div>
-			</div></section>
-
-			<!-- Mini compare — which one is for you -->
-			<?php if ( torantejarat_woocommerce_available() ) : ?>
-				<?php get_template_part( 'template-parts/home-compare' ); ?>
 			<?php endif; ?>
 
 			<!-- Field/Video Section — exact match to index.html -->
