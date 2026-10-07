@@ -3,3 +3,9 @@
 
 # Personal reference uploads (screenshots, client assets).
 /تصاویر/
+
+# Loose product photos at repo root (upload via Media Library instead).
+/*.webp
+/*.png
+/*.jpg
+/*.jpeg
