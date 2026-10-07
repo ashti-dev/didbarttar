@@ -616,6 +616,11 @@ body.js .torantejarat-video-cover{display:block}
 @media(max-width:900px){.torantejarat-blog-layout{grid-template-columns:1fr}.torantejarat-blog-sidebar{position:static;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}}
 /* Smart shop filters: sidebar + chips + mobile bottom sheet. */
 .torantejarat-catalog-layout{display:grid;grid-template-columns:250px minmax(0,1fr);gap:28px;align-items:start}
+/* Woo prints its notices wrapper inside the loop hooks — keep it out of the columns. */
+.torantejarat-catalog-layout>.woocommerce-notices-wrapper{grid-column:1/-1;grid-row:1}
+.torantejarat-catalog-layout>.woocommerce-notices-wrapper:empty{display:none}
+.torantejarat-catalog-layout>.torantejarat-filters{grid-column:1;grid-row:2}
+.torantejarat-catalog-layout>.torantejarat-catalog-results{grid-column:2;grid-row:2}
 .torantejarat-catalog-results{min-width:0}
 .torantejarat-filters{background:#fff;border:1px solid var(--line);border-radius:16px;padding:22px;position:sticky;top:120px;max-height:calc(100vh - 140px);overflow:auto}
 .torantejarat-filter-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
