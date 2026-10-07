@@ -72,6 +72,7 @@ $torantejarat_submitted = isset( $_GET['finder'] ) && '1' === sanitize_text_fiel
 $torantejarat_results = array();
 $torantejarat_chosen  = array();
 $torantejarat_skipped = 0;
+$torantejarat_partial = '';
 if ( $torantejarat_submitted && torantejarat_woocommerce_available() ) {
 	$torantejarat_cat_map = array(
 		/* Use-case → catalog category slugs (exact DB slugs; arrays group the
@@ -93,34 +94,53 @@ if ( $torantejarat_submitted && torantejarat_woocommerce_available() ) {
 	$torantejarat_max_diam   = is_numeric( $torantejarat_answers['diameter'] ) ? (float) $torantejarat_answers['diameter'] : 0;
 	$torantejarat_budget     = is_numeric( $torantejarat_answers['budget'] ) ? (float) $torantejarat_answers['budget'] : 0;
 
-	foreach ( wc_get_products( $torantejarat_query ) as $torantejarat_candidate ) {
-		if ( ! $torantejarat_candidate instanceof \WC_Product || ! $torantejarat_candidate->is_visible() ) {
-			continue;
-		}
-		if ( $torantejarat_min_length > 0 ) {
-			$torantejarat_cable = torantejarat_finder_meters( $torantejarat_candidate->get_attribute( 'pa_cable-length' ) );
-			if ( null === $torantejarat_cable ) {
-				++$torantejarat_skipped;
+	$torantejarat_candidates = array_values(
+		array_filter(
+			wc_get_products( $torantejarat_query ),
+			static fn( $item ) => $item instanceof \WC_Product && $item->is_visible()
+		)
+	);
+	/* Relaxation ladder: exact match first; on empty, drop budget, then
+	   diameter, then length — always labeled honestly as partial. */
+	$torantejarat_levels = array(
+		array( 'budget' => $torantejarat_budget, 'diam' => $torantejarat_max_diam, 'len' => $torantejarat_min_length, 'label' => '' ),
+		array( 'budget' => 0, 'diam' => $torantejarat_max_diam, 'len' => $torantejarat_min_length, 'label' => __( 'بدون در نظر گرفتن سقف بودجه', 'torantejarat' ) ),
+		array( 'budget' => 0, 'diam' => 0, 'len' => $torantejarat_min_length, 'label' => __( 'بدون در نظر گرفتن بودجه و قطر ورودی', 'torantejarat' ) ),
+		array( 'budget' => 0, 'diam' => 0, 'len' => 0, 'label' => __( 'فقط بر اساس کاربرد', 'torantejarat' ) ),
+	);
+	foreach ( $torantejarat_levels as $torantejarat_level ) {
+		$torantejarat_results = array();
+		$torantejarat_skipped = 0;
+		foreach ( $torantejarat_candidates as $torantejarat_candidate ) {
+			if ( $torantejarat_level['len'] > 0 ) {
+				$torantejarat_cable = torantejarat_finder_meters( $torantejarat_candidate->get_attribute( 'pa_cable-length' ) );
+				if ( null === $torantejarat_cable ) {
+					++$torantejarat_skipped;
+					continue;
+				}
+				if ( $torantejarat_cable < $torantejarat_level['len'] ) {
+					continue;
+				}
+			}
+			if ( $torantejarat_level['diam'] > 0 ) {
+				$torantejarat_head = torantejarat_finder_meters( $torantejarat_candidate->get_attribute( 'pa_lens-diameter' ) );
+				if ( null === $torantejarat_head ) {
+					++$torantejarat_skipped;
+					continue;
+				}
+				if ( $torantejarat_head > $torantejarat_level['diam'] ) {
+					continue;
+				}
+			}
+			if ( $torantejarat_level['budget'] > 0 && (float) $torantejarat_candidate->get_price() > $torantejarat_level['budget'] ) {
 				continue;
 			}
-			if ( $torantejarat_cable < $torantejarat_min_length ) {
-				continue;
-			}
+			$torantejarat_results[] = $torantejarat_candidate;
 		}
-		if ( $torantejarat_max_diam > 0 ) {
-			$torantejarat_head = torantejarat_finder_meters( $torantejarat_candidate->get_attribute( 'pa_lens-diameter' ) );
-			if ( null === $torantejarat_head ) {
-				++$torantejarat_skipped;
-				continue;
-			}
-			if ( $torantejarat_head > $torantejarat_max_diam ) {
-				continue;
-			}
+		if ( $torantejarat_results ) {
+			$torantejarat_partial = $torantejarat_level['label'];
+			break;
 		}
-		if ( $torantejarat_budget > 0 && (float) $torantejarat_candidate->get_price() > $torantejarat_budget ) {
-			continue;
-		}
-		$torantejarat_results[] = $torantejarat_candidate;
 	}
 	usort(
 		$torantejarat_results,
@@ -155,7 +175,8 @@ get_header();
 	<?php while ( have_posts() ) : the_post(); ?>
 		<?php get_template_part( 'template-parts/page-intro', null, array( 'title' => get_the_title(), 'description' => ! post_password_required() && has_excerpt() ? get_the_excerpt() : '' ) ); ?>
 		<section class="torantejarat-section"><div class="torantejarat-container">
-			<div class="torantejarat-finder" data-finder>
+			<div class="torantejarat-finder<?php echo $torantejarat_submitted ? ' is-submitted' : ''; ?>" data-finder>
+				<button type="button" class="torantejarat-btn torantejarat-btn-outline torantejarat-finder-edit" data-finder-edit hidden><?php esc_html_e( 'ویرایش پاسخ‌ها', 'torantejarat' ); ?></button>
 				<form class="torantejarat-finder-form" method="get" action="<?php echo esc_url( get_permalink() ); ?>" data-finder-form>
 					<input type="hidden" name="finder" value="1">
 					<p class="torantejarat-finder-progress" data-finder-progress hidden></p>
@@ -183,6 +204,7 @@ get_header();
 						<?php if ( $torantejarat_results ) : ?>
 							<span class="torantejarat-eyebrow"><?php esc_html_e( 'نتیجه بررسی اولیه', 'torantejarat' ); ?></span>
 							<h2><?php echo esc_html( sprintf( __( '%s گزینه مرتبط با پاسخ‌های شما', 'torantejarat' ), number_format_i18n( count( $torantejarat_results ) ) ) ); ?></h2>
+							<?php if ( '' !== $torantejarat_partial ) : ?><p class="torantejarat-finder-partial"><?php echo esc_html( sprintf( __( 'تطابق جزئی (%s) — هیچ مدلی تمام شرط‌ها را نداشت.', 'torantejarat' ), $torantejarat_partial ) ); ?></p><?php endif; ?>
 							<?php if ( $torantejarat_chosen ) : ?><p class="torantejarat-finder-summary"><?php echo esc_html( implode( ' • ', $torantejarat_chosen ) ); ?></p><?php endif; ?>
 							<?php if ( $torantejarat_skipped > 0 ) : ?><p class="torantejarat-finder-skipped"><?php echo esc_html( sprintf( __( '%s مدل چون مشخصات فنی کامل نداشتند در نظر گرفته نشدند — برای بررسی آن‌ها از کارشناس بپرسید.', 'torantejarat' ), number_format_i18n( $torantejarat_skipped ) ) ); ?></p><?php endif; ?>
 							<div class="torantejarat-finder-grid">

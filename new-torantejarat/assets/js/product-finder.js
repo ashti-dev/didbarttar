@@ -26,6 +26,16 @@
 
 		root.classList.add('js-finder');
 
+		var editBtn = root.querySelector('[data-finder-edit]');
+		if (editBtn && root.classList.contains('is-submitted')) {
+			editBtn.hidden = false;
+			editBtn.addEventListener('click', function () {
+				root.classList.remove('is-submitted');
+				editBtn.hidden = true;
+				showStep(firstUnanswered());
+			});
+		}
+
 		function currentIndex() {
 			for (var i = 0; i < steps.length; i++) {
 				if (!steps[i].classList.contains('is-done')) {
@@ -83,6 +93,15 @@
 			});
 		}
 
-		showStep(0);
+		function firstUnanswered() {
+			for (var i = 0; i < steps.length; i++) {
+				if (!steps[i].querySelector('input[type="radio"]:checked')) {
+					return i;
+				}
+			}
+			return steps.length;
+		}
+
+		showStep(firstUnanswered());
 	});
 })();
