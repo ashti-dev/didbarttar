@@ -78,6 +78,9 @@ function torantejarat_enqueue_assets() {
 		wp_enqueue_script( 'torantejarat-pdp', get_template_directory_uri() . '/assets/js/pdp.js', array(), torantejarat_asset_version( 'assets/js/pdp.js' ), true );
 		wp_enqueue_script( 'torantejarat-pdp-tabs', get_template_directory_uri() . '/assets/js/pdp-tabs.js', array(), torantejarat_asset_version( 'assets/js/pdp-tabs.js' ), true );
 	}
+	if ( torantejarat_woocommerce_available() && ( is_shop() || is_product_taxonomy() ) ) {
+		wp_enqueue_script( 'torantejarat-shop-filters', get_template_directory_uri() . '/assets/js/shop-filters.js', array(), torantejarat_asset_version( 'assets/js/shop-filters.js' ), array( 'in_footer' => true, 'strategy' => 'defer' ) );
+	}
 	if ( torantejarat_woocommerce_available() && ( is_product() || is_shop() || is_product_taxonomy() ) ) {
 		wp_enqueue_script( 'torantejarat-ajax-add-to-cart', get_template_directory_uri() . '/assets/js/ajax-add-to-cart.js', array( 'jquery' ), torantejarat_asset_version( 'assets/js/ajax-add-to-cart.js' ), true );
 		wp_enqueue_script( 'torantejarat-recently-viewed', get_template_directory_uri() . '/assets/js/recently-viewed.js', array(), torantejarat_asset_version( 'assets/js/recently-viewed.js' ), true );

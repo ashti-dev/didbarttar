@@ -20,6 +20,7 @@ require_once __DIR__ . '/requests.php';
 require_once __DIR__ . '/cleanup.php';
 require_once __DIR__ . '/login.php';
 require_once __DIR__ . '/admin.php';
+require_once __DIR__ . '/shop-filters.php';
 require_once __DIR__ . '/settings/helpers.php';
 
 // Settings panel class loads in admin only (plus WP-CLI so settings stay
@@ -48,6 +49,7 @@ add_filter( 'login_display_language_dropdown', '__return_false' );
 
 add_action( 'after_setup_theme', __NAMESPACE__ . '\\torantejarat_setup' );
 add_action( 'after_setup_theme', __NAMESPACE__ . '\\torantejarat_woocommerce_setup' );
+add_action( 'after_setup_theme', __NAMESPACE__ . '\\torantejarat_shop_filters_setup' );
 add_action( 'init', __NAMESPACE__ . '\\torantejarat_register_request_type' );
 add_action( 'admin_post_nopriv_torantejarat_request', __NAMESPACE__ . '\\torantejarat_handle_request' );
 add_action( 'admin_post_torantejarat_request', __NAMESPACE__ . '\\torantejarat_handle_request' );

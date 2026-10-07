@@ -1,0 +1,406 @@
+<?php
+/**
+ * Smart shop filters — category, attributes, price, stock, deals.
+ * Server-first: plain GET submit works without JS. JS layer (shop-filters.js)
+ * reuses the same URLs and swaps only the results subtree (no second
+ * rendering path). Attribute facets come from real taxonomy terms only.
+ *
+ * @package ToranTejarat
+ */
+
+namespace ToranTejarat\Theme;
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
+function torantejarat_shop_filters_setup() {
+	if ( ! torantejarat_woocommerce_available() ) {
+		return;
+	}
+	add_action( 'woocommerce_before_shop_loop', __NAMESPACE__ . '\\torantejarat_filters_layout_start', 5 );
+	add_action( 'woocommerce_before_shop_loop', __NAMESPACE__ . '\\torantejarat_filters_results_start', 12 );
+	add_action( 'woocommerce_before_shop_loop', __NAMESPACE__ . '\\torantejarat_filters_toolbar_extras', 13 );
+	add_action( 'woocommerce_after_shop_loop', __NAMESPACE__ . '\\torantejarat_filters_layout_end', 50 );
+	add_action( 'woocommerce_product_query', __NAMESPACE__ . '\\torantejarat_filters_apply' );
+	add_action( 'template_redirect', __NAMESPACE__ . '\\torantejarat_filters_canonical' );
+}
+
+/**
+ * Drop empty price params (plain submits and shared links): Woo's native
+ * price filter treats empty strings as a real range and returns nothing.
+ */
+function torantejarat_filters_canonical() {
+	if ( ! ( is_shop() || is_product_taxonomy() ) || is_admin() ) {
+		return;
+	}
+	if ( ( isset( $_GET['min_price'] ) && '' === $_GET['min_price'] ) || ( isset( $_GET['max_price'] ) && '' === $_GET['max_price'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$input  = torantejarat_filters_input();
+		$params = array();
+		if ( $input['pcat'] ) {
+			$params['pcat'] = $input['pcat'];
+		}
+		foreach ( $input['attr'] as $taxonomy => $slugs ) {
+			$params[ 'att_' . preg_replace( '/^pa_/', '', $taxonomy ) ] = $slugs;
+		}
+		if ( '' !== $input['min_price'] ) {
+			$params['min_price'] = $input['min_price'];
+		}
+		if ( '' !== $input['max_price'] ) {
+			$params['max_price'] = $input['max_price'];
+		}
+		if ( $input['instock'] ) {
+			$params['instock'] = '1';
+		}
+		if ( $input['onsale'] ) {
+			$params['onsale'] = '1';
+		}
+		foreach ( array( 'orderby', 's' ) as $passthrough ) {
+			if ( isset( $_GET[ $passthrough ] ) && '' !== $_GET[ $passthrough ] && ! is_array( $_GET[ $passthrough ] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+				$params[ $passthrough ] = sanitize_text_field( wp_unslash( $_GET[ $passthrough ] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			}
+		}
+		wp_safe_redirect( esc_url_raw( add_query_arg( $params, torantejarat_filters_base_url() ) ), 301 );
+		exit;
+	}
+}
+
+/**
+ * Read and sanitize public filter input. Single shape for render + query.
+ *
+ * @return array{pcat: string[], attr: array<string, string[]>, min_price: string, max_price: string, instock: bool, onsale: bool}
+ */
+function torantejarat_filters_input() {
+	$get = $_GET; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Public read-only filters.
+	$cats = array();
+	if ( isset( $get['pcat'] ) ) {
+		$raw_cats = is_array( $get['pcat'] ) ? $get['pcat'] : array( $get['pcat'] );
+		foreach ( $raw_cats as $slug ) {
+			$slug = sanitize_title( wp_unslash( $slug ) );
+			if ( '' === $slug ) {
+				continue;
+			}
+			$term = get_term_by( 'slug', $slug, 'product_cat' );
+			if ( ! $term ) {
+				$term = get_term_by( 'slug', urldecode( $slug ), 'product_cat' );
+			}
+			if ( $term && ! is_wp_error( $term ) ) {
+				$cats[] = $term->slug;
+			}
+		}
+	}
+	$attrs = array();
+	foreach ( wc_get_attribute_taxonomies() as $tax ) {
+		$taxonomy = 'pa_' . $tax->attribute_name;
+		$key      = 'att_' . $tax->attribute_name;
+		if ( empty( $get[ $key ] ) ) {
+			continue;
+		}
+		$raw_terms = is_array( $get[ $key ] ) ? $get[ $key ] : explode( ',', (string) $get[ $key ] );
+		$terms     = array();
+		foreach ( $raw_terms as $term ) {
+			$term = sanitize_title( wp_unslash( $term ) );
+			if ( '' === $term ) {
+				continue;
+			}
+			$found = get_term_by( 'slug', $term, $taxonomy );
+			if ( ! $found ) {
+				$found = get_term_by( 'slug', urldecode( $term ), $taxonomy );
+			}
+			if ( $found && ! is_wp_error( $found ) ) {
+				$terms[] = $found->slug;
+			}
+		}
+		if ( $terms ) {
+			$attrs[ $taxonomy ] = array_values( array_unique( $terms ) );
+		}
+	}
+	return array(
+		'pcat'       => array_values( array_unique( $cats ) ),
+		'attr'      => $attrs,
+		'min_price' => isset( $get['min_price'] ) ? sanitize_text_field( wp_unslash( $get['min_price'] ) ) : '',
+		'max_price' => isset( $get['max_price'] ) ? sanitize_text_field( wp_unslash( $get['max_price'] ) ) : '',
+		'instock'   => isset( $get['instock'] ) && '1' === $get['instock'],
+		'onsale'    => isset( $get['onsale'] ) && '1' === $get['onsale'],
+	);
+}
+
+/**
+ * Attribute facets with real terms only (empty taxonomies never render).
+ *
+ * @return array List of array( 'taxonomy' => string, 'param' => string, 'label' => string, 'terms' => WP_Term[] ).
+ */
+function torantejarat_filters_facets() {
+	$facets = array();
+	foreach ( wc_get_attribute_taxonomies() as $tax ) {
+		$taxonomy = 'pa_' . $tax->attribute_name;
+		$terms    = get_terms( array( 'taxonomy' => $taxonomy, 'hide_empty' => true, 'number' => 20 ) );
+		if ( is_wp_error( $terms ) || count( $terms ) < 1 ) {
+			continue;
+		}
+		$facets[] = array(
+			'taxonomy' => $taxonomy,
+			'param'    => 'att_' . $tax->attribute_name,
+			'label'    => $tax->attribute_label,
+			'terms'    => $terms,
+		);
+	}
+	return $facets;
+}
+
+function torantejarat_filters_apply( $query ) {
+	if ( ! $query->is_main_query() ) {
+		return;
+	}
+	$input    = torantejarat_filters_input();
+	$taxquery = (array) $query->get( 'tax_query' );
+	if ( $input['pcat'] ) {
+		$taxquery[] = array(
+			'taxonomy' => 'product_cat',
+			'field'    => 'slug',
+			'terms'    => $input['pcat'],
+			'operator' => 'IN',
+		);
+	}
+	foreach ( $input['attr'] as $taxonomy => $slugs ) {
+		$taxquery[] = array(
+			'taxonomy' => $taxonomy,
+			'field'    => 'slug',
+			'terms'    => $slugs,
+			'operator' => 'IN',
+		);
+	}
+	if ( count( $taxquery ) > 1 ) {
+		$taxquery['relation'] = 'AND';
+	}
+	if ( $input['instock'] ) {
+		$taxquery[] = array(
+			'taxonomy' => 'product_visibility',
+			'field'    => 'name',
+			'terms'    => array( 'outofstock' ),
+			'operator' => 'NOT IN',
+		);
+	}
+	if ( $taxquery ) {
+		$query->set( 'tax_query', $taxquery );
+	}
+	if ( $input['onsale'] ) {
+		$sale_ids = wc_get_product_ids_on_sale();
+		$current  = (array) $query->get( 'post__in' );
+		$query->set( 'post__in', $current ? array_intersect( $current, $sale_ids ) : $sale_ids );
+	}
+}
+
+function torantejarat_filters_layout_start() {
+	if ( ! ( is_shop() || is_product_taxonomy() ) ) {
+		return;
+	}
+	echo '<div class="torantejarat-catalog-layout">';
+	torantejarat_filters_sidebar();
+}
+
+function torantejarat_filters_results_start() {
+	if ( ! ( is_shop() || is_product_taxonomy() ) ) {
+		return;
+	}
+	echo '<div class="torantejarat-catalog-results" data-catalog-results>';
+}
+
+function torantejarat_filters_layout_end() {
+	if ( ! ( is_shop() || is_product_taxonomy() ) ) {
+		return;
+	}
+	echo '</div></div>';
+}
+
+function torantejarat_filters_sidebar() {
+	$input = torantejarat_filters_input();
+	$cats  = get_terms( array( 'taxonomy' => 'product_cat', 'hide_empty' => true, 'parent' => 0, 'number' => 20 ) );
+	?>
+	<aside class="torantejarat-filters" aria-label="<?php esc_attr_e( 'فیلترهای فروشگاه', 'torantejarat' ); ?>" data-filters>
+		<form method="get" action="<?php echo esc_url( torantejarat_filters_base_url() ); ?>" data-filters-form>
+			<div class="torantejarat-filter-head">
+				<h2><?php esc_html_e( 'فیلترها', 'torantejarat' ); ?></h2>
+				<button type="button" class="torantejarat-filter-close" data-filter-close aria-label="<?php esc_attr_e( 'بستن فیلترها', 'torantejarat' ); ?>">×</button>
+			</div>
+			<?php
+			foreach ( array( 'orderby', 's', 'post_type' ) as $passthrough ) {
+				if ( isset( $_GET[ $passthrough ] ) && ! is_array( $_GET[ $passthrough ] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+					echo '<input type="hidden" name="' . esc_attr( $passthrough ) . '" value="' . esc_attr( sanitize_text_field( wp_unslash( $_GET[ $passthrough ] ) ) ) . '">'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+				}
+			}
+			?>
+			<?php if ( ! is_wp_error( $cats ) && $cats ) : ?>
+				<fieldset class="torantejarat-filter-group">
+					<legend><?php esc_html_e( 'دسته‌بندی', 'torantejarat' ); ?></legend>
+					<?php foreach ( $cats as $cat ) : ?>
+						<label>
+							<input type="checkbox" name="pcat[]" value="<?php echo esc_attr( $cat->slug ); ?>"<?php checked( in_array( $cat->slug, $input['pcat'], true ) ); ?>>
+							<span><?php echo esc_html( $cat->name ); ?></span>
+							<b><?php echo esc_html( number_format_i18n( $cat->count ) ); ?></b>
+						</label>
+					<?php endforeach; ?>
+				</fieldset>
+			<?php endif; ?>
+			<?php foreach ( torantejarat_filters_facets() as $facet ) : ?>
+				<fieldset class="torantejarat-filter-group">
+					<legend><?php echo esc_html( $facet['label'] ); ?></legend>
+					<?php foreach ( $facet['terms'] as $term ) : ?>
+						<?php $checked = isset( $input['attr'][ $facet['taxonomy'] ] ) && in_array( $term->slug, $input['attr'][ $facet['taxonomy'] ], true ); ?>
+						<label>
+							<input type="checkbox" name="<?php echo esc_attr( $facet['param'] ); ?>[]" value="<?php echo esc_attr( $term->slug ); ?>"<?php checked( $checked ); ?>>
+							<span><?php echo esc_html( $term->name ); ?></span>
+							<b><?php echo esc_html( number_format_i18n( $term->count ) ); ?></b>
+						</label>
+					<?php endforeach; ?>
+				</fieldset>
+			<?php endforeach; ?>
+			<fieldset class="torantejarat-filter-group">
+				<legend><?php esc_html_e( 'قیمت (تومان)', 'torantejarat' ); ?></legend>
+				<div class="torantejarat-filter-price">
+					<input type="number" name="min_price" min="0" inputmode="numeric" placeholder="<?php esc_attr_e( 'از', 'torantejarat' ); ?>" value="<?php echo esc_attr( $input['min_price'] ); ?>">
+					<span aria-hidden="true">–</span>
+					<input type="number" name="max_price" min="0" inputmode="numeric" placeholder="<?php esc_attr_e( 'تا', 'torantejarat' ); ?>" value="<?php echo esc_attr( $input['max_price'] ); ?>">
+				</div>
+			</fieldset>
+			<fieldset class="torantejarat-filter-group">
+				<legend><?php esc_html_e( 'وضعیت', 'torantejarat' ); ?></legend>
+				<label>
+					<input type="checkbox" name="instock" value="1"<?php checked( $input['instock'] ); ?>>
+					<span><?php esc_html_e( 'فقط کالاهای موجود', 'torantejarat' ); ?></span>
+				</label>
+				<label>
+					<input type="checkbox" name="onsale" value="1"<?php checked( $input['onsale'] ); ?>>
+					<span><?php esc_html_e( 'فقط تخفیف‌دارها', 'torantejarat' ); ?></span>
+				</label>
+			</fieldset>
+			<div class="torantejarat-filter-foot">
+				<button type="submit" class="torantejarat-btn torantejarat-btn-primary"><?php esc_html_e( 'اعمال فیلتر', 'torantejarat' ); ?></button>
+				<a class="torantejarat-filter-clear" href="<?php echo esc_url( torantejarat_filters_base_url() ); ?>"><?php esc_html_e( 'حذف همه', 'torantejarat' ); ?></a>
+			</div>
+		</form>
+	</aside>
+	<?php
+}
+
+/**
+ * Base shop URL preserving taxonomy context (drops paging, keeps orderby/search).
+ */
+function torantejarat_filters_base_url() {
+	if ( is_product_taxonomy() ) {
+		$term = get_queried_object();
+		if ( $term instanceof \WP_Term ) {
+			return get_term_link( $term );
+		}
+	}
+	return wc_get_page_permalink( 'shop' );
+}
+
+function torantejarat_filters_toolbar_extras() {
+	if ( ! ( is_shop() || is_product_taxonomy() ) ) {
+		return;
+	}
+	$input = torantejarat_filters_input();
+	$count = count( $input['pcat'] ) + ( $input['instock'] ? 1 : 0 ) + ( $input['onsale'] ? 1 : 0 )
+		+ ( '' !== $input['min_price'] || '' !== $input['max_price'] ? 1 : 0 );
+	foreach ( $input['attr'] as $terms ) {
+		$count += count( $terms );
+	}
+	?>
+	<div class="torantejarat-shop-filterbar">
+		<button type="button" class="torantejarat-filter-toggle" data-filter-open>
+			<?php esc_html_e( 'فیلترها', 'torantejarat' ); ?>
+			<?php if ( $count > 0 ) : ?><b><?php echo esc_html( number_format_i18n( $count ) ); ?></b><?php endif; ?>
+		</button>
+		<?php torantejarat_filters_chips( $input ); ?>
+	</div>
+	<?php
+}
+
+function torantejarat_filters_chips( $input ) {
+	$chips = array();
+	foreach ( $input['pcat'] as $slug ) {
+		$term = get_term_by( 'slug', $slug, 'product_cat' );
+		if ( $term ) {
+			$chips[] = array( 'label' => $term->name, 'remove' => array( 'pcat' => $slug ) );
+		}
+	}
+	foreach ( $input['attr'] as $taxonomy => $slugs ) {
+		foreach ( $slugs as $slug ) {
+			$term = get_term_by( 'slug', $slug, $taxonomy );
+			if ( $term ) {
+				$chips[] = array( 'label' => $term->name, 'remove' => array( 'attr' => $taxonomy . ':' . $slug ) );
+			}
+		}
+	}
+	if ( '' !== $input['min_price'] || '' !== $input['max_price'] ) {
+		$label   = ( '' !== $input['min_price'] ? $input['min_price'] : '۰' ) . ' – ' . ( '' !== $input['max_price'] ? $input['max_price'] : '∞' );
+		$chips[] = array( 'label' => $label, 'remove' => array( 'price' => 1 ) );
+	}
+	if ( $input['instock'] ) {
+		$chips[] = array( 'label' => __( 'فقط موجودها', 'torantejarat' ), 'remove' => array( 'instock' => 1 ) );
+	}
+	if ( $input['onsale'] ) {
+		$chips[] = array( 'label' => __( 'تخفیف‌دارها', 'torantejarat' ), 'remove' => array( 'onsale' => 1 ) );
+	}
+	if ( ! $chips ) {
+		return;
+	}
+	echo '<div class="torantejarat-active-filters" data-chips>';
+	foreach ( $chips as $chip ) {
+		$url = torantejarat_filters_remove_url( $chip['remove'] );
+		echo '<a href="' . esc_url( $url ) . '" aria-label="' . esc_attr( sprintf( __( 'حذف فیلتر %s', 'torantejarat' ), $chip['label'] ) ) . '">' . esc_html( $chip['label'] ) . ' <span aria-hidden="true">×</span></a>';
+	}
+	echo '<a class="torantejarat-clear-all" href="' . esc_url( torantejarat_filters_base_url() ) . '">' . esc_html__( 'حذف همه', 'torantejarat' ) . '</a>';
+	echo '</div>';
+}
+
+function torantejarat_filters_remove_url( $remove ) {
+	$params = $_GET; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only link builder.
+	if ( isset( $remove['pcat'] ) && isset( $params['pcat'] ) ) {
+		$params['pcat'] = array_values( array_diff( (array) $params['pcat'], array( $remove['pcat'] ) ) );
+		if ( ! $params['pcat'] ) {
+			unset( $params['pcat'] );
+		}
+	}
+	if ( isset( $remove['attr'] ) ) {
+		list( $taxonomy, $slug ) = explode( ':', $remove['attr'], 2 ) + array( '', '' );
+		$tax   = preg_replace( '/^pa_/', '', $taxonomy );
+		$key   = 'att_' . $tax;
+		if ( isset( $params[ $key ] ) ) {
+			$terms = array_values( array_diff( (array) $params[ $key ], array( $slug ) ) );
+			if ( $terms ) {
+				$params[ $key ] = $terms;
+			} else {
+				unset( $params[ $key ] );
+			}
+		}
+	}
+	if ( isset( $remove['price'] ) ) {
+		unset( $params['min_price'], $params['max_price'] );
+	}
+	if ( isset( $remove['instock'] ) ) {
+		unset( $params['instock'] );
+	}
+	if ( isset( $remove['onsale'] ) ) {
+		unset( $params['onsale'] );
+	}
+	unset( $params['paged'], $params['page'] );
+	$base = torantejarat_filters_base_url();
+	if ( is_wp_error( $base ) ) {
+		$base = wc_get_page_permalink( 'shop' );
+	}
+	$clean = array();
+	foreach ( (array) $params as $key => $value ) {
+		$key = sanitize_key( (string) $key );
+		if ( is_array( $value ) ) {
+			$list = array_values( array_filter( array_map( static fn( $v ) => sanitize_title( wp_unslash( $v ) ), $value ) ) );
+			if ( $list ) {
+				$clean[ $key ] = $list;
+			}
+		} elseif ( '' !== $value && null !== $value ) {
+			$clean[ $key ] = sanitize_text_field( wp_unslash( $value ) );
+		}
+	}
+	return add_query_arg( $clean, $base );
+}
