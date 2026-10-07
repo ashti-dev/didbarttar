@@ -717,13 +717,13 @@ details.torantejarat-filter-group>div{padding-bottom:14px}
 }
 /* Attractive AJAX pagination (swapped without reload by shop-filters.js). */
 .woocommerce-pagination{margin-top:28px}
-.woocommerce-pagination ul.page-numbers{display:flex;align-items:center;justify-content:center;gap:8px;list-style:none;margin:0;padding:0;border:0}
-.woocommerce-pagination ul.page-numbers::before,.woocommerce-pagination ul.page-numbers::after{display:none}
-.woocommerce-pagination ul.page-numbers li{border:0;margin:0;overflow:visible}
-.woocommerce-pagination ul.page-numbers a.page-numbers,.woocommerce-pagination ul.page-numbers span.page-numbers{display:grid;place-items:center;min-width:42px;height:42px;padding:0 12px;border-radius:12px;background:#fff;border:1px solid var(--line);font-size:13px;font-weight:700;color:var(--ink);text-decoration:none}
-.woocommerce-pagination ul.page-numbers a.page-numbers:hover{border-color:var(--orange);color:#b64b18}
-.woocommerce-pagination ul.page-numbers span.current{background:var(--ink);border-color:var(--ink);color:#fff}
-.woocommerce-pagination ul.page-numbers .prev,.woocommerce-pagination ul.page-numbers .next{padding:0 16px}
+.woocommerce nav.woocommerce-pagination ul.page-numbers{display:flex;align-items:center;justify-content:center;gap:8px;list-style:none;margin:0;padding:0;border:0;white-space:normal}
+.woocommerce nav.woocommerce-pagination ul.page-numbers::before,.woocommerce nav.woocommerce-pagination ul.page-numbers::after{display:none}
+.woocommerce nav.woocommerce-pagination ul.page-numbers li{border:0;margin:0;padding:0;overflow:visible;float:none}
+.woocommerce nav.woocommerce-pagination ul.page-numbers a.page-numbers,.woocommerce nav.woocommerce-pagination ul.page-numbers span.page-numbers{display:grid;place-items:center;min-width:42px;height:42px;padding:0 12px;border:0;border-radius:12px;background:#f4f5f1;font-size:13px;font-weight:700;color:var(--ink);text-decoration:none}
+.woocommerce nav.woocommerce-pagination ul.page-numbers a.page-numbers:hover{background:#e8eddf;color:#b64b18}
+.woocommerce nav.woocommerce-pagination ul.page-numbers span.current{background:linear-gradient(135deg,#f97e36,#ef6a1f);color:#fff;box-shadow:0 6px 16px #ef6a1f55}
+.woocommerce nav.woocommerce-pagination ul.page-numbers .prev,.woocommerce nav.woocommerce-pagination ul.page-numbers .next{padding:0 16px}
 .torantejarat-catalog-results.is-loading{opacity:.5;pointer-events:none;transition:opacity .2s}
 @media(max-width:900px){
   .torantejarat-catalog-layout{grid-template-columns:1fr}
