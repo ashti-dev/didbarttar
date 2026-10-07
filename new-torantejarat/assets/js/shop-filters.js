@@ -1,167 +1,119 @@
 /* Smart filters: PJAX-lite refresh of the catalog results subtree.
-   The form submits normally without JS. With JS, the same filtered URL is
-   fetched and only .torantejarat-catalog-results is swapped (single code
-   path). Sheet open/close + Escape handling for the mobile bottom sheet. */
+   The form submits normally without JS. With JS (deferred, so the DOM is
+   ready on execution), the same filtered URL is fetched and only
+   .torantejarat-catalog-results is swapped (single code path).
+   Sheet open/close + Escape handling for the mobile bottom sheet. */
 (function () {
 	'use strict';
 
-	document.addEventListener('DOMContentLoaded', function () {
-		var results = document.querySelector('[data-catalog-results]');
-		var form = document.querySelector('[data-filters-form]');
-		if (!results || !form || !('fetch' in window)) {
-			return;
-		}
+	var results = document.querySelector('[data-catalog-results]');
+	var form = document.querySelector('[data-filters-form]');
+	if (!results || !form || !('fetch' in window) || !('AbortController' in window)) {
+		return;
+	}
+
+	function syncSheetMode() {
 		if (window.matchMedia && window.matchMedia('(max-width:900px)').matches) {
 			document.body.classList.add('js-filters');
+		} else {
+			document.body.classList.remove('js-filters', 'filter-open');
 		}
-		window.addEventListener('resize', function () {
-			if (window.matchMedia && window.matchMedia('(max-width:900px)').matches) {
-				document.body.classList.add('js-filters');
-			} else {
-				document.body.classList.remove('js-filters', 'filter-open');
+	}
+	syncSheetMode();
+	window.addEventListener('resize', syncSheetMode);
+
+	var pending = null;
+
+	function pageUrl(extra) {
+		var params = new URLSearchParams(new FormData(form));
+		/* Collect first: deleting during forEach skips entries. */
+		var empty = [];
+		params.forEach(function (value, key) {
+			if ((value === '' || value === null) && empty.indexOf(key) === -1) {
+				empty.push(key);
 			}
 		});
-
-		var pending = null;
-		var COLS_KEY = 'torantejarat-cols';
-
-		function catalogGrid() {
-			return results.querySelector('ul.products');
+		empty.forEach(function (key) { params.delete(key); });
+		if (extra) {
+			Object.keys(extra).forEach(function (k) { params.set(k, extra[k]); });
 		}
+		var q = params.toString();
+		return form.action + (q ? '?' + q : '');
+	}
 
-		function currentCols() {
-			try {
-				var saved = window.localStorage.getItem(COLS_KEY);
-				if (saved === '2' || saved === '3' || saved === '4') {
-					return saved;
+	function load(url, push) {
+		if (pending) {
+			pending.abort();
+		}
+		var controller = new AbortController();
+		pending = controller;
+		results.setAttribute('aria-busy', 'true');
+		results.classList.add('is-loading');
+		fetch(url, { signal: controller.signal, headers: { 'X-Requested-With': 'XMLHttpRequest' }, credentials: 'same-origin' })
+			.then(function (res) {
+				if (!res.ok) {
+					throw new Error('bad response');
 				}
-			} catch (e) { /* Private mode. */ }
-			return '3';
-		}
-
-		function applyCols(value) {
-			var grid = catalogGrid();
-			if (grid) {
-				grid.setAttribute('data-cols', value);
-			}
-			var buttons = document.querySelectorAll('[data-cols-switch] [data-cols]');
-			buttons.forEach(function (btn) {
-				var active = btn.getAttribute('data-cols') === value;
-				btn.classList.toggle('is-active', active);
-				btn.setAttribute('aria-pressed', active ? 'true' : 'false');
-			});
-			try {
-				window.localStorage.setItem(COLS_KEY, value);
-			} catch (e) { /* Private mode. */ }
-		}
-
-		applyCols(currentCols());
-
-		function pageUrl(extra) {
-			var params = new URLSearchParams(new FormData(form));
-			/* Collect first: deleting during forEach skips entries. */
-			var empty = [];
-			params.forEach(function (value, key) {
-				if ((value === '' || value === null) && empty.indexOf(key) === -1) {
-					empty.push(key);
+				return res.text();
+			})
+			.then(function (html) {
+				var doc = new DOMParser().parseFromString(html, 'text/html');
+				var fresh = doc.querySelector('[data-catalog-results]');
+				if (!fresh) {
+					throw new Error('no results');
 				}
-			});
-			empty.forEach(function (key) { params.delete(key); });
-			if (extra) {
-				Object.keys(extra).forEach(function (k) { params.set(k, extra[k]); });
-			}
-			var q = params.toString();
-			return form.action + (q ? '?' + q : '');
-		}
-
-		function load(url, push) {
-			if (pending) {
-				pending.abort();
-			}
-			var controller = new AbortController();
-			pending = controller;
-			results.setAttribute('aria-busy', 'true');
-			results.classList.add('is-loading');
-			fetch(url, { signal: controller.signal, headers: { 'X-Requested-With': 'XMLHttpRequest' }, credentials: 'same-origin' })
-				.then(function (res) {
-					if (!res.ok) {
-						throw new Error('bad response');
-					}
-					return res.text();
-				})
-				.then(function (html) {
-					var doc = new DOMParser().parseFromString(html, 'text/html');
-					var fresh = doc.querySelector('[data-catalog-results]');
-					if (!fresh) {
-						throw new Error('no results');
-					}
-					results.innerHTML = fresh.innerHTML;
-					results.removeAttribute('aria-busy');
-					results.classList.remove('is-loading');
-					applyCols(currentCols());
-					document.body.classList.remove('filter-open');
-					if (push !== false) {
-						try {
-							history.pushState(null, '', url);
-						} catch (e) { /* File previews may restrict history updates. */ }
-					}
+				results.innerHTML = fresh.innerHTML;
+				results.removeAttribute('aria-busy');
+				results.classList.remove('is-loading');
+				document.body.classList.remove('filter-open');
+				if (push !== false) {
+					try {
+						history.pushState(null, '', url);
+					} catch (e) { /* File previews may restrict history updates. */ }
+				}
+				try {
 					results.scrollIntoView({ block: 'start', behavior: 'smooth' });
-				})
-				.catch(function (err) {
-					if (err && err.name === 'AbortError') {
-						return;
-					}
-					window.location.href = url;
-				});
+				} catch (e) { /* Headless or reduced motion: skip scrolling. */ }
+			})
+			.catch(function (err) {
+				if (err && err.name === 'AbortError') {
+					return;
+				}
+				window.location.href = url;
+			});
+	}
+
+	form.addEventListener('submit', function (event) {
+		event.preventDefault();
+		load(pageUrl(), true);
+	});
+
+	document.addEventListener('click', function (event) {
+		if (!event.target.closest) {
+			return;
 		}
-
-		form.addEventListener('submit', function (event) {
+		if (event.target.closest('[data-filter-open]')) {
+			document.body.classList.add('filter-open');
+			return;
+		}
+		if (event.target.closest('[data-filter-close]')) {
+			document.body.classList.remove('filter-open');
+			return;
+		}
+		var link = event.target.closest('[data-sortbar] a, [data-chips] a, [data-catalog-results] .page-numbers');
+		if (link && link.href) {
 			event.preventDefault();
-			load(pageUrl(), true);
-		});
+			load(link.href, true);
+		}
+	});
 
-		document.addEventListener('click', function (event) {
-			var colsBtn = event.target.closest('[data-cols-switch] [data-cols]');
-			if (colsBtn) {
-				applyCols(colsBtn.getAttribute('data-cols'));
-				return;
-			}
-			var openBtn = event.target.closest('[data-filter-open]');
-			if (openBtn) {
-				document.body.classList.add('filter-open');
-				return;
-			}
-			if (event.target.closest('[data-filter-close]')) {
-				document.body.classList.remove('filter-open');
-				return;
-			}
-			var chip = event.target.closest('[data-chips] a');
-			if (chip) {
-				event.preventDefault();
-				load(chip.href, true);
-				return;
-			}
-			var page = event.target.closest('[data-catalog-results] .page-numbers');
-			if (page) {
-				event.preventDefault();
-				load(page.href, true);
-			}
-		});
+	document.addEventListener('keydown', function (event) {
+		if (event.key === 'Escape') {
+			document.body.classList.remove('filter-open');
+		}
+	});
 
-		document.addEventListener('keydown', function (event) {
-			if (event.key === 'Escape') {
-				document.body.classList.remove('filter-open');
-			}
-		});
-
-		document.addEventListener('change', function (event) {
-			if (event.target.matches && event.target.matches('[data-catalog-results] .woocommerce-ordering select')) {
-				load(pageUrl({ orderby: event.target.value }), true);
-			}
-		});
-
-		window.addEventListener('popstate', function () {
-			load(window.location.href, false);
-		});
+	window.addEventListener('popstate', function () {
+		load(window.location.href, false);
 	});
 })();

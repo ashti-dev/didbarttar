@@ -41,7 +41,6 @@ function torantejarat_woocommerce_setup() {
 	add_action( 'init', __NAMESPACE__ . '\\torantejarat_oembed_providers' );
 	add_action( 'woocommerce_shop_loop_header', __NAMESPACE__ . '\\torantejarat_archive_intro_end', 99 );
 	add_action( 'woocommerce_before_shop_loop', __NAMESPACE__ . '\\torantejarat_catalog_toolbar_start', 15 );
-	add_action( 'woocommerce_before_shop_loop', __NAMESPACE__ . '\\torantejarat_catalog_cols_switch', 32 );
 	add_action( 'woocommerce_before_shop_loop', __NAMESPACE__ . '\\torantejarat_catalog_toolbar_end', 35 );
 	add_filter( 'woocommerce_output_related_products_args', __NAMESPACE__ . '\\torantejarat_related_layout' );
 	add_filter( 'woocommerce_cross_sell_columns', __NAMESPACE__ . '\\torantejarat_cross_sell_size' );
@@ -458,19 +457,6 @@ function torantejarat_archive_intro_end() {
 }
 function torantejarat_catalog_toolbar_start() { echo '<div class="torantejarat-catalog-toolbar">'; }
 function torantejarat_catalog_toolbar_end() { echo '</div>'; }
-
-function torantejarat_catalog_cols_switch() {
-	if ( ! ( is_shop() || is_product_taxonomy() ) ) {
-		return;
-	}
-	?>
-	<div class="torantejarat-cols-switch" role="group" aria-label="<?php esc_attr_e( 'تعداد ستون‌ها', 'torantejarat' ); ?>" data-cols-switch>
-		<?php foreach ( array( 2, 3, 4 ) as $torantejarat_cols ) : ?>
-			<button type="button" data-cols="<?php echo esc_attr( $torantejarat_cols ); ?>" aria-label="<?php echo esc_attr( sprintf( __( 'نمایش %s ستونه', 'torantejarat' ), number_format_i18n( $torantejarat_cols ) ) ); ?>"><?php echo esc_html( number_format_i18n( $torantejarat_cols ) ); ?></button>
-		<?php endforeach; ?>
-	</div>
-	<?php
-}
 
 function torantejarat_related_layout( $args ) {
 	$args['posts_per_page'] = 3;

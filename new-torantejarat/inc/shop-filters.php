@@ -24,6 +24,101 @@ function torantejarat_shop_filters_setup() {
 	add_action( 'woocommerce_after_shop_loop', __NAMESPACE__ . '\\torantejarat_filters_layout_end', 49 );
 	add_action( 'woocommerce_product_query', __NAMESPACE__ . '\\torantejarat_filters_apply' );
 	add_action( 'template_redirect', __NAMESPACE__ . '\\torantejarat_filters_canonical' );
+	remove_action( 'woocommerce_before_shop_loop', 'woocommerce_catalog_ordering', 30 );
+	remove_action( 'woocommerce_before_shop_loop', 'woocommerce_result_count', 20 );
+	add_action( 'woocommerce_before_shop_loop', __NAMESPACE__ . '\\torantejarat_sortbar', 30 );
+	add_filter( 'woocommerce_default_catalog_orderby', static fn() => 'date' );
+	add_filter( 'woocommerce_get_catalog_ordering_args', __NAMESPACE__ . '\\torantejarat_discount_ordering' );
+}
+
+/**
+ * Biggest-discount ordering: Woo does not know it, so map it to the
+ * pre-sorted post__in list (built in torantejarat_filters_apply).
+ */
+function torantejarat_discount_ordering( $args ) {
+	if ( isset( $_GET['orderby'] ) && 'discount' === sanitize_key( $_GET['orderby'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$args['orderby']  = 'post__in';
+		$args['order']    = 'ASC';
+		$args['meta_key'] = '';
+	}
+	return $args;
+}
+
+/**
+ * Pill sort bar (count + newest / best-selling / cheapest / priciest / biggest discount).
+ * Plain links: works without JS; the JS layer swaps via AJAX.
+ */
+function torantejarat_sortbar() {
+	if ( ! ( is_shop() || is_product_taxonomy() ) ) {
+		return;
+	}
+	global $wp_query;
+	$total   = $wp_query instanceof \WP_Query ? (int) $wp_query->found_posts : 0;
+	$current = isset( $_GET['orderby'] ) && is_string( $_GET['orderby'] ) ? sanitize_key( $_GET['orderby'] ) : 'date'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	$options = array(
+		'date'       => __( 'جدیدترین', 'torantejarat' ),
+		'popularity' => __( 'پرفروش‌ترین', 'torantejarat' ),
+		'price'      => __( 'ارزان‌ترین', 'torantejarat' ),
+		'price-desc' => __( 'گران‌ترین', 'torantejarat' ),
+		'discount'   => __( 'بیشترین تخفیف', 'torantejarat' ),
+	);
+	if ( ! isset( $options[ $current ] ) ) {
+		$current = 'date';
+	}
+	echo '<div class="torantejarat-sortbar" data-sortbar>';
+	echo '<span class="torantejarat-sortbar-count">' . esc_html( sprintf( __( '%s محصول', 'torantejarat' ), number_format_i18n( $total ) ) ) . '</span>';
+	foreach ( $options as $key => $label ) {
+		$active = $key === $current ? ' is-active' : '';
+		echo '<a class="torantejarat-sort-pill' . esc_attr( $active ) . '" href="' . esc_url( torantejarat_filters_url( array( 'orderby' => $key ) ) ) . '"' . ( $active ? ' aria-current="true"' : '' ) . '>' . esc_html( $label ) . '</a>';
+	}
+	echo '</div>';
+}
+
+/**
+ * Current filter URL with overrides (sanitized). Basis for pills and chips.
+ *
+ * @param array $overrides Key => value (null value removes the key).
+ * @return string
+ */
+function torantejarat_filters_url( $overrides = array() ) {
+	$input  = torantejarat_filters_input();
+	$params = array();
+	if ( $input['pcat'] ) {
+		$params['pcat'] = $input['pcat'];
+	}
+	foreach ( $input['attr'] as $taxonomy => $slugs ) {
+		$params[ 'att_' . preg_replace( '/^pa_/', '', $taxonomy ) ] = $slugs;
+	}
+	if ( '' !== $input['min_price'] ) {
+		$params['min_price'] = $input['min_price'];
+	}
+	if ( '' !== $input['max_price'] ) {
+		$params['max_price'] = $input['max_price'];
+	}
+	if ( $input['instock'] ) {
+		$params['instock'] = '1';
+	}
+	if ( $input['onsale'] ) {
+		$params['onsale'] = '1';
+	}
+	if ( isset( $_GET['orderby'] ) && is_string( $_GET['orderby'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$params['orderby'] = sanitize_key( $_GET['orderby'] ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	}
+	if ( isset( $_GET['s'] ) && '' !== $_GET['s'] && ! is_array( $_GET['s'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$params['s'] = sanitize_text_field( wp_unslash( $_GET['s'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	}
+	foreach ( $overrides as $key => $value ) {
+		if ( null === $value ) {
+			unset( $params[ $key ] );
+		} else {
+			$params[ $key ] = $value;
+		}
+	}
+	$base = torantejarat_filters_base_url();
+	if ( is_wp_error( $base ) ) {
+		$base = wc_get_page_permalink( 'shop' );
+	}
+	return add_query_arg( $params, $base );
 }
 
 /**
@@ -188,6 +283,18 @@ function torantejarat_filters_apply( $query ) {
 		$sale_ids = wc_get_product_ids_on_sale();
 		$current  = (array) $query->get( 'post__in' );
 		$query->set( 'post__in', $current ? array_intersect( $current, $sale_ids ) : $sale_ids );
+	}
+	if ( isset( $_GET['orderby'] ) && 'discount' === sanitize_key( $_GET['orderby'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$deal_ids = array();
+		foreach ( torantejarat_deals( 100 ) as $deal ) {
+			$deal_ids[] = $deal['product']->get_id();
+		}
+		if ( $deal_ids ) {
+			$current = (array) $query->get( 'post__in' );
+			$query->set( 'post__in', $current ? array_values( array_intersect( $deal_ids, $current ) ) : $deal_ids );
+			$query->set( 'orderby', 'post__in' );
+			$query->set( 'order', 'ASC' );
+		}
 	}
 }
 
