@@ -29,7 +29,16 @@ function torantejarat_shop_filters_setup() {
 	add_action( 'woocommerce_before_shop_loop', __NAMESPACE__ . '\\torantejarat_sortbar', 4 );
 	add_filter( 'woocommerce_default_catalog_orderby', static fn() => 'date' );
 	add_filter( 'woocommerce_get_catalog_ordering_args', __NAMESPACE__ . '\\torantejarat_discount_ordering' );
+	add_filter( 'loop_shop_per_page', __NAMESPACE__ . '\\torantejarat_per_page' );
 	add_action( 'wp_head', __NAMESPACE__ . '\\torantejarat_filter_seo', 5 );
+}
+
+/**
+ * Products per page: 6 = two full rows of the 3-column grid.
+ * Filterable for the owner; pagination appears only past one page.
+ */
+function torantejarat_per_page() {
+	return (int) apply_filters( 'torantejarat_products_per_page', 6 );
 }
 
 /**
