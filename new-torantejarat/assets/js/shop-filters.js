@@ -110,6 +110,11 @@
 			document.body.classList.remove('filter-open');
 			return;
 		}
+		document.querySelectorAll('[data-sort-sheet][open]').forEach(function (sheet) {
+			if (!sheet.contains(event.target)) {
+				sheet.removeAttribute('open');
+			}
+		});
 		var link = event.target.closest('[data-sortbar] a, [data-chips] a, [data-catalog-results] .page-numbers');
 		if (link && link.href) {
 			event.preventDefault();

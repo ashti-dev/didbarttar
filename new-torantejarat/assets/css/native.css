@@ -670,6 +670,31 @@ body.js .torantejarat-video-cover{display:block}
 .torantejarat-sort-pill:hover{background:#f4f5f1}
 .torantejarat-sort-pill.is-active{background:linear-gradient(135deg,#f97e36,#ef6a1f);color:#fff;box-shadow:0 6px 16px #ef6a1f55}
 @media(max-width:600px){.torantejarat-sortbar{flex-wrap:nowrap;overflow-x:auto;border-radius:16px}.torantejarat-sortbar-count{flex-shrink:0}}
+/* Mobile control bar (like reference): count + filters + sort sheet. Desktop pills hide. */
+.torantejarat-mobile-bar{display:none}
+@media(max-width:900px){
+  .torantejarat-sort-pills{display:none}
+  .torantejarat-sortbar{flex-wrap:nowrap;overflow:visible;border-radius:18px;padding:8px}
+  .torantejarat-sortbar-count{display:none}
+  .torantejarat-mobile-bar{display:flex;align-items:center;gap:8px;width:100%}
+  .torantejarat-mobile-count{flex-shrink:0;font-size:12px;color:var(--muted);padding-inline-start:6px}
+  .torantejarat-mobile-bar>button{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;border:1px solid var(--line);border-radius:14px;background:#fff;font-size:13px;font-weight:700}
+  .torantejarat-mobile-bar>button b{background:var(--orange);color:#fff;border-radius:50%;min-width:22px;height:22px;display:grid;place-items:center;font-size:11px}
+  .torantejarat-mobile-bar details{flex:1;position:relative}
+  .torantejarat-mobile-bar details summary{display:flex;align-items:center;justify-content:center;gap:8px;min-height:44px;border-radius:14px;background:linear-gradient(135deg,#f97e36,#ef6a1f);color:#fff;font-size:13px;font-weight:800;list-style:none;cursor:pointer;box-shadow:0 6px 16px #ef6a1f55}
+  .torantejarat-mobile-bar details summary::-webkit-details-marker{display:none}
+  .torantejarat-mobile-bar details[open] summary{border-radius:14px 14px 0 0}
+  .torantejarat-mobile-bar details>div{position:absolute;top:100%;inset-inline:0;z-index:50;background:#fff;border:1px solid var(--line);border-radius:0 0 14px 14px;box-shadow:0 18px 44px #1723252e;display:grid;overflow:hidden}
+  .torantejarat-mobile-bar details a{padding:13px 16px;font-size:13px;font-weight:600;border-bottom:1px solid #eef1ea}
+  .torantejarat-mobile-bar details a:last-child{border-bottom:0}
+  .torantejarat-mobile-bar details a.is-active{background:#fdf0e8;color:#b64b18;font-weight:800}
+  .torantejarat-shop-filterbar .torantejarat-filter-toggle{display:none}
+}
+/* Card images fill their frames (no gray bands); neutral bg while loading. */
+.torantejarat-site .product-slide .torantejarat-product-image img{object-fit:cover;background:#e8e6e0;padding:0}
+.torantejarat-site ul.products.torantejarat-product-grid .torantejarat-shop-card .torantejarat-product-image img{object-fit:cover;padding:0}
+.torantejarat-site .torantejarat-bestseller-thumb img{object-fit:cover}
+.torantejarat-site .torantejarat-recent-card img{object-fit:cover}
 /* Filter toggles (iOS-style switches, no JS needed). */
 .torantejarat-filter-toggles{display:grid;gap:4px;padding:6px 0 12px;border-bottom:1px solid #eef1ea}
 .torantejarat-switch{display:flex!important;align-items:center;justify-content:space-between;gap:12px;padding:8px 0!important;cursor:pointer}
@@ -687,15 +712,6 @@ details.torantejarat-filter-group summary::-webkit-details-marker{display:none}
 details.torantejarat-filter-group summary::after{content:'';width:9px;height:9px;border:solid #8fa09a;border-width:0 2px 2px 0;transform:rotate(45deg);transition:transform .2s;flex-shrink:0;margin-inline-end:4px}
 details.torantejarat-filter-group[open] summary::after{transform:rotate(-135deg)}
 details.torantejarat-filter-group>div{padding-bottom:14px}
-/* Sticky mobile bottom bar: filters + live count. */
-.torantejarat-sticky-filterbar{display:none}
-@media(max-width:900px){
-  .torantejarat-sticky-filterbar{display:flex;align-items:center;gap:12px;position:fixed;bottom:12px;inset-inline:12px;z-index:55;background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:0 -8px 30px #17232526;padding:10px 12px}
-  .torantejarat-sticky-filterbar button{flex:1;min-height:46px;border:0;border-radius:12px;background:var(--ink);color:#fff;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;gap:8px}
-  .torantejarat-sticky-filterbar button b{background:var(--orange);border-radius:50%;min-width:22px;height:22px;display:grid;place-items:center;font-size:11px}
-  .torantejarat-sticky-filterbar span{font-size:12px;color:var(--muted);white-space:nowrap}
-}
-/* Catalog grid: 3 columns by default on desktop/tablet landscape. */
 @media(min-width:901px){
   .torantejarat-shop-body .torantejarat-catalog-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
 }

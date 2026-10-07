@@ -68,10 +68,28 @@ function torantejarat_sortbar() {
 	}
 	echo '<div class="torantejarat-sortbar" data-sortbar>';
 	echo '<span class="torantejarat-sortbar-count">' . esc_html( sprintf( __( '%s محصول', 'torantejarat' ), number_format_i18n( $total ) ) ) . '</span>';
+	echo '<nav class="torantejarat-sort-pills" aria-label="' . esc_attr__( 'مرتب‌سازی', 'torantejarat' ) . '">';
 	foreach ( $options as $key => $label ) {
 		$active = $key === $current ? ' is-active' : '';
 		echo '<a class="torantejarat-sort-pill' . esc_attr( $active ) . '" href="' . esc_url( torantejarat_filters_url( array( 'orderby' => $key ) ) ) . '"' . ( $active ? ' aria-current="true"' : '' ) . '>' . esc_html( $label ) . '</a>';
 	}
+	echo '</nav>';
+	$filter_count = torantejarat_filters_active_count();
+	echo '<div class="torantejarat-mobile-bar">';
+	echo '<span class="torantejarat-mobile-count">' . esc_html( sprintf( __( '%s محصول', 'torantejarat' ), number_format_i18n( $total ) ) ) . '</span>';
+	echo '<button type="button" data-filter-open>' . esc_html__( 'فیلترها', 'torantejarat' );
+	echo '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>';
+	if ( $filter_count > 0 ) {
+		echo '<b>' . esc_html( number_format_i18n( $filter_count ) ) . '</b>';
+	}
+	echo '</button>';
+	echo '<details class="torantejarat-sort-sheet" data-sort-sheet><summary>' . esc_html__( 'مرتب‌سازی', 'torantejarat' ) . '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M7 12h10M10 17h4"/></svg></summary><div>';
+	foreach ( $options as $key => $label ) {
+		$active = $key === $current ? ' is-active' : '';
+		echo '<a class="' . esc_attr( $active ) . '" href="' . esc_url( torantejarat_filters_url( array( 'orderby' => $key ) ) ) . '"' . ( $active ? ' aria-current="true"' : '' ) . '>' . esc_html( $label ) . '</a>';
+	}
+	echo '</div></details>';
+	echo '</div>';
 	echo '</div>';
 }
 
@@ -469,16 +487,25 @@ function torantejarat_filters_base_url() {
 	return wc_get_page_permalink( 'shop' );
 }
 
-function torantejarat_filters_toolbar_extras() {
-	if ( ! ( is_shop() || is_product_taxonomy() ) ) {
-		return;
-	}
+/**
+ * Number of active filters (badge for filter buttons).
+ */
+function torantejarat_filters_active_count() {
 	$input = torantejarat_filters_input();
 	$count = count( $input['pcat'] ) + ( $input['instock'] ? 1 : 0 ) + ( $input['onsale'] ? 1 : 0 )
 		+ ( '' !== $input['min_price'] || '' !== $input['max_price'] ? 1 : 0 );
 	foreach ( $input['attr'] as $terms ) {
 		$count += count( $terms );
 	}
+	return $count;
+}
+
+function torantejarat_filters_toolbar_extras() {
+	if ( ! ( is_shop() || is_product_taxonomy() ) ) {
+		return;
+	}
+	$input = torantejarat_filters_input();
+	$count = torantejarat_filters_active_count();
 	?>
 	<div class="torantejarat-shop-filterbar">
 		<button type="button" class="torantejarat-filter-toggle" data-filter-open>
@@ -486,17 +513,6 @@ function torantejarat_filters_toolbar_extras() {
 			<?php if ( $count > 0 ) : ?><b><?php echo esc_html( number_format_i18n( $count ) ); ?></b><?php endif; ?>
 		</button>
 		<?php torantejarat_filters_chips( $input ); ?>
-	</div>
-	<div class="torantejarat-sticky-filterbar" aria-hidden="false">
-		<button type="button" data-filter-open>
-			<?php esc_html_e( 'فیلترها', 'torantejarat' ); ?>
-			<?php if ( $count > 0 ) : ?><b><?php echo esc_html( number_format_i18n( $count ) ); ?></b><?php endif; ?>
-		</button>
-		<?php
-		global $wp_query;
-		$torantejarat_total = $wp_query instanceof \WP_Query ? (int) $wp_query->found_posts : 0;
-		?>
-		<span data-sticky-count><?php echo esc_html( sprintf( __( '%s محصول', 'torantejarat' ), number_format_i18n( $torantejarat_total ) ) ); ?></span>
 	</div>
 	<?php
 }
