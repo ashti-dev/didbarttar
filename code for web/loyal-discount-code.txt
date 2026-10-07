@@ -1,0 +1,167 @@
+
+
+if ( ! defined( 'ABSPATH' ) ) exit;
+
+/* ==========================================================
+   1) صفحه تنظیمات در پیشخوان (زیر منوی ووکامرس)
+   ========================================================== */
+
+add_action( 'admin_menu', function() {
+    add_submenu_page(
+        'woocommerce',
+        'کد تخفیف مشتریان وفادار',
+        '🎁 کد تخفیف مشتریان',
+        'manage_woocommerce',
+        'loyal-discount-settings',
+        'ldc_render_settings_page'
+    );
+});
+
+add_action( 'admin_init', function() {
+    register_setting( 'ldc_settings_group', 'ldc_coupon_code',  [ 'sanitize_callback' => 'sanitize_text_field' ] );
+    register_setting( 'ldc_settings_group', 'ldc_box_title',    [ 'sanitize_callback' => 'sanitize_text_field' ] );
+    register_setting( 'ldc_settings_group', 'ldc_box_desc',     [ 'sanitize_callback' => 'sanitize_textarea_field' ] );
+    register_setting( 'ldc_settings_group', 'ldc_min_orders',   [ 'sanitize_callback' => 'absint' ] );
+    register_setting( 'ldc_settings_group', 'ldc_enabled',      [ 'sanitize_callback' => 'absint' ] );
+});
+
+function ldc_render_settings_page() {
+    if ( ! current_user_can( 'manage_woocommerce' ) ) return;
+    ?>
+    <div class="wrap" dir="rtl" style="font-family: Tahoma, sans-serif;">
+        <h1>🎁 مدیریت کد تخفیف مشتریان وفادار</h1>
+        <p>این کد تخفیف به‌صورت خودکار فقط برای مشتریانی که حداقل یک خرید موفق داشته‌اند، در پنل کاربری آن‌ها (My Account) نمایش داده می‌شود.</p>
+        <form method="post" action="options.php">
+            <?php settings_fields( 'ldc_settings_group' ); ?>
+            <table class="form-table">
+                <tr>
+                    <th><label for="ldc_enabled">فعال‌سازی نمایش باکس</label></th>
+                    <td>
+                        <input type="checkbox" id="ldc_enabled" name="ldc_enabled" value="1" <?php checked( 1, get_option('ldc_enabled', 1) ); ?> />
+                        <span>فعال</span>
+                    </td>
+                </tr>
+                <tr>
+                    <th><label for="ldc_coupon_code">کد تخفیف</label></th>
+                    <td>
+                        <input type="text" id="ldc_coupon_code" name="ldc_coupon_code" value="<?php echo esc_attr( get_option('ldc_coupon_code', '') ); ?>" class="regular-text" placeholder="مثلا: WELCOME20" />
+                        <p class="description">این کد باید از قبل در بخش ووکامرس ← کوپن‌ها ساخته شده باشد تا هنگام اعمال، معتبر باشد.</p>
+                    </td>
+                </tr>
+                <tr>
+                    <th><label for="ldc_box_title">عنوان باکس</label></th>
+                    <td>
+                        <input type="text" id="ldc_box_title" name="ldc_box_title" value="<?php echo esc_attr( get_option('ldc_box_title', 'یک هدیه ویژه برای شما') ); ?>" class="regular-text" />
+                    </td>
+                </tr>
+                <tr>
+                    <th><label for="ldc_box_desc">توضیحات باکس</label></th>
+                    <td>
+                        <textarea id="ldc_box_desc" name="ldc_box_desc" rows="3" class="large-text"><?php echo esc_textarea( get_option('ldc_box_desc', 'به پاس خرید قبلی شما، این کد تخفیف را به شما هدیه می‌دهیم.') ); ?></textarea>
+                    </td>
+                </tr>
+                <tr>
+                    <th><label for="ldc_min_orders">حداقل تعداد سفارش لازم</label></th>
+                    <td>
+                        <input type="number" min="1" id="ldc_min_orders" name="ldc_min_orders" value="<?php echo esc_attr( get_option('ldc_min_orders', 1) ); ?>" class="small-text" />
+                        <p class="description">مثلا عدد ۱ یعنی حتی با یک خرید هم کد تخفیف نمایش داده شود.</p>
+                    </td>
+                </tr>
+            </table>
+            <?php submit_button( 'ذخیره تنظیمات' ); ?>
+        </form>
+        <hr style="margin-top:30px;">
+        <p style="color:#fff; font-size:16px;background:red;text-align:center;padding:20px;margin:20px 0;">
+            برنامه‌نویس: علیرضا رحمتی | اینستاگرام: alireza.webcode | تلگرام: alireza_webcode |یبانی سایت 09159835031
+        </p>
+    </div>
+    <?php
+}
+
+/* ==========================================================
+   2) نمایش باکس در پنل کاربری ووکامرس (My Account)
+   ========================================================== */
+
+add_action( 'woocommerce_account_dashboard', 'ldc_display_discount_box', 5 );
+
+function ldc_display_discount_box() {
+
+    if ( ! get_option( 'ldc_enabled', 1 ) ) return;
+
+    $coupon_code = get_option( 'ldc_coupon_code', '' );
+    if ( empty( $coupon_code ) ) return;
+
+    $user_id = get_current_user_id();
+    if ( ! $user_id ) return;
+
+    $min_orders  = (int) get_option( 'ldc_min_orders', 1 );
+    $order_count = wc_get_customer_order_count( $user_id );
+
+    if ( $order_count < $min_orders ) return;
+
+    $title = get_option( 'ldc_box_title', 'یک هدیه ویژه برای شما' );
+    $desc  = get_option( 'ldc_box_desc', '' );
+    ?>
+    <div class="ldc-discount-box">
+        <div class="ldc-discount-glow"></div>
+        <div class="ldc-discount-header">
+            <span class="ldc-discount-icon">🎁</span>
+            <h3><?php echo esc_html( $title ); ?></h3>
+        </div>
+        <?php if ( $desc ) : ?>
+            <p class="ldc-discount-desc"><?php echo esc_html( $desc ); ?></p>
+        <?php endif; ?>
+        <div class="ldc-coupon-wrapper">
+            <span class="ldc-coupon-code" id="ldcCouponCode"><?php echo esc_html( $coupon_code ); ?></span>
+            <button type="button" class="ldc-copy-btn" onclick="ldcCopyCoupon(this)">
+                <span class="ldc-copy-text">کپی کد</span>
+                <span class="ldc-copy-icon">📋</span>
+            </button>
+        </div>
+        <div class="ldc-copied-msg" id="ldcCopiedMsg">کد با موفقیت کپی شد ✅</div>
+    </div>
+
+    <style>
+    .ldc-discount-box{position:relative;overflow:hidden;font-family:inherit;background:linear-gradient(135deg,#1f2937 0%,#111827 100%);border-radius:18px;padding:28px 24px;margin:0 0 30px 0;text-align:center;color:#fff;box-shadow:0 10px 30px rgba(0,0,0,.15);direction:rtl;animation:ldcFadeIn .6s ease}
+    @keyframes ldcFadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+    .ldc-discount-glow{position:absolute;top:-50%;left:-20%;width:140%;height:200%;background:radial-gradient(circle,rgba(255,193,7,.25) 0%,rgba(255,193,7,0) 60%);pointer-events:none}
+    .ldc-discount-header{display:flex;align-items:center;justify-content:center;gap:8px;position:relative;z-index:1}
+    .ldc-discount-icon{font-size:26px}
+    .ldc-discount-header h3{margin:0;font-size:20px;font-weight:700;color:#ffc107;font-family:inherit}
+    .ldc-discount-desc{margin:10px 0 20px;font-size:14px;color:#d1d5db;line-height:1.9;position:relative;z-index:1}
+    .ldc-coupon-wrapper{position:relative;z-index:1;display:inline-flex;align-items:center;gap:0;background:rgba(255,255,255,.08);border:2px dashed #ffc107;border-radius:12px;padding:4px;max-width:100%}
+    .ldc-coupon-code{padding:10px 18px;font-size:18px;font-weight:800;letter-spacing:1px;color:#ffc107;font-family:inherit;direction:ltr;unicode-bidi:plaintext}
+    .ldc-copy-btn{display:flex;align-items:center;gap:6px;background:#ffc107;color:#111827;border:none;border-radius:8px;padding:10px 16px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .25s ease}
+    .ldc-copy-btn:hover{background:#ffca28;transform:scale(1.03)}
+    .ldc-copy-btn:active{transform:scale(.97)}
+    .ldc-copied-msg{display:none;margin-top:12px;font-size:13px;color:#4ade80;font-weight:600;position:relative;z-index:1}
+    .ldc-copied-msg.show{display:block;animation:ldcFadeIn .3s ease}
+    @media (max-width:480px){.ldc-coupon-wrapper{flex-direction:column}.ldc-copy-btn{width:100%;justify-content:center;margin-top:6px;border-radius:8px}.ldc-coupon-code{font-size:16px}}
+    </style>
+
+    <script>
+    function ldcCopyCoupon(btn){
+        var codeEl = document.getElementById('ldcCouponCode');
+        var text = codeEl.textContent.trim();
+        var msg = document.getElementById('ldcCopiedMsg');
+        function showMsg(){
+            msg.classList.add('show');
+            setTimeout(function(){ msg.classList.remove('show'); }, 2500);
+        }
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(text).then(showMsg);
+        } else {
+            var ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.position = 'fixed';
+            ta.style.opacity = '0';
+            document.body.appendChild(ta);
+            ta.select();
+            try { document.execCommand('copy'); } catch(e) {}
+            document.body.removeChild(ta);
+            showMsg();
+        }
+    }
+    </script>
+    <?php
+}

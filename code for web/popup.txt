@@ -1,0 +1,417 @@
+
+
+if ( ! defined( 'WGP_POPUP_LOADED' ) ) {
+	define( 'WGP_POPUP_LOADED', true );
+
+	if ( ! function_exists( 'wgp_default_options' ) ) {
+		function wgp_default_options() {
+			return array(
+				'enabled'          => 'yes',
+				'platform'         => 'whatsapp', // whatsapp | telegram
+				'contact'          => '',         // شماره برای واتساپ (با کد کشور، بدون +) یا یوزرنیم تلگرام (بدون @)
+				'title'            => 'هنوز داری برای خریدش فکر می‌کنی؟ 🤔',
+				'message'          => 'اگه سوالی داری همین الان از ما بپرس، خوشحال می‌شیم راهنماییت کنیم.',
+				'button_text'      => 'چت با ما',
+				'msg_template'     => 'سلام 👋 در مورد محصول «{product_name}» سوال داشتم.',
+				'show_after'       => 3,     // نمایش در بازدید چندم
+				'delay_ms'         => 1200,  // تاخیر نمایش بعد از لود صفحه (میلی‌ثانیه)
+				'primary_color'    => '#25D366',
+				'popup_bg'         => '#ffffff',
+				'text_color'       => '#1b1b1b',
+			);
+		}
+	}
+
+	if ( ! function_exists( 'wgp_get_options' ) ) {
+		function wgp_get_options() {
+			$saved = get_option( 'wgp_settings', array() );
+			return wp_parse_args( $saved, wgp_default_options() );
+		}
+	}
+
+	if ( ! function_exists( 'wgp_add_admin_menu' ) ) {
+		add_action( 'admin_menu', 'wgp_add_admin_menu' );
+		function wgp_add_admin_menu() {
+			add_menu_page(
+				'تنظیمات پاپ‌آپ فروش',
+				'پاپ‌آپ فروش',
+				'manage_options',
+				'wgp-settings',
+				'wgp_render_settings_page',
+				'dashicons-format-chat',
+				59
+			);
+		}
+	}
+
+	if ( ! function_exists( 'wgp_register_settings' ) ) {
+		add_action( 'admin_init', 'wgp_register_settings' );
+		function wgp_register_settings() {
+			register_setting( 'wgp_settings_group', 'wgp_settings', 'wgp_sanitize_options' );
+		}
+	}
+
+	if ( ! function_exists( 'wgp_sanitize_options' ) ) {
+		function wgp_sanitize_options( $input ) {
+			$defaults = wgp_default_options();
+			$out      = array();
+
+			$out['enabled']       = ( isset( $input['enabled'] ) && $input['enabled'] === 'yes' ) ? 'yes' : 'no';
+			$out['platform']      = ( isset( $input['platform'] ) && $input['platform'] === 'telegram' ) ? 'telegram' : 'whatsapp';
+			$out['contact']       = isset( $input['contact'] ) ? sanitize_text_field( $input['contact'] ) : $defaults['contact'];
+			$out['title']         = isset( $input['title'] ) ? sanitize_text_field( $input['title'] ) : $defaults['title'];
+			$out['message']       = isset( $input['message'] ) ? sanitize_textarea_field( $input['message'] ) : $defaults['message'];
+			$out['button_text']   = isset( $input['button_text'] ) ? sanitize_text_field( $input['button_text'] ) : $defaults['button_text'];
+			$out['msg_template']  = isset( $input['msg_template'] ) ? sanitize_text_field( $input['msg_template'] ) : $defaults['msg_template'];
+			$out['show_after']    = isset( $input['show_after'] ) ? max( 2, absint( $input['show_after'] ) ) : $defaults['show_after'];
+			$out['delay_ms']      = isset( $input['delay_ms'] ) ? max( 0, absint( $input['delay_ms'] ) ) : $defaults['delay_ms'];
+			$out['primary_color'] = isset( $input['primary_color'] ) ? sanitize_hex_color( $input['primary_color'] ) : $defaults['primary_color'];
+			$out['popup_bg']      = isset( $input['popup_bg'] ) ? sanitize_hex_color( $input['popup_bg'] ) : $defaults['popup_bg'];
+			$out['text_color']    = isset( $input['text_color'] ) ? sanitize_hex_color( $input['text_color'] ) : $defaults['text_color'];
+
+			return $out;
+		}
+	}
+
+	if ( ! function_exists( 'wgp_admin_assets' ) ) {
+		add_action( 'admin_enqueue_scripts', 'wgp_admin_assets' );
+		function wgp_admin_assets( $hook ) {
+			if ( strpos( $hook, 'wgp-settings' ) === false ) {
+				return;
+			}
+			wp_enqueue_style( 'wp-color-picker' );
+			wp_enqueue_script( 'wp-color-picker' );
+			wp_add_inline_script( 'wp-color-picker', "jQuery(function($){ $('.wgp-color-field').wpColorPicker(); });" );
+		}
+	}
+
+	if ( ! function_exists( 'wgp_render_settings_page' ) ) {
+		function wgp_render_settings_page() {
+			if ( ! current_user_can( 'manage_options' ) ) {
+				return;
+			}
+			$o = wgp_get_options();
+			$woo_active = class_exists( 'WooCommerce' );
+			?>
+			<div class="wrap" dir="rtl" style="max-width:900px;">
+				<h1 style="display:flex;align-items:center;gap:8px;">🛍️ تنظیمات پاپ‌آپ فروش</h1>
+
+				<?php if ( ! $woo_active ) : ?>
+					<div class="notice notice-error"><p>افزونه ووکامرس فعال نیست. این پاپ‌آپ فقط روی صفحه محصول ووکامرس نمایش داده می‌شود.</p></div>
+				<?php endif; ?>
+
+				<form method="post" action="options.php">
+					<?php settings_fields( 'wgp_settings_group' ); ?>
+
+					<h2 class="title">تنظیمات عمومی</h2>
+					<table class="form-table" role="presentation">
+						<tr>
+							<th scope="row">فعال‌سازی پاپ‌آپ</th>
+							<td>
+								<label>
+									<input type="checkbox" name="wgp_settings[enabled]" value="yes" <?php checked( $o['enabled'], 'yes' ); ?> />
+									فعال باشد
+								</label>
+							</td>
+						</tr>
+						<tr>
+							<th scope="row">نمایش در بازدید چندم</th>
+							<td>
+								<input type="number" min="2" step="1" name="wgp_settings[show_after]" value="<?php echo esc_attr( $o['show_after'] ); ?>" class="small-text" />
+								<p class="description">مثلاً عدد ۳ یعنی بار سوم، ششم، نهم و... نمایش داده می‌شود (بار اول و دوم نمایش داده نمی‌شود).</p>
+							</td>
+						</tr>
+						<tr>
+							<th scope="row">تاخیر نمایش (میلی‌ثانیه)</th>
+							<td>
+								<input type="number" min="0" step="100" name="wgp_settings[delay_ms]" value="<?php echo esc_attr( $o['delay_ms'] ); ?>" class="small-text" />
+								<p class="description">مثلاً 1200 یعنی 1.2 ثانیه بعد از باز شدن صفحه، پاپ‌آپ ظاهر می‌شود.</p>
+							</td>
+						</tr>
+					</table>
+
+					<h2 class="title">لینک تماس</h2>
+					<table class="form-table" role="presentation">
+						<tr>
+							<th scope="row">پلتفرم</th>
+							<td>
+								<label style="margin-left:16px;">
+									<input type="radio" name="wgp_settings[platform]" value="whatsapp" <?php checked( $o['platform'], 'whatsapp' ); ?> /> واتساپ
+								</label>
+								<label>
+									<input type="radio" name="wgp_settings[platform]" value="telegram" <?php checked( $o['platform'], 'telegram' ); ?> /> تلگرام
+								</label>
+							</td>
+						</tr>
+						<tr>
+							<th scope="row">شماره / یوزرنیم</th>
+							<td>
+								<input type="text" name="wgp_settings[contact]" value="<?php echo esc_attr( $o['contact'] ); ?>" class="regular-text" placeholder="مثال واتساپ: 989123456789 | مثال تلگرام: mypage" />
+								<p class="description">برای واتساپ شماره را با کد کشور و بدون + وارد کنید. برای تلگرام فقط یوزرنیم (بدون @).</p>
+							</td>
+						</tr>
+						<tr>
+							<th scope="row">متن پیش‌فرض پیام</th>
+							<td>
+								<input type="text" name="wgp_settings[msg_template]" value="<?php echo esc_attr( $o['msg_template'] ); ?>" class="large-text" />
+								<p class="description">می‌توانید از <code>{product_name}</code> برای درج خودکار نام محصول استفاده کنید.</p>
+							</td>
+						</tr>
+					</table>
+
+					<h2 class="title">متن‌های پاپ‌آپ</h2>
+					<table class="form-table" role="presentation">
+						<tr>
+							<th scope="row">عنوان</th>
+							<td><input type="text" name="wgp_settings[title]" value="<?php echo esc_attr( $o['title'] ); ?>" class="large-text" /></td>
+						</tr>
+						<tr>
+							<th scope="row">توضیح</th>
+							<td><textarea name="wgp_settings[message]" rows="3" class="large-text"><?php echo esc_textarea( $o['message'] ); ?></textarea></td>
+						</tr>
+						<tr>
+							<th scope="row">متن دکمه</th>
+							<td><input type="text" name="wgp_settings[button_text]" value="<?php echo esc_attr( $o['button_text'] ); ?>" class="regular-text" /></td>
+						</tr>
+					</table>
+
+					<h2 class="title">ظاهر</h2>
+					<table class="form-table" role="presentation">
+						<tr>
+							<th scope="row">رنگ اصلی (دکمه)</th>
+							<td><input type="text" class="wgp-color-field" name="wgp_settings[primary_color]" value="<?php echo esc_attr( $o['primary_color'] ); ?>" /></td>
+						</tr>
+						<tr>
+							<th scope="row">رنگ پس‌زمینه پاپ‌آپ</th>
+							<td><input type="text" class="wgp-color-field" name="wgp_settings[popup_bg]" value="<?php echo esc_attr( $o['popup_bg'] ); ?>" /></td>
+						</tr>
+						<tr>
+							<th scope="row">رنگ متن</th>
+							<td><input type="text" class="wgp-color-field" name="wgp_settings[text_color]" value="<?php echo esc_attr( $o['text_color'] ); ?>" /></td>
+						</tr>
+					</table>
+
+					<?php submit_button( 'ذخیره تنظیمات' ); ?>
+				</form>
+			</div>
+			
+			<b style="background:red;color:#fff"><p style="background: red;text-align: center;padding: 10px;font-size: 16px;">ساخته شده توسط علیرضا رحمتی | اینستاگرام : alireza.webcode | تلگرام : alireza_webcode | طراحی و پشتیبانی انواع وبسایت  </p></b>
+			<?php
+		}
+	}
+
+	if ( ! function_exists( 'wgp_enqueue_frontend' ) ) {
+		add_action( 'wp_enqueue_scripts', 'wgp_enqueue_frontend' );
+		function wgp_enqueue_frontend() {
+
+			if ( ! function_exists( 'is_product' ) || ! is_product() ) {
+				return; // فقط صفحه محصول
+			}
+
+			$o = wgp_get_options();
+
+			if ( $o['enabled'] !== 'yes' || empty( $o['contact'] ) ) {
+				return;
+			}
+
+			global $post;
+			$product_name = $post ? get_the_title( $post ) : '';
+
+			if ( $o['platform'] === 'whatsapp' ) {
+				$number = preg_replace( '/[^0-9]/', '', $o['contact'] );
+				$text   = str_replace( '{product_name}', $product_name, $o['msg_template'] );
+				$link   = 'https://wa.me/' . $number . '?text=' . rawurlencode( $text );
+			} else {
+				$username = ltrim( $o['contact'], '@' );
+				$text     = str_replace( '{product_name}', $product_name, $o['msg_template'] );
+				$link     = 'https://t.me/' . rawurlencode( $username ) . '?text=' . rawurlencode( $text );
+			}
+
+			// یک هندل خالی برای اتصال CSS/JS inline
+			wp_register_style( 'wgp-popup-style', false );
+			wp_enqueue_style( 'wgp-popup-style' );
+			wp_add_inline_style( 'wgp-popup-style', wgp_build_css( $o ) );
+
+			wp_register_script( 'wgp-popup-script', false, array(), false, true );
+			wp_enqueue_script( 'wgp-popup-script' );
+
+			wp_localize_script( 'wgp-popup-script', 'WGP_DATA', array(
+				'productId'  => get_the_ID(),
+				'showAfter'  => (int) $o['show_after'],
+				'delay'      => (int) $o['delay_ms'],
+				'link'       => esc_url_raw( $link ),
+				'title'      => $o['title'],
+				'message'    => $o['message'],
+				'buttonText' => $o['button_text'],
+				'isRtl'      => is_rtl(),
+			) );
+
+			wp_add_inline_script( 'wgp-popup-script', wgp_build_js(), 'after' );
+		}
+	}
+
+	if ( ! function_exists( 'wgp_build_css' ) ) {
+		function wgp_build_css( $o ) {
+			$primary = esc_attr( $o['primary_color'] );
+			$bg      = esc_attr( $o['popup_bg'] );
+			$text    = esc_attr( $o['text_color'] );
+
+			return "
+			.wgp-overlay{
+				position:fixed;inset:0;z-index:999999;
+				background:rgba(15,15,20,.55);
+				backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+				display:flex;align-items:center;justify-content:center;
+				opacity:0;visibility:hidden;
+				transition:opacity .35s ease,visibility .35s ease;
+				font-family:inherit;
+			}
+			.wgp-overlay.wgp-show{opacity:1;visibility:visible;}
+			.wgp-box{
+				position:relative;
+				width:92%;max-width:380px;
+				background:{$bg};color:{$text};
+				border-radius:20px;
+				padding:28px 24px 24px;
+				box-shadow:0 20px 60px rgba(0,0,0,.35);
+				text-align:center;
+				transform:translateY(24px) scale(.92);
+				opacity:0;
+				transition:transform .4s cubic-bezier(.34,1.56,.64,1),opacity .4s ease;
+				font-family:inherit;
+			}
+			.wgp-overlay.wgp-show .wgp-box{transform:translateY(0) scale(1);opacity:1;}
+			.wgp-close{
+				position:absolute;top:12px;left:12px;
+				width:30px;height:30px;border-radius:50%;
+				background:rgba(0,0,0,.06);
+				border:none;cursor:pointer;
+				font-size:16px;line-height:30px;color:{$text};
+				transition:background .2s ease,transform .2s ease;
+			}
+			.wgp-close:hover{background:rgba(0,0,0,.12);transform:rotate(90deg);}
+			.wgp-icon-wrap{
+				width:66px;height:66px;border-radius:50%;
+				margin:0 auto 14px;
+				background:linear-gradient(135deg,{$primary},{$primary}cc);
+				display:flex;align-items:center;justify-content:center;
+				box-shadow:0 8px 22px {$primary}55;
+				animation:wgpPulse 2s ease-in-out infinite;
+			}
+			.wgp-icon-wrap svg{width:32px;height:32px;fill:#fff;}
+			@keyframes wgpPulse{
+				0%,100%{box-shadow:0 8px 22px {$primary}55;}
+				50%{box-shadow:0 8px 32px {$primary}99;}
+			}
+			.wgp-title{
+				font-size:18px;font-weight:700;line-height:1.6;margin:0 0 8px;
+			}
+			.wgp-message{
+				font-size:14px;line-height:1.9;opacity:.8;margin:0 0 20px;
+			}
+			.wgp-btn{
+				display:inline-flex;align-items:center;justify-content:center;gap:8px;
+				width:100%;padding:13px 18px;border-radius:12px;
+				background:{$primary};color:#fff !important;
+				font-weight:700;font-size:15px;text-decoration:none !important;
+				box-shadow:0 10px 24px {$primary}4d;
+				transition:transform .2s ease,box-shadow .2s ease,filter .2s ease;
+			}
+			.wgp-btn:hover{transform:translateY(-2px);filter:brightness(1.06);box-shadow:0 14px 30px {$primary}66;}
+			.wgp-btn:active{transform:translateY(0);}
+			@media (max-width:480px){
+				.wgp-box{padding:22px 18px 18px;border-radius:16px;}
+				.wgp-title{font-size:16px;}
+				.wgp-message{font-size:13px;}
+			}
+			";
+		}
+	}
+
+
+	if ( ! function_exists( 'wgp_build_js' ) ) {
+		function wgp_build_js() {
+			return "
+			(function(){
+				try{
+					var d = window.WGP_DATA;
+					if(!d || !d.productId) return;
+
+					var key = 'wgp_views_' + d.productId;
+					var count = parseInt(localStorage.getItem(key) || '0', 10) + 1;
+					localStorage.setItem(key, String(count));
+
+					var every = Math.max(2, parseInt(d.showAfter,10) || 3);
+					if(count % every !== 0) return; // فقط در بازدید سوم/ششم/نهم و ... نمایش بده
+
+					function buildPopup(){
+						var overlay = document.createElement('div');
+						overlay.className = 'wgp-overlay';
+						overlay.setAttribute('dir', d.isRtl ? 'rtl' : 'ltr');
+
+						var box = document.createElement('div');
+						box.className = 'wgp-box';
+
+						var closeBtn = document.createElement('button');
+						closeBtn.className = 'wgp-close';
+						closeBtn.setAttribute('aria-label','close');
+						closeBtn.innerHTML = '&times;';
+
+						var iconWrap = document.createElement('div');
+						iconWrap.className = 'wgp-icon-wrap';
+						iconWrap.innerHTML = '<svg viewBox=\"0 0 24 24\"><path d=\"M12 2C6.48 2 2 6.02 2 11c0 2.25 1.05 4.3 2.78 5.88L4 22l5.3-1.63C10.16 20.78 11.06 21 12 21c5.52 0 10-4.02 10-9s-4.48-10-10-10z\"/></svg>';
+
+						var title = document.createElement('p');
+						title.className = 'wgp-title';
+						title.textContent = d.title;
+
+						var msg = document.createElement('p');
+						msg.className = 'wgp-message';
+						msg.textContent = d.message;
+
+						var btn = document.createElement('a');
+						btn.className = 'wgp-btn';
+						btn.href = d.link;
+						btn.target = '_blank';
+						btn.rel = 'noopener noreferrer nofollow';
+						btn.textContent = d.buttonText;
+
+						box.appendChild(closeBtn);
+						box.appendChild(iconWrap);
+						box.appendChild(title);
+						box.appendChild(msg);
+						box.appendChild(btn);
+						overlay.appendChild(box);
+						document.body.appendChild(overlay);
+
+						function closePopup(){
+							overlay.classList.remove('wgp-show');
+							setTimeout(function(){ overlay.remove(); }, 350);
+						}
+						closeBtn.addEventListener('click', closePopup);
+						overlay.addEventListener('click', function(e){
+							if(e.target === overlay) closePopup();
+						});
+						document.addEventListener('keydown', function esc(e){
+							if(e.key === 'Escape'){ closePopup(); document.removeEventListener('keydown', esc); }
+						});
+
+						requestAnimationFrame(function(){
+							requestAnimationFrame(function(){ overlay.classList.add('wgp-show'); });
+						});
+					}
+
+					var delay = parseInt(d.delay,10) || 0;
+					if(document.readyState === 'complete' || document.readyState === 'interactive'){
+						setTimeout(buildPopup, delay);
+					} else {
+						document.addEventListener('DOMContentLoaded', function(){
+							setTimeout(buildPopup, delay);
+						});
+					}
+				}catch(e){ /* fail silently, never break the shop */ }
+			})();
+			";
+		}
+	}
+}

@@ -1,0 +1,133 @@
+<?php
+
+/* =========================
+   1. ADMIN SETTINGS PAGE
+========================= */
+add_action('admin_menu', function () {
+    add_menu_page(
+        'Top Bar Settings',
+        'Top Bar',
+        'manage_options',
+        'al-topbar-settings',
+        'al_topbar_settings_page',
+        'dashicons-megaphone',
+        80
+    );
+});
+
+function al_topbar_settings_page() {
+
+    if (isset($_POST['al_topbar_save'])) {
+        update_option('al_topbar_messages', sanitize_textarea_field($_POST['al_topbar_messages']));
+        echo '<div class="updated"><p>ذخیره شد ✔</p></div>';
+    }
+
+    $messages = get_option('al_topbar_messages', "🔥 تخفیف ویژه امروز\n🚀 ارسال سریع\n💎 کیفیت حرفه‌ای");
+
+    ?>
+    <div class="wrap">
+        <h1>تنظیمات نوار اعلان</h1>
+
+        <form method="post">
+            <textarea name="al_topbar_messages" style="width:100%;height:200px;font-size:14px;"><?php echo esc_textarea($messages); ?></textarea>
+            <p>هر خط = یک پیام جدا</p>
+            <p>ساخته شده توسط علیرضا رحمتی | اینستاگرام : alireza.webcode</p>
+
+            <button type="submit" name="al_topbar_save" class="button button-primary">
+                ذخیره
+            </button>
+        </form>
+    </div>
+    <?php
+}
+
+
+/* =========================
+   2. FRONT OUTPUT
+========================= */
+
+add_action('wp_head', function () {
+?>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;600&display=swap');
+
+#al-topbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 999999;
+    background: linear-gradient(90deg, #0f172a, #1e293b);
+    color: #fff;
+    font-family: 'Vazirmatn', sans-serif;
+    font-size: 14px;
+    text-align: center;
+    padding: 10px 15px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.25);
+}
+
+#al-text {
+    border-left: 2px solid rgba(255,255,255,0.7);
+    padding-left: 6px;
+    white-space: nowrap;
+								font-size:18px;
+}
+</style>
+<?php
+});
+
+
+add_action('wp_footer', function () {
+
+    $messages_raw = get_option('al_topbar_messages', '');
+    $messages = array_filter(array_map('trim', explode("\n", $messages_raw)));
+
+    if (empty($messages)) return;
+    ?>
+
+    <div id="al-topbar">
+        <span id="al-text"></span>
+    </div>
+
+    <script>
+    (function () {
+
+        const messages = <?php echo json_encode(array_values($messages)); ?>;
+
+        let msgIndex = 0;
+        let charIndex = 0;
+        const el = document.getElementById("al-text");
+
+        function type() {
+
+            let text = messages[msgIndex];
+
+            if (charIndex < text.length) {
+                el.innerHTML += text.charAt(charIndex);
+                charIndex++;
+                setTimeout(type, 45);
+            } else {
+                setTimeout(erase, 500);
+            }
+        }
+
+        function erase() {
+            let text = messages[msgIndex];
+
+            if (charIndex > 0) {
+                el.innerHTML = text.substring(0, charIndex - 1);
+                charIndex--;
+                setTimeout(erase, 20);
+            } else {
+                msgIndex = (msgIndex + 1) % messages.length;
+                setTimeout(type, 300);
+            }
+        }
+
+        type();
+
+    })();
+    </script>
+
+<?php
+});

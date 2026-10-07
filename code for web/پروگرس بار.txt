@@ -1,0 +1,281 @@
+<?php
+
+
+if ( ! defined( 'ABSPATH' ) ) { exit; }
+
+define( 'CLX_PB_OPT', 'clx_progress_settings' );
+define( 'CLX_PB_NONCE', 'clx_pb_nonce_action' );
+
+/* ==========================================================================
+   ۱) مقادیر پیش‌فرض
+   ========================================================================== */
+
+function clx_pb_default_settings() {
+	return array(
+		'enabled'         => 1,
+		'height'          => 5,
+		'gradient_color_1'=> '#7c3aed',
+		'gradient_color_2'=> '#06b6d4',
+		'gradient_angle'  => 90,
+		'track_color'     => 'rgba(0,0,0,.08)',
+		'rounded'         => 1,
+		'glow'            => 1,
+		'show_bubble'     => 1,
+		'mobile_visible'  => 1,
+	);
+}
+
+function clx_pb_get_settings() {
+	$saved = get_option( CLX_PB_OPT, array() );
+	return wp_parse_args( $saved, clx_pb_default_settings() );
+}
+
+/* ==========================================================================
+   ۲) منوی مدیریت در پنل وردپرس
+   ========================================================================== */
+
+add_action( 'admin_menu', 'clx_pb_admin_menu' );
+function clx_pb_admin_menu() {
+	add_menu_page(
+		'پروگرس بار',
+		'پروگرس بار',
+		'manage_options',
+		'clx-progress-bar',
+		'clx_pb_render_admin_page',
+		'dashicons-chart-line',
+		60
+	);
+}
+
+add_action( 'admin_enqueue_scripts', 'clx_pb_admin_assets' );
+function clx_pb_admin_assets( $hook ) {
+	if ( strpos( $hook, 'clx-progress-bar' ) === false ) { return; }
+	wp_enqueue_style( 'wp-color-picker' );
+	wp_enqueue_script( 'wp-color-picker' );
+	wp_add_inline_script( 'wp-color-picker', "jQuery(function($){ $('.clx-color-field').wpColorPicker(); });" );
+}
+
+/* ---- پردازش فرم ---- */
+
+add_action( 'admin_post_clx_pb_save_settings', 'clx_pb_save_settings' );
+function clx_pb_save_settings() {
+	if ( ! current_user_can( 'manage_options' ) ) { wp_die( 'دسترسی ندارید.' ); }
+	check_admin_referer( CLX_PB_NONCE );
+
+	$settings = array(
+		'enabled'          => isset( $_POST['enabled'] ) ? 1 : 0,
+		'height'           => max( 2, min( 14, intval( $_POST['height'] ?? 5 ) ) ),
+		'gradient_color_1' => sanitize_hex_color( $_POST['gradient_color_1'] ?? '' ) ?: '#7c3aed',
+		'gradient_color_2' => sanitize_hex_color( $_POST['gradient_color_2'] ?? '' ) ?: '#06b6d4',
+		'gradient_angle'   => max( 0, min( 360, intval( $_POST['gradient_angle'] ?? 90 ) ) ),
+		'track_color'      => sanitize_text_field( $_POST['track_color'] ?? 'rgba(0,0,0,.08)' ),
+		'rounded'          => isset( $_POST['rounded'] ) ? 1 : 0,
+		'glow'             => isset( $_POST['glow'] ) ? 1 : 0,
+		'show_bubble'      => isset( $_POST['show_bubble'] ) ? 1 : 0,
+		'mobile_visible'   => isset( $_POST['mobile_visible'] ) ? 1 : 0,
+	);
+
+	update_option( CLX_PB_OPT, $settings );
+	wp_safe_redirect( admin_url( 'admin.php?page=clx-progress-bar&updated=1' ) );
+	exit;
+}
+
+/* ---- صفحه مدیریت ---- */
+
+function clx_pb_render_admin_page() {
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+	$s = clx_pb_get_settings();
+	?>
+	<div class="wrap" dir="rtl" style="font-family: Tahoma, sans-serif;">
+		<h1 style="display:flex;align-items:center;gap:8px;">📊 پروگرس بار اسکرول</h1>
+
+		<?php if ( isset( $_GET['updated'] ) ) : ?>
+			<div class="notice notice-success is-dismissible"><p>تنظیمات با موفقیت ذخیره شد.</p></div>
+		<?php endif; ?>
+
+		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="margin-top:20px;max-width:760px;">
+			<input type="hidden" name="action" value="clx_pb_save_settings">
+			<?php wp_nonce_field( CLX_PB_NONCE ); ?>
+
+			<h2 class="title">عمومی</h2>
+			<table class="form-table">
+				<tr>
+					<th>فعال‌سازی پروگرس بار</th>
+					<td><label><input type="checkbox" name="enabled" <?php checked( $s['enabled'], 1 ); ?>> نوار در کل سایت نمایش داده شود</label></td>
+				</tr>
+				<tr>
+					<th>ارتفاع نوار (پیکسل)</th>
+					<td><input type="number" min="2" max="14" name="height" value="<?php echo esc_attr( $s['height'] ); ?>" class="small-text"></td>
+				</tr>
+				<tr>
+					<th>نمایش در موبایل</th>
+					<td><label><input type="checkbox" name="mobile_visible" <?php checked( $s['mobile_visible'], 1 ); ?>> در نمایشگرهای موبایل هم نمایش داده شود</label></td>
+				</tr>
+			</table>
+
+			<h2 class="title">رنگ و گرادیان</h2>
+			<table class="form-table">
+				<tr>
+					<th>رنگ شروع گرادیان</th>
+					<td><input type="text" class="clx-color-field" name="gradient_color_1" value="<?php echo esc_attr( $s['gradient_color_1'] ); ?>"></td>
+				</tr>
+				<tr>
+					<th>رنگ پایان گرادیان</th>
+					<td><input type="text" class="clx-color-field" name="gradient_color_2" value="<?php echo esc_attr( $s['gradient_color_2'] ); ?>"></td>
+				</tr>
+				<tr>
+					<th>زاویه گرادیان (درجه)</th>
+					<td><input type="number" min="0" max="360" name="gradient_angle" value="<?php echo esc_attr( $s['gradient_angle'] ); ?>" class="small-text"> پیش‌فرض ۹۰ (افقی چپ به راست)</td>
+				</tr>
+				<tr>
+					<th>رنگ ریل پس‌زمینه (بخش پر‌نشده)</th>
+					<td><input type="text" name="track_color" value="<?php echo esc_attr( $s['track_color'] ); ?>" class="regular-text" placeholder="rgba(0,0,0,.08)"></td>
+				</tr>
+			</table>
+
+			<h2 class="title">افکت‌ها</h2>
+			<table class="form-table">
+				<tr>
+					<th>گوشه‌های گرد</th>
+					<td><label><input type="checkbox" name="rounded" <?php checked( $s['rounded'], 1 ); ?>> انتهای نوار گرد باشد</label></td>
+				</tr>
+				<tr>
+					<th>افکت درخشش (Glow)</th>
+					<td><label><input type="checkbox" name="glow" <?php checked( $s['glow'], 1 ); ?>> سایه نورانی متناسب با رنگ گرادیان زیر نوار</label></td>
+				</tr>
+				<tr>
+					<th>حباب درصد پیشرفت</th>
+					<td><label><input type="checkbox" name="show_bubble" <?php checked( $s['show_bubble'], 1 ); ?>> نمایش حباب کوچک درصد پیشرفت که همراه نوار حرکت می‌کند</label></td>
+				</tr>
+			</table>
+
+			<?php submit_button( 'ذخیره تنظیمات' ); ?>
+		</form>
+
+		<hr style="max-width:760px;margin:26px 0;">
+
+		<div style="max-width:760px;padding:16px 18px;background:#fff;border:1px solid #ccd0d4;border-radius:8px;text-align:center;color:#555;font-size:13px;line-height:1.9;">
+			<p>ساخته شده توسط علیرضا رحمتی | اینستاگرام : alireza.webcode | تلگرام : alireza_webcode | طراحی سایت با بهترین کیفیت و مشاوره رایگان</p>
+		</div>
+	</div>
+	<?php
+}
+
+/* ==========================================================================
+   ۳) نمایش نوار در سمت کاربر (فرانت‌اند)
+   ========================================================================== */
+
+add_action( 'wp_footer', 'clx_pb_render_frontend' );
+function clx_pb_render_frontend() {
+	if ( is_admin() ) { return; }
+
+	$s = clx_pb_get_settings();
+	if ( empty( $s['enabled'] ) ) { return; }
+	?>
+	<style>
+	:root{
+		--clx-pb-h:<?php echo (int) $s['height']; ?>px;
+		--clx-pb-c1:<?php echo esc_html( $s['gradient_color_1'] ); ?>;
+		--clx-pb-c2:<?php echo esc_html( $s['gradient_color_2'] ); ?>;
+		--clx-pb-track:<?php echo esc_html( $s['track_color'] ); ?>;
+	}
+	#clx-pb-track{
+		position:fixed;top:0;left:0;right:0;z-index:999999;
+		height:var(--clx-pb-h);
+		background:var(--clx-pb-track);
+		<?php echo $s['rounded'] ? 'border-radius:0 0 999px 999px;' : ''; ?>
+		overflow:visible;
+		font-family:inherit;
+		direction:ltr;
+	}
+	#clx-pb-fill{
+		position:absolute;
+		top:0;left:0;height:100%;width:0%;
+		background:linear-gradient(<?php echo (int) $s['gradient_angle']; ?>deg, var(--clx-pb-c1), var(--clx-pb-c2));
+		<?php echo $s['rounded'] ? 'border-radius:0 0 999px 999px;' : ''; ?>
+		<?php echo $s['glow'] ? 'box-shadow:0 2px 14px 0 var(--clx-pb-c2);' : ''; ?>
+		transition:width .08s linear;
+	}
+	<?php if ( $s['glow'] ) : ?>
+	@supports (box-shadow: 0 0 0 color-mix(in srgb, red 50%, transparent)) {
+		#clx-pb-fill{ box-shadow:0 2px 14px 0 color-mix(in srgb, var(--clx-pb-c2) 65%, transparent); }
+	}
+	<?php endif; ?>
+	#clx-pb-bubble{
+		position:absolute;top:calc(var(--clx-pb-h) + 6px);
+		right:0;
+		transform:translateX(50%);
+		background:linear-gradient(<?php echo (int) $s['gradient_angle']; ?>deg, var(--clx-pb-c1), var(--clx-pb-c2));
+		color:#fff;
+		font-size:11px;font-weight:700;
+		padding:3px 8px;border-radius:8px;
+		box-shadow:0 4px 12px rgba(0,0,0,.25);
+		opacity:0;transition:opacity .25s ease;
+		white-space:nowrap;
+		font-variant-numeric:tabular-nums;
+		direction:ltr;
+	}
+	#clx-pb-bubble.clx-pb-visible{opacity:1;}
+	#clx-pb-bubble::before{
+		content:"";position:absolute;top:-5px;right:10px;
+		border-left:5px solid transparent;border-right:5px solid transparent;
+		border-bottom:5px solid var(--clx-pb-c1);
+	}
+	<?php if ( empty( $s['mobile_visible'] ) ) : ?>
+	@media (max-width:640px){
+		#clx-pb-track{display:none;}
+	}
+	<?php endif; ?>
+	</style>
+
+	<div id="clx-pb-track">
+		<div id="clx-pb-fill">
+			<?php if ( ! empty( $s['show_bubble'] ) ) : ?>
+				<span id="clx-pb-bubble">0%</span>
+			<?php endif; ?>
+		</div>
+	</div>
+
+	<script>
+	(function(){
+		var fill = document.getElementById('clx-pb-fill');
+		var bubble = document.getElementById('clx-pb-bubble');
+		var ticking = false;
+
+		function usePersianDigits(str){
+			var fa = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
+			return String(str).replace(/[0-9]/g, function(d){ return fa[d]; });
+		}
+
+		function update(){
+			var scrollTop = window.scrollY || document.documentElement.scrollTop;
+			var docHeight = (document.documentElement.scrollHeight || document.body.scrollHeight) - window.innerHeight;
+			var pct = docHeight > 0 ? Math.min(100, Math.max(0, (scrollTop / docHeight) * 100)) : 0;
+
+			fill.style.width = pct + '%';
+
+			if (bubble) {
+				if (pct > 1) {
+					bubble.classList.add('clx-pb-visible');
+				} else {
+					bubble.classList.remove('clx-pb-visible');
+				}
+				bubble.textContent = usePersianDigits(Math.round(pct)) + '٪';
+			}
+			ticking = false;
+		}
+
+		function onScroll(){
+			if (!ticking) {
+				requestAnimationFrame(update);
+				ticking = true;
+			}
+		}
+
+		window.addEventListener('scroll', onScroll, { passive: true });
+		window.addEventListener('resize', onScroll);
+		update();
+	})();
+	</script>
+	<?php
+}

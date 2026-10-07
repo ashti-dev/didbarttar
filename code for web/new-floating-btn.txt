@@ -1,0 +1,939 @@
+<?php
+
+
+if ( ! defined( 'ABSPATH' ) ) exit;
+
+define( 'WSBP_VERSION', '2.0.0' );
+define( 'WSBP_OPTION_KEY', 'wsbp_settings' );
+
+function wsbp_default_items() {
+    return array(
+        array(
+            'label' => 'تلگرام',
+            'desc'  => 'پیام بدید، سریع جواب می‌دیم',
+            'icon'  => 'telegram',
+            'url'   => 'https://t.me/your_page',
+            'color' => '#26A5E4',
+        ),
+        array(
+            'label' => 'واتساپ',
+            'desc'  => 'گفتگوی مستقیم و سریع',
+            'icon'  => 'whatsapp',
+            'url'   => 'https://wa.me/989120000000',
+            'color' => '#25D366',
+        ),
+        array(
+            'label' => 'روبیکا',
+            'desc'  => 'دنبال کنید و در جریان باشید',
+            'icon'  => 'rubika',
+            'url'   => 'https://rubika.ir/your_page',
+            'color' => '#F2461B',
+        ),
+        array(
+            'label' => 'اینستاگرام',
+            'desc'  => 'جدیدترین اخبار و محصولات',
+            'icon'  => 'instagram',
+            'url'   => 'https://instagram.com/your_page',
+            'color' => '#E1306C',
+        ),
+        array(
+            'label' => 'تماس تلفنی',
+            'desc'  => 'پاسخگویی از ۹ صبح تا ۹ شب',
+            'icon'  => 'phone',
+            'url'   => 'tel:+989120000000',
+            'color' => '#0D9488',
+        ),
+    );
+}
+
+function wsbp_defaults() {
+    return array(
+        'items'            => wsbp_default_items(),
+        'panel_title'      => 'در ارتباط باشیم',
+        'panel_subtitle'   => 'یکی از راه‌های زیر رو انتخاب کن',
+        'launcher_icon'    => 'support',
+        'theme'            => 'light',        // light | dark | auto
+        'side'             => 'right',        // right | left
+        'color_start'      => '#0D9488',
+        'color_end'        => '#0EA5A4',
+        'show_desc'        => 1,
+        'show_pulse'       => 1,
+        'show_tooltip'     => 1,
+        'launcher_text'    => '',              // متن کنار دکمه (اختیاری)
+        'button_size'      => 'medium',        // small | medium | large
+        'desktop_right'    => 28,
+        'desktop_bottom'   => 28,
+        'mobile_right'     => 16,
+        'mobile_bottom'    => 16,
+        'z_index'          => 999999999,
+    );
+}
+
+function wsbp_get_settings() {
+    $defaults = wsbp_defaults();
+    $saved    = get_option( WSBP_OPTION_KEY );
+    if ( ! is_array( $saved ) ) return $defaults;
+    $settings = wp_parse_args( $saved, $defaults );
+    if ( ! isset( $settings['items'] ) || ! is_array( $settings['items'] ) || empty( $settings['items'] ) ) {
+        $settings['items'] = wsbp_default_items();
+    }
+    return $settings;
+}
+
+
+function wsbp_icon_svg( $key ) {
+    $icons = array(
+        'support'   => '<svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 1a9 9 0 00-9 9v7a3 3 0 003 3h1a1 1 0 001-1v-6a1 1 0 00-1-1H5v-2a7 7 0 1114 0v2h-2a1 1 0 00-1 1v6a1 1 0 001 1h1a3 3 0 003-3v-7a9 9 0 00-9-9z"/></svg>',
+        'headset'   => '<svg viewBox="0 0 24 24" fill="none"><path d="M4 13.5V12a8 8 0 0116 0v1.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><rect x="3" y="13" width="4" height="6" rx="1.8" fill="currentColor"/><rect x="17" y="13" width="4" height="6" rx="1.8" fill="currentColor"/><path d="M9 20.5c0 .8 1.3 1.5 3 1.5s3-.7 3-1.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
+        'chat'      => '<svg viewBox="0 0 24 24" fill="none"><path d="M4 5.5A2.5 2.5 0 016.5 3h11A2.5 2.5 0 0120 5.5v8A2.5 2.5 0 0117.5 16H10l-4.5 4v-4H6.5A2.5 2.5 0 014 13.5v-8z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg>',
+        'rubika'    => '<svg viewBox="0 0 24 24" fill="none"><path d="M12 3l7 4v10l-7 4-7-4V7l7-4z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="12" cy="12" r="2.6" fill="currentColor"/></svg>',
+        'soroush'   => '<svg viewBox="0 0 24 24" fill="none"><path d="M4 12c0-4.4 3.6-8 8-8s8 3.6 8 8-3.6 8-8 8c-1.3 0-2.5-.3-3.6-.9L4 20l1-4.5C4.4 14.4 4 13.2 4 12z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>',
+        'telegram'  => '<svg viewBox="0 0 24 24" fill="none"><path d="M21 4L3 11l6 2m12-9l-3.5 16L9 13m12-9L9 13m0 0l-1 6 3-3.4" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/></svg>',
+        'whatsapp'  => '<svg viewBox="0 0 24 24"><path fill="currentColor" d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38c1.45.79 3.08 1.21 4.79 1.21h.01c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.816 9.816 0 0012.04 2zm0 1.67c2.24 0 4.35.87 5.94 2.46a8.24 8.24 0 012.42 5.85c0 4.55-3.71 8.26-8.27 8.26h-.01c-1.48 0-2.93-.4-4.19-1.15l-.3-.18-3.12.82.83-3.04-.19-.31a8.18 8.18 0 01-1.26-4.38c0-4.56 3.71-8.27 8.27-8.27zm-4.53 4.6c-.16 0-.42.06-.64.31-.22.25-.85.83-.85 2.02 0 1.19.87 2.34.99 2.5.12.16 1.69 2.72 4.19 3.71.58.25 1.03.4 1.39.51.58.19 1.11.16 1.53.1.47-.07 1.44-.59 1.64-1.16.2-.57.2-1.06.14-1.16-.06-.1-.22-.16-.46-.28-.24-.12-1.44-.71-1.66-.79-.22-.08-.38-.12-.55.12-.16.24-.63.79-.77.95-.14.16-.28.18-.52.06-.24-.12-1.02-.38-1.94-1.2-.72-.64-1.2-1.43-1.34-1.67-.14-.24-.01-.37.11-.49.11-.11.24-.28.36-.42.12-.14.16-.24.24-.4.08-.16.04-.3-.02-.42-.06-.12-.55-1.33-.76-1.82-.2-.48-.4-.42-.55-.42h-.47z"/></svg>',
+        'phone'     => '<svg viewBox="0 0 24 24" fill="none"><path d="M6.5 4h3l1.5 4-2 1.5a11 11 0 005.5 5.5L16 13l4 1.5v3a2 2 0 01-2.2 2C10.5 19 5 13.5 4.5 6.2A2 2 0 016.5 4z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>',
+        'instagram' => '<svg viewBox="0 0 24 24" fill="none"><rect x="4" y="4" width="16" height="16" rx="5" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="12" r="3.5" stroke="currentColor" stroke-width="1.6"/><circle cx="17" cy="7" r="1" fill="currentColor"/></svg>',
+        'eitaa'     => '<svg viewBox="0 0 24 24" fill="none"><path d="M4 12c0-4.4 3.6-8 8-8s8 3.6 8 8-3.6 8-8 8H4l1.6-3.2A7.9 7.9 0 014 12z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>',
+        'email'     => '<svg viewBox="0 0 24 24" fill="none"><rect x="3.5" y="5.5" width="17" height="13" rx="2.3" stroke="currentColor" stroke-width="1.6"/><path d="M4.5 7l7.5 6 7.5-6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+        'location'  => '<svg viewBox="0 0 24 24" fill="none"><path d="M12 21s7-6.1 7-11.2A7 7 0 105 9.8C5 14.9 12 21 12 21z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="12" cy="9.7" r="2.4" stroke="currentColor" stroke-width="1.6"/></svg>',
+        'website'   => '<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8.3" stroke="currentColor" stroke-width="1.6"/><path d="M3.9 12h16.2M12 3.7c2.2 2.3 3.4 5.2 3.4 8.3s-1.2 6-3.4 8.3c-2.2-2.3-3.4-5.2-3.4-8.3S9.8 6 12 3.7z" stroke="currentColor" stroke-width="1.6"/></svg>',
+        'link'      => '<svg viewBox="0 0 24 24" fill="none"><path d="M9 15l6-6m-4-2l1.3-1.3a3 3 0 114.2 4.2L15 11m-6 2l-1.3 1.3a3 3 0 104.2 4.2L13 17" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>',
+    );
+    return isset( $icons[ $key ] ) ? $icons[ $key ] : $icons['link'];
+}
+
+function wsbp_icon_choices() {
+    return array(
+        'support'   => 'پشتیبانی (پیشنهادی)',
+        'headset'   => 'هدست پشتیبانی',
+        'chat'      => 'گفتگو',
+        'telegram'  => 'تلگرام',
+        'whatsapp'  => 'واتساپ',
+        'rubika'    => 'روبیکا',
+        'soroush'   => 'سروش پلاس',
+        'eitaa'     => 'ایتا',
+        'instagram' => 'اینستاگرام',
+        'phone'     => 'تماس / تلفن',
+        'email'     => 'ایمیل',
+        'location'  => 'موقعیت مکانی',
+        'website'   => 'وبسایت',
+        'link'      => 'لینک عمومی',
+    );
+}
+
+add_action( 'wp_footer', 'wsbp_render_widget' );
+function wsbp_render_widget() {
+    $s     = wsbp_get_settings();
+    $items = array_values( array_filter( (array) $s['items'], function( $it ) {
+        return ! empty( $it['label'] ) && ! empty( $it['url'] );
+    } ) );
+    if ( empty( $items ) ) return;
+
+    $side          = ( $s['side'] === 'left' ) ? 'left' : 'right';
+    $theme         = in_array( $s['theme'], array( 'light', 'dark', 'auto' ), true ) ? $s['theme'] : 'light';
+    $sizes         = array( 'small' => 52, 'medium' => 60, 'large' => 68 );
+    $launcher_size = isset( $sizes[ $s['button_size'] ] ) ? $sizes[ $s['button_size'] ] : 60;
+
+    $desktop_right  = max( 0, intval( $s['desktop_right'] ) );
+    $desktop_bottom = max( 0, intval( $s['desktop_bottom'] ) );
+    $mobile_right   = max( 0, intval( $s['mobile_right'] ) );
+    $mobile_bottom  = max( 0, intval( $s['mobile_bottom'] ) );
+    $z              = max( 1000, intval( $s['z_index'] ) );
+
+    $side_prop = $side === 'left' ? 'left' : 'right';
+    ?>
+    <style id="wsbp-style">
+        #wsbp-root{
+            --wsbp-c1: <?php echo esc_attr( $s['color_start'] ); ?>;
+            --wsbp-c2: <?php echo esc_attr( $s['color_end'] ); ?>;
+            --wsbp-launcher-size: <?php echo intval( $launcher_size ); ?>px;
+            --wsbp-z: <?php echo intval( $z ); ?>;
+            --wsbp-side-gap: min(<?php echo $desktop_right; ?>px, calc(100vw - var(--wsbp-launcher-size) - 12px));
+            --wsbp-bottom-gap: min(<?php echo $desktop_bottom; ?>px, calc(100vh - var(--wsbp-launcher-size) - 12px));
+            position: fixed;
+            <?php echo $side_prop; ?>: var(--wsbp-side-gap);
+            bottom: var(--wsbp-bottom-gap);
+            z-index: var(--wsbp-z);
+            direction: rtl;
+            font-family: inherit;
+            pointer-events: none;
+        }
+        #wsbp-root *{ box-sizing: border-box; }
+        #wsbp-root.wsbp-theme-light{
+            --wsbp-bg: #ffffff;
+            --wsbp-text: #16181d;
+            --wsbp-muted: #6b7280;
+            --wsbp-border: rgba(15,23,42,.08);
+            --wsbp-item-hover: rgba(13,148,136,.07);
+        }
+        #wsbp-root.wsbp-theme-dark{
+            --wsbp-bg: #1b1d24;
+            --wsbp-text: #f4f5f7;
+            --wsbp-muted: #9aa0ac;
+            --wsbp-border: rgba(255,255,255,.08);
+            --wsbp-item-hover: rgba(255,255,255,.05);
+        }
+        @media (prefers-color-scheme: dark){
+            #wsbp-root.wsbp-theme-auto{
+                --wsbp-bg: #1b1d24;
+                --wsbp-text: #f4f5f7;
+                --wsbp-muted: #9aa0ac;
+                --wsbp-border: rgba(255,255,255,.08);
+                --wsbp-item-hover: rgba(255,255,255,.05);
+            }
+        }
+        @media (prefers-color-scheme: light){
+            #wsbp-root.wsbp-theme-auto{
+                --wsbp-bg: #ffffff;
+                --wsbp-text: #16181d;
+                --wsbp-muted: #6b7280;
+                --wsbp-border: rgba(15,23,42,.08);
+                --wsbp-item-hover: rgba(13,148,136,.07);
+            }
+        }
+
+        #wsbp-overlay{
+            position: fixed; inset: 0;
+            background: rgba(10,12,20,.42);
+            opacity: 0; visibility: hidden;
+            transition: opacity .3s ease, visibility .3s ease;
+            z-index: calc(var(--wsbp-z) - 1);
+            pointer-events: none;
+        }
+        #wsbp-root.wsbp-open + #wsbp-overlay{
+            opacity: 1; visibility: visible; pointer-events: auto;
+        }
+
+        #wsbp-panel{
+            position: absolute;
+            <?php echo $side_prop; ?>: 0;
+            bottom: calc(var(--wsbp-launcher-size) + 16px);
+            width: min(340px, calc(100vw - 32px));
+            max-height: min(480px, 70vh);
+            background: var(--wsbp-bg);
+            color: var(--wsbp-text);
+            border-radius: 20px;
+            box-shadow: 0 18px 46px rgba(15,23,42,.22), 0 2px 8px rgba(15,23,42,.08);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(16px) scale(.96);
+            transform-origin: <?php echo $side_prop; ?> bottom;
+            transition: opacity .28s cubic-bezier(.34,1.2,.64,1), transform .32s cubic-bezier(.34,1.2,.64,1), visibility .32s;
+            pointer-events: none;
+        }
+        #wsbp-root.wsbp-open #wsbp-panel{
+            opacity: 1; visibility: visible; transform: translateY(0) scale(1);
+            pointer-events: auto;
+        }
+        .wsbp-panel-head{
+            padding: 18px 20px 16px;
+            background: linear-gradient(135deg, var(--wsbp-c1), var(--wsbp-c2));
+            color: #fff;
+            flex-shrink: 0;
+            position: relative;
+        }
+        .wsbp-panel-title{ font-size: 16px; font-weight: 800; margin: 0 0 4px; }
+        .wsbp-panel-subtitle{ font-size: 12.5px; opacity: .92; margin: 0; line-height: 1.6; }
+        .wsbp-panel-close{
+            position: absolute; left: 14px; top: 14px;
+            width: 28px; height: 28px; border-radius: 50%;
+            background: rgba(255,255,255,.18);
+            border: none; color: #fff; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: background .2s ease;
+        }
+        .wsbp-panel-close:hover{ background: rgba(255,255,255,.3); }
+        .wsbp-panel-close svg{ width: 14px; height: 14px; }
+
+        .wsbp-panel-body{
+            overflow-y: auto;
+            padding: 8px;
+            flex: 1;
+        }
+        .wsbp-panel-body::-webkit-scrollbar{ width: 6px; }
+        .wsbp-panel-body::-webkit-scrollbar-thumb{ background: var(--wsbp-border); border-radius: 10px; }
+
+        .wsbp-item{
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 10px;
+            border-radius: 14px;
+            text-decoration: none;
+            color: var(--wsbp-text);
+            transition: background .2s ease;
+        }
+        .wsbp-item:hover{ background: var(--wsbp-item-hover); }
+        .wsbp-item-icon{
+            flex-shrink: 0;
+            width: 42px; height: 42px;
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            color: #fff;
+            box-shadow: 0 4px 10px rgba(0,0,0,.14);
+        }
+        .wsbp-item-icon svg{ width: 20px; height: 20px; }
+        .wsbp-item-text{ flex: 1; min-width: 0; }
+        .wsbp-item-label{ font-size: 13.5px; font-weight: 700; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .wsbp-item-desc{ font-size: 11.5px; color: var(--wsbp-muted); display: block; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .wsbp-item-arrow{ flex-shrink: 0; color: var(--wsbp-muted); opacity: .6; transition: transform .2s ease, opacity .2s ease; }
+        .wsbp-item-arrow svg{ width: 16px; height: 16px; }
+        .wsbp-item:hover .wsbp-item-arrow{ opacity: 1; transform: translateX(<?php echo $side === 'left' ? '2px' : '-2px'; ?>); }
+
+        .wsbp-panel-foot{
+            padding: 10px 16px;
+            text-align: center;
+            font-size: 10.5px;
+            color: var(--wsbp-muted);
+            border-top: 1px solid var(--wsbp-border);
+            flex-shrink: 0;
+        }
+
+        #wsbp-launcher-wrap{
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-direction: <?php echo $side === 'left' ? 'row' : 'row-reverse'; ?>;
+        }
+        #wsbp-launcher-text{
+            background: var(--wsbp-bg, #fff);
+            color: var(--wsbp-text, #16181d);
+            font-size: 13px;
+            font-weight: 700;
+            padding: 9px 16px;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(15,23,42,.14);
+            white-space: nowrap;
+            pointer-events: none;
+            opacity: .97;
+        }
+        #wsbp-launcher{
+            width: var(--wsbp-launcher-size);
+            height: var(--wsbp-launcher-size);
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            background: linear-gradient(135deg, var(--wsbp-c1), var(--wsbp-c2));
+            box-shadow: 0 12px 28px rgba(13,148,136,.35), 0 2px 8px rgba(0,0,0,.12);
+            display: flex; align-items: center; justify-content: center;
+            position: relative;
+            flex-shrink: 0;
+            transition: transform .3s cubic-bezier(.34,1.56,.64,1);
+            pointer-events: auto;
+        }
+        #wsbp-launcher:active{ transform: scale(.94); }
+        #wsbp-launcher .wsbp-pulse{
+            content: ""; position: absolute; inset: -8px; border-radius: 50%;
+            border: 2px solid var(--wsbp-c1);
+            opacity: .45;
+            animation: wsbp-pulse 2.4s ease-out infinite;
+            pointer-events: none;
+        }
+        @keyframes wsbp-pulse{
+            0%{ transform: scale(.85); opacity: .5; }
+            80%{ transform: scale(1.3); opacity: 0; }
+            100%{ opacity: 0; }
+        }
+        #wsbp-launcher svg{
+            width: 44%; height: 44%;
+            color: #fff !important;
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1;
+            overflow: visible;
+            flex-shrink: 0;
+        }
+        #wsbp-launcher svg [fill]:not([fill="none"]){ fill: currentColor !important; }
+        #wsbp-launcher svg [stroke]:not([stroke="none"]){ stroke: currentColor !important; }
+        #wsbp-launcher .wsbp-ic-open,
+        #wsbp-launcher .wsbp-ic-close{
+            position: absolute;
+            inset: 0;
+            display: flex !important;
+            align-items: center;
+            justify-content: center;
+            transition: opacity .25s ease, transform .3s cubic-bezier(.34,1.56,.64,1);
+        }
+        .wsbp-ic-open{ opacity: 1; transform: rotate(0) scale(1); }
+        .wsbp-ic-close{ opacity: 0; transform: rotate(-40deg) scale(.6); }
+        #wsbp-root.wsbp-open .wsbp-ic-open{ opacity: 0; transform: rotate(40deg) scale(.6); }
+        #wsbp-root.wsbp-open .wsbp-ic-close{ opacity: 1; transform: rotate(0) scale(1); }
+
+        @media (max-width: 560px){
+            #wsbp-root{
+                <?php echo $side_prop; ?>: min(<?php echo $mobile_right; ?>px, calc(100vw - var(--wsbp-launcher-size) - 10px));
+                bottom: min(<?php echo $mobile_bottom; ?>px, calc(100vh - var(--wsbp-launcher-size) - 10px));
+            }
+            #wsbp-panel{
+                position: fixed;
+                left: 0; right: 0; bottom: 0;
+                width: 100%;
+                max-width: 100%;
+                max-height: 78vh;
+                border-radius: 22px 22px 0 0;
+                transform: translateY(100%);
+                transform-origin: center bottom;
+            }
+            #wsbp-root.wsbp-open #wsbp-panel{ transform: translateY(0); }
+            #wsbp-launcher-text{ display: none; }
+        }
+    </style>
+
+    <div id="wsbp-root" class="wsbp-theme-<?php echo esc_attr( $theme ); ?>">
+        <div id="wsbp-panel" role="dialog" aria-hidden="true" aria-label="<?php echo esc_attr( $s['panel_title'] ); ?>">
+            <div class="wsbp-panel-head">
+                <button type="button" class="wsbp-panel-close" id="wsbp-close-btn" aria-label="بستن">
+                    <svg viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+                </button>
+                <?php if ( ! empty( $s['panel_title'] ) ) : ?>
+                    <p class="wsbp-panel-title"><?php echo esc_html( $s['panel_title'] ); ?></p>
+                <?php endif; ?>
+                <?php if ( ! empty( $s['panel_subtitle'] ) ) : ?>
+                    <p class="wsbp-panel-subtitle"><?php echo esc_html( $s['panel_subtitle'] ); ?></p>
+                <?php endif; ?>
+            </div>
+            <div class="wsbp-panel-body">
+                <?php foreach ( $items as $item ) :
+                    $color = ! empty( $item['color'] ) ? $item['color'] : '#0D9488';
+                    ?>
+                    <a class="wsbp-item" href="<?php echo esc_url( $item['url'] ); ?>" target="_blank" rel="noopener noreferrer">
+                        <span class="wsbp-item-icon" style="background:<?php echo esc_attr( $color ); ?>">
+                            <?php echo wsbp_icon_svg( $item['icon'] ); ?>
+                        </span>
+                        <span class="wsbp-item-text">
+                            <span class="wsbp-item-label"><?php echo esc_html( $item['label'] ); ?></span>
+                            <?php if ( ! empty( $s['show_desc'] ) && ! empty( $item['desc'] ) ) : ?>
+                                <span class="wsbp-item-desc"><?php echo esc_html( $item['desc'] ); ?></span>
+                            <?php endif; ?>
+                        </span>
+                        <span class="wsbp-item-arrow">
+                            <svg viewBox="0 0 24 24" fill="none"><path d="<?php echo $side === 'left' ? 'M9 6l6 6-6 6' : 'M15 6l-6 6 6 6'; ?>" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        </span>
+                    </a>
+                <?php endforeach; ?>
+            </div>
+        </div>
+
+        <div id="wsbp-launcher-wrap">
+            <?php if ( ! empty( $s['launcher_text'] ) && empty( $s['show_tooltip'] ) === false ) : ?>
+                <span id="wsbp-launcher-text"><?php echo esc_html( $s['launcher_text'] ); ?></span>
+            <?php endif; ?>
+            <button id="wsbp-launcher" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="wsbp-panel" aria-label="باز کردن پنل ارتباط">
+                <?php if ( ! empty( $s['show_pulse'] ) ) : ?><span class="wsbp-pulse"></span><?php endif; ?>
+                <span class="wsbp-ic-open"><?php echo wsbp_icon_svg( $s['launcher_icon'] ); ?></span>
+                <span class="wsbp-ic-close"><svg viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></span>
+            </button>
+        </div>
+    </div>
+    <div id="wsbp-overlay"></div>
+
+    <script>
+    (function(){
+        var root  = document.getElementById('wsbp-root');
+        var btn   = document.getElementById('wsbp-launcher');
+        var close = document.getElementById('wsbp-close-btn');
+        var overlay = document.getElementById('wsbp-overlay');
+        if (!root || !btn) return;
+
+        function setOpen(open){
+            root.classList.toggle('wsbp-open', open);
+            btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+            var panel = document.getElementById('wsbp-panel');
+            if (panel) panel.setAttribute('aria-hidden', open ? 'false' : 'true');
+        }
+        function toggle(){ setOpen(!root.classList.contains('wsbp-open')); }
+
+        btn.addEventListener('click', function(e){
+            e.stopPropagation();
+            toggle();
+        });
+        if (close) close.addEventListener('click', function(e){
+            e.stopPropagation();
+            setOpen(false);
+        });
+        if (overlay) overlay.addEventListener('click', function(){ setOpen(false); });
+
+        document.addEventListener('click', function(e){
+            if (!root.contains(e.target)) setOpen(false);
+        });
+        document.addEventListener('keydown', function(e){
+            if (e.key === 'Escape') setOpen(false);
+        });
+    })();
+    </script>
+    <?php
+}
+
+
+add_action( 'admin_menu', 'wsbp_admin_menu' );
+function wsbp_admin_menu() {
+    add_menu_page(
+        'دکمه شناور پشتیبانی',
+        'دکمه شناور',
+        'manage_options',
+        'wsbp-settings',
+        'wsbp_admin_page',
+        'dashicons-format-chat',
+        58
+    );
+}
+
+add_action( 'admin_init', 'wsbp_handle_save' );
+function wsbp_handle_save() {
+    if ( ! isset( $_POST['wsbp_save'] ) ) return;
+    if ( ! current_user_can( 'manage_options' ) ) return;
+    if ( ! isset( $_POST['wsbp_nonce'] ) || ! wp_verify_nonce( wp_unslash( $_POST['wsbp_nonce'] ), 'wsbp_save_action' ) ) return;
+
+    $items = array();
+    if ( isset( $_POST['wsbp_label'] ) && is_array( $_POST['wsbp_label'] ) ) {
+        foreach ( $_POST['wsbp_label'] as $i => $label ) {
+            $label = sanitize_text_field( wp_unslash( $label ) );
+            $desc  = isset( $_POST['wsbp_desc'][ $i ] ) ? sanitize_text_field( wp_unslash( $_POST['wsbp_desc'][ $i ] ) ) : '';
+            $url   = isset( $_POST['wsbp_url'][ $i ] ) ? esc_url_raw( wp_unslash( $_POST['wsbp_url'][ $i ] ) ) : '';
+            $icon  = isset( $_POST['wsbp_icon'][ $i ] ) ? sanitize_text_field( wp_unslash( $_POST['wsbp_icon'][ $i ] ) ) : 'link';
+            $color = isset( $_POST['wsbp_color'][ $i ] ) ? sanitize_hex_color( wp_unslash( $_POST['wsbp_color'][ $i ] ) ) : '#0D9488';
+            if ( $label === '' && $url === '' ) continue;
+            $items[] = array(
+                'label' => $label,
+                'desc'  => $desc,
+                'url'   => $url,
+                'icon'  => $icon,
+                'color' => $color ? $color : '#0D9488',
+            );
+        }
+    }
+    if ( empty( $items ) ) {
+        $items = wsbp_default_items();
+    }
+
+    $theme       = isset( $_POST['wsbp_theme'] ) ? sanitize_text_field( wp_unslash( $_POST['wsbp_theme'] ) ) : 'light';
+    $side        = isset( $_POST['wsbp_side'] ) ? sanitize_text_field( wp_unslash( $_POST['wsbp_side'] ) ) : 'right';
+    $button_size = isset( $_POST['wsbp_button_size'] ) ? sanitize_text_field( wp_unslash( $_POST['wsbp_button_size'] ) ) : 'medium';
+    $launcher_icon = isset( $_POST['wsbp_launcher_icon'] ) ? sanitize_text_field( wp_unslash( $_POST['wsbp_launcher_icon'] ) ) : 'support';
+
+    $settings = array(
+        'items'          => $items,
+        'panel_title'    => isset( $_POST['wsbp_panel_title'] ) ? sanitize_text_field( wp_unslash( $_POST['wsbp_panel_title'] ) ) : '',
+        'panel_subtitle' => isset( $_POST['wsbp_panel_subtitle'] ) ? sanitize_text_field( wp_unslash( $_POST['wsbp_panel_subtitle'] ) ) : '',
+        'launcher_icon'  => $launcher_icon,
+        'launcher_text'  => isset( $_POST['wsbp_launcher_text'] ) ? sanitize_text_field( wp_unslash( $_POST['wsbp_launcher_text'] ) ) : '',
+        'theme'          => in_array( $theme, array( 'light', 'dark', 'auto' ), true ) ? $theme : 'light',
+        'side'           => $side === 'left' ? 'left' : 'right',
+        'color_start'    => sanitize_hex_color( wp_unslash( $_POST['wsbp_color_start'] ?? '' ) ) ?: '#0D9488',
+        'color_end'      => sanitize_hex_color( wp_unslash( $_POST['wsbp_color_end'] ?? '' ) ) ?: '#0EA5A4',
+        'show_desc'      => isset( $_POST['wsbp_show_desc'] ) ? 1 : 0,
+        'show_pulse'     => isset( $_POST['wsbp_show_pulse'] ) ? 1 : 0,
+        'show_tooltip'   => isset( $_POST['wsbp_show_tooltip'] ) ? 1 : 0,
+        'button_size'    => in_array( $button_size, array( 'small', 'medium', 'large' ), true ) ? $button_size : 'medium',
+        'desktop_right'  => isset( $_POST['wsbp_desktop_right'] ) ? intval( $_POST['wsbp_desktop_right'] ) : 28,
+        'desktop_bottom' => isset( $_POST['wsbp_desktop_bottom'] ) ? intval( $_POST['wsbp_desktop_bottom'] ) : 28,
+        'mobile_right'   => isset( $_POST['wsbp_mobile_right'] ) ? intval( $_POST['wsbp_mobile_right'] ) : 16,
+        'mobile_bottom'  => isset( $_POST['wsbp_mobile_bottom'] ) ? intval( $_POST['wsbp_mobile_bottom'] ) : 16,
+        'z_index'        => isset( $_POST['wsbp_z_index'] ) ? intval( $_POST['wsbp_z_index'] ) : 999999999,
+    );
+
+    update_option( WSBP_OPTION_KEY, $settings );
+    add_action( 'admin_notices', function(){
+        echo '<div class="notice notice-success is-dismissible"><p>تنظیمات با موفقیت ذخیره شد.</p></div>';
+    } );
+}
+
+add_action( 'admin_enqueue_scripts', 'wsbp_admin_assets' );
+function wsbp_admin_assets( $hook ) {
+    if ( strpos( $hook, 'wsbp-settings' ) === false ) return;
+    wp_enqueue_style( 'wp-color-picker' );
+    wp_enqueue_script( 'wp-color-picker' );
+}
+
+function wsbp_admin_page() {
+    if ( ! current_user_can( 'manage_options' ) ) return;
+    $s     = wsbp_get_settings();
+    $items = $s['items'];
+    $icons = wsbp_icon_choices();
+    ?>
+    <div class="wrap wsbp-admin" dir="rtl">
+        <div class="wsbp-admin-header">
+            <div>
+                <h1>دکمه شناور پشتیبانی <span class="wsbp-badge">Pro</span></h1>
+                <p class="wsbp-sub">طراحی، رفتار و آیتم‌های دکمه شناور سایت را از اینجا مدیریت کنید.</p>
+            </div>
+        </div>
+
+        <form method="post" id="wsbp-form">
+            <?php wp_nonce_field( 'wsbp_save_action', 'wsbp_nonce' ); ?>
+
+            <div class="wsbp-tabs">
+                <button type="button" class="wsbp-tab-btn is-active" data-tab="appearance">🎨 ظاهر</button>
+                <button type="button" class="wsbp-tab-btn" data-tab="items">🔗 آیتم‌ها</button>
+                <button type="button" class="wsbp-tab-btn" data-tab="position">📱 موقعیت و رفتار</button>
+                <button type="button" class="wsbp-tab-btn" data-tab="about">ℹ️ راهنما</button>
+            </div>
+
+            <div class="wsbp-tab-panels">
+
+                <!-- ظاهر -->
+                <section class="wsbp-tab-panel is-active" data-tab-panel="appearance">
+                    <div class="wsbp-grid">
+                        <div class="wsbp-card">
+                            <h2>پنل ارتباط</h2>
+                            <div class="wsbp-field">
+                                <label>عنوان پنل</label>
+                                <input type="text" name="wsbp_panel_title" value="<?php echo esc_attr( $s['panel_title'] ); ?>" class="regular-text">
+                            </div>
+                            <div class="wsbp-field">
+                                <label>زیرعنوان پنل</label>
+                                <input type="text" name="wsbp_panel_subtitle" value="<?php echo esc_attr( $s['panel_subtitle'] ); ?>" class="regular-text">
+                            </div>
+                            <div class="wsbp-field">
+                                <label>تم رنگی پنل</label>
+                                <select name="wsbp_theme">
+                                    <option value="light" <?php selected( $s['theme'], 'light' ); ?>>روشن</option>
+                                    <option value="dark" <?php selected( $s['theme'], 'dark' ); ?>>تیره</option>
+                                    <option value="auto" <?php selected( $s['theme'], 'auto' ); ?>>خودکار (هماهنگ با سیستم)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="wsbp-card">
+                            <h2>دکمه اصلی (Launcher)</h2>
+                            <div class="wsbp-field">
+                                <label>آیکون دکمه</label>
+                                <select name="wsbp_launcher_icon">
+                                    <?php foreach ( $icons as $key => $name ) : ?>
+                                        <option value="<?php echo esc_attr( $key ); ?>" <?php selected( $s['launcher_icon'], $key ); ?>><?php echo esc_html( $name ); ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                            <div class="wsbp-field">
+                                <label>اندازه دکمه</label>
+                                <select name="wsbp_button_size">
+                                    <option value="small" <?php selected( $s['button_size'], 'small' ); ?>>کوچک</option>
+                                    <option value="medium" <?php selected( $s['button_size'], 'medium' ); ?>>متوسط</option>
+                                    <option value="large" <?php selected( $s['button_size'], 'large' ); ?>>بزرگ</option>
+                                </select>
+                            </div>
+                            <div class="wsbp-field">
+                                <label>متن کنار دکمه (اختیاری، فقط دسکتاپ)</label>
+                                <input type="text" name="wsbp_launcher_text" value="<?php echo esc_attr( $s['launcher_text'] ); ?>" class="regular-text" placeholder="مثلا: پشتیبانی آنلاین">
+                            </div>
+                            <div class="wsbp-field-row">
+                                <label><input type="checkbox" name="wsbp_show_pulse" <?php checked( $s['show_pulse'], 1 ); ?>> افکت پالس دور دکمه</label>
+                                <label><input type="checkbox" name="wsbp_show_tooltip" <?php checked( $s['show_tooltip'], 1 ); ?>> نمایش متن کنار دکمه</label>
+                            </div>
+                        </div>
+
+                        <div class="wsbp-card">
+                            <h2>رنگ‌بندی</h2>
+                            <div class="wsbp-field-row">
+                                <div class="wsbp-field">
+                                    <label>رنگ شروع گرادیان</label>
+                                    <input type="text" class="wsbp-color-picker" name="wsbp_color_start" value="<?php echo esc_attr( $s['color_start'] ); ?>">
+                                </div>
+                                <div class="wsbp-field">
+                                    <label>رنگ پایان گرادیان</label>
+                                    <input type="text" class="wsbp-color-picker" name="wsbp_color_end" value="<?php echo esc_attr( $s['color_end'] ); ?>">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="wsbp-card wsbp-preview-card">
+                            <h2>پیش‌نمایش زنده</h2>
+                            <div class="wsbp-preview-box">
+                                <div class="wsbp-preview-panel">
+                                    <div class="wsbp-preview-head" id="wsbp-pv-head">
+                                        <strong id="wsbp-pv-title"><?php echo esc_html( $s['panel_title'] ?: 'در ارتباط باشیم' ); ?></strong>
+                                        <span id="wsbp-pv-subtitle"><?php echo esc_html( $s['panel_subtitle'] ?: 'یکی از راه‌ها رو انتخاب کن' ); ?></span>
+                                    </div>
+                                    <div class="wsbp-preview-item">
+                                        <span class="wsbp-preview-icon" id="wsbp-pv-icon">✆</span>
+                                        <span>یک مثال از آیتم</span>
+                                    </div>
+                                </div>
+                                <div class="wsbp-preview-launcher" id="wsbp-pv-launcher">✆</div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="wsbp-tab-panel" data-tab-panel="items">
+                    <div class="wsbp-card">
+                        <div class="wsbp-field-row" style="justify-content:space-between;align-items:center;">
+                            <h2 style="margin:0;">آیتم‌های منو</h2>
+                            <label><input type="checkbox" name="wsbp_show_desc" <?php checked( $s['show_desc'], 1 ); ?>> نمایش توضیح کوتاه زیر عنوان هر آیتم</label>
+                        </div>
+
+                        <table class="widefat wsbp-items-table" id="wsbp-rows-table">
+                            <thead>
+                                <tr>
+                                    <th style="width:6%"></th>
+                                    <th style="width:16%">عنوان</th>
+                                    <th style="width:20%">توضیح کوتاه</th>
+                                    <th style="width:16%">آیکون</th>
+                                    <th style="width:26%">لینک</th>
+                                    <th style="width:8%">رنگ</th>
+                                    <th style="width:8%">حذف</th>
+                                </tr>
+                            </thead>
+                            <tbody id="wsbp-rows">
+                                <?php foreach ( $items as $item ) : ?>
+                                    <tr>
+                                        <td class="wsbp-reorder">
+                                            <button type="button" class="button wsbp-move-up" title="بالا">▲</button>
+                                            <button type="button" class="button wsbp-move-down" title="پایین">▼</button>
+                                        </td>
+                                        <td><input type="text" name="wsbp_label[]" value="<?php echo esc_attr( $item['label'] ); ?>" class="regular-text" placeholder="مثلا: تلگرام"></td>
+                                        <td><input type="text" name="wsbp_desc[]" value="<?php echo esc_attr( $item['desc'] ?? '' ); ?>" class="regular-text" placeholder="مثلا: پاسخگویی ۲۴ ساعته"></td>
+                                        <td>
+                                            <select name="wsbp_icon[]">
+                                                <?php foreach ( $icons as $key => $name ) : ?>
+                                                    <option value="<?php echo esc_attr( $key ); ?>" <?php selected( $item['icon'], $key ); ?>><?php echo esc_html( $name ); ?></option>
+                                                <?php endforeach; ?>
+                                            </select>
+                                        </td>
+                                        <td><input type="text" name="wsbp_url[]" value="<?php echo esc_attr( $item['url'] ); ?>" class="regular-text" placeholder="https://..."></td>
+                                        <td><input type="text" class="wsbp-color-picker" name="wsbp_color[]" value="<?php echo esc_attr( $item['color'] ); ?>"></td>
+                                        <td><button type="button" class="button wsbp-remove-row">حذف</button></td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                        <p><button type="button" class="button button-secondary" id="wsbp-add-row">+ افزودن آیتم جدید</button></p>
+                    </div>
+                </section>
+
+                <section class="wsbp-tab-panel" data-tab-panel="position">
+                    <div class="wsbp-grid">
+                        <div class="wsbp-card">
+                            <h2>سمت نمایش</h2>
+                            <div class="wsbp-field">
+                                <label>موقعیت دکمه</label>
+                                <select name="wsbp_side">
+                                    <option value="right" <?php selected( $s['side'], 'right' ); ?>>سمت راست</option>
+                                    <option value="left" <?php selected( $s['side'], 'left' ); ?>>سمت چپ</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="wsbp-card">
+                            <h2>فاصله در دسکتاپ</h2>
+                            <div class="wsbp-field-row">
+                                <div class="wsbp-field">
+                                    <label>فاصله افقی (px)</label>
+                                    <input type="number" min="0" name="wsbp_desktop_right" value="<?php echo esc_attr( $s['desktop_right'] ); ?>">
+                                </div>
+                                <div class="wsbp-field">
+                                    <label>فاصله از پایین (px)</label>
+                                    <input type="number" min="0" name="wsbp_desktop_bottom" value="<?php echo esc_attr( $s['desktop_bottom'] ); ?>">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="wsbp-card">
+                            <h2>فاصله در موبایل</h2>
+                            <p class="wsbp-hint">این مقادیر فقط در صفحات با عرض کمتر از ۵۶۰ پیکسل اعمال می‌شوند.</p>
+                            <div class="wsbp-field-row">
+                                <div class="wsbp-field">
+                                    <label>فاصله افقی (px)</label>
+                                    <input type="number" min="0" name="wsbp_mobile_right" value="<?php echo esc_attr( $s['mobile_right'] ); ?>">
+                                </div>
+                                <div class="wsbp-field">
+                                    <label>فاصله از پایین (px)</label>
+                                    <input type="number" min="0" name="wsbp_mobile_bottom" value="<?php echo esc_attr( $s['mobile_bottom'] ); ?>">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="wsbp-card">
+                            <h2>تنظیمات پیشرفته</h2>
+                            <div class="wsbp-field">
+                                <label>z-index (لایه نمایش)</label>
+                                <input type="number" min="1000" name="wsbp_z_index" value="<?php echo esc_attr( $s['z_index'] ); ?>">
+                                <p class="wsbp-hint">در صورت تداخل با المان‌های دیگر سایت، این عدد را افزایش دهید.</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="wsbp-tab-panel" data-tab-panel="about">
+                    <div class="wsbp-card">
+                        <h2>راهنمای سریع</h2>
+                        <ul class="wsbp-help-list">
+                            <li>در تب «ظاهر» می‌توانید رنگ، تم و آیکون دکمه اصلی را تنظیم کنید.</li>
+                            <li>در تب «آیتم‌ها» می‌توانید هر تعداد لینک ارتباطی (تلگرام، واتساپ، تماس و ...) اضافه یا حذف کنید و ترتیب آن‌ها را با دکمه‌های ▲ ▼ تغییر دهید.</li>
+                            <li>در تب «موقعیت و رفتار» فاصله دکمه از لبه صفحه را به‌صورت جداگانه برای دسکتاپ و موبایل تنظیم کنید.</li>
+                            <li>تغییرات پس از کلیک روی «ذخیره تنظیمات» بلافاصله در سایت اعمال می‌شوند.</li>
+                        </ul>
+                    </div>
+                </section>
+
+            </div>
+
+            <?php submit_button( 'ذخیره تنظیمات', 'primary', 'wsbp_save' ); ?>
+        </form>
+
+        <div class="wsbp-credit-banner">
+            ساخته شده توسط علیرضا رحمتی | اینستاگرام : alireza.webcode | تلگرام : alireza_webcode | طراحی و پشتیبانی انواع سایت
+        </div>
+    </div>
+
+    <style>
+        .wsbp-admin, .wsbp-admin *{ box-sizing: border-box; }
+        .wsbp-credit-banner{
+            margin: 22px 0 10px;
+            background: #d63638;
+            color: #fff;
+            font-size: 16px;
+            font-weight: 700;
+            text-align: center;
+            padding: 14px 16px;
+            border-radius: 10px;
+            line-height: 1.9;
+        }
+        .wsbp-admin{ max-width: 1180px; }
+        .wsbp-admin input[type="text"],
+        .wsbp-admin input[type="number"],
+        .wsbp-admin input[type="url"],
+        .wsbp-admin select{
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+        .wsbp-admin .wsbp-items-table input[type="text"],
+        .wsbp-admin .wsbp-items-table select{ min-width: 0; }
+        .wsbp-admin .wp-picker-container{
+            display: inline-flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 4px;
+            max-width: 100%;
+        }
+        .wsbp-admin .wp-picker-container .wp-color-result.button{ margin: 0; }
+        .wsbp-admin input.wsbp-color-picker{
+            width: 90px !important;
+            max-width: 90px;
+        }
+        .wsbp-admin .wsbp-items-table td{ max-width: 0; }
+        .wsbp-admin table.widefat{ table-layout: fixed; }
+        .wsbp-admin-header{ display:flex; align-items:center; justify-content:space-between; margin: 18px 0 10px; }
+        .wsbp-admin-header h1{ display:flex; align-items:center; gap:10px; margin-bottom:4px; }
+        .wsbp-badge{ background:linear-gradient(135deg,#0D9488,#0EA5A4); color:#fff; font-size:11px; padding:3px 10px; border-radius:20px; vertical-align:middle; }
+        .wsbp-sub{ color:#666; margin:0; }
+
+        .wsbp-tabs{ display:flex; gap:6px; margin: 18px 0; border-bottom: 1px solid #e2e4e9; flex-wrap: wrap; }
+        .wsbp-tab-btn{ background:none; border:none; padding:10px 16px; font-size:13.5px; cursor:pointer; color:#555; border-bottom:2px solid transparent; border-radius:8px 8px 0 0; }
+        .wsbp-tab-btn:hover{ background:#f3f2ff; color:#111; }
+        .wsbp-tab-btn.is-active{ color:#4F46E5; border-bottom-color:#4F46E5; font-weight:700; background:#f5f4ff; }
+
+        .wsbp-tab-panel{ display:none; }
+        .wsbp-tab-panel.is-active{ display:block; }
+
+        .wsbp-grid{ display:grid; grid-template-columns: repeat(auto-fit, minmax(280px,1fr)); gap:16px; align-items:start; }
+        .wsbp-card{ background:#fff; border:1px solid #e2e4e9; border-radius:14px; padding:18px 20px; }
+        .wsbp-card h2{ font-size:14px; margin:0 0 14px; }
+        .wsbp-field{ margin-bottom:14px; }
+        .wsbp-field label{ display:block; font-size:12.5px; font-weight:600; margin-bottom:6px; color:#333; }
+        .wsbp-field-row{ display:flex; gap:16px; flex-wrap:wrap; align-items:center; }
+        .wsbp-field-row .wsbp-field{ flex:1 1 140px; min-width:0; }
+        .wsbp-hint{ font-size:11.5px; color:#888; margin:6px 0 0; }
+        .wsbp-help-list{ line-height:2; font-size:13px; padding-right:18px; }
+
+        .wsbp-items-table th, .wsbp-items-table td{ padding:8px 6px; vertical-align:middle; }
+        .wsbp-reorder{ display:flex; gap:4px; }
+        .wsbp-reorder .button{ padding:0 6px; min-height:26px; line-height:24px; }
+
+        .wsbp-preview-card{ display:flex; flex-direction:column; }
+        .wsbp-preview-box{ position:relative; background:#f3f4f7; border-radius:14px; min-height:220px; display:flex; align-items:flex-end; justify-content:flex-end; padding:18px; }
+        .wsbp-preview-panel{ background:#fff; border-radius:14px; box-shadow:0 10px 26px rgba(15,23,42,.14); width:200px; margin-left:auto; margin-bottom:14px; overflow:hidden; }
+        .wsbp-preview-head{ background: linear-gradient(135deg, var(--pv1,#0D9488), var(--pv2,#0EA5A4)); color:#fff; padding:12px 14px; display:flex; flex-direction:column; gap:2px; }
+        .wsbp-preview-head strong{ font-size:12.5px; }
+        .wsbp-preview-head span{ font-size:10.5px; opacity:.9; }
+        .wsbp-preview-item{ display:flex; align-items:center; gap:8px; padding:10px 12px; font-size:11.5px; }
+        .wsbp-preview-icon{ width:26px; height:26px; border-radius:8px; background:linear-gradient(135deg, var(--pv1,#0D9488), var(--pv2,#0EA5A4)); color:#fff; display:flex; align-items:center; justify-content:center; font-size:13px; flex-shrink:0; }
+        .wsbp-preview-launcher{ width:52px; height:52px; border-radius:50%; background:linear-gradient(135deg, var(--pv1,#0D9488), var(--pv2,#0EA5A4)); color:#fff; display:flex; align-items:center; justify-content:center; font-size:20px; box-shadow:0 10px 22px rgba(13,148,136,.38); flex-shrink:0; }
+    </style>
+
+    <script>
+    (function(){
+        var tabBtns = document.querySelectorAll('.wsbp-tab-btn');
+        tabBtns.forEach(function(btn){
+            btn.addEventListener('click', function(){
+                var target = btn.getAttribute('data-tab');
+                document.querySelectorAll('.wsbp-tab-btn').forEach(function(b){ b.classList.remove('is-active'); });
+                document.querySelectorAll('.wsbp-tab-panel').forEach(function(p){ p.classList.remove('is-active'); });
+                btn.classList.add('is-active');
+                var panel = document.querySelector('.wsbp-tab-panel[data-tab-panel="' + target + '"]');
+                if (panel) panel.classList.add('is-active');
+            });
+        });
+
+        if (window.jQuery && jQuery.fn.wpColorPicker) {
+            jQuery('.wsbp-color-picker').wpColorPicker({
+                change: function(){ setTimeout(updatePreview, 30); }
+            });
+        }
+
+        var iconOptions = <?php echo wp_json_encode( $icons ); ?>;
+        function buildOptions(){
+            var opts = '';
+            for (var key in iconOptions) {
+                opts += '<option value="' + key + '">' + iconOptions[key] + '</option>';
+            }
+            return opts;
+        }
+        document.getElementById('wsbp-add-row').addEventListener('click', function(){
+            var tbody = document.getElementById('wsbp-rows');
+            var tr = document.createElement('tr');
+            tr.innerHTML =
+                '<td class="wsbp-reorder"><button type="button" class="button wsbp-move-up" title="بالا">▲</button><button type="button" class="button wsbp-move-down" title="پایین">▼</button></td>' +
+                '<td><input type="text" name="wsbp_label[]" class="regular-text" placeholder="عنوان"></td>' +
+                '<td><input type="text" name="wsbp_desc[]" class="regular-text" placeholder="توضیح کوتاه"></td>' +
+                '<td><select name="wsbp_icon[]">' + buildOptions() + '</select></td>' +
+                '<td><input type="text" name="wsbp_url[]" class="regular-text" placeholder="https://..."></td>' +
+                '<td><input type="text" class="wsbp-color-picker" name="wsbp_color[]" value="#0D9488"></td>' +
+                '<td><button type="button" class="button wsbp-remove-row">حذف</button></td>';
+            tbody.appendChild(tr);
+            if (window.jQuery && jQuery.fn.wpColorPicker) {
+                jQuery(tr).find('.wsbp-color-picker').wpColorPicker();
+            }
+        });
+
+        document.getElementById('wsbp-rows').addEventListener('click', function(e){
+            var tr = e.target.closest('tr');
+            if (!tr) return;
+            if (e.target.classList.contains('wsbp-remove-row')) {
+                tr.remove();
+            } else if (e.target.classList.contains('wsbp-move-up')) {
+                var prev = tr.previousElementSibling;
+                if (prev) tr.parentNode.insertBefore(tr, prev);
+            } else if (e.target.classList.contains('wsbp-move-down')) {
+                var next = tr.nextElementSibling;
+                if (next) tr.parentNode.insertBefore(next, tr);
+            }
+        });
+
+        function updatePreview(){
+            var c1 = document.querySelector('input[name="wsbp_color_start"]');
+            var c2 = document.querySelector('input[name="wsbp_color_end"]');
+            var title = document.querySelector('input[name="wsbp_panel_title"]');
+            var subtitle = document.querySelector('input[name="wsbp_panel_subtitle"]');
+            var box = document.querySelector('.wsbp-preview-box');
+            if (c1 && c2 && box) {
+                box.style.setProperty('--pv1', c1.value || '#0D9488');
+                box.style.setProperty('--pv2', c2.value || '#0EA5A4');
+            }
+            var t = document.getElementById('wsbp-pv-title');
+            var s2 = document.getElementById('wsbp-pv-subtitle');
+            if (t && title) t.textContent = title.value || 'در ارتباط باشیم';
+            if (s2 && subtitle) s2.textContent = subtitle.value || 'یکی از راه‌ها رو انتخاب کن';
+        }
+        document.querySelectorAll('input[name="wsbp_panel_title"], input[name="wsbp_panel_subtitle"], input[name="wsbp_color_start"], input[name="wsbp_color_end"]').forEach(function(el){
+            el.addEventListener('input', updatePreview);
+        });
+        updatePreview();
+    })();
+    </script>
+    <?php
+}

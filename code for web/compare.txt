@@ -1,0 +1,1304 @@
+// برنامه نویس : alireza.webcode | تلگرام : alireza_webcode
+
+add_shortcode('product_compare','aroma_product_compare');
+
+function aroma_product_compare(){
+
+if(!is_product()) return '';
+
+global $product;
+
+if(!$product) return '';
+
+ob_start(); ?>
+
+<button type="button" class="aroma-compare-button" data-product="<?php echo esc_attr($product->get_id()); ?>">
+    <span>⇄</span>
+    مقایسه محصول
+</button>
+
+
+<div class="aroma-compare-modal">
+
+<div class="aroma-compare-bg"></div>
+
+<div class="aroma-compare-box">
+
+<div class="aroma-compare-close">×</div>
+
+<div class="aroma-compare-inner">
+
+<h3>مقایسه محصولات</h3>
+
+<div class="aroma-product-select"></div>
+
+<div class="aroma-result"></div>
+
+</div>
+
+</div>
+
+</div>
+
+
+<?php
+
+return ob_get_clean();
+
+}
+
+// برنامه نویس : alireza.webcode | تلگرام : alireza_webcode
+
+
+
+add_action('wp_ajax_aroma_get_products','aroma_get_products');
+add_action('wp_ajax_nopriv_aroma_get_products','aroma_get_products');
+
+
+function aroma_get_products(){
+
+$id=intval($_POST['id']);
+
+$product=wc_get_product($id);
+
+if(!$product){
+wp_send_json_error();
+}
+
+
+$cats=wp_get_post_terms(
+$id,
+'product_cat',
+array('fields'=>'ids')
+);
+
+$args=array(
+
+'post_type'=>'product',
+'posts_per_page'=>100,
+
+'post__not_in'=>array(
+    intval($id)
+),
+
+'tax_query'=>array(
+
+array(
+
+'taxonomy'=>'product_cat',
+'field'=>'term_id',
+'terms'=>$cats
+
+)
+
+),
+
+'post_status'=>'publish'
+
+);
+$q=new WP_Query($args);
+
+
+$html='';
+
+
+foreach($q->posts as $p){
+
+
+    // حذف محصول فعلی از لیست
+    if($p->ID == $id){
+        continue;
+    }
+
+
+    $pro=wc_get_product($p->ID);
+
+
+$html.='
+
+<div class="aroma-select-product" data-id="'.$pro->get_id().'">
+
+<img src="'.get_the_post_thumbnail_url($pro->get_id(),'thumbnail').'">
+
+<div>
+<strong>'.$pro->get_name().'</strong>
+<br>
+<span>'.$pro->get_price_html().'</span>
+</div>
+
+</div>';
+
+}
+
+
+
+wp_send_json_success($html);
+
+}
+
+
+// برنامه نویس : alireza.webcode | تلگرام : alireza_webcode
+
+
+
+add_action('wp_ajax_aroma_compare','aroma_compare');
+add_action('wp_ajax_nopriv_aroma_compare','aroma_compare');
+
+
+function aroma_compare(){
+
+$a=wc_get_product($_POST['a']);
+$b=wc_get_product($_POST['b']);
+
+
+if(!$a || !$b)
+wp_send_json_error();
+
+
+
+$data=array();
+
+
+$data['head']=array(
+
+array(
+$a->get_name(),
+get_the_post_thumbnail_url($a->get_id(),'medium')
+),
+
+array(
+$b->get_name(),
+get_the_post_thumbnail_url($b->get_id(),'medium')
+)
+
+);
+
+
+
+$rows=array();
+
+
+
+$rows[]=array(
+'قیمت اصلی',
+wc_price($a->get_regular_price()),
+wc_price($b->get_regular_price())
+);
+
+
+$rows[]=array(
+'قیمت با تخفیف',
+wc_price($a->get_price()),
+wc_price($b->get_price())
+);
+
+
+$rows[]=array(
+'موجودی',
+$a->is_in_stock()?'موجود':'ناموجود',
+$b->is_in_stock()?'موجود':'ناموجود'
+);
+
+
+$attrs=array_unique(array_merge(
+array_keys($a->get_attributes()),
+array_keys($b->get_attributes())
+));
+
+foreach($attrs as $att){
+
+
+    if(strpos($att,'pa_') === 0){
+
+        $label = urldecode(
+            wc_attribute_label($att)
+        );
+
+    }else{
+
+        $label = urldecode($att);
+
+    }
+
+
+    $value_a = $a->get_attribute($att);
+    $value_b = $b->get_attribute($att);
+
+
+
+    $rows[]=array(
+
+        $label ?: 'ویژگی',
+
+        $value_a ?: '-',
+
+        $value_b ?: '-'
+
+    );
+
+
+}
+
+
+$data['rows']=$rows;
+
+
+wp_send_json_success($data);
+
+
+}
+// برنامه نویس : alireza.webcode | تلگرام : alireza_webcode
+
+
+
+add_action('wp_head','aroma_compare_css');
+
+function aroma_compare_css(){
+
+?>
+
+<style>
+
+
+.aroma-compare-button{
+
+display:flex;
+align-items:center;
+justify-content:center;
+gap:8px;
+
+width:100%;
+height:52px;
+
+background:#fff;
+
+border:1px solid #e5e5e5;
+
+border-radius:14px;
+
+font-size:15px;
+
+font-weight:600;
+
+font-family:inherit;
+
+color:#333;
+
+cursor:pointer;
+
+transition:.3s;
+
+}
+
+
+.aroma-compare-button span{
+
+font-size:22px;
+
+color:#7b3cff;
+
+}
+
+
+.aroma-compare-button:hover {
+    background: #bd1717;
+    color: #fff;
+	border:none !important;
+}
+
+
+
+.aroma-compare-modal{
+
+display:none;
+
+position:fixed;
+
+inset:0;
+
+z-index:999999;
+
+overflow-y:auto;
+
+padding:20px 0;
+
+}
+
+
+
+.aroma-compare-bg{
+
+position:absolute;
+
+inset:0;
+
+background:rgba(0,0,0,.45);
+
+backdrop-filter:blur(4px);
+
+}
+
+.aroma-compare-head h4 {
+    font-size: 18px;
+    font-weight: bold;
+    font-family:inherit;
+}
+
+
+	
+	.aroma-compare-box{
+font-family:inherit;
+
+position:relative;
+
+width:min(900px,92%);
+
+max-height:85vh;
+
+overflow-y:auto;
+
+overflow-x:hidden;
+
+background:#fff;
+
+border-radius:25px;
+
+margin:5vh auto;
+
+padding:30px;
+
+animation:compareShow .25s ease;
+
+direction:rtl;
+
+box-sizing:border-box;
+
+}
+
+
+
+@keyframes compareShow{
+
+from{
+
+transform:translateY(40px);
+
+opacity:0;
+
+}
+
+to{
+
+transform:translateY(0);
+
+opacity:1;
+
+}
+
+}
+
+
+
+.aroma-compare-close{
+
+position:absolute;
+
+left:20px;
+
+top:15px;
+
+width:35px;
+
+height:35px;
+
+border-radius:50%;
+
+background:#f4f4f4;
+
+display:flex;
+
+align-items:center;
+
+justify-content:center;
+
+font-size:25px;
+
+cursor:pointer;
+
+}
+
+
+
+.aroma-compare-inner h3{
+
+text-align:center;
+
+font-size:22px;
+
+margin-bottom:25px;
+
+font-family:inherit;
+
+}
+
+
+
+
+.aroma-product-select{
+
+display:flex;
+
+flex-direction:column;
+
+gap:12px;
+
+max-height:450px;
+
+overflow-y:auto;
+
+font-family:inherit;
+
+}
+
+
+
+.aroma-select-product{
+
+display:flex;
+
+align-items:center;
+
+gap:15px;
+
+padding:15px;
+
+border:1px solid #eee;
+
+border-radius:16px;
+
+cursor:pointer;
+
+transition:.25s;
+
+background:#fff;
+
+font-family:inherit;
+
+}
+
+
+
+.aroma-select-product:hover{
+
+border-color:#BD1717 ;
+
+transform:translateY(-2px);
+margin-top: 10px;
+}
+
+
+
+.aroma-select-product img{
+
+width:70px;
+
+height:70px;
+
+object-fit:cover;
+
+border-radius:12px;
+
+}
+
+
+
+.aroma-select-product strong{
+
+font-size:15px;
+
+font-family:inherit;
+
+}
+
+
+
+.aroma-select-product span{
+
+color:#777;
+
+font-size:14px;
+
+font-family:inherit;
+
+}
+
+
+
+.aroma-select-product span del{
+
+color:#aaa;
+font-size:12.5px;
+text-decoration:line-through;
+margin-inline-start:6px;
+opacity:.8;
+font-family:inherit;
+
+}
+
+.aroma-select-product span ins{
+
+color:#bd1717;
+font-weight:700;
+text-decoration:none;
+font-family:inherit;
+
+}
+
+.aroma-select-product span .woocommerce-Price-amount{
+
+font-weight:600;
+font-family:inherit;
+
+}
+
+
+
+
+
+.aroma-compare-table{
+
+width:100%;
+
+border-radius:20px;
+
+overflow:auto;
+
+border:1px solid #eee;
+
+font-family:inherit;
+
+}
+
+
+
+.aroma-compare-head{
+
+display:grid;
+
+grid-template-columns:1fr 1fr;
+
+gap:20px;
+
+text-align:center;
+
+padding:20px;
+
+}
+
+
+
+.aroma-compare-head img{
+
+width:120px;
+
+height:120px;
+
+object-fit:cover;
+
+border-radius:15px;
+
+}
+
+
+
+.aroma-row{
+
+display:grid;
+
+grid-template-columns:1fr 1fr 1fr;
+
+border-top:1px solid #eee;
+
+font-family:inherit;
+
+}
+
+
+
+.aroma-row div{
+
+padding:15px;
+
+text-align:center;
+
+font-size:14px;
+
+font-family:inherit;
+
+}
+
+
+
+.aroma-row div:first-child{
+
+font-weight:700;
+
+background:#fafafa;
+
+}
+
+
+
+.aroma-sale{
+
+color:#7b3cff;
+
+font-weight:700;
+
+}
+
+
+
+.aroma-row del{
+
+display:inline-block;
+color:#aaa;
+font-size:12.5px;
+text-decoration:line-through;
+margin-inline-end:6px;
+opacity:.8;
+font-family:inherit;
+
+}
+
+.aroma-row ins{
+
+display:inline-block;
+color:#bd1717;
+font-weight:700;
+font-size:15px;
+text-decoration:none;
+font-family:inherit;
+
+}
+
+.aroma-row .woocommerce-Price-amount{
+
+font-weight:700;
+color:#222;
+font-family:inherit;
+
+}
+
+.aroma-row del .woocommerce-Price-amount{
+
+font-weight:400;
+color:#aaa;
+
+}
+
+
+
+
+@media(max-width:600px){
+
+.aroma-select-product strong{
+
+font-size:12.5px;
+
+}
+.aroma-compare-head h4{
+	font-size: 14px;
+    font-weight: bold;
+	line-height: 1.7;
+}
+.aroma-compare-box{
+
+margin:20px auto;
+
+padding:20px;
+font-family:inherit;
+max-height:90vh;
+
+}
+
+
+.aroma-compare-head img{
+
+width:80px;
+
+height:80px;
+
+}
+
+
+.aroma-row{
+
+font-size:13px;
+
+}
+
+
+.aroma-row div{
+
+padding:10px 5px;
+
+}
+
+
+}
+
+
+.aroma-product-select:has(.aroma-compare-table){
+
+max-height:65vh;
+
+overflow-y:auto;
+
+overflow-x:hidden;
+
+padding-left:5px;
+
+}
+
+
+.aroma-compare-table{
+
+width:100%;
+overflow:auto;
+
+}
+
+
+.aroma-row{
+
+min-height:55px;
+
+}
+
+</style>
+
+<?php
+
+}
+
+
+
+add_action('wp_footer','aroma_compare_js');
+
+function aroma_compare_js(){
+
+if(!is_product()) return;
+
+?>
+
+<script>
+
+jQuery(function($){
+
+
+let currentProduct = $('.aroma-compare-button').data('product');
+
+
+
+$('.aroma-compare-button').on('click',function(e){
+
+
+e.preventDefault();
+e.stopPropagation();
+
+
+$('.aroma-compare-modal').fadeIn(250);
+
+
+$('.aroma-product-select').html(
+'<div style="text-align:center;padding:30px">در حال دریافت محصولات...</div>'
+);
+
+
+
+$.ajax({
+
+url:wc_add_to_cart_params.ajax_url,
+
+type:'POST',
+
+data:{
+
+action:'aroma_get_products',
+
+id:currentProduct
+
+},
+
+
+success:function(res){
+
+
+if(res.success){
+
+$('.aroma-product-select').html(res.data);
+
+}else{
+
+$('.aroma-product-select').html(
+'<p>محصولی برای مقایسه پیدا نشد</p>'
+);
+
+}
+
+
+}
+
+
+});
+
+
+return false;
+
+
+});
+
+
+
+/*
+ انتخاب محصول
+*/
+
+
+$(document).on(
+'click',
+'.aroma-select-product',
+function(e){
+
+
+e.preventDefault();
+
+
+let compareID=$(this).data('id');
+
+
+$('.aroma-product-select').html(
+'<div style="text-align:center;padding:30px">در حال مقایسه...</div>'
+);
+
+
+
+$.ajax({
+
+url:wc_add_to_cart_params.ajax_url,
+
+type:'POST',
+
+data:{
+
+
+action:'aroma_compare',
+
+a:currentProduct,
+
+b:compareID
+
+
+},
+
+
+success:function(res){
+
+
+console.log(res);
+
+
+if(res.success){
+
+
+let html='';
+
+
+html+='<div class="aroma-compare-table">';
+
+
+html+='<div class="aroma-compare-head">';
+
+
+res.data.head.forEach(function(item){
+
+
+html+=`
+
+<div>
+
+<img src="${item[1] || ''}">
+
+<h4>${item[0]}</h4>
+
+</div>
+
+`;
+
+
+});
+
+
+html+='</div>';
+
+
+
+res.data.rows.forEach(function(row){
+
+
+html+=`
+
+<div class="aroma-row">
+
+<div>${row[0] || '-'}</div>
+
+<div>${row[1] || '-'}</div>
+
+<div>${row[2] || '-'}</div>
+
+</div>
+
+`;
+
+
+});
+
+
+
+html+='</div>';
+
+
+
+$('.aroma-product-select')
+.css({
+    "max-height":"65vh",
+    "overflow-y":"auto"
+})
+.html(html);
+
+
+}else{
+
+
+$('.aroma-product-select').html(
+'<p>خطا در دریافت اطلاعات مقایسه</p>'
+);
+
+
+}
+
+
+},
+error:function(xhr){
+
+
+console.log(xhr.responseText);
+
+
+$('.aroma-product-select').html(
+'<p>خطای سرور در مقایسه محصولات</p>'
+);
+
+
+}
+
+
+});
+
+
+});
+
+
+
+/*
+ بستن
+*/
+
+
+$('.aroma-compare-close,.aroma-compare-bg')
+.on('click',function(e){
+
+
+e.preventDefault();
+
+
+$('.aroma-compare-modal').fadeOut(200);
+
+
+});
+
+
+
+/*
+ ESC
+*/
+
+
+$(document).keyup(function(e){
+
+
+if(e.key==="Escape"){
+
+$('.aroma-compare-modal').fadeOut(200);
+
+}
+
+
+});
+
+
+
+});
+
+
+</script>
+
+
+<?php
+
+}
+
+
+add_shortcode('beautiful_product_specs', 'beautiful_product_specs_shortcode');
+
+function beautiful_product_specs_shortcode(){
+
+    if(!is_product()){
+        return '';
+    }
+
+    global $product;
+
+    if(!$product){
+        return '';
+    }
+
+    $attributes = $product->get_attributes();
+
+    if(empty($attributes)){
+        return '<p>مشخصاتی برای این محصول ثبت نشده است.</p>';
+    }
+
+
+    ob_start();
+
+?>
+
+<div class="beautiful-specs-box">
+
+    <div class="specs-list">
+
+    <?php foreach($attributes as $attribute):
+
+        if($attribute->is_taxonomy()){
+
+            $values = wc_get_product_terms(
+                $product->get_id(),
+                $attribute->get_name(),
+                array('fields'=>'names')
+            );
+
+            $value = implode('، ', $values);
+
+        }else{
+
+            $value = implode(
+                '، ',
+                $attribute->get_options()
+            );
+
+        }
+
+        $name = wc_attribute_label(
+            $attribute->get_name()
+        );
+
+    ?>
+
+
+        <div class="spec-row">
+
+            <div class="spec-name">
+
+                <span class="check-icon">✓</span>
+
+                <?php echo esc_html($name); ?>
+
+            </div>
+
+
+            <div class="spec-value">
+
+                <?php echo esc_html($value); ?>
+
+            </div>
+
+        </div>
+
+
+    <?php endforeach; ?>
+
+
+    </div>
+
+</div>
+
+
+
+<style>
+
+.beautiful-specs-box{
+
+background:transparent;
+border-radius:0;
+padding:0;
+box-shadow:none;
+direction:rtl;
+font-family:inherit;
+text-align:right;
+width:100%;
+
+}
+
+
+
+.specs-list{
+
+width:100%;
+
+}
+
+
+
+.spec-row{
+
+display:flex;
+align-items:center;
+justify-content:flex-start;
+gap:35px;
+padding:16px 20px;
+margin-bottom:12px;
+border-radius:14px;
+background:#f8f8f8;
+transition:.3s;
+border:1px solid transparent;
+direction:rtl;
+text-align:right;
+
+}
+
+
+
+.spec-row:nth-child(even){
+
+background:#fff5f5;
+
+}
+
+
+
+.spec-row:hover{
+
+background:#ffecec;
+border-color:#f2cccc;
+
+}
+
+
+
+.spec-name{
+
+display:flex;
+align-items:center;
+gap:10px;
+font-size:15px;
+font-weight:700;
+color:#333;
+min-width:180px;
+text-align:right;
+font-family:inherit;
+
+}
+
+
+
+.check-icon{
+
+width:26px;
+height:26px;
+display:flex;
+align-items:center;
+justify-content:center;
+background:#c91419;
+color:#fff;
+border-radius:50%;
+font-size:13px;
+font-weight:bold;
+flex-shrink:0;
+
+}
+
+
+
+.spec-value{
+
+font-size:15px;
+font-weight:500;
+color:#555;
+text-align:right;
+font-family:inherit;
+
+}
+
+
+
+@media(max-width:600px){
+
+.spec-row{
+
+flex-direction:column;
+align-items:flex-start;
+gap:10px;
+
+}
+
+
+.spec-name{
+
+min-width:auto;
+
+}
+
+
+.spec-value{
+
+padding-right:36px;
+
+}
+
+}
+
+
+</style>
+
+
+<?php
+
+return ob_get_clean();
+
+}
+
+
+
+add_action('woocommerce_after_add_to_cart_button', 'aroma_auto_compare_button');
+
+function aroma_auto_compare_button(){
+
+    echo '<div style="width:100%;clear:both;margin-top:10px;">';
+
+    echo aroma_product_compare();
+
+    echo '</div>';
+
+}

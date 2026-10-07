@@ -1,0 +1,604 @@
+<?php
+
+
+if ( ! defined( 'ABSPATH' ) ) { exit; }
+
+define( 'CLX_WS_OPT_SETTINGS', 'clx_ws_settings' );
+define( 'CLX_WS_OPT_ITEMS', 'clx_ws_items' );
+define( 'CLX_WS_NONCE', 'clx_ws_nonce_action' );
+
+/* ==========================================================================
+   ۱) مقادیر پیش‌فرض
+   ========================================================================== */
+
+function clx_ws_default_settings() {
+	return array(
+		'enabled'        => 1,
+		'delay'          => 7,
+		'frequency'      => 'once_per_day', // every_visit | once_per_session | once_per_day | once_forever
+		'title'          => 'چرخ شانس رو بچرخون!',
+		'subtitle'       => 'یه جایزه ویژه منتظرته 🎁',
+		'button_text'    => 'بچرخون 🎡',
+		'closed_text'    => 'شانس دوباره، بازدید بعدی!',
+		'footer_note'    => 'این پیشنهاد محدود و یک‌بار مصرف است.',
+		'show_close_btn' => 1,
+	);
+}
+
+function clx_ws_default_items() {
+	return array(
+		array( 'id' => 'i1', 'label' => '۱۰٪ تخفیف',      'prize' => 'کد: SHANS10',  'weight' => 20, 'color' => '#0EA5A4', 'active' => 1 ),
+		array( 'id' => 'i2', 'label' => 'ارسال رایگان',     'prize' => 'کد: FREESHIP', 'weight' => 15, 'color' => '#D4AF37', 'active' => 1 ),
+		array( 'id' => 'i3', 'label' => 'شانس نداشتی!',     'prize' => '',             'weight' => 25, 'color' => '#12232E', 'active' => 1 ),
+		array( 'id' => 'i4', 'label' => '۵٪ تخفیف',        'prize' => 'کد: SHANS5',   'weight' => 20, 'color' => '#0B6E6B', 'active' => 1 ),
+		array( 'id' => 'i5', 'label' => 'هدیه ویژه',        'prize' => 'کد: GIFTVIP',  'weight' => 5,  'color' => '#B3273A', 'active' => 1 ),
+		array( 'id' => 'i6', 'label' => 'دوباره امتحان کن', 'prize' => '',             'weight' => 15, 'color' => '#8A6D2F', 'active' => 1 ),
+	);
+}
+
+function clx_ws_get_settings() {
+	$saved = get_option( CLX_WS_OPT_SETTINGS, array() );
+	return wp_parse_args( $saved, clx_ws_default_settings() );
+}
+
+function clx_ws_get_items() {
+	$items = get_option( CLX_WS_OPT_ITEMS, null );
+	if ( ! is_array( $items ) || empty( $items ) ) {
+		$items = clx_ws_default_items();
+		update_option( CLX_WS_OPT_ITEMS, $items );
+	}
+	return $items;
+}
+
+/* ==========================================================================
+   ۲) منوی مدیریت در پنل وردپرس
+   ========================================================================== */
+
+add_action( 'admin_menu', 'clx_ws_admin_menu' );
+function clx_ws_admin_menu() {
+	add_menu_page(
+		'گردونه شانس',
+		'گردونه شانس',
+		'manage_options',
+		'clx-wheel',
+		'clx_ws_render_admin_page',
+		'dashicons-tickets-alt',
+		58
+	);
+}
+
+add_action( 'admin_enqueue_scripts', 'clx_ws_admin_assets' );
+function clx_ws_admin_assets( $hook ) {
+	if ( strpos( $hook, 'clx-wheel' ) === false ) { return; }
+	wp_enqueue_style( 'wp-color-picker' );
+	wp_enqueue_script( 'wp-color-picker' );
+	wp_add_inline_script( 'wp-color-picker', "jQuery(function($){ $('.clx-color-field').wpColorPicker(); });" );
+}
+
+/* ---- پردازش فرم‌ها ---- */
+
+add_action( 'admin_post_clx_ws_save_settings', 'clx_ws_save_settings' );
+function clx_ws_save_settings() {
+	if ( ! current_user_can( 'manage_options' ) ) { wp_die( 'دسترسی ندارید.' ); }
+	check_admin_referer( CLX_WS_NONCE );
+
+	$settings = array(
+		'enabled'        => isset( $_POST['enabled'] ) ? 1 : 0,
+		'delay'          => max( 0, intval( $_POST['delay'] ?? 7 ) ),
+		'frequency'      => sanitize_text_field( $_POST['frequency'] ?? 'once_per_day' ),
+		'title'          => sanitize_text_field( $_POST['title'] ?? '' ),
+		'subtitle'       => sanitize_text_field( $_POST['subtitle'] ?? '' ),
+		'button_text'    => sanitize_text_field( $_POST['button_text'] ?? '' ),
+		'closed_text'    => sanitize_text_field( $_POST['closed_text'] ?? '' ),
+		'footer_note'    => sanitize_text_field( $_POST['footer_note'] ?? '' ),
+		'show_close_btn' => isset( $_POST['show_close_btn'] ) ? 1 : 0,
+	);
+	update_option( CLX_WS_OPT_SETTINGS, $settings );
+
+	wp_safe_redirect( admin_url( 'admin.php?page=clx-wheel&tab=settings&updated=1' ) );
+	exit;
+}
+
+add_action( 'admin_post_clx_ws_save_item', 'clx_ws_save_item' );
+function clx_ws_save_item() {
+	if ( ! current_user_can( 'manage_options' ) ) { wp_die( 'دسترسی ندارید.' ); }
+	check_admin_referer( CLX_WS_NONCE );
+
+	$items = clx_ws_get_items();
+	$id    = sanitize_text_field( $_POST['item_id'] ?? '' );
+
+	$new_item = array(
+		'id'     => $id ? $id : uniqid( 'i', false ),
+		'label'  => sanitize_text_field( $_POST['label'] ?? '' ),
+		'prize'  => sanitize_text_field( $_POST['prize'] ?? '' ),
+		'weight' => max( 1, intval( $_POST['weight'] ?? 10 ) ),
+		'color'  => sanitize_hex_color( $_POST['color'] ?? '#0EA5A4' ),
+		'active' => isset( $_POST['active'] ) ? 1 : 0,
+	);
+
+	$found = false;
+	foreach ( $items as $k => $it ) {
+		if ( $it['id'] === $new_item['id'] ) {
+			$items[ $k ] = $new_item;
+			$found       = true;
+			break;
+		}
+	}
+	if ( ! $found ) { $items[] = $new_item; }
+
+	update_option( CLX_WS_OPT_ITEMS, $items );
+	wp_safe_redirect( admin_url( 'admin.php?page=clx-wheel&tab=items&updated=1' ) );
+	exit;
+}
+
+add_action( 'admin_post_clx_ws_delete_item', 'clx_ws_delete_item' );
+function clx_ws_delete_item() {
+	if ( ! current_user_can( 'manage_options' ) ) { wp_die( 'دسترسی ندارید.' ); }
+	check_admin_referer( CLX_WS_NONCE );
+
+	$id    = sanitize_text_field( $_GET['id'] ?? '' );
+	$items = clx_ws_get_items();
+	$items = array_values( array_filter( $items, function( $it ) use ( $id ) {
+		return $it['id'] !== $id;
+	} ) );
+	update_option( CLX_WS_OPT_ITEMS, $items );
+
+	wp_safe_redirect( admin_url( 'admin.php?page=clx-wheel&tab=items&deleted=1' ) );
+	exit;
+}
+
+/* ---- صفحه مدیریت ---- */
+
+function clx_ws_render_admin_page() {
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+	$tab      = isset( $_GET['tab'] ) ? sanitize_text_field( $_GET['tab'] ) : 'settings';
+	$settings = clx_ws_get_settings();
+	$items    = clx_ws_get_items();
+	?>
+	<div class="wrap" dir="rtl" style="font-family: Tahoma, sans-serif;">
+		<h1 style="display:flex;align-items:center;gap:8px;">🎡 گردونه شانس</h1>
+
+		<?php if ( isset( $_GET['updated'] ) ) : ?>
+			<div class="notice notice-success is-dismissible"><p>تغییرات با موفقیت ذخیره شد.</p></div>
+		<?php endif; ?>
+		<?php if ( isset( $_GET['deleted'] ) ) : ?>
+			<div class="notice notice-success is-dismissible"><p>المان حذف شد.</p></div>
+		<?php endif; ?>
+
+		<h2 class="nav-tab-wrapper">
+			<a href="?page=clx-wheel&tab=settings" class="nav-tab <?php echo $tab === 'settings' ? 'nav-tab-active' : ''; ?>">تنظیمات</a>
+			<a href="?page=clx-wheel&tab=items" class="nav-tab <?php echo $tab === 'items' ? 'nav-tab-active' : ''; ?>">مدیریت المان‌ها (جوایز)</a>
+		</h2>
+
+		<?php if ( $tab === 'settings' ) : ?>
+
+			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="margin-top:20px;max-width:700px;">
+				<input type="hidden" name="action" value="clx_ws_save_settings">
+				<?php wp_nonce_field( CLX_WS_NONCE ); ?>
+
+				<table class="form-table">
+					<tr>
+						<th>فعال‌سازی گردونه</th>
+						<td><label><input type="checkbox" name="enabled" <?php checked( $settings['enabled'], 1 ); ?>> نمایش گردونه در سایت فعال باشد</label></td>
+					</tr>
+					<tr>
+						<th>تأخیر نمایش (ثانیه)</th>
+						<td><input type="number" min="0" name="delay" value="<?php echo esc_attr( $settings['delay'] ); ?>" class="small-text"> ثانیه بعد از ورود کاربر به سایت</td>
+					</tr>
+					<tr>
+						<th>دفعات نمایش</th>
+						<td>
+							<select name="frequency">
+								<option value="every_visit" <?php selected( $settings['frequency'], 'every_visit' ); ?>>هر بار بازدید</option>
+								<option value="once_per_session" <?php selected( $settings['frequency'], 'once_per_session' ); ?>>یک‌بار در هر نشست (Session)</option>
+								<option value="once_per_day" <?php selected( $settings['frequency'], 'once_per_day' ); ?>>یک‌بار در روز</option>
+								<option value="once_forever" <?php selected( $settings['frequency'], 'once_forever' ); ?>>فقط یک‌بار برای همیشه (هر دستگاه)</option>
+							</select>
+						</td>
+					</tr>
+					<tr>
+						<th>عنوان پاپ‌آپ</th>
+						<td><input type="text" name="title" value="<?php echo esc_attr( $settings['title'] ); ?>" class="regular-text"></td>
+					</tr>
+					<tr>
+						<th>زیرعنوان</th>
+						<td><input type="text" name="subtitle" value="<?php echo esc_attr( $settings['subtitle'] ); ?>" class="regular-text"></td>
+					</tr>
+					<tr>
+						<th>متن دکمه چرخوندن</th>
+						<td><input type="text" name="button_text" value="<?php echo esc_attr( $settings['button_text'] ); ?>" class="regular-text"></td>
+					</tr>
+					<tr>
+						<th>متن بعد از استفاده از شانس</th>
+						<td><input type="text" name="closed_text" value="<?php echo esc_attr( $settings['closed_text'] ); ?>" class="regular-text"></td>
+					</tr>
+					<tr>
+						<th>یادداشت پایین باکس</th>
+						<td><input type="text" name="footer_note" value="<?php echo esc_attr( $settings['footer_note'] ); ?>" class="regular-text"></td>
+					</tr>
+					<tr>
+						<th>دکمه بستن</th>
+						<td><label><input type="checkbox" name="show_close_btn" <?php checked( $settings['show_close_btn'], 1 ); ?>> نمایش دکمه ضربدر بستن</label></td>
+					</tr>
+				</table>
+
+				<?php submit_button( 'ذخیره تنظیمات' ); ?>
+			</form>
+            <p>ساخته شده توسط علیرضا رحمتی | اینستاگرام : alireza.webcode | تلگرام : alireza_webcode | طراحی سایت با بهترین کیفیت و مشاوره رایگان</p>
+        <?php else : ?>
+
+			<h3 style="margin-top:20px;">افزودن / ویرایش المان</h3>
+			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="max-width:700px;background:#fff;padding:16px;border:1px solid #ccd0d4;">
+				<input type="hidden" name="action" value="clx_ws_save_item">
+				<input type="hidden" name="item_id" value="">
+				<?php wp_nonce_field( CLX_WS_NONCE ); ?>
+				<table class="form-table">
+					<tr><th>متن روی گردونه</th><td><input type="text" name="label" class="regular-text" placeholder="مثلا: ۱۰٪ تخفیف" required></td></tr>
+					<tr><th>متن جایزه / کد تخفیف</th><td><input type="text" name="prize" class="regular-text" placeholder="مثلا: کد SHANS10 (خالی = بدون جایزه)"></td></tr>
+					<tr><th>وزن احتمال برد</th><td><input type="number" min="1" name="weight" value="10" class="small-text"> عدد بزرگ‌تر یعنی شانس بیشتر</td></tr>
+					<tr><th>رنگ قطعه</th><td><input type="text" class="clx-color-field" name="color" value="#0EA5A4"></td></tr>
+					<tr><th>فعال</th><td><label><input type="checkbox" name="active" checked> این المان در گردونه نمایش داده شود</label></td></tr>
+				</table>
+				<?php submit_button( 'افزودن المان' ); ?>
+			</form>
+
+			<h3 style="margin-top:30px;">لیست المان‌های فعلی</h3>
+            <p>ساخته شده توسط علیرضا رحمتی | اینستاگرام : alireza.webcode | تلگرام : alireza_webcode | طراحی سایت با بهترین کیفیت و مشاوره رایگان</p>
+			<table class="widefat striped" style="max-width:900px;">
+				<thead>
+					<tr>
+						<th>رنگ</th><th>متن</th><th>جایزه</th><th>وزن</th><th>فعال</th><th>عملیات</th>
+					</tr>
+				</thead>
+				<tbody>
+				<?php foreach ( $items as $it ) : ?>
+					<tr>
+						<td><span style="display:inline-block;width:20px;height:20px;border-radius:50%;background:<?php echo esc_attr( $it['color'] ); ?>;border:1px solid #ccc;"></span></td>
+						<td><?php echo esc_html( $it['label'] ); ?></td>
+						<td><?php echo esc_html( $it['prize'] ?: '—' ); ?></td>
+						<td><?php echo esc_html( $it['weight'] ); ?></td>
+						<td><?php echo $it['active'] ? '✅' : '❌'; ?></td>
+						<td>
+							<a href="#" class="clx-edit-item"
+								data-id="<?php echo esc_attr( $it['id'] ); ?>"
+								data-label="<?php echo esc_attr( $it['label'] ); ?>"
+								data-prize="<?php echo esc_attr( $it['prize'] ); ?>"
+								data-weight="<?php echo esc_attr( $it['weight'] ); ?>"
+								data-color="<?php echo esc_attr( $it['color'] ); ?>"
+								data-active="<?php echo esc_attr( $it['active'] ); ?>">ویرایش</a>
+							|
+							<a href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=clx_ws_delete_item&id=' . $it['id'] ), CLX_WS_NONCE ) ); ?>"
+								onclick="return confirm('حذف شود؟')" style="color:#b32d2e;">حذف</a>
+						</td>
+					</tr>
+				<?php endforeach; ?>
+				</tbody>
+			</table>
+
+			<script>
+			document.querySelectorAll('.clx-edit-item').forEach(function(el){
+				el.addEventListener('click', function(e){
+					e.preventDefault();
+					var form = document.querySelector('form input[name="item_id"]').closest('form');
+					form.querySelector('input[name="item_id"]').value = this.dataset.id;
+					form.querySelector('input[name="label"]').value = this.dataset.label;
+					form.querySelector('input[name="prize"]').value = this.dataset.prize;
+					form.querySelector('input[name="weight"]').value = this.dataset.weight;
+					form.querySelector('input[name="active"]').checked = this.dataset.active === '1';
+					var colorField = form.querySelector('.clx-color-field');
+					if (window.jQuery && jQuery(colorField).wpColorPicker) {
+						jQuery(colorField).wpColorPicker('color', this.dataset.color);
+					} else {
+						colorField.value = this.dataset.color;
+					}
+					form.querySelector('button[type="submit"]').textContent = 'ذخیره ویرایش';
+					window.scrollTo({top:0, behavior:'smooth'});
+				});
+			});
+			</script>
+
+		<?php endif; ?>
+	</div>
+
+    <?php
+
+}
+
+/* ==========================================================================
+   ۳) نمایش گردونه در سمت کاربر (فرانت‌اند)
+   ========================================================================== */
+
+add_action( 'wp_footer', 'clx_ws_render_frontend' );
+function clx_ws_render_frontend() {
+	if ( is_admin() ) { return; }
+
+	$settings = clx_ws_get_settings();
+	if ( empty( $settings['enabled'] ) ) { return; }
+
+	$items = array_values( array_filter( clx_ws_get_items(), function( $it ) {
+		return ! empty( $it['active'] );
+	} ) );
+	if ( count( $items ) < 2 ) { return; }
+
+	$data = array(
+		'items'     => $items,
+		'settings'  => $settings,
+	);
+	?>
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&family=Lalezar&display=swap" rel="stylesheet">
+
+	<style>
+	:root{
+		--clx-navy:#0B1F26;
+		--clx-navy-2:#12323A;
+		--clx-teal:#0EA5A4;
+		--clx-teal-dark:#0B6E6B;
+		--clx-gold:#D4AF37;
+		--clx-gold-light:#F1D686;
+		--clx-ivory:#FFF8EC;
+		--clx-ruby:#B3273A;
+	}
+	#clx-ws-overlay{
+		position:fixed;inset:0;z-index:999999;
+		background:radial-gradient(circle at 50% 30%, rgba(11,31,38,.55), rgba(6,16,20,.85));
+		backdrop-filter:blur(4px);
+		display:flex;align-items:center;justify-content:center;
+		opacity:0;visibility:hidden;transition:opacity .45s ease;
+		font-family:'Vazirmatn',Tahoma,sans-serif;
+	}
+	#clx-ws-overlay.clx-show{opacity:1;visibility:visible;}
+	#clx-ws-card{
+		position:relative;width:min(92vw,420px);
+		background:linear-gradient(160deg, var(--clx-navy) 0%, var(--clx-navy-2) 100%);
+		border-radius:26px;
+		padding:26px 22px 22px;
+		box-shadow:0 20px 60px rgba(0,0,0,.5), 0 0 0 1px rgba(212,175,55,.35);
+		transform:translateY(24px) scale(.94);
+		opacity:0;transition:all .5s cubic-bezier(.2,.9,.3,1.2);
+		text-align:center;color:var(--clx-ivory);
+        line-height: 1.8;
+	}
+	#clx-ws-overlay.clx-show #clx-ws-card{transform:translateY(0) scale(1);opacity:1;}
+	#clx-ws-card::before{
+		content:"";position:absolute;inset:8px;border-radius:19px;
+		border:1.5px solid rgba(212,175,55,.45);pointer-events:none;
+	}
+	.clx-ws-corner{position:absolute;width:22px;height:22px;opacity:.8;}
+	.clx-ws-corner svg{width:100%;height:100%;}
+	.clx-ws-c-tl{top:6px;left:6px;} .clx-ws-c-tr{top:6px;right:6px;transform:scaleX(-1);}
+	.clx-ws-c-bl{bottom:6px;left:6px;transform:scaleY(-1);} .clx-ws-c-br{bottom:6px;right:6px;transform:scale(-1,-1);}
+
+	#clx-ws-close{
+		position:absolute;top:14px;left:14px;width:30px;height:30px;border-radius:50%;
+		background:rgba(255,255,255,.08);color:var(--clx-ivory);border:1px solid rgba(255,255,255,.15);
+		cursor:pointer;font-size:15px;line-height:1;display:flex;align-items:center;justify-content:center;
+		transition:background .2s;
+	}
+	#clx-ws-close:hover{background:rgba(255,255,255,.18);}
+
+	.clx-ws-title{font-family:'Lalezar',Tahoma,sans-serif;font-size:26px;color:var(--clx-gold-light);margin:2px 0 2px;letter-spacing:.5px;}
+	.clx-ws-subtitle{font-size:13.5px;color:rgba(255,248,236,.75);margin-bottom:14px;}
+
+	.clx-ws-wheel-wrap{position:relative;width:250px;height:250px;margin:10px auto 18px;}
+	.clx-ws-ring{
+		position:absolute;inset:-10px;border-radius:50%;
+		background:conic-gradient(from 0deg, var(--clx-gold), var(--clx-teal), var(--clx-gold-light), var(--clx-teal-dark), var(--clx-gold));
+		filter:blur(.2px);
+		animation:clx-spin-slow 14s linear infinite;
+	}
+	@keyframes clx-spin-slow{to{transform:rotate(360deg);}}
+	.clx-ws-ring::after{content:"";position:absolute;inset:6px;border-radius:50%;background:var(--clx-navy);}
+
+	#clx-ws-wheel-canvas{position:relative;z-index:2;border-radius:50%;box-shadow:0 4px 20px rgba(0,0,0,.4);}
+
+	.clx-ws-pointer{
+		position:absolute;top:-14px;left:50%;transform:translateX(-50%);z-index:4;
+		width:0;height:0;border-left:11px solid transparent;border-right:11px solid transparent;
+		border-top:20px solid var(--clx-gold);filter:drop-shadow(0 2px 3px rgba(0,0,0,.4));
+	}
+	.clx-ws-hub{
+		position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:3;
+		width:46px;height:46px;border-radius:50%;
+		background:radial-gradient(circle at 35% 30%, var(--clx-gold-light), var(--clx-gold) 60%, #8a6d2f 100%);
+		border:2px solid var(--clx-ivory);display:flex;align-items:center;justify-content:center;
+		font-size:20px;box-shadow:0 2px 8px rgba(0,0,0,.4);
+	}
+
+	#clx-ws-spin-btn{
+		display:inline-block;width:100%;padding:13px 10px;border:none;border-radius:14px;cursor:pointer;
+		background:linear-gradient(135deg, var(--clx-gold-light), var(--clx-gold));
+		color:#20140a;font-family:'Vazirmatn',Tahoma,sans-serif;font-weight:700;font-size:16px;
+		box-shadow:0 8px 20px rgba(212,175,55,.35);transition:transform .15s ease, box-shadow .15s ease;
+	}
+	#clx-ws-spin-btn:hover{transform:translateY(-2px);box-shadow:0 10px 26px rgba(212,175,55,.5);}
+	#clx-ws-spin-btn:disabled{opacity:.5;cursor:not-allowed;transform:none;}
+
+	.clx-ws-footnote{margin-top:12px;font-size:11.5px;color:rgba(255,248,236,.5);}
+
+	#clx-ws-result{display:none;}
+	#clx-ws-result.clx-active{display:block;animation:clx-pop .4s ease;}
+	@keyframes clx-pop{from{opacity:0;transform:scale(.85);}to{opacity:1;transform:scale(1);}}
+	.clx-ws-result-badge{
+		font-size:15px;color:rgba(255,248,236,.7);margin-bottom:6px;
+	}
+	.clx-ws-result-prize{
+		font-family:'Lalezar',Tahoma,sans-serif;font-size:24px;color:var(--clx-gold-light);margin-bottom:4px;
+	}
+	.clx-ws-result-code{
+		display:inline-block;margin-top:6px;padding:6px 14px;border-radius:10px;
+		background:rgba(14,165,164,.18);border:1px dashed var(--clx-teal);color:var(--clx-ivory);
+		font-size:14px;letter-spacing:.5px;
+	}
+	@media (max-width:380px){
+		.clx-ws-wheel-wrap{width:220px;height:220px;}
+	}
+	</style>
+
+	<div id="clx-ws-overlay">
+		<div id="clx-ws-card">
+			<?php if ( ! empty( $settings['show_close_btn'] ) ) : ?>
+				<div id="clx-ws-close" title="بستن">✕</div>
+			<?php endif; ?>
+
+			<div class="clx-ws-corner clx-ws-c-tl"><svg viewBox="0 0 40 40"><path d="M2 2 L2 20 M2 2 L20 2" stroke="#D4AF37" stroke-width="2" fill="none"/><circle cx="2" cy="2" r="3" fill="#D4AF37"/></svg></div>
+			<div class="clx-ws-corner clx-ws-c-tr"><svg viewBox="0 0 40 40"><path d="M2 2 L2 20 M2 2 L20 2" stroke="#D4AF37" stroke-width="2" fill="none"/><circle cx="2" cy="2" r="3" fill="#D4AF37"/></svg></div>
+			<div class="clx-ws-corner clx-ws-c-bl"><svg viewBox="0 0 40 40"><path d="M2 2 L2 20 M2 2 L20 2" stroke="#D4AF37" stroke-width="2" fill="none"/><circle cx="2" cy="2" r="3" fill="#D4AF37"/></svg></div>
+			<div class="clx-ws-corner clx-ws-c-br"><svg viewBox="0 0 40 40"><path d="M2 2 L2 20 M2 2 L20 2" stroke="#D4AF37" stroke-width="2" fill="none"/><circle cx="2" cy="2" r="3" fill="#D4AF37"/></svg></div>
+
+			<div id="clx-ws-spin-view">
+				<div class="clx-ws-title"><?php echo esc_html( $settings['title'] ); ?></div>
+				<div class="clx-ws-subtitle"><?php echo esc_html( $settings['subtitle'] ); ?></div>
+
+				<div class="clx-ws-wheel-wrap">
+					<div class="clx-ws-ring"></div>
+					<div class="clx-ws-pointer"></div>
+					<canvas id="clx-ws-wheel-canvas" width="250" height="250"></canvas>
+					<div class="clx-ws-hub">✦</div>
+				</div>
+
+				<button id="clx-ws-spin-btn"><?php echo esc_html( $settings['button_text'] ); ?></button>
+			</div>
+
+			<div id="clx-ws-result">
+				<div class="clx-ws-result-badge">🎉 نتیجه گردونه شما:</div>
+				<div class="clx-ws-result-prize" id="clx-ws-result-label"></div>
+				<div class="clx-ws-result-code" id="clx-ws-result-code" style="display:none;"></div>
+				<p style="font-size:12.5px;color:rgba(255,248,236,.6);margin-top:14px;"><?php echo esc_html( $settings['closed_text'] ); ?></p>
+			</div>
+
+			<div class="clx-ws-footnote"><?php echo esc_html( $settings['footer_note'] ); ?></div>
+		</div>
+	</div>
+
+	<script>
+	(function(){
+		var CLX = <?php echo wp_json_encode( $data ); ?>;
+
+		function clxShouldShow(){
+			var freq = CLX.settings.frequency;
+			var now = Date.now();
+			if (freq === 'every_visit') { return true; }
+			if (freq === 'once_per_session') {
+				return !sessionStorage.getItem('clx_ws_shown');
+			}
+			if (freq === 'once_per_day') {
+				var last = localStorage.getItem('clx_ws_shown_at');
+				if (!last) return true;
+				return (now - parseInt(last,10)) > 24*60*60*1000;
+			}
+			if (freq === 'once_forever') {
+				return !localStorage.getItem('clx_ws_shown_forever');
+			}
+			return true;
+		}
+		function clxMarkShown(){
+			sessionStorage.setItem('clx_ws_shown','1');
+			localStorage.setItem('clx_ws_shown_at', Date.now().toString());
+			localStorage.setItem('clx_ws_shown_forever','1');
+		}
+
+		if (!clxShouldShow()) { return; }
+
+		var overlay = document.getElementById('clx-ws-overlay');
+		var delay = (CLX.settings.delay || 0) * 1000;
+
+		setTimeout(function(){
+			overlay.classList.add('clx-show');
+			clxMarkShown();
+		}, delay);
+
+		var closeBtn = document.getElementById('clx-ws-close');
+		if (closeBtn) {
+			closeBtn.addEventListener('click', function(){
+				overlay.classList.remove('clx-show');
+			});
+		}
+		overlay.addEventListener('click', function(e){
+			if (e.target === overlay) { overlay.classList.remove('clx-show'); }
+		});
+
+		/* ---- رسم گردونه روی canvas ---- */
+		var items = CLX.items;
+		var n = items.length;
+		var canvas = document.getElementById('clx-ws-wheel-canvas');
+		var ctx = canvas.getContext('2d');
+		var cx = canvas.width/2, cy = canvas.height/2, r = canvas.width/2 - 4;
+		var sliceAngle = (2*Math.PI) / n;
+
+		function drawWheel(){
+			ctx.clearRect(0,0,canvas.width,canvas.height);
+			for (var i=0;i<n;i++){
+				var start = -Math.PI/2 + i*sliceAngle;
+				var end = start + sliceAngle;
+				ctx.beginPath();
+				ctx.moveTo(cx,cy);
+				ctx.arc(cx,cy,r,start,end);
+				ctx.closePath();
+				ctx.fillStyle = items[i].color || '#0EA5A4';
+				ctx.fill();
+				ctx.strokeStyle = 'rgba(255,248,236,.35)';
+				ctx.lineWidth = 1.5;
+				ctx.stroke();
+
+				ctx.save();
+				ctx.translate(cx,cy);
+				ctx.rotate(start + sliceAngle/2);
+				ctx.textAlign = 'right';
+				ctx.fillStyle = '#FFF8EC';
+				ctx.font = '600 13px Vazirmatn, Tahoma, sans-serif';
+				ctx.fillText(items[i].label, r - 12, 4);
+				ctx.restore();
+			}
+		}
+		drawWheel();
+
+		/* ---- منطق چرخش و برد وزنی ---- */
+		var spinBtn = document.getElementById('clx-ws-spin-btn');
+		var spinView = document.getElementById('clx-ws-spin-view');
+		var resultView = document.getElementById('clx-ws-result');
+		var resultLabel = document.getElementById('clx-ws-result-label');
+		var resultCode = document.getElementById('clx-ws-result-code');
+		var spun = false;
+
+		function pickWeightedIndex(){
+			var total = items.reduce(function(s,it){return s+parseInt(it.weight||1,10);},0);
+			var r0 = Math.random()*total;
+			var acc = 0;
+			for (var i=0;i<n;i++){
+				acc += parseInt(items[i].weight||1,10);
+				if (r0 <= acc) return i;
+			}
+			return n-1;
+		}
+
+		spinBtn.addEventListener('click', function(){
+			if (spun) return;
+			spun = true;
+			spinBtn.disabled = true;
+
+			var idx = pickWeightedIndex();
+			var centerDeg = (idx*sliceAngle + sliceAngle/2) * (180/Math.PI);
+			var jitter = (Math.random()-0.5) * (360/n) * 0.5;
+			var finalRotation = 6*360 + (360 - centerDeg) + jitter;
+
+			canvas.style.transition = 'transform 4.2s cubic-bezier(.12,.72,.13,1)';
+			canvas.style.transform = 'rotate(' + finalRotation + 'deg)';
+
+			setTimeout(function(){
+				var won = items[idx];
+				resultLabel.textContent = won.label;
+				if (won.prize) {
+					resultCode.style.display = 'inline-block';
+					resultCode.textContent = won.prize;
+				} else {
+					resultCode.style.display = 'none';
+				}
+				spinView.style.display = 'none';
+				resultView.classList.add('clx-active');
+			}, 4300);
+		});
+	})();
+	</script>
+	<?php
+}

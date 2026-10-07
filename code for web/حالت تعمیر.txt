@@ -1,0 +1,729 @@
+<?php
+
+
+if ( ! defined( 'ABSPATH' ) ) exit;
+
+/* ==========================================================================
+   1) مقادیر پیش‌فرض تنظیمات
+   ========================================================================== */
+function wpmc_default_options() {
+    return array(
+        'enabled'         => 0,
+        'title'           => 'در حال ساخته‌شدنیم!',
+        'description'     => 'داریم یه چیز خفن‌تر می‌سازیم 🌟 یکم دیگه صبر کن، به‌زودی با ظاهری جدید و تجربه‌ای بهتر برمی‌گردیم.',
+        'badge_text'      => 'در حال ساخت',
+        'show_timer'      => 1,
+        'end_datetime'    => '',
+        'timer_label'     => 'شمارش معکوس تا بازگشایی',
+        'timer_sentence'  => 'سایت تا {days} روز و {hours} ساعت و {minutes} دقیقه دیگر دوباره باز می‌شود!',
+        'progress_label'  => 'پیشرفت بروزرسانی',
+        'progress_percent'=> 70,
+        'feature1'        => 'امن و مطمئن',
+        'feature2'        => 'سریع‌تر از قبل',
+        'feature3'        => 'ظاهری تازه',
+        'footer_text'     => 'در حال بروزرسانی سایت هستیم',
+        // پالت «اسطرلاب»: برنز/طلایی، فیروزه‌ای، یاقوتی، شب ایرانی
+        'color_primary'   => '#D4AF6A', // طلایی برنزی
+        'color_secondary' => '#2FB8B0', // فیروزه‌ای
+        'color_accent'    => '#B23A48', // یاقوتی/انار
+        'color_bg1'       => '#0B1220', // مشکی‌آبی شب
+        'color_bg2'       => '#2A123B', // بنفش تیره
+    );
+}
+
+function wpmc_get_options() {
+    $opts = get_option( 'wpmc_options', array() );
+    return wp_parse_args( $opts, wpmc_default_options() );
+}
+
+/* ==========================================================================
+   2) ساخت صفحه تنظیمات در پیشخوان
+   ========================================================================== */
+add_action( 'admin_menu', 'wpmc_add_admin_menu' );
+function wpmc_add_admin_menu() {
+    add_menu_page(
+        'حالت تعمیر',
+        'حالت تعمیر',
+        'manage_options',
+        'wpmc-maintenance',
+        'wpmc_render_admin_page',
+        'dashicons-hammer',
+        80
+    );
+}
+
+add_action( 'admin_enqueue_scripts', 'wpmc_admin_assets' );
+function wpmc_admin_assets( $hook ) {
+    if ( $hook !== 'toplevel_page_wpmc-maintenance' ) return;
+    wp_enqueue_style( 'wp-color-picker' );
+    wp_enqueue_script( 'wp-color-picker' );
+    wp_enqueue_script( 'jquery' );
+}
+
+function wpmc_render_admin_page() {
+    if ( ! current_user_can( 'manage_options' ) ) return;
+
+    $date_error = false;
+
+    // ذخیره تنظیمات
+    if ( isset( $_POST['wpmc_save'] ) && check_admin_referer( 'wpmc_save_action', 'wpmc_nonce' ) ) {
+        $d = wpmc_default_options();
+
+        // باکس تاریخ و باکس ساعت حالا کاملاً جدا از هم پر می‌شوند.
+        // اینجا آن‌ها را با هم ترکیب می‌کنیم تا یک مقدار قابل‌فهم برای PHP بسازیم.
+        $raw_date = sanitize_text_field( wp_unslash( $_POST['end_date'] ?? '' ) ); // مثل 2026-07-20
+        $raw_time = sanitize_text_field( wp_unslash( $_POST['end_time'] ?? '' ) ); // مثل 18:30
+
+        $raw_datetime = '';
+        if ( $raw_date !== '' ) {
+            // اگر ساعت خالی بود، پیش‌فرض را نیمه‌شب می‌گذاریم تا حداقل روز درست ثبت شود.
+            $raw_datetime = $raw_date . 'T' . ( $raw_time !== '' ? $raw_time : '00:00' );
+            $test_ts = strtotime( $raw_datetime );
+            if ( $test_ts === false ) {
+                $date_error   = true;
+                $raw_datetime = ''; // مقدار نامعتبر ذخیره نشود
+            }
+        } elseif ( $raw_time !== '' ) {
+            // ساعت وارد شده ولی تاریخ نه — این حالت ناقص است.
+            $date_error = true;
+        }
+
+        $new = array(
+            'enabled'          => isset( $_POST['enabled'] ) ? 1 : 0,
+            'show_timer'       => isset( $_POST['show_timer'] ) ? 1 : 0,
+            'title'            => sanitize_text_field( wp_unslash( $_POST['title'] ?? '' ) ),
+            'description'      => sanitize_textarea_field( wp_unslash( $_POST['description'] ?? '' ) ),
+            'badge_text'       => sanitize_text_field( wp_unslash( $_POST['badge_text'] ?? '' ) ),
+            'end_datetime'     => $raw_datetime,
+            'timer_label'      => sanitize_text_field( wp_unslash( $_POST['timer_label'] ?? '' ) ),
+            'timer_sentence'   => sanitize_text_field( wp_unslash( $_POST['timer_sentence'] ?? '' ) ),
+            'progress_label'   => sanitize_text_field( wp_unslash( $_POST['progress_label'] ?? '' ) ),
+            'progress_percent' => max( 0, min( 100, intval( $_POST['progress_percent'] ?? 70 ) ) ),
+            'feature1'         => sanitize_text_field( wp_unslash( $_POST['feature1'] ?? '' ) ),
+            'feature2'         => sanitize_text_field( wp_unslash( $_POST['feature2'] ?? '' ) ),
+            'feature3'         => sanitize_text_field( wp_unslash( $_POST['feature3'] ?? '' ) ),
+            'footer_text'      => sanitize_text_field( wp_unslash( $_POST['footer_text'] ?? '' ) ),
+            'color_primary'    => sanitize_hex_color( $_POST['color_primary'] ?? '' ) ?: $d['color_primary'],
+            'color_secondary'  => sanitize_hex_color( $_POST['color_secondary'] ?? '' ) ?: $d['color_secondary'],
+            'color_accent'     => sanitize_hex_color( $_POST['color_accent'] ?? '' ) ?: $d['color_accent'],
+            'color_bg1'        => sanitize_hex_color( $_POST['color_bg1'] ?? '' ) ?: $d['color_bg1'],
+            'color_bg2'        => sanitize_hex_color( $_POST['color_bg2'] ?? '' ) ?: $d['color_bg2'],
+        );
+        update_option( 'wpmc_options', $new );
+
+        if ( $date_error ) {
+            echo '<div class="notice notice-error is-dismissible"><p>⚠️ تاریخ/ساعتی که وارد کردید قابل ثبت نبود (یا فقط ساعت را بدون تاریخ انتخاب کرده‌اید)، بنابراین ذخیره نشد. لطفاً هم باکس تاریخ و هم باکس ساعت را از روی انتخابگر مرورگر پر کنید.</p></div>';
+        } else {
+            echo '<div class="notice notice-success is-dismissible"><p>تنظیمات با موفقیت ذخیره شد ✅</p></div>';
+        }
+    }
+
+    $o = wpmc_get_options();
+    ?>
+    <div class="wrap" dir="rtl" style="font-family: Tahoma, sans-serif; max-width:900px;">
+        <h1 style="display:flex;align-items:center;gap:8px;">🛠️ حالت تعمیر و نگهداری سایت</h1>
+        <p>از این بخش می‌توانید صفحه تعمیر سایت را فعال/غیرفعال کرده، متن‌های آن را ویرایش و ظاهرش را شخصی‌سازی کنید. طرح این نسخه با الهام از «اسطرلاب» و کاشی‌کاری ایرانی طراحی شده است.</p>
+
+        <form method="post">
+            <?php wp_nonce_field( 'wpmc_save_action', 'wpmc_nonce' ); ?>
+
+            <h2 class="title">وضعیت</h2>
+            <table class="form-table" role="presentation">
+                <tr>
+                    <th scope="row">حالت تعمیر</th>
+                    <td>
+                        <label style="font-size:15px;">
+                            <input type="checkbox" name="enabled" value="1" <?php checked( $o['enabled'], 1 ); ?> />
+                            فعال باشد (بازدیدکنندگان صفحه تعمیر را می‌بینند، مدیر سایت به صورت عادی سایت را می‌بیند)
+                        </label>
+                    </td>
+                </tr>
+            </table>
+
+            <h2 class="title">متن‌های صفحه</h2>
+            <table class="form-table" role="presentation">
+                <tr>
+                    <th scope="row"><label for="badge_text">متن بج بالای صفحه</label></th>
+                    <td><input type="text" id="badge_text" name="badge_text" class="regular-text" value="<?php echo esc_attr( $o['badge_text'] ); ?>" /></td>
+                </tr>
+                <tr>
+                    <th scope="row"><label for="title">عنوان اصلی</label></th>
+                    <td><input type="text" id="title" name="title" class="regular-text" value="<?php echo esc_attr( $o['title'] ); ?>" /></td>
+                </tr>
+                <tr>
+                    <th scope="row"><label for="description">توضیحات</label></th>
+                    <td><textarea id="description" name="description" class="large-text" rows="3"><?php echo esc_textarea( $o['description'] ); ?></textarea></td>
+                </tr>
+                <tr>
+                    <th scope="row"><label for="feature1">ویژگی اول</label></th>
+                    <td><input type="text" id="feature1" name="feature1" class="regular-text" value="<?php echo esc_attr( $o['feature1'] ); ?>" /></td>
+                </tr>
+                <tr>
+                    <th scope="row"><label for="feature2">ویژگی دوم</label></th>
+                    <td><input type="text" id="feature2" name="feature2" class="regular-text" value="<?php echo esc_attr( $o['feature2'] ); ?>" /></td>
+                </tr>
+                <tr>
+                    <th scope="row"><label for="feature3">ویژگی سوم</label></th>
+                    <td><input type="text" id="feature3" name="feature3" class="regular-text" value="<?php echo esc_attr( $o['feature3'] ); ?>" /></td>
+                </tr>
+                <tr>
+                    <th scope="row"><label for="footer_text">متن پایین صفحه</label></th>
+                    <td><input type="text" id="footer_text" name="footer_text" class="regular-text" value="<?php echo esc_attr( $o['footer_text'] ); ?>" /></td>
+                </tr>
+            </table>
+
+            <h2 class="title">تایمر و پیشرفت</h2>
+            <table class="form-table" role="presentation">
+                <tr>
+                    <th scope="row">نمایش تایمر</th>
+                    <td>
+                        <label style="font-size:15px;">
+                            <input type="checkbox" name="show_timer" value="1" <?php checked( $o['show_timer'], 1 ); ?> />
+                            تایمر شمارش معکوس نمایش داده شود
+                        </label>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><label for="end_date">تاریخ بازگشایی سایت</label></th>
+                    <td>
+                        <?php
+                        // مقدار ذخیره‌شده به‌صورت "YYYY-MM-DDTHH:MM" است؛ اینجا برای پر کردن
+                        // دو باکس جدا، آن را به تکه‌ی تاریخ و تکه‌ی ساعت می‌شکنیم.
+                        $end_date_val = '';
+                        $end_time_val = '';
+                        if ( ! empty( $o['end_datetime'] ) && strpos( $o['end_datetime'], 'T' ) !== false ) {
+                            list( $end_date_val, $end_time_val ) = explode( 'T', $o['end_datetime'], 2 );
+                        }
+                        ?>
+                        <input type="date"
+                               id="end_date"
+                               name="end_date"
+                               dir="ltr"
+                               style="direction:ltr; text-align:left; unicode-bidi:plaintext;"
+                               value="<?php echo esc_attr( $end_date_val ); ?>" />
+                        <p class="description">
+                            روی باکس کلیک کنید تا تقویم مرورگر باز شود؛ فقط از همان تقویم انتخاب کنید، تایپ دستی توصیه نمی‌شود.
+                        </p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><label for="end_time">ساعت بازگشایی سایت</label></th>
+                    <td>
+                        <input type="time"
+                               id="end_time"
+                               name="end_time"
+                               dir="ltr"
+                               style="direction:ltr; text-align:left; unicode-bidi:plaintext;"
+                               value="<?php echo esc_attr( $end_time_val ); ?>" />
+                        <p class="description">
+                            روی باکس کلیک کنید تا انتخابگر ساعتِ مرورگر باز شود.
+                            زمان بر اساس منطقه‌ی زمانی سایت شماست (پیشخوان ← تنظیمات ← عمومی).
+                            اگر تاریخ را خالی بگذارید، به‌صورت پیش‌فرض ۲ روز دیگر در نظر گرفته می‌شود.
+                        </p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><label for="timer_label">برچسب بالای تایمر</label></th>
+                    <td><input type="text" id="timer_label" name="timer_label" class="regular-text" value="<?php echo esc_attr( $o['timer_label'] ); ?>" /></td>
+                </tr>
+                <tr>
+                    <th scope="row"><label for="timer_sentence">جمله‌ی تایمر</label></th>
+                    <td>
+                        <input type="text" id="timer_sentence" name="timer_sentence" class="large-text" value="<?php echo esc_attr( $o['timer_sentence'] ); ?>" />
+                        <p class="description">می‌توانید از {days} برای روز، {hours} برای ساعت و {minutes} برای دقیقه استفاده کنید.</p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><label for="progress_label">برچسب نوار پیشرفت</label></th>
+                    <td><input type="text" id="progress_label" name="progress_label" class="regular-text" value="<?php echo esc_attr( $o['progress_label'] ); ?>" /></td>
+                </tr>
+                <tr>
+                    <th scope="row"><label for="progress_percent">درصد پیشرفت</label></th>
+                    <td><input type="number" min="0" max="100" id="progress_percent" name="progress_percent" value="<?php echo esc_attr( $o['progress_percent'] ); ?>" style="width:80px;" /> %</td>
+                </tr>
+            </table>
+
+            <h2 class="title">رنگ‌بندی (پالت اسطرلاب)</h2>
+            <table class="form-table" role="presentation">
+                <tr>
+                    <th scope="row"><label for="color_primary">طلایی برنزی (اصلی)</label></th>
+                    <td><input type="text" id="color_primary" name="color_primary" class="wpmc-color-field" value="<?php echo esc_attr( $o['color_primary'] ); ?>" /></td>
+                </tr>
+                <tr>
+                    <th scope="row"><label for="color_secondary">فیروزه‌ای (ثانویه)</label></th>
+                    <td><input type="text" id="color_secondary" name="color_secondary" class="wpmc-color-field" value="<?php echo esc_attr( $o['color_secondary'] ); ?>" /></td>
+                </tr>
+                <tr>
+                    <th scope="row"><label for="color_accent">یاقوتی (تأکیدی)</label></th>
+                    <td><input type="text" id="color_accent" name="color_accent" class="wpmc-color-field" value="<?php echo esc_attr( $o['color_accent'] ); ?>" /></td>
+                </tr>
+                <tr>
+                    <th scope="row"><label for="color_bg1">پس‌زمینه ۱ (شب)</label></th>
+                    <td><input type="text" id="color_bg1" name="color_bg1" class="wpmc-color-field" value="<?php echo esc_attr( $o['color_bg1'] ); ?>" /></td>
+                </tr>
+                <tr>
+                    <th scope="row"><label for="color_bg2">پس‌زمینه ۲ (بنفش تیره)</label></th>
+                    <td><input type="text" id="color_bg2" name="color_bg2" class="wpmc-color-field" value="<?php echo esc_attr( $o['color_bg2'] ); ?>" /></td>
+                </tr>
+            </table>
+
+            <p><a href="<?php echo esc_url( home_url( '/' ) ); ?>" target="_blank">👁️ پیش‌نمایش سایت را در تب جدید ببینید</a> (برای دیدن صفحه تعمیر، حتماً از حالت ناشناس/Incognito استفاده کنید چون شما به عنوان مدیر آن را نمی‌بینید)</p>
+
+            <?php submit_button( 'ذخیره تنظیمات', 'primary', 'wpmc_save' ); ?>
+        </form>
+
+        <hr style="margin-top:40px;">
+        <p style="text-align:center; color:#888; font-size:13px;">
+            ساخته شده توسط علیرضا رحمتی | اینستاگرام: <a href="https://instagram.com/alireza.webcode" target="_blank">alireza.webcode</a> | تلگرام: <a href="https://t.me/alireza_webcode" target="_blank">alireza_webcode</a>
+        </p>
+    </div>
+
+    <script>
+    jQuery(document).ready(function($){
+        $('.wpmc-color-field').wpColorPicker();
+    });
+    </script>
+    <?php
+}
+
+/* ==========================================================================
+   3) نمایش صفحه تعمیر در سمت سایت
+   ========================================================================== */
+add_action( 'template_redirect', 'wpmc_maybe_show_maintenance_page' );
+function wpmc_maybe_show_maintenance_page() {
+
+    $o = wpmc_get_options();
+
+    if ( empty( $o['enabled'] ) ) return;
+
+    // مدیر سایت و درخواست‌های ادمین/اجاکس از حالت تعمیر مستثنی هستند
+    if ( current_user_can( 'manage_options' ) ) return;
+    if ( defined( 'DOING_AJAX' ) && DOING_AJAX ) return;
+    if ( is_admin() ) return;
+
+    // هدر ۵۰۳ برای موتورهای جستجو (توصیه سئو)
+    status_header( 503 );
+    header( 'Retry-After: 3600' );
+
+    $end_ts = 0;
+    if ( ! empty( $o['show_timer'] ) ) {
+        $end_ts = wpmc_resolve_end_timestamp( $o['end_datetime'] );
+    }
+
+    wpmc_render_maintenance_html( $o, $end_ts );
+    exit;
+}
+
+/**
+ * تبدیل مقدار فیلد «تاریخ و ساعت بازگشایی» به یک timestamp قابل‌اتکا.
+ *
+ * نکته‌ی مهم: مقدار input[type=datetime-local] هیچ منطقه‌ی زمانی‌ای همراه ندارد
+ * (مثلاً "2026-07-20T18:00")، یعنی همان چیزی است که مدیر سایت روی ساعت خودش دیده.
+ * قبلاً این رشته مستقیم به strtotime() داده می‌شد که آن را بر اساس تنظیم پیش‌فرض
+ * PHP سرور (اغلب UTC) تفسیر می‌کرد، نه منطقه‌ی زمانیِ سایت — همین باعث می‌شد
+ * زمان انتخابی «قبول» نشود و شمارش معکوس چند ساعت جابه‌جا نمایش داده شود.
+ * اینجا آن را صریحاً با منطقه‌ی زمانیِ ثبت‌شده در پیشخوان ← تنظیمات ← عمومی می‌خوانیم.
+ */
+function wpmc_resolve_end_timestamp( $raw_datetime ) {
+    $fallback = time() + 2 * DAY_IN_SECONDS;
+
+    if ( empty( $raw_datetime ) ) {
+        return $fallback;
+    }
+
+    try {
+        $tz = function_exists( 'wp_timezone' ) ? wp_timezone() : new DateTimeZone( 'UTC' );
+        $dt = new DateTime( $raw_datetime, $tz );
+        return $dt->getTimestamp();
+    } catch ( Exception $e ) {
+        return $fallback;
+    }
+}
+
+/**
+ * تولید خطوط مدرج (تیک‌های) لبه‌ی اسطرلاب.
+ * این تابع به‌جای نوشتن دستی ۲۴ خط SVG، آن‌ها را حلقه‌ای می‌سازد؛
+ * دقیقاً مثل مدرج‌بندی «حلقه‌ی حد» (limb) روی یک اسطرلاب واقعی.
+ */
+function wpmc_astrolabe_ticks() {
+    $out = '';
+    for ( $i = 0; $i < 24; $i++ ) {
+        $deg      = $i * 15;
+        $is_major = ( $i % 6 === 0 );
+        $y1       = $is_major ? 4 : 6.5;
+        $width    = $is_major ? 1.6 : 0.8;
+        $opacity  = $is_major ? 0.95 : 0.4;
+        $out .= '<line x1="50" y1="' . $y1 . '" x2="50" y2="11" stroke="var(--wpmc-gold)" stroke-width="' . $width . '" opacity="' . $opacity . '" transform="rotate(' . $deg . ' 50 50)"/>';
+    }
+    return $out;
+}
+
+function wpmc_render_maintenance_html( $o, $end_ts ) {
+    $site_name = get_bloginfo( 'name' );
+    $gold      = esc_attr( $o['color_primary'] );
+    $turq      = esc_attr( $o['color_secondary'] );
+    $ruby      = esc_attr( $o['color_accent'] ?? '#B23A48' );
+    $bg1       = esc_attr( $o['color_bg1'] );
+    $bg2       = esc_attr( $o['color_bg2'] );
+    $favicon   = get_site_icon_url();
+    ?>
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="<?php bloginfo( 'charset' ); ?>">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title><?php echo esc_html( $o['title'] . ' — ' . $site_name ); ?></title>
+<?php if ( $favicon ) : ?><link rel="icon" href="<?php echo esc_url( $favicon ); ?>"><?php endif; ?>
+<link rel="preconnect" href="https://fonts.bunny.net">
+<link href="https://fonts.bunny.net/css?family=vazirmatn:400,500,600,700,800,900" rel="stylesheet">
+<style>
+    :root{
+        --wpmc-gold: <?php echo $gold; ?>;
+        --wpmc-turq: <?php echo $turq; ?>;
+        --wpmc-ruby: <?php echo $ruby; ?>;
+        --wpmc-bg1: <?php echo $bg1; ?>;
+        --wpmc-bg2: <?php echo $bg2; ?>;
+        --wpmc-ivory: #F3ECDD;
+    }
+    *{ box-sizing:border-box; }
+
+    html,body{ margin:0; padding:0; min-height:100vh; overflow-x:hidden; }
+
+    body{
+        position:relative;
+        display:flex; align-items:center; justify-content:center;
+        padding:28px 16px;
+        font-family: 'Vazirmatn', Tahoma, Arial, sans-serif;
+        color: var(--wpmc-ivory);
+        background:
+            radial-gradient(circle at 18% 22%, color-mix(in srgb, var(--wpmc-gold) 22%, transparent) 0%, transparent 45%),
+            radial-gradient(circle at 82% 18%, color-mix(in srgb, var(--wpmc-turq) 26%, transparent) 0%, transparent 45%),
+            radial-gradient(circle at 70% 88%, color-mix(in srgb, var(--wpmc-ruby) 22%, transparent) 0%, transparent 50%),
+            linear-gradient(135deg, var(--wpmc-bg1), var(--wpmc-bg2) 55%, var(--wpmc-bg1));
+        background-size: 140% 140%, 140% 140%, 140% 140%, 260% 260%;
+        animation: wpmc-mesh 22s ease-in-out infinite;
+    }
+    @keyframes wpmc-mesh{
+        0%{ background-position: 0% 0%, 100% 0%, 100% 100%, 0% 50%; }
+        50%{ background-position: 15% 25%, 75% 25%, 65% 75%, 100% 50%; }
+        100%{ background-position: 0% 0%, 100% 0%, 100% 100%, 0% 50%; }
+    }
+
+    /* الگوی گره‌چینی (girih) در پس‌زمینه، الهام‌گرفته از کاشی‌کاری ایرانی */
+    .wpmc-girih{ position:fixed; inset:0; pointer-events:none; z-index:1; opacity:.06;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='90' height='90'%3E%3Cg fill='none' stroke='%23D4AF6A' stroke-width='1.2'%3E%3Cpath d='M45 4 L62 22 L45 40 L28 22 Z M45 40 L62 58 L45 76 L28 58 Z M4 45 L22 28 L40 45 L22 62 Z M50 45 L68 28 L86 45 L68 62 Z'/%3E%3Ccircle cx='45' cy='45' r='6'/%3E%3C/g%3E%3C/svg%3E");
+        background-size: 90px 90px;
+        animation: wpmc-girih-move 60s linear infinite;
+    }
+    @keyframes wpmc-girih-move{ from{ background-position:0 0; } to{ background-position:360px 360px; } }
+
+    .wpmc-blob{ position:fixed; border-radius:50%; filter: blur(80px); opacity:.28; z-index:1; pointer-events:none; }
+    .wpmc-blob.b1{ width:300px; height:300px; background:var(--wpmc-gold); top:-70px; left:-70px; animation: wpmc-float1 16s ease-in-out infinite; }
+    .wpmc-blob.b2{ width:320px; height:320px; background:var(--wpmc-turq); bottom:-90px; right:-70px; animation: wpmc-float2 18s ease-in-out infinite; }
+    .wpmc-blob.b3{ width:220px; height:220px; background:var(--wpmc-ruby); top:42%; right:6%; animation: wpmc-float1 14s ease-in-out infinite reverse; }
+    @keyframes wpmc-float1{ 0%,100%{ transform:translate(0,0); } 50%{ transform:translate(26px,34px); } }
+    @keyframes wpmc-float2{ 0%,100%{ transform:translate(0,0); } 50%{ transform:translate(-26px,-26px); } }
+
+    .wpmc-wrap{ position:relative; z-index:3; width:100%; max-width:700px; }
+
+    .wpmc-card{
+        position:relative;
+        background: rgba(255,255,255,0.06);
+        border: 1px solid rgba(212,175,106,0.28);
+        backdrop-filter: blur(22px);
+        -webkit-backdrop-filter: blur(22px);
+        border-radius: 26px;
+        padding: 48px 40px 34px;
+        text-align:center;
+        box-shadow: 0 30px 80px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.12);
+        animation: wpmc-rise 1s cubic-bezier(.2,.8,.2,1);
+    }
+    @keyframes wpmc-rise{ from{ opacity:0; transform: translateY(26px) scale(.97); } to{ opacity:1; transform: translateY(0) scale(1); } }
+
+    /* نشان‌های ستاره‌ی چهارپر در چهار گوشه‌ی قاب، به‌جای براکت‌های ساده */
+    .wpmc-card::before, .wpmc-card::after,
+    .wpmc-corner-l::before, .wpmc-corner-l::after{
+        content:"✦"; position:absolute; color: var(--wpmc-gold); font-size:13px; opacity:.7;
+    }
+    .wpmc-card::before{ top:16px; right:18px; }
+    .wpmc-card::after{ top:16px; left:18px; }
+    .wpmc-corner-l{ position:absolute; inset:0; pointer-events:none; }
+    .wpmc-corner-l::before{ bottom:16px; right:18px; top:auto; }
+    .wpmc-corner-l::after{ bottom:16px; left:18px; top:auto; }
+
+    .wpmc-badge{
+        display:inline-flex; align-items:center; gap:7px;
+        background: linear-gradient(90deg, var(--wpmc-ruby), var(--wpmc-gold));
+        padding:7px 18px; border-radius:999px;
+        font-size:13px; font-weight:700; color:#1a0e05;
+        box-shadow: 0 8px 22px color-mix(in srgb, var(--wpmc-ruby) 45%, transparent);
+        margin-bottom:26px;
+    }
+
+    /* ------ نشان اسطرلاب: عنصر امضادار طراحی ------ */
+    .wpmc-astrolabe{ position:relative; width:118px; height:118px; margin:0 auto 22px; }
+    .wpmc-astrolabe svg{ position:absolute; inset:0; width:100%; height:100%; overflow:visible; }
+    .wpmc-astrolabe-limb{ animation: wpmc-spin 46s linear infinite; filter: drop-shadow(0 0 10px color-mix(in srgb, var(--wpmc-gold) 45%, transparent)); }
+    .wpmc-astrolabe-arm{ transform-origin:50% 50%; animation: wpmc-spin-rev 24s linear infinite; }
+    .wpmc-astrolabe-star{ transform-origin:50% 50%; animation: wpmc-breathe 3.6s ease-in-out infinite; filter: drop-shadow(0 0 8px color-mix(in srgb, var(--wpmc-turq) 55%, transparent)); }
+    @keyframes wpmc-spin{ from{ transform: rotate(0deg); } to{ transform: rotate(360deg); } }
+    @keyframes wpmc-spin-rev{ from{ transform: rotate(0deg); } to{ transform: rotate(-360deg); } }
+    @keyframes wpmc-breathe{ 0%,100%{ transform: scale(1); opacity:1; } 50%{ transform: scale(1.06); opacity:.92; } }
+
+    .wpmc-title{
+        font-size: clamp(28px, 4.4vw, 42px);
+        font-weight:800; margin: 0 0 12px; line-height:1.4; letter-spacing:-0.3px;
+    }
+    .wpmc-title span{
+        background: linear-gradient(90deg, var(--wpmc-gold), var(--wpmc-turq));
+        -webkit-background-clip:text; background-clip:text; color:transparent;
+        text-shadow: none;
+    }
+    .wpmc-desc{ font-size:16px; line-height:2; color: rgba(243,236,221,0.8); max-width:520px; margin:0 auto 24px; font-weight:400; }
+
+    /* نوار تزئینی الهام‌گرفته از حاشیه‌ی تذهیب دست‌نویس‌های ایرانی */
+    .wpmc-band{ width:220px; height:8px; margin:0 auto 26px; position:relative;
+        background: repeating-linear-gradient(90deg, var(--wpmc-gold) 0 2px, transparent 2px 16px);
+        opacity:.55;
+    }
+    .wpmc-band::before, .wpmc-band::after{ content:"◆"; position:absolute; top:50%; transform:translateY(-50%); color:var(--wpmc-turq); font-size:10px; }
+    .wpmc-band::before{ right:-18px; } .wpmc-band::after{ left:-18px; }
+
+    /* ------ جمله‌ی زنده‌ی تایمر ------ */
+    .wpmc-sentence{
+        display:inline-block; max-width:100%;
+        background: linear-gradient(90deg, color-mix(in srgb, var(--wpmc-gold) 20%, transparent), color-mix(in srgb, var(--wpmc-turq) 20%, transparent));
+        border: 1px solid rgba(212,175,106,.35);
+        border-radius: 14px;
+        padding: 14px 22px;
+        font-size: 16px; font-weight:700; line-height:1.9;
+        margin-bottom: 24px;
+    }
+    .wpmc-sentence b{ color: var(--wpmc-turq); font-size:18px; }
+
+    /* ------ تایمر: صفحات برنزی با پرچ در گوشه‌ها ------ */
+    .wpmc-timer-label{ font-size:13px; color: rgba(243,236,221,.55); margin-bottom:14px; letter-spacing:.5px; }
+    .wpmc-countdown{ display:flex;flex-direction:row-reverse;
+	gap:14px; justify-content:center; flex-wrap:wrap; margin-bottom:32px; }
+    .wpmc-countdown .box{
+        position:relative;
+        background:
+            radial-gradient(circle at 9px 9px, color-mix(in srgb, var(--wpmc-gold) 65%, transparent) 2px, transparent 2.4px),
+            radial-gradient(circle at calc(100% - 9px) 9px, color-mix(in srgb, var(--wpmc-gold) 65%, transparent) 2px, transparent 2.4px),
+            linear-gradient(160deg, rgba(212,175,106,.16), rgba(212,175,106,.02));
+        border: 1px solid rgba(212,175,106,.32);
+        border-radius:12px; padding:16px 6px 12px; min-width:82px;
+        box-shadow: 0 12px 30px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.12);
+    }
+    .wpmc-countdown .num{
+        font-size:32px; font-weight:800; display:block;
+        background: linear-gradient(180deg, var(--wpmc-ivory), var(--wpmc-gold));
+        -webkit-background-clip:text; background-clip:text; color:transparent;
+    }
+    .wpmc-countdown .num.flip{ animation: wpmc-flip .45s ease; }
+    @keyframes wpmc-flip{
+        0%{ transform: rotateX(0deg) scale(1); }
+        35%{ transform: rotateX(90deg) scale(.85); opacity:.4; }
+        36%{ transform: rotateX(-90deg) scale(.85); }
+        100%{ transform: rotateX(0deg) scale(1); opacity:1; }
+    }
+    .wpmc-countdown .label{ font-size:11.5px; color: rgba(243,236,221,.55); margin-top:6px; display:block; }
+    .wpmc-countdown .sep{ align-self:center; font-size:24px; font-weight:800; color: rgba(243,236,221,.3); }
+
+    .wpmc-progress-wrap{ max-width:420px; margin:0 auto 36px; }
+    .wpmc-progress-top{ display:flex; justify-content:space-between; font-size:12px; color:rgba(243,236,221,.6); margin-bottom:7px; }
+    .wpmc-progress-top b{ color: var(--wpmc-ivory); }
+    .wpmc-progress{ width:100%; height:9px; border-radius:9px; background: rgba(255,255,255,0.09); overflow:hidden; position:relative; }
+    .wpmc-progress-bar{ height:100%; border-radius:9px; background: linear-gradient(90deg, var(--wpmc-gold), var(--wpmc-turq)); position:relative; overflow:hidden; }
+    .wpmc-progress-bar::after{
+        content:""; position:absolute; inset:0;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,.5), transparent);
+        width:40%; animation: wpmc-shimmer 2.2s linear infinite;
+    }
+    @keyframes wpmc-shimmer{ from{ transform:translateX(-120%); } to{ transform:translateX(320%); } }
+
+    .wpmc-features{ display:flex; justify-content:center; gap:10px; flex-wrap:wrap; margin-bottom:30px; }
+    .wpmc-feature{
+        display:flex; align-items:center; gap:7px;
+        background: rgba(255,255,255,.05); border:1px solid rgba(212,175,106,.22);
+        padding:9px 16px; border-radius:12px; font-size:13px; color:rgba(243,236,221,.82);
+    }
+    .wpmc-feature svg{ width:16px; height:16px; flex-shrink:0; color: var(--wpmc-turq); }
+
+    .wpmc-social{ display:flex; justify-content:center; gap:12px; margin-bottom:24px; }
+    .wpmc-social a{
+        width:42px; height:42px; border-radius:50%;
+        display:flex; align-items:center; justify-content:center;
+        background: rgba(255,255,255,.06); border:1px solid rgba(212,175,106,.3);
+        transition: transform .25s ease, background .25s ease; color: var(--wpmc-ivory); text-decoration:none;
+    }
+    .wpmc-social a:hover{ transform: translateY(-4px); background: linear-gradient(135deg, var(--wpmc-gold), var(--wpmc-turq)); color:#1a0e05; }
+    .wpmc-social svg{ width:19px; height:19px; }
+
+    .wpmc-footer{ font-size:13px; color: rgba(243,236,221,.5); }
+
+    @media (max-width: 560px){
+        .wpmc-card{ padding:38px 20px 26px; border-radius:20px; }
+        .wpmc-countdown{ gap:8px; }
+        .wpmc-countdown .box{ min-width: calc(25% - 8px); padding:12px 4px 10px; }
+        .wpmc-countdown .num{ font-size:22px; }
+        .wpmc-countdown .sep{ display:none; }
+        .wpmc-title{ font-size:24px; }
+        .wpmc-desc{ font-size:14px; }
+        .wpmc-sentence{ font-size:14px; padding:12px 16px; }
+        .wpmc-features{ gap:8px; }
+        .wpmc-feature{ font-size:12px; padding:7px 12px; }
+    }
+
+    @media (prefers-reduced-motion: reduce){
+        *{ animation-duration: .001ms !important; animation-iteration-count: 1 !important; }
+    }
+</style>
+</head>
+<body>
+    <div class="wpmc-girih"></div>
+    <div class="wpmc-blob b1"></div>
+    <div class="wpmc-blob b2"></div>
+    <div class="wpmc-blob b3"></div>
+
+    <div class="wpmc-wrap">
+        <div class="wpmc-card">
+            <div class="wpmc-corner-l"></div>
+
+            <?php if ( ! empty( $o['badge_text'] ) ) : ?>
+            <div class="wpmc-badge">✦ <?php echo esc_html( $o['badge_text'] ); ?></div>
+            <?php endif; ?>
+
+            <!-- عنصر امضادار: نشان اسطرلاب، ابزار نجومیِ اندازه‌گیری زمان -->
+            <div class="wpmc-astrolabe" aria-hidden="true">
+                <svg class="wpmc-astrolabe-limb" viewBox="0 0 100 100">
+                    <circle cx="50" cy="50" r="46" fill="none" stroke="var(--wpmc-gold)" stroke-width="1.1" opacity="0.5"/>
+                    <?php echo wpmc_astrolabe_ticks(); ?>
+                    <circle cx="50" cy="50" r="34" fill="none" stroke="var(--wpmc-turq)" stroke-width="1" stroke-dasharray="2 5" opacity="0.55"/>
+                </svg>
+                <svg class="wpmc-astrolabe-star" viewBox="0 0 100 100">
+                    <defs>
+                        <linearGradient id="wpmcStarGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="var(--wpmc-gold)"/>
+                            <stop offset="100%" stop-color="var(--wpmc-ruby)"/>
+                        </linearGradient>
+                    </defs>
+                    <path fill="url(#wpmcStarGrad)" d="M50,34 L52.49,43.99 L61.31,38.69 L56.00,47.51 L66,50 L56.00,52.49 L61.31,61.31 L52.49,56.00 L50,66 L47.51,56.00 L38.69,61.31 L44.00,52.49 L34,50 L44.00,47.51 L38.69,38.69 L47.51,43.99 Z"/>
+                </svg>
+                <svg class="wpmc-astrolabe-arm" viewBox="0 0 100 100">
+                    <line x1="50" y1="50" x2="50" y2="9" stroke="var(--wpmc-ivory)" stroke-width="1.3" opacity="0.85"/>
+                    <circle cx="50" cy="9" r="2.2" fill="var(--wpmc-turq)"/>
+                </svg>
+            </div>
+
+            <h1 class="wpmc-title"><span><?php echo esc_html( $o['title'] ); ?></span></h1>
+            <p class="wpmc-desc"><?php echo nl2br( esc_html( $o['description'] ) ); ?></p>
+            <div class="wpmc-band" aria-hidden="true"></div>
+
+            <?php if ( $end_ts ) : ?>
+            <div class="wpmc-sentence" id="wpmc-sentence" data-template="<?php echo esc_attr( $o['timer_sentence'] ); ?>"><?php echo esc_html( $o['timer_sentence'] ); ?></div>
+
+            <div class="wpmc-timer-label"><?php echo esc_html( $o['timer_label'] ); ?></div>
+            <div class="wpmc-countdown" id="wpmc-countdown">
+                <div class="box"><span class="num" id="wpmc-d">۰۰</span><span class="label">روز</span></div>
+                <div class="sep">:</div>
+                <div class="box"><span class="num" id="wpmc-h">۰۰</span><span class="label">ساعت</span></div>
+                <div class="sep">:</div>
+                <div class="box"><span class="num" id="wpmc-m">۰۰</span><span class="label">دقیقه</span></div>
+                <div class="sep">:</div>
+                <div class="box"><span class="num" id="wpmc-s">۰۰</span><span class="label">ثانیه</span></div>
+            </div>
+            <?php endif; ?>
+
+            <div class="wpmc-progress-wrap">
+                <div class="wpmc-progress-top"><span><?php echo esc_html( $o['progress_label'] ); ?></span><b><?php echo esc_html( wpmc_to_fa_digits( $o['progress_percent'] ) ); ?>٪</b></div>
+                <div class="wpmc-progress"><div class="wpmc-progress-bar" style="width:<?php echo (int) $o['progress_percent']; ?>%;"></div></div>
+            </div>
+
+            <?php if ( $o['feature1'] || $o['feature2'] || $o['feature3'] ) : ?>
+            <div class="wpmc-features">
+                <?php if ( $o['feature1'] ) : ?><div class="wpmc-feature"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 018 0v3"/></svg> <?php echo esc_html( $o['feature1'] ); ?></div><?php endif; ?>
+                <?php if ( $o['feature2'] ) : ?><div class="wpmc-feature"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2 3 14h7l-1 8 10-12h-7z"/></svg> <?php echo esc_html( $o['feature2'] ); ?></div><?php endif; ?>
+                <?php if ( $o['feature3'] ) : ?><div class="wpmc-feature"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18"/></svg> <?php echo esc_html( $o['feature3'] ); ?></div><?php endif; ?>
+            </div>
+            <?php endif; ?>
+
+            <div class="wpmc-social">
+                <a href="https://instagram.com/alireza.webcode" target="_blank" rel="noopener" aria-label="اینستاگرام">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/></svg>
+                </a>
+                <a href="https://t.me/alireza_webcode" target="_blank" rel="noopener" aria-label="تلگرام">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4z"/></svg>
+                </a>
+            </div>
+
+            <div class="wpmc-footer"><?php echo esc_html( $o['footer_text'] ); ?></div>
+
+        </div>
+    </div>
+
+    <?php if ( $end_ts ) : ?>
+    <script>
+    (function(){
+        var target = <?php echo (int) $end_ts * 1000; ?>;
+        var fa = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
+        function toFa(num){ return String(num).replace(/[0-9]/g, function(d){ return fa[d]; }); }
+        function pad(num){ return String(num).padStart(2,'0'); }
+        var prev = { d:null, h:null, m:null, s:null };
+        function setVal(id, val, key){
+            var el = document.getElementById(id);
+            var faVal = toFa(pad(val));
+            if(prev[key] !== faVal){
+                el.textContent = faVal;
+                el.classList.remove('flip');
+                void el.offsetWidth;
+                el.classList.add('flip');
+                prev[key] = faVal;
+            }
+        }
+        var sentenceEl = document.getElementById('wpmc-sentence');
+        var template = sentenceEl ? sentenceEl.getAttribute('data-template') : '';
+
+        function tick(){
+            var now = Date.now();
+            var diff = Math.max(0, target - now);
+            var d = Math.floor(diff / (1000*60*60*24));
+            var h = Math.floor((diff / (1000*60*60)) % 24);
+            var m = Math.floor((diff / (1000*60)) % 60);
+            var s = Math.floor((diff / 1000) % 60);
+
+            setVal('wpmc-d', d, 'd');
+            setVal('wpmc-h', h, 'h');
+            setVal('wpmc-m', m, 'm');
+            setVal('wpmc-s', s, 's');
+
+            if( sentenceEl && template ){
+                var text = template
+                    .replace('{days}', '<b>' + toFa(d) + '</b>')
+                    .replace('{hours}', '<b>' + toFa(h) + '</b>')
+                    .replace('{minutes}', '<b>' + toFa(m) + '</b>');
+                sentenceEl.innerHTML = text;
+            }
+
+            if( diff <= 0 ){ clearInterval(timer); }
+        }
+        tick();
+        var timer = setInterval(tick, 1000);
+    })();
+    </script>
+    <?php endif; ?>
+
+</body>
+</html>
+    <?php
+}
+
+/**
+ * تبدیل اعداد انگلیسی به فارسی برای نمایش در صفحه.
+ */
+function wpmc_to_fa_digits( $num ) {
+    $fa = array( '۰','۱','۲','۳','۴','۵','۶','۷','۸','۹' );
+    return preg_replace_callback( '/[0-9]/', function( $m ) use ( $fa ) {
+        return $fa[ (int) $m[0] ];
+    }, (string) $num );
+}

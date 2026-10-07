@@ -1,0 +1,398 @@
+
+if (!defined('ABSPATH')) exit;
+
+
+if (!in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_option('active_plugins')))
+    && !function_exists('WC')) {
+    return;
+}
+
+
+if (!function_exists('awc_wc_default_settings')) {
+    function awc_wc_default_settings() {
+        return array(
+            'enabled'        => 1,
+            'currency_label' => 'تومان',
+            'tiers'          => array(
+                array('amount' => 3000000, 'percent' => 5),
+                array('amount' => 5000000, 'percent' => 10),
+                array('amount' => 7000000, 'percent' => 15),
+            ),
+        );
+    }
+}
+
+if (!function_exists('awc_wc_get_settings')) {
+    function awc_wc_get_settings() {
+        $saved    = get_option('awc_tiered_discount_settings');
+        $defaults = awc_wc_default_settings();
+
+        if (!is_array($saved)) {
+            return $defaults;
+        }
+
+        $saved['enabled']        = isset($saved['enabled']) ? (bool) $saved['enabled'] : true;
+        $saved['currency_label'] = (!empty($saved['currency_label'])) ? $saved['currency_label'] : $defaults['currency_label'];
+        $saved['tiers']          = (!empty($saved['tiers']) && is_array($saved['tiers'])) ? $saved['tiers'] : $defaults['tiers'];
+
+        // اطمینان از مرتب بودن صعودی پله‌ها بر اساس مبلغ
+        usort($saved['tiers'], function ($a, $b) {
+            return $a['amount'] <=> $b['amount'];
+        });
+
+        return $saved;
+    }
+}
+
+add_action('admin_menu', 'awc_wc_add_admin_menu');
+function awc_wc_add_admin_menu() {
+    add_menu_page(
+        'تخفیف پله‌ای',
+        'تخفیف پله‌ای',
+        'manage_woocommerce',
+        'awc-tiered-discount',
+        'awc_wc_render_settings_page',
+        'dashicons-tag',
+        56
+    );
+}
+
+add_action('admin_init', 'awc_wc_register_settings');
+function awc_wc_register_settings() {
+    register_setting('awc_wc_settings_group', 'awc_tiered_discount_settings', 'awc_wc_sanitize_settings');
+}
+
+function awc_wc_sanitize_settings($input) {
+    $defaults = awc_wc_default_settings();
+    $output   = array();
+
+    $output['enabled']        = isset($input['enabled']) ? 1 : 0;
+    $output['currency_label'] = isset($input['currency_label']) ? sanitize_text_field($input['currency_label']) : $defaults['currency_label'];
+
+    $tiers = array();
+    if (isset($input['tier_amount']) && is_array($input['tier_amount'])) {
+        foreach ($input['tier_amount'] as $i => $amount) {
+            $amount  = (float) preg_replace('/[^0-9.]/', '', (string) $amount);
+            $percent = isset($input['tier_percent'][$i]) ? (float) preg_replace('/[^0-9.]/', '', (string) $input['tier_percent'][$i]) : 0;
+
+            if ($amount > 0 && $percent > 0 && $percent <= 100) {
+                $tiers[] = array(
+                    'amount'  => $amount,
+                    'percent' => $percent,
+                );
+            }
+        }
+    }
+
+    usort($tiers, function ($a, $b) {
+        return $a['amount'] <=> $b['amount'];
+    });
+
+    $output['tiers'] = !empty($tiers) ? array_values($tiers) : $defaults['tiers'];
+
+    add_settings_error('awc_tiered_discount_settings', 'awc_settings_saved', 'تنظیمات با موفقیت ذخیره شد.', 'success');
+
+    return $output;
+}
+
+
+function awc_wc_render_settings_page() {
+    if (!current_user_can('manage_woocommerce')) return;
+
+    settings_errors('awc_tiered_discount_settings');
+    $settings = awc_wc_get_settings();
+    ?>
+    <div class="wrap awc-wrap" dir="rtl">
+        <h1 style="display:flex;align-items:center;gap:8px;">
+            <span class="dashicons dashicons-tag" style="font-size:26px;width:26px;height:26px;color:#d63384;"></span>
+            تنظیمات تخفیف پله‌ای
+        </h1>
+
+        <form method="post" action="options.php">
+            <?php settings_fields('awc_wc_settings_group'); ?>
+
+            <div class="awc-card">
+                <h2>تنظیمات عمومی</h2>
+
+                <table class="form-table">
+                    <tr>
+                        <th scope="row">فعال‌سازی</th>
+                        <td>
+                            <label class="awc-switch">
+                                <input type="checkbox" name="awc_tiered_discount_settings[enabled]" value="1" <?php checked($settings['enabled'], true); ?>>
+                                <span class="awc-slider"></span>
+                            </label>
+                            <span style="margin-inline-start:10px;color:#555;">فعال/غیرفعال کردن کل سیستم تخفیف پله‌ای</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">واحد پول نمایشی</th>
+                        <td>
+                            <input type="text" name="awc_tiered_discount_settings[currency_label]" value="<?php echo esc_attr($settings['currency_label']); ?>" class="regular-text" placeholder="تومان">
+                            <p class="description">این متن فقط برای نمایش پیام‌ها استفاده می‌شود (مثلاً تومان یا ریال)</p>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="awc-card">
+                <h2>پله‌های تخفیف</h2>
+                <p class="description">به هر تعداد که بخواهید پله اضافه کنید. اگر مبلغ سبد خرید مشتری از چند پله بیشتر باشد، بالاترین درصد تخفیف اعمال می‌شود.</p>
+
+                <table class="widefat awc-repeater-table" id="awc-repeater-table">
+                    <thead>
+                        <tr>
+                            <th style="width:45%;">حداقل مبلغ سبد خرید (<?php echo esc_html($settings['currency_label']); ?>)</th>
+                            <th style="width:35%;">درصد تخفیف (%)</th>
+                            <th style="width:20%;">عملیات</th>
+                        </tr>
+                    </thead>
+                    <tbody id="awc-repeater-body">
+                        <?php foreach ($settings['tiers'] as $tier) : ?>
+                            <tr class="awc-repeater-row">
+                                <td><input type="number" step="1" min="0" name="awc_tiered_discount_settings[tier_amount][]" value="<?php echo esc_attr($tier['amount']); ?>" class="regular-text" required></td>
+                                <td><input type="number" step="0.1" min="0" max="100" name="awc_tiered_discount_settings[tier_percent][]" value="<?php echo esc_attr($tier['percent']); ?>" class="regular-text" required></td>
+                                <td><button type="button" class="button awc-remove-row">حذف</button></td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+
+                <p>
+                    <button type="button" id="awc-add-row" class="button button-secondary">
+                        <span class="dashicons dashicons-plus-alt2" style="vertical-align:middle;"></span>
+                        افزودن پله جدید
+                    </button>
+                </p>
+            </div>
+
+            <?php submit_button('ذخیره تنظیمات'); ?>
+        </form>
+
+        <div class="awc-footer-credit">
+            <span>برنامه‌نویس: <strong>علیرضا رحمتی</strong></span>
+            <span> | اینستاگرام: <strong>alireza.webcode</strong></span>
+            <span> | تلگرام: <strong>alireza_webcode</strong></span>
+        </div>
+    </div>
+
+    <!-- قالب ردیف مخفی برای کلون کردن با جاوااسکریپت -->
+    <template id="awc-row-template">
+        <tr class="awc-repeater-row">
+            <td><input type="number" step="1" min="0" name="awc_tiered_discount_settings[tier_amount][]" value="" class="regular-text" required></td>
+            <td><input type="number" step="0.1" min="0" max="100" name="awc_tiered_discount_settings[tier_percent][]" value="" class="regular-text" required></td>
+            <td><button type="button" class="button awc-remove-row">حذف</button></td>
+        </tr>
+    </template>
+    <?php
+}
+
+
+add_action('admin_enqueue_scripts', 'awc_wc_admin_assets');
+function awc_wc_admin_assets($hook) {
+    if (strpos($hook, 'awc-tiered-discount') === false) return;
+
+    $css = "
+        .awc-wrap .awc-card{background:#fff;border:1px solid #e2e2e2;border-radius:10px;padding:20px 24px;margin:20px 0;box-shadow:0 1px 3px rgba(0,0,0,.04);}
+        .awc-wrap h2{margin-top:0;border-bottom:1px solid #f0f0f0;padding-bottom:10px;}
+        .awc-repeater-table{border-radius:8px;overflow:hidden;}
+        .awc-repeater-row td{padding:10px;}
+        .awc-remove-row{color:#b3261e !important;}
+        .awc-switch{position:relative;display:inline-block;width:46px;height:24px;vertical-align:middle;}
+        .awc-switch input{opacity:0;width:0;height:0;}
+        .awc-slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background-color:#ccc;transition:.3s;border-radius:24px;}
+        .awc-slider:before{position:absolute;content:'';height:18px;width:18px;right:3px;bottom:3px;background-color:white;transition:.3s;border-radius:50%;}
+        .awc-switch input:checked + .awc-slider{background-color:#d63384;}
+        .awc-switch input:checked + .awc-slider:before{transform:translateX(-22px);}
+        .awc-footer-credit{margin-top:30px;padding:16px;text-align:center;background:#faf5f8;border:1px dashed #d63384;border-radius:10px;color:#555;font-size:13px;}
+        .awc-footer-credit strong{color:#d63384;}
+    ";
+    wp_register_style('awc-admin-inline', false);
+    wp_enqueue_style('awc-admin-inline');
+    wp_add_inline_style('awc-admin-inline', $css);
+
+    $js = "
+        document.addEventListener('DOMContentLoaded', function () {
+            var body = document.getElementById('awc-repeater-body');
+            var tpl  = document.getElementById('awc-row-template');
+            document.getElementById('awc-add-row').addEventListener('click', function () {
+                var clone = tpl.content.cloneNode(true);
+                body.appendChild(clone);
+            });
+            body.addEventListener('click', function (e) {
+                if (e.target && e.target.classList.contains('awc-remove-row')) {
+                    var rows = body.querySelectorAll('.awc-repeater-row');
+                    if (rows.length > 1) {
+                        e.target.closest('tr').remove();
+                    } else {
+                        alert('حداقل باید یک پله وجود داشته باشد.');
+                    }
+                }
+            });
+        });
+    ";
+    wp_register_script('awc-admin-inline', '');
+    wp_enqueue_script('awc-admin-inline');
+    wp_add_inline_script('awc-admin-inline', $js);
+}
+
+
+add_action('woocommerce_cart_calculate_fees', 'awc_wc_apply_tiered_discount', 20, 1);
+function awc_wc_apply_tiered_discount($cart) {
+    if (is_admin() && !defined('DOING_AJAX')) return;
+    if (!$cart || $cart->is_empty()) return;
+
+    $settings = awc_wc_get_settings();
+    if (empty($settings['enabled']) || empty($settings['tiers'])) return;
+
+    $subtotal = (float) $cart->get_subtotal();
+    $percent  = awc_wc_get_applicable_percent($subtotal, $settings['tiers']);
+
+    if ($percent > 0) {
+        $discount_amount = $subtotal * ($percent / 100);
+        if ($discount_amount > 0) {
+            $cart->add_fee(
+                sprintf('تخفیف پله‌ای (%s%%)', awc_wc_format_number($percent)),
+                -$discount_amount,
+                false
+            );
+        }
+    }
+}
+
+function awc_wc_get_applicable_percent($subtotal, $tiers) {
+    $percent = 0;
+    foreach ($tiers as $tier) {
+        if ($subtotal >= $tier['amount'] && $tier['percent'] > $percent) {
+            $percent = $tier['percent'];
+        }
+    }
+    return $percent;
+}
+
+function awc_wc_format_number($number) {
+    // حذف صفرهای اضافه اعشار (5.0 -> 5)
+    return (floor($number) == $number) ? number_format($number, 0) : rtrim(rtrim(number_format($number, 2), '0'), '.');
+}
+
+add_action('woocommerce_before_cart', 'awc_wc_render_discount_notice');
+add_action('woocommerce_before_checkout_form', 'awc_wc_render_discount_notice');
+function awc_wc_render_discount_notice() {
+    if (!function_exists('WC') || !WC()->cart) return;
+
+    $settings = awc_wc_get_settings();
+    if (empty($settings['enabled']) || empty($settings['tiers'])) return;
+
+    $tiers          = array_values($settings['tiers']);
+    $currency_label = esc_html($settings['currency_label']);
+    $subtotal       = (float) WC()->cart->get_subtotal();
+
+    $current = null;
+    $next    = null;
+
+    foreach ($tiers as $tier) {
+        if ($subtotal >= $tier['amount']) {
+            $current = $tier;
+        } elseif ($next === null) {
+            $next = $tier;
+        }
+    }
+
+    if (!$current && !$next) return;
+
+    $state   = 'progress';
+    $percent = 0;
+    $message = '';
+
+    if (!$current && $next) {
+        $remaining = max(0, $next['amount'] - $subtotal);
+        $percent   = $next['amount'] > 0 ? min(100, ($subtotal / $next['amount']) * 100) : 0;
+        $state     = 'progress';
+        $message   = sprintf(
+            '🛒 فقط <strong>%s %s</strong> دیگر مانده تا <strong>%s%%</strong> تخفیف فعال شود!',
+            awc_wc_format_number($remaining),
+            $currency_label,
+            awc_wc_format_number($next['percent'])
+        );
+    } elseif ($current && $next) {
+        $remaining = max(0, $next['amount'] - $subtotal);
+        $range     = $next['amount'] - $current['amount'];
+        $percent   = $range > 0 ? min(100, (($subtotal - $current['amount']) / $range) * 100) : 100;
+        $state     = 'success';
+        $message   = sprintf(
+            '✅ تبریک! <strong>%s%%</strong> تخفیف گرفتید. فقط <strong>%s %s</strong> دیگر مانده تا <strong>%s%%</strong> تخفیف!',
+            awc_wc_format_number($current['percent']),
+            awc_wc_format_number($remaining),
+            $currency_label,
+            awc_wc_format_number($next['percent'])
+        );
+    } else {
+        $percent = 100;
+        $state   = 'max';
+        $message = sprintf(
+            '🎉 هورااا! شما به بالاترین سطح تخفیف (<strong>%s%%</strong>) رسیدید!',
+            awc_wc_format_number($current['percent'])
+        );
+    }
+
+    echo '<div class="awc-notice awc-notice-' . esc_attr($state) . '">
+            <div class="awc-notice-icon">' . ($state === 'max' ? '🎉' : ($state === 'success' ? '✅' : '🛒')) . '</div>
+            <div class="awc-notice-body">
+                <div class="awc-notice-text">' . wp_kses_post($message) . '</div>
+                <div class="awc-progress-track">
+                    <div class="awc-progress-fill" style="width:' . esc_attr($percent) . '%;"></div>
+                </div>
+            </div>
+          </div>';
+}
+
+
+add_action('wp_enqueue_scripts', 'awc_wc_frontend_assets');
+function awc_wc_frontend_assets() {
+    if (!function_exists('is_cart') || !function_exists('is_checkout')) return;
+    if (!is_cart() && !is_checkout()) return;
+
+    $css = "
+    .awc-notice{
+        display:flex;align-items:center;gap:14px;
+        border-radius:14px;padding:16px 18px;margin:0 0 22px 0;
+        box-shadow:0 4px 14px rgba(0,0,0,.06);
+        font-family:inherit; direction:rtl; text-align:right;
+        transition:all .3s ease;
+    }
+    .awc-notice-icon{font-size:26px;line-height:1;flex-shrink:0;}
+    .awc-notice-body{flex:1;min-width:0;}
+    .awc-notice-text{font-size:15px;font-weight:600;margin-bottom:8px;line-height:1.7;}
+    .awc-progress-track{width:100%;height:8px;border-radius:20px;background:rgba(0,0,0,.08);overflow:hidden;}
+    .awc-progress-fill{height:100%;border-radius:20px;transition:width .6s ease;}
+
+    /* حالت هنوز به پله اول نرسیده - آبی خنثی */
+    .awc-notice-progress{background:#eef4ff;border:1px solid #c9defb;}
+    .awc-notice-progress .awc-notice-text{color:#1d4ed8;}
+    .awc-notice-progress .awc-progress-fill{background:linear-gradient(90deg,#60a5fa,#2563eb);}
+
+    .awc-notice-success{background:#eafaf0;border:1px solid #bdeccd;}
+    .awc-notice-success .awc-notice-text{color:#0f7a3d;}
+    .awc-notice-success .awc-progress-fill{background:linear-gradient(90deg,#34d399,#059669);}
+
+    .awc-notice-max{background:linear-gradient(135deg,#fff7e6,#fde7f3);border:1px solid #f7c948;}
+    .awc-notice-max .awc-notice-text{color:#9a3412;}
+    .awc-notice-max .awc-progress-fill{background:linear-gradient(90deg,#f59e0b,#ec4899);}
+    .awc-notice-max{animation:awc-pulse 1.6s ease-in-out infinite;}
+    @keyframes awc-pulse{
+        0%{box-shadow:0 4px 14px rgba(245,158,11,.15);}
+        50%{box-shadow:0 4px 22px rgba(245,158,11,.35);}
+        100%{box-shadow:0 4px 14px rgba(245,158,11,.15);}
+    }
+
+    @media (max-width:600px){
+        .awc-notice{flex-direction:row;align-items:flex-start;padding:12px 14px;gap:10px;}
+        .awc-notice-icon{font-size:20px;}
+        .awc-notice-text{font-size:13px;}
+    }
+    ";
+
+    wp_register_style('awc-frontend-inline', false);
+    wp_enqueue_style('awc-frontend-inline');
+    wp_add_inline_style('awc-frontend-inline', $css);
+}

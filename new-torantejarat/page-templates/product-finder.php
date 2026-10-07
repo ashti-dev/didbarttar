@@ -71,12 +71,15 @@ $torantejarat_submitted = isset( $_GET['finder'] ) && '1' === sanitize_text_fiel
 
 $torantejarat_results = array();
 $torantejarat_chosen  = array();
+$torantejarat_skipped = 0;
 if ( $torantejarat_submitted && torantejarat_woocommerce_available() ) {
 	$torantejarat_cat_map = array(
-		'plumbing'   => 'pipe',
-		'automotive' => 'auto',
-		'industrial' => 'بازرسی-صنعتی',
-		'general'    => 'کاربری-عمومی',
+		/* Use-case → catalog category slugs (exact DB slugs; arrays group the
+		   newer sub-categories under the four quiz answers). */
+		'plumbing'   => array( 'pipe', '%d9%81%d8%a7%d8%b6%d9%84%d8%a7%d8%a8' ),
+		'automotive' => array( 'auto' ),
+		'industrial' => array( '%d8%a8%d8%a7%d8%b2%d8%b1%d8%b3%db%8c-%d8%b5%d9%86%d8%b9%d8%aa%db%8c', '%d8%b5%d9%86%d8%b9%d8%aa%db%8c', '%d8%af%d9%88%d8%b1%d8%a8%db%8c%d9%86-%d8%b4%d9%84%d9%86%da%af%db%8c-%d8%b5%d9%86%d8%b9%d8%aa%db%8c', '%d8%af%d9%88%d8%b1%d8%a8%db%8c%d9%86-%d8%b4%d9%84%d9%86%da%af%db%8c-%d8%ad%d8%b1%d9%81%d9%87%d8%a7%db%8c' ),
+		'general'    => array( '%da%a9%d8%a7%d8%b1%d8%a8%d8%b1%db%8c-%d8%b9%d9%85%d9%88%d9%85%db%8c' ),
 	);
 	$torantejarat_query  = array(
 		'status'     => 'publish',
@@ -96,13 +99,21 @@ if ( $torantejarat_submitted && torantejarat_woocommerce_available() ) {
 		}
 		if ( $torantejarat_min_length > 0 ) {
 			$torantejarat_cable = torantejarat_finder_meters( $torantejarat_candidate->get_attribute( 'pa_cable-length' ) );
-			if ( null === $torantejarat_cable || $torantejarat_cable < $torantejarat_min_length ) {
+			if ( null === $torantejarat_cable ) {
+				++$torantejarat_skipped;
+				continue;
+			}
+			if ( $torantejarat_cable < $torantejarat_min_length ) {
 				continue;
 			}
 		}
 		if ( $torantejarat_max_diam > 0 ) {
 			$torantejarat_head = torantejarat_finder_meters( $torantejarat_candidate->get_attribute( 'pa_lens-diameter' ) );
-			if ( null === $torantejarat_head || $torantejarat_head > $torantejarat_max_diam ) {
+			if ( null === $torantejarat_head ) {
+				++$torantejarat_skipped;
+				continue;
+			}
+			if ( $torantejarat_head > $torantejarat_max_diam ) {
 				continue;
 			}
 		}
@@ -173,6 +184,7 @@ get_header();
 							<span class="torantejarat-eyebrow"><?php esc_html_e( 'نتیجه بررسی اولیه', 'torantejarat' ); ?></span>
 							<h2><?php echo esc_html( sprintf( __( '%s گزینه مرتبط با پاسخ‌های شما', 'torantejarat' ), number_format_i18n( count( $torantejarat_results ) ) ) ); ?></h2>
 							<?php if ( $torantejarat_chosen ) : ?><p class="torantejarat-finder-summary"><?php echo esc_html( implode( ' • ', $torantejarat_chosen ) ); ?></p><?php endif; ?>
+							<?php if ( $torantejarat_skipped > 0 ) : ?><p class="torantejarat-finder-skipped"><?php echo esc_html( sprintf( __( '%s مدل چون مشخصات فنی کامل نداشتند در نظر گرفته نشدند — برای بررسی آن‌ها از کارشناس بپرسید.', 'torantejarat' ), number_format_i18n( $torantejarat_skipped ) ) ); ?></p><?php endif; ?>
 							<div class="torantejarat-finder-grid">
 								<?php foreach ( $torantejarat_results as $torantejarat_item ) : ?>
 									<?php

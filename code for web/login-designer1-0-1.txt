@@ -1,0 +1,576 @@
+<?php
+if ( ! defined( 'ABSPATH' ) ) {
+    exit; // جلوگیری از اجرای مستقیم فایل
+}
+
+/* ============================================================
+ * 1) مقادیر پیش‌فرض تنظیمات
+ * ============================================================ */
+if ( ! function_exists( 'bld_get_default_options' ) ) {
+    function bld_get_default_options() {
+        return array(
+            'bg_color_1'        => '#4a1d8f',
+            'bg_color_2'        => '#2a4d8f',
+            'animate_bg'        => 1,
+            'form_bg_color'     => '#ffffff',
+            'form_bg_opacity'   => 0.12,
+            'blur_amount'       => 18,
+            'border_radius'     => 22,
+            'primary_color'     => '#ffffff',
+            'button_color_1'    => '#4a1d8f',
+            'button_color_2'    => '#2a4d8f',
+            'text_color'        => '#ffffff',
+            'label_color'       => '#f1f1f1',
+            'font_choice'       => 'vazirmatn',
+            'shadow_enabled'    => 1,
+            'floating_shapes'   => 1,
+            'logo_image'        => '',
+            'logo_width'        => 90,
+            'logo_link'         => home_url( '/' ),
+            'welcome_text'      => 'خوش برگشتی 👋 برای ادامه وارد حساب کاربری‌ات شو',
+            'hide_back_to_blog' => 0,
+            'hide_language_switcher' => 1,
+        );
+    }
+}
+
+function bld_get_options() {
+    $saved = get_option( 'bld_login_options', array() );
+    return wp_parse_args( $saved, bld_get_default_options() );
+}
+
+/* ============================================================
+ * 2) ثبت تنظیمات (Settings API)
+ * ============================================================ */
+add_action( 'admin_init', 'bld_register_settings' );
+function bld_register_settings() {
+    register_setting( 'bld_login_settings_group', 'bld_login_options', 'bld_sanitize_options' );
+}
+
+function bld_sanitize_options( $input ) {
+    $defaults = bld_get_default_options();
+    $out = array();
+
+    $out['bg_color_1']     = sanitize_hex_color( $input['bg_color_1'] ?? $defaults['bg_color_1'] ) ?: $defaults['bg_color_1'];
+    $out['bg_color_2']     = sanitize_hex_color( $input['bg_color_2'] ?? $defaults['bg_color_2'] ) ?: $defaults['bg_color_2'];
+    $out['animate_bg']     = ! empty( $input['animate_bg'] ) ? 1 : 0;
+
+    $out['form_bg_color']  = sanitize_hex_color( $input['form_bg_color'] ?? $defaults['form_bg_color'] ) ?: $defaults['form_bg_color'];
+    $out['form_bg_opacity'] = isset( $input['form_bg_opacity'] ) ? max( 0, min( 1, floatval( $input['form_bg_opacity'] ) ) ) : $defaults['form_bg_opacity'];
+    $out['blur_amount']    = isset( $input['blur_amount'] ) ? absint( $input['blur_amount'] ) : $defaults['blur_amount'];
+    $out['border_radius']  = isset( $input['border_radius'] ) ? absint( $input['border_radius'] ) : $defaults['border_radius'];
+
+    $out['primary_color']  = sanitize_hex_color( $input['primary_color'] ?? $defaults['primary_color'] ) ?: $defaults['primary_color'];
+    $out['button_color_1'] = sanitize_hex_color( $input['button_color_1'] ?? $defaults['button_color_1'] ) ?: $defaults['button_color_1'];
+    $out['button_color_2'] = sanitize_hex_color( $input['button_color_2'] ?? $defaults['button_color_2'] ) ?: $defaults['button_color_2'];
+    $out['text_color']     = sanitize_hex_color( $input['text_color'] ?? $defaults['text_color'] ) ?: $defaults['text_color'];
+    $out['label_color']    = sanitize_hex_color( $input['label_color'] ?? $defaults['label_color'] ) ?: $defaults['label_color'];
+
+    $allowed_fonts = array( 'vazirmatn', 'system' );
+    $out['font_choice'] = in_array( $input['font_choice'] ?? '', $allowed_fonts, true ) ? $input['font_choice'] : $defaults['font_choice'];
+
+    $out['shadow_enabled']  = ! empty( $input['shadow_enabled'] ) ? 1 : 0;
+    $out['floating_shapes'] = ! empty( $input['floating_shapes'] ) ? 1 : 0;
+
+    $out['logo_image'] = isset( $input['logo_image'] ) ? esc_url_raw( $input['logo_image'] ) : $defaults['logo_image'];
+    $out['logo_width'] = isset( $input['logo_width'] ) ? absint( $input['logo_width'] ) : $defaults['logo_width'];
+    $out['logo_link']  = isset( $input['logo_link'] ) ? esc_url_raw( $input['logo_link'] ) : $defaults['logo_link'];
+
+    $out['welcome_text'] = isset( $input['welcome_text'] ) ? sanitize_text_field( $input['welcome_text'] ) : $defaults['welcome_text'];
+
+    $out['hide_back_to_blog']      = ! empty( $input['hide_back_to_blog'] ) ? 1 : 0;
+    $out['hide_language_switcher'] = ! empty( $input['hide_language_switcher'] ) ? 1 : 0;
+
+    return $out;
+}
+
+/* ============================================================
+ * 3) افزودن آیتم منو در تنظیمات
+ * ============================================================ */
+add_action( 'admin_menu', 'bld_add_settings_page' );
+function bld_add_settings_page() {
+    add_options_page(
+        'طراحی صفحه ورود',
+        'طراحی صفحه ورود',
+        'manage_options',
+        'bld-login-designer',
+        'bld_render_settings_page'
+    );
+}
+
+/* بارگذاری اسکریپت رسانه (Media Uploader) و رنگ‌یاب فقط در صفحه تنظیمات خودمان */
+add_action( 'admin_enqueue_scripts', 'bld_admin_assets' );
+function bld_admin_assets( $hook ) {
+    if ( $hook !== 'settings_page_bld-login-designer' ) {
+        return;
+    }
+    wp_enqueue_media();
+    wp_enqueue_style( 'wp-color-picker' );
+    wp_enqueue_script( 'wp-color-picker' );
+    wp_enqueue_script( 'jquery' );
+}
+
+/* ============================================================
+ * 4) رندر صفحه تنظیمات
+ * ============================================================ */
+function bld_render_settings_page() {
+    if ( ! current_user_can( 'manage_options' ) ) {
+        return;
+    }
+    $o = bld_get_options();
+    ?>
+    <div class="wrap">
+        <h1>🎨 طراحی صفحه ورود وردپرس</h1>
+        <p>تنظیمات زیر روی ظاهر صفحه ورود ادمین (wp-login.php) اعمال می‌شود.</p>
+
+        <form method="post" action="options.php">
+            <?php settings_fields( 'bld_login_settings_group' ); ?>
+
+            <table class="form-table" role="presentation">
+
+                <tr>
+                    <th colspan="2"><h2>🌈 پس‌زمینه</h2></th>
+                </tr>
+                <tr>
+                    <th><label>پریست‌های آماده</label></th>
+                    <td>
+                        <div class="bld-presets">
+                            <button type="button" class="button bld-preset-btn" data-c1="#4a1d8f" data-c2="#2a4d8f" data-b1="#4a1d8f" data-b2="#2a4d8f">بنفش/آبی ملایم (پیش‌فرض)</button>
+                            <button type="button" class="button bld-preset-btn" data-c1="#1a1a2e" data-c2="#16213e" data-b1="#0f3460" data-b2="#16213e">شب تاریک شیک</button>
+                            <button type="button" class="button bld-preset-btn" data-c1="#3a1c71" data-c2="#6a0572" data-b1="#6a0572" data-b2="#3a1c71">بنفش سلطنتی</button>
+                            <button type="button" class="button bld-preset-btn" data-c1="#134e5e" data-c2="#71b280" data-b1="#134e5e" data-b2="#71b280">سبز زمردی آرام</button>
+                            <button type="button" class="button bld-preset-btn" data-c1="#3e5151" data-c2="#decba4" data-b1="#3e5151" data-b2="#decba4">کرم و طلایی ملایم</button>
+                            <button type="button" class="button bld-preset-btn" data-c1="#232526" data-c2="#414345" data-b1="#414345" data-b2="#232526">مینیمال طوسی</button>
+                        </div>
+                        <p class="description">با کلیک روی هر پریست، رنگ پس‌زمینه و دکمه به‌صورت خودکار تنظیم می‌شود (فقط کافیست بعد از انتخاب، «ذخیره تنظیمات» را بزنید).</p>
+                    </td>
+                </tr>
+                <tr>
+                    <th><label>رنگ اول گرادیان</label></th>
+                    <td><input type="text" class="bld-color-field" name="bld_login_options[bg_color_1]" value="<?php echo esc_attr( $o['bg_color_1'] ); ?>"></td>
+                </tr>
+                <tr>
+                    <th><label>رنگ دوم گرادیان</label></th>
+                    <td><input type="text" class="bld-color-field" name="bld_login_options[bg_color_2]" value="<?php echo esc_attr( $o['bg_color_2'] ); ?>"></td>
+                </tr>
+                <tr>
+                    <th><label>انیمیشن پس‌زمینه</label></th>
+                    <td><label><input type="checkbox" name="bld_login_options[animate_bg]" value="1" <?php checked( $o['animate_bg'], 1 ); ?>> فعال باشد</label></td>
+                </tr>
+                <tr>
+                    <th><label>اشکال شناور تزئینی</label></th>
+                    <td><label><input type="checkbox" name="bld_login_options[floating_shapes]" value="1" <?php checked( $o['floating_shapes'], 1 ); ?>> نمایش داده شود</label></td>
+                </tr>
+
+                <tr>
+                    <th colspan="2"><h2>💎 کارت فرم (شیشه‌ای)</h2></th>
+                </tr>
+                <tr>
+                    <th><label>رنگ پایه کارت</label></th>
+                    <td><input type="text" class="bld-color-field" name="bld_login_options[form_bg_color]" value="<?php echo esc_attr( $o['form_bg_color'] ); ?>"></td>
+                </tr>
+                <tr>
+                    <th><label>شفافیت کارت (0 تا 1)</label></th>
+                    <td><input type="number" step="0.01" min="0" max="1" name="bld_login_options[form_bg_opacity]" value="<?php echo esc_attr( $o['form_bg_opacity'] ); ?>"></td>
+                </tr>
+                <tr>
+                    <th><label>میزان بلور شیشه‌ای (px)</label></th>
+                    <td><input type="number" min="0" max="40" name="bld_login_options[blur_amount]" value="<?php echo esc_attr( $o['blur_amount'] ); ?>"></td>
+                </tr>
+                <tr>
+                    <th><label>گردی گوشه‌ها (px)</label></th>
+                    <td><input type="number" min="0" max="60" name="bld_login_options[border_radius]" value="<?php echo esc_attr( $o['border_radius'] ); ?>"></td>
+                </tr>
+                <tr>
+                    <th><label>سایه کارت</label></th>
+                    <td><label><input type="checkbox" name="bld_login_options[shadow_enabled]" value="1" <?php checked( $o['shadow_enabled'], 1 ); ?>> فعال باشد</label></td>
+                </tr>
+
+                <tr>
+                    <th colspan="2"><h2>🎯 رنگ‌ها و دکمه</h2></th>
+                </tr>
+                <tr>
+                    <th><label>رنگ متن اصلی</label></th>
+                    <td><input type="text" class="bld-color-field" name="bld_login_options[text_color]" value="<?php echo esc_attr( $o['text_color'] ); ?>"></td>
+                </tr>
+                <tr>
+                    <th><label>رنگ لیبل فیلدها</label></th>
+                    <td><input type="text" class="bld-color-field" name="bld_login_options[label_color]" value="<?php echo esc_attr( $o['label_color'] ); ?>"></td>
+                </tr>
+                <tr>
+                    <th><label>رنگ اول دکمه ورود</label></th>
+                    <td><input type="text" class="bld-color-field" name="bld_login_options[button_color_1]" value="<?php echo esc_attr( $o['button_color_1'] ); ?>"></td>
+                </tr>
+                <tr>
+                    <th><label>رنگ دوم دکمه ورود</label></th>
+                    <td><input type="text" class="bld-color-field" name="bld_login_options[button_color_2]" value="<?php echo esc_attr( $o['button_color_2'] ); ?>"></td>
+                </tr>
+
+                <tr>
+                    <th colspan="2"><h2>🖼 لوگو</h2></th>
+                </tr>
+                <tr>
+                    <th><label>تصویر لوگو</label></th>
+                    <td>
+                        <input type="text" id="bld_logo_image" name="bld_login_options[logo_image]" value="<?php echo esc_attr( $o['logo_image'] ); ?>" style="width:300px;">
+                        <button type="button" class="button" id="bld_upload_logo_btn">انتخاب تصویر</button>
+                        <br><br>
+                        <img id="bld_logo_preview" src="<?php echo esc_url( $o['logo_image'] ); ?>" style="max-width:150px;<?php echo $o['logo_image'] ? '' : 'display:none;'; ?>">
+                    </td>
+                </tr>
+                <tr>
+                    <th><label>عرض لوگو (px)</label></th>
+                    <td><input type="number" min="20" max="400" name="bld_login_options[logo_width]" value="<?php echo esc_attr( $o['logo_width'] ); ?>"></td>
+                </tr>
+                <tr>
+                    <th><label>لینک لوگو</label></th>
+                    <td><input type="text" name="bld_login_options[logo_link]" value="<?php echo esc_attr( $o['logo_link'] ); ?>" style="width:300px;"></td>
+                </tr>
+
+                <tr>
+                    <th colspan="2"><h2>✍️ متن و فونت</h2></th>
+                </tr>
+                <tr>
+                    <th><label>متن خوش‌آمدگویی</label></th>
+                    <td><input type="text" name="bld_login_options[welcome_text]" value="<?php echo esc_attr( $o['welcome_text'] ); ?>" style="width:400px;"></td>
+                </tr>
+                <tr>
+                    <th><label>فونت</label></th>
+                    <td>
+                        <select name="bld_login_options[font_choice]">
+                            <option value="vazirmatn" <?php selected( $o['font_choice'], 'vazirmatn' ); ?>>وزیرمتن (فارسی زیبا)</option>
+                            <option value="system" <?php selected( $o['font_choice'], 'system' ); ?>>فونت پیش‌فرض سیستم (سریع‌ترین)</option>
+                        </select>
+                    </td>
+                </tr>
+
+                <tr>
+                    <th colspan="2"><h2>⚙️ سایر</h2></th>
+                </tr>
+                <tr>
+                    <th><label>مخفی کردن «بازگشت به سایت»</label></th>
+                    <td><label><input type="checkbox" name="bld_login_options[hide_back_to_blog]" value="1" <?php checked( $o['hide_back_to_blog'], 1 ); ?>> مخفی شود</label></td>
+                </tr>
+                <tr>
+                    <th><label>مخفی کردن تغییر زبان</label></th>
+                    <td><label><input type="checkbox" name="bld_login_options[hide_language_switcher]" value="1" <?php checked( $o['hide_language_switcher'], 1 ); ?>> مخفی شود</label></td>
+                </tr>
+            </table>
+
+            <?php submit_button( 'ذخیره تنظیمات' ); ?>
+        </form>
+
+        <p>
+            <a href="<?php echo esc_url( wp_login_url() ); ?>" target="_blank" class="button button-secondary">
+                👀 مشاهده صفحه ورود
+            </a>
+        </p>
+    </div>
+	<p style="font-size:16px;background:red;color:#fff;font-weight:bold;text-align:center;padding:20px;">
+	ساخته شده توسط : علیرضا رحمتی | اینستاگرام : alireza.webcode | تلگرام : alireza_webcode | طراحی و پشتیبانی انواع سایت
+	</p>
+
+    <style>
+        .bld-presets{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:6px; }
+        .bld-preset-btn{ font-size:12px !important; }
+    </style>
+    <script>
+    jQuery(document).ready(function($){
+        $('.bld-color-field').wpColorPicker();
+
+        $('.bld-preset-btn').on('click', function(){
+            var c1 = $(this).data('c1'), c2 = $(this).data('c2');
+            var b1 = $(this).data('b1'), b2 = $(this).data('b2');
+            $('input[name="bld_login_options[bg_color_1]"]').wpColorPicker('color', c1);
+            $('input[name="bld_login_options[bg_color_2]"]').wpColorPicker('color', c2);
+            $('input[name="bld_login_options[button_color_1]"]').wpColorPicker('color', b1);
+            $('input[name="bld_login_options[button_color_2]"]').wpColorPicker('color', b2);
+        });
+
+        var mediaUploader;
+        $('#bld_upload_logo_btn').on('click', function(e){
+            e.preventDefault();
+            if ( mediaUploader ) { mediaUploader.open(); return; }
+            mediaUploader = wp.media({
+                title: 'انتخاب لوگو',
+                button: { text: 'استفاده از این تصویر' },
+                multiple: false
+            });
+            mediaUploader.on('select', function(){
+                var attachment = mediaUploader.state().get('selection').first().toJSON();
+                $('#bld_logo_image').val(attachment.url);
+                $('#bld_logo_preview').attr('src', attachment.url).show();
+            });
+            mediaUploader.open();
+        });
+    });
+    </script>
+    <?php
+}
+
+/* ============================================================
+ * 5) اعمال استایل روی صفحه ورود
+ * ============================================================ */
+add_action( 'login_enqueue_scripts', 'bld_output_login_styles' );
+function bld_output_login_styles() {
+    $o = bld_get_options();
+
+    // بارگذاری فونت فقط در صورت انتخاب وزیرمتن، با font-display:swap برای سرعت بهتر
+    if ( 'vazirmatn' === $o['font_choice'] ) {
+        wp_enqueue_style(
+            'bld-vazirmatn-font',
+            'https://cdn.jsdelivr.net/npm/vazirmatn@33.0.3/Vazirmatn-face.css',
+            array(),
+            '33.0.3'
+        );
+        $font_family = "'Vazirmatn', Tahoma, sans-serif";
+    } else {
+        $font_family = "Tahoma, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+    }
+
+    $form_rgb = bld_hex_to_rgb( $o['form_bg_color'] );
+
+    ?>
+    <style id="bld-login-custom-style">
+        html{ background:transparent !important; }
+
+        body.login{
+            font-family: <?php echo $font_family; ?>;
+            direction: rtl;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, <?php echo esc_attr( $o['bg_color_1'] ); ?>, <?php echo esc_attr( $o['bg_color_2'] ); ?>);
+            <?php if ( $o['animate_bg'] ) : ?>
+            background-size: 300% 300%;
+            animation: bldGradientMove 12s ease infinite;
+            <?php endif; ?>
+            position: relative;
+            overflow: hidden;
+        }
+
+        @keyframes bldGradientMove{
+            0%{background-position:0% 50%;}
+            50%{background-position:100% 50%;}
+            100%{background-position:0% 50%;}
+        }
+
+        <?php if ( $o['floating_shapes'] ) : ?>
+        body.login::before, body.login::after{
+            content:"";
+            position:absolute;
+            border-radius:50%;
+            background:rgba(255,255,255,0.08);
+            filter: blur(2px);
+            z-index:0;
+            animation: bldFloat 9s ease-in-out infinite;
+        }
+        body.login::before{
+            width:260px; height:260px;
+            top:-80px; left:-80px;
+        }
+        body.login::after{
+            width:320px; height:320px;
+            bottom:-100px; right:-100px;
+            animation-delay:2s;
+        }
+        @keyframes bldFloat{
+            0%,100%{ transform: translateY(0) rotate(0deg); }
+            50%{ transform: translateY(-25px) rotate(15deg); }
+        }
+        <?php endif; ?>
+
+        #login{
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 380px;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        #login h1 a{
+            background-image: <?php echo $o['logo_image'] ? "url('" . esc_url( $o['logo_image'] ) . "')" : 'none'; ?>;
+            width: 100%;
+            height: <?php echo absint( $o['logo_width'] ); ?>px;
+            background-size: contain;
+            background-position: center;
+            background-repeat: no-repeat;
+            margin-bottom: 15px;
+        }
+
+        #bld-welcome-text{
+            text-align:center;
+            color: <?php echo esc_attr( $o['text_color'] ); ?>;
+            font-size: 14px;
+            margin: -6px 0 18px;
+            opacity: 0.9;
+            line-height: 1.8;
+        }
+
+        #loginform{
+            background: rgba(<?php echo $form_rgb; ?>, <?php echo esc_attr( $o['form_bg_opacity'] ); ?>);
+            backdrop-filter: blur(<?php echo absint( $o['blur_amount'] ); ?>px);
+            -webkit-backdrop-filter: blur(<?php echo absint( $o['blur_amount'] ); ?>px);
+            border: 1px solid rgba(255,255,255,0.25);
+            border-radius: <?php echo absint( $o['border_radius'] ); ?>px;
+            padding: 30px 24px;
+            <?php if ( $o['shadow_enabled'] ) : ?>
+            box-shadow: 0 20px 45px rgba(0,0,0,0.25);
+            <?php endif; ?>
+            animation: bldFadeUp .6s ease;
+        }
+
+        @keyframes bldFadeUp{
+            from{ opacity:0; transform: translateY(18px); }
+            to{ opacity:1; transform: translateY(0); }
+        }
+
+        #loginform label{
+            color: <?php echo esc_attr( $o['label_color'] ); ?>;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        #loginform input[type="text"],
+        #loginform input[type="password"],
+        #loginform input[type="email"]{
+            background: rgba(255,255,255,0.9);
+            border: none;
+            border-radius: 12px;
+            padding: 12px 14px;
+            font-size: 14px;
+            width: 100%;
+            box-sizing: border-box;
+            box-shadow: none;
+            transition: all .25s ease;
+        }
+
+        #loginform input[type="text"]:focus,
+        #loginform input[type="password"]:focus,
+        #loginform input[type="email"]:focus{
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(255,255,255,0.5);
+            transform: translateY(-1px);
+        }
+
+        .wp-pwd { position: relative; }
+
+        .wp-hide-pw{
+            top: 6px !important;
+        }
+
+        .forgetmenot label{
+            color: <?php echo esc_attr( $o['label_color'] ); ?>;
+            font-size: 13px;
+        }
+
+        .wp-core-ui .button-primary{
+            width: 100%;
+            background: linear-gradient(135deg, <?php echo esc_attr( $o['button_color_1'] ); ?>, <?php echo esc_attr( $o['button_color_2'] ); ?>);
+            border: none;
+            border-radius: 12px;
+            padding: 10px 0;
+            height: auto;
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: .5px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            transition: transform .2s ease, box-shadow .2s ease;
+            text-shadow: none;
+        }
+
+        .wp-core-ui .button-primary:hover{
+            transform: translateY(-2px);
+            box-shadow: 0 14px 30px rgba(0,0,0,0.28);
+            background: linear-gradient(135deg, <?php echo esc_attr( $o['button_color_2'] ); ?>, <?php echo esc_attr( $o['button_color_1'] ); ?>);
+        }
+
+        #nav, #backtoblog{
+            text-align: center;
+        }
+
+        #nav a, #backtoblog a{
+            color: <?php echo esc_attr( $o['text_color'] ); ?> !important;
+            font-size: 13px;
+            text-decoration: none;
+            transition: opacity .2s ease;
+        }
+
+        #nav a:hover, #backtoblog a:hover{
+            opacity: 0.7;
+        }
+
+        #login_error, .message, .success{
+            border-radius: 12px;
+            border: none;
+            background: rgba(255,255,255,0.92);
+            animation: bldFadeUp .4s ease;
+        }
+
+        <?php if ( $o['hide_back_to_blog'] ) : ?>
+        #backtoblog{ display:none; }
+        <?php endif; ?>
+
+        <?php if ( $o['hide_language_switcher'] ) : ?>
+        .language-switcher{ display:none; }
+        <?php endif; ?>
+
+        /* رسپانسیو */
+        @media (max-width: 480px){
+            #login{ max-width: 92%; padding: 10px; }
+            #loginform{ padding: 22px 16px; }
+            #login h1 a{ height: <?php echo max( 50, absint( $o['logo_width'] ) - 20 ); ?>px; }
+        }
+
+        @media (max-height: 620px){
+            body.login{ align-items: flex-start; padding-top: 40px; }
+        }
+    </style>
+    <?php
+}
+
+/* افزودن متن خوش‌آمدگویی از طریق فیلتر پیام لاگین */
+add_filter( 'login_message', 'bld_login_message' );
+function bld_login_message( $message ) {
+    $o = bld_get_options();
+    if ( empty( $o['welcome_text'] ) ) {
+        return $message;
+    }
+    $welcome = '<p id="bld-welcome-text">' . esc_html( $o['welcome_text'] ) . '</p>';
+    return $welcome . $message;
+}
+
+/* تغییر لینک و عنوان لوگو */
+add_filter( 'login_headerurl', 'bld_login_logo_url' );
+function bld_login_logo_url() {
+    $o = bld_get_options();
+    return ! empty( $o['logo_link'] ) ? esc_url( $o['logo_link'] ) : home_url( '/' );
+}
+
+add_filter( 'login_headertext', 'bld_login_logo_text' );
+function bld_login_logo_text() {
+    return get_bloginfo( 'name' );
+}
+
+/* ============================================================
+ * 6) توابع کمکی
+ * ============================================================ */
+function bld_hex_to_rgb( $hex ) {
+    $hex = ltrim( $hex, '#' );
+    if ( strlen( $hex ) === 3 ) {
+        $hex = $hex[0] . $hex[0] . $hex[1] . $hex[1] . $hex[2] . $hex[2];
+    }
+    if ( strlen( $hex ) !== 6 ) {
+        return '255,255,255';
+    }
+    $r = hexdec( substr( $hex, 0, 2 ) );
+    $g = hexdec( substr( $hex, 2, 2 ) );
+    $b = hexdec( substr( $hex, 4, 2 ) );
+    return "$r,$g,$b";
+}
+
+/* هنگام غیرفعال شدن اسنیپت، تنظیمات به صورت خودکار پاک نمی‌شود
+   (اگر خواستید کاملاً پاک شود، این خط را از حالت کامنت خارج کنید) */
+// register_deactivation_hook( __FILE__, function(){ delete_option( 'bld_login_options' ); } );

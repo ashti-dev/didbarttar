@@ -1,0 +1,607 @@
+
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; 
+}
+
+if ( ! class_exists( 'WPS_Order_Tracking_System' ) ) :
+
+final class WPS_Order_Tracking_System {
+
+	const META_CARRIER   = '_wps_tracking_carrier';
+	const META_CODE       = '_wps_tracking_code';
+	const OPTION_KEY       = 'wps_tracking_settings';
+	const NONCE_ACTION     = 'wps_tracking_save_nonce';
+
+	private static $instance = null;
+
+	public static function instance() {
+		if ( null === self::$instance ) {
+			self::$instance = new self();
+		}
+		return self::$instance;
+	}
+
+	private function __construct() {
+		// تنظیمات پیش‌فرض
+		add_action( 'init', array( $this, 'maybe_set_defaults' ) );
+
+		// باکس متا در صفحه سفارش (سازگار با HPOS و روش قدیمی)
+		add_action( 'add_meta_boxes', array( $this, 'register_meta_box' ) );
+		add_action( 'woocommerce_process_shop_order_meta', array( $this, 'save_meta_box' ), 10, 1 );
+		add_action( 'save_post_shop_order', array( $this, 'save_meta_box' ), 10, 1 );
+
+		// نمایش در پنل مشتری (My Account -> View Order)
+		add_action( 'woocommerce_order_details_after_order_table', array( $this, 'render_customer_tracking_box' ), 5 );
+
+		// استایل‌ها
+		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_frontend_styles' ) );
+		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_styles' ) );
+
+		// منوی تنظیمات
+		add_action( 'admin_menu', array( $this, 'register_settings_page' ) );
+		add_action( 'admin_init', array( $this, 'register_settings' ) );
+	}
+
+	/** تنظیمات پیش‌فرض در اولین اجرا */
+	public function maybe_set_defaults() {
+		if ( false === get_option( self::OPTION_KEY ) ) {
+			update_option( self::OPTION_KEY, $this->default_settings() );
+		}
+	}
+
+	private function default_settings() {
+		return array(
+			'title'          => 'پیگیری مرسوله شما',
+			'subtitle'       => 'وضعیت ارسال بسته خود را به صورت آنی مشاهده کنید',
+			// پالت جدید: سفید/روشن و ساده، با یک رنگ اصلی (accent) برای جلب توجه بدون شلوغی
+			'color_primary'  => '#ffffff',
+			'color_secondary'=> '#f7f8fc',
+			'color_accent'   => '#4f46e5',
+			'post_url'       => 'https://tracking.post.ir/',
+			'chapar_url'     => 'https://www.chaparnet.com/track',
+			'tipax_url'      => 'https://tipaxco.com/tracking',
+			'btn_text'       => 'پیگیری مرسوله',
+		);
+	}
+
+	private function get_settings() {
+		$defaults = $this->default_settings();
+		$saved    = get_option( self::OPTION_KEY, array() );
+		return wp_parse_args( $saved, $defaults );
+	}
+
+	/** لیست شرکت‌های حمل */
+	private function carriers() {
+		return array(
+			'post'   => 'پست ایران',
+			'chapar' => 'چاپار',
+			'tipax'  => 'تیپاکس',
+		);
+	}
+
+
+
+	public function register_meta_box() {
+		$screen = class_exists( '\Automattic\WooCommerce\Utilities\OrderUtil' )
+			&& \Automattic\WooCommerce\Utilities\OrderUtil::custom_orders_table_usage_is_enabled()
+			? wc_get_page_screen_id( 'shop-order' )
+			: 'shop_order';
+
+		add_meta_box(
+			'wps_tracking_meta_box',
+			'📦 پیگیری مرسوله (پست / چاپار / تیپاکس)',
+			array( $this, 'meta_box_html' ),
+			$screen,
+			'side',
+			'high'
+		);
+	}
+
+	public function meta_box_html( $post_or_order ) {
+		$order = ( $post_or_order instanceof WP_Post ) ? wc_get_order( $post_or_order->ID ) : $post_or_order;
+		if ( ! $order instanceof WC_Order ) {
+			return;
+		}
+
+		$carrier = $order->get_meta( self::META_CARRIER );
+		$code    = $order->get_meta( self::META_CODE );
+		$carriers = $this->carriers();
+
+		wp_nonce_field( self::NONCE_ACTION, 'wps_tracking_nonce' );
+		?>
+		<p>
+			<label for="wps_tracking_carrier" style="font-weight:600;display:block;margin-bottom:4px;">شرکت پستی/باربری:</label>
+			<select name="wps_tracking_carrier" id="wps_tracking_carrier" style="width:100%;">
+				<option value=""><?php esc_html_e( '— انتخاب کنید —' ); ?></option>
+				<?php foreach ( $carriers as $key => $label ) : ?>
+					<option value="<?php echo esc_attr( $key ); ?>" <?php selected( $carrier, $key ); ?>>
+						<?php echo esc_html( $label ); ?>
+					</option>
+				<?php endforeach; ?>
+			</select>
+		</p>
+		<p>
+			<label for="wps_tracking_code" style="font-weight:600;display:block;margin-bottom:4px;">کد رهگیری مرسوله:</label>
+			<input type="text" name="wps_tracking_code" id="wps_tracking_code"
+				value="<?php echo esc_attr( $code ); ?>" style="width:100%;" placeholder="مثال: 1234567890" />
+		</p>
+		<p style="color:#666;font-size:12px;">
+			پس از ذخیره سفارش، این کد به همراه لینک پیگیری زنده در پنل کاربری مشتری نمایش داده می‌شود.
+		</p>
+		<?php
+	}
+
+	public function save_meta_box( $order_id ) {
+		if ( ! isset( $_POST['wps_tracking_nonce'] ) ||
+			! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['wps_tracking_nonce'] ) ), self::NONCE_ACTION ) ) {
+			return;
+		}
+
+		if ( ! current_user_can( 'edit_shop_orders' ) && ! current_user_can( 'manage_woocommerce' ) ) {
+			return;
+		}
+
+		$order = wc_get_order( $order_id );
+		if ( ! $order instanceof WC_Order ) {
+			return;
+		}
+
+		$carriers = array_keys( $this->carriers() );
+
+		if ( isset( $_POST['wps_tracking_carrier'] ) ) {
+			$carrier = sanitize_text_field( wp_unslash( $_POST['wps_tracking_carrier'] ) );
+			if ( '' === $carrier || in_array( $carrier, $carriers, true ) ) {
+				$order->update_meta_data( self::META_CARRIER, $carrier );
+			}
+		}
+
+		if ( isset( $_POST['wps_tracking_code'] ) ) {
+			$code = sanitize_text_field( wp_unslash( $_POST['wps_tracking_code'] ) );
+			$order->update_meta_data( self::META_CODE, $code );
+		}
+
+		$order->save();
+	}
+
+	public function render_customer_tracking_box( $order ) {
+		if ( ! $order instanceof WC_Order ) {
+			return;
+		}
+
+		$carrier = $order->get_meta( self::META_CARRIER );
+		$code    = $order->get_meta( self::META_CODE );
+
+		if ( empty( $carrier ) || empty( $code ) ) {
+			return; // اگر کد رهگیری ثبت نشده باشد چیزی نمایش داده نمی‌شود
+		}
+
+		$settings = $this->get_settings();
+		$carriers = $this->carriers();
+		$carrier_label = isset( $carriers[ $carrier ] ) ? $carriers[ $carrier ] : '';
+
+		$track_url = '';
+		switch ( $carrier ) {
+			case 'post':
+				$track_url = $settings['post_url'];
+				break;
+			case 'chapar':
+				$track_url = $settings['chapar_url'];
+				break;
+			case 'tipax':
+				$track_url = $settings['tipax_url'];
+				break;
+		}
+
+		$icon_svg     = $this->get_carrier_icon( $carrier );
+		$carrier_hex  = $this->get_carrier_accent( $carrier );
+		?>
+		<div class="wps-tracking-card" dir="rtl" style="--chip-color: <?php echo esc_attr( $carrier_hex ); ?>;">
+			<div class="wps-tracking-top-strip"></div>
+
+			<div class="wps-tracking-inner">
+
+				<div class="wps-header-row">
+					<span class="wps-header-icon"><?php echo $icon_svg; // phpcs:ignore - SVG داخلی امن ?></span>
+					<div class="wps-header-text">
+						<div class="wps-eyebrow"><?php echo esc_html( $settings['title'] ); ?></div>
+						<p class="wps-tracking-sub"><?php echo esc_html( $settings['subtitle'] ); ?></p>
+					</div>
+				</div>
+
+				<div class="wps-top-row">
+					<div class="wps-carrier-chip">
+						<span class="wps-carrier-name"><?php echo esc_html( $carrier_label ); ?></span>
+					</div>
+
+					<div class="wps-code-capsule">
+						<div class="wps-code-text-wrap">
+							<span class="wps-code-label">کد رهگیری</span>
+							<span class="wps-code-value" id="wps-code-text"><?php echo esc_html( $code ); ?></span>
+						</div>
+						<button type="button" class="wps-copy-btn" data-copy-target="wps-code-text" aria-label="کپی کد رهگیری">
+							<svg class="wps-copy-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+								<rect x="8" y="8" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.8"/>
+								<path d="M4 16V6C4 4.89543 4.89543 4 6 4H16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+							</svg>
+							<span class="wps-copy-txt">کپی</span>
+						</button>
+					</div>
+				</div>
+
+				<?php if ( $track_url ) : ?>
+					<a class="wps-tracking-cta" href="<?php echo esc_url( $track_url ); ?>" target="_blank" rel="noopener noreferrer">
+						<span><?php echo esc_html( $settings['btn_text'] ); ?></span>
+						<svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+							<path d="M14 5L21 12M21 12L14 19M21 12H3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+						</svg>
+					</a>
+				<?php endif; ?>
+			</div>
+		</div>
+		<?php
+	}
+
+	private function get_carrier_accent( $carrier ) {
+		$map = array(
+			'post'   => '#60a5fa', // آبی روشن
+			'chapar' => '#fbbf24', // کهربایی
+			'tipax'  => '#34d399', // سبز نعنایی
+		);
+		return isset( $map[ $carrier ] ) ? $map[ $carrier ] : '#94a3b8';
+	}
+
+	private function get_carrier_icon( $carrier ) {
+		$icons = array(
+			'post'   => '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 8L12 13L21 8M5 19H19C20.1046 19 21 18.1046 21 17V7C21 5.89543 20.1046 5 19 5H5C3.89543 5 3 5.89543 3 7V17C3 18.1046 3.89543 19 5 19Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+			'chapar' => '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 13L10 4L21 8L14 12M3 13L14 12M3 13L9 21L14 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+			'tipax'  => '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="7" width="18" height="13" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M7 7V5C7 3.89543 7.89543 3 9 3H15C16.1046 3 17 3.89543 17 5V7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
+		);
+		return isset( $icons[ $carrier ] ) ? $icons[ $carrier ] : '<svg width="26" height="26" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/></svg>';
+	}
+
+	public function enqueue_frontend_styles() {
+		if ( ! function_exists( 'is_account_page' ) || ! is_account_page() ) {
+			return;
+		}
+
+		$settings = $this->get_settings();
+		$css = $this->build_css( $settings['color_primary'], $settings['color_secondary'], $settings['color_accent'] );
+
+		wp_register_style( 'wps-tracking-style', false );
+		wp_enqueue_style( 'wps-tracking-style' );
+		wp_add_inline_style( 'wps-tracking-style', $css );
+
+		$js = "document.addEventListener('click', function(e){
+			var btn = e.target.closest('.wps-copy-btn');
+			if(!btn) return;
+			var targetId = btn.getAttribute('data-copy-target');
+			var el = document.getElementById(targetId);
+			if(!el) return;
+			var text = el.textContent.trim();
+			var label = btn.querySelector('.wps-copy-txt');
+			if(!navigator.clipboard){ return; }
+			navigator.clipboard.writeText(text).then(function(){
+				var original = label ? label.textContent : '';
+				if(label){ label.textContent = 'کپی شد'; }
+				btn.classList.add('wps-copied');
+				setTimeout(function(){
+					if(label){ label.textContent = original; }
+					btn.classList.remove('wps-copied');
+				}, 1800);
+			});
+		});";
+		wp_register_script( 'wps-tracking-script', false, array(), '1.0', true );
+		wp_enqueue_script( 'wps-tracking-script' );
+		wp_add_inline_script( 'wps-tracking-script', $js );
+	}
+
+	public function enqueue_admin_styles() {
+		$screen = get_current_screen();
+		if ( ! $screen ) {
+			return;
+		}
+		$css = "
+			.wps-tracking-settings-wrap .form-table th{width:220px;}
+			.wps-tracking-settings-wrap .wps-color-preview{display:inline-block;width:26px;height:26px;border-radius:6px;vertical-align:middle;margin-inline-start:8px;border:1px solid #ddd;}
+			.wps-tracking-settings-wrap h2.wps-section-title{margin-top:28px;padding-bottom:6px;border-bottom:1px solid #e2e2e2;}
+		";
+		wp_register_style( 'wps-tracking-admin-style', false );
+		wp_enqueue_style( 'wps-tracking-admin-style' );
+		wp_add_inline_style( 'wps-tracking-admin-style', $css );
+	}
+
+	private function build_css( $primary, $secondary, $accent ) {
+		$primary   = sanitize_hex_color( $primary ) ? $primary : '#ffffff';
+		$secondary = sanitize_hex_color( $secondary ) ? $secondary : '#f7f8fc';
+		$accent    = sanitize_hex_color( $accent ) ? $accent : '#4f46e5';
+
+		return "
+		.wps-tracking-card,
+		.wps-tracking-card *{
+			font-family: inherit;
+			box-sizing: border-box;
+		}
+
+		.wps-tracking-card{
+			--wps-bg-1: {$primary};
+			--wps-bg-2: {$secondary};
+			--wps-accent: {$accent};
+			position: relative;
+			margin: 26px 0;
+			border-radius: 18px;
+			background: linear-gradient(180deg, var(--wps-bg-1), var(--wps-bg-2));
+			border: 1px solid #eceef4;
+			box-shadow: 0 10px 28px -16px rgba(30, 34, 60, 0.16);
+			overflow: hidden;
+		}
+
+		.wps-tracking-top-strip{
+			height: 4px;
+			width: 100%;
+			background: linear-gradient(90deg, var(--chip-color, var(--wps-accent)), var(--wps-accent));
+		}
+
+		.wps-tracking-inner{
+			padding: 22px 22px 20px;
+		}
+
+		.wps-header-row{
+			display:flex;
+			align-items:flex-start;
+			gap: 12px;
+			margin-bottom: 18px;
+		}
+		.wps-header-icon{
+			flex: 0 0 auto;
+			display:flex;
+			align-items:center;
+			justify-content:center;
+			width: 42px;
+			height: 42px;
+			border-radius: 12px;
+			background: color-mix(in srgb, var(--chip-color, var(--wps-accent)) 14%, white 86%);
+			color: var(--chip-color, var(--wps-accent));
+		}
+		.wps-header-icon svg{ width:22px; height:22px; display:block; }
+		.wps-header-text{ min-width:0; }
+
+		.wps-eyebrow{
+			font-size:15px;
+			font-weight:800;
+			color:#1c1f2e;
+			letter-spacing:.1px;
+		}
+		.wps-tracking-sub{
+			margin: 4px 0 0;
+			font-size: 12.5px;
+			color: #7c8093;
+			line-height:1.7;
+		}
+
+		.wps-top-row{
+			display:flex;
+			gap:10px;
+			flex-wrap:wrap;
+			margin-bottom: 18px;
+		}
+		.wps-carrier-chip{
+			display:inline-flex;
+			align-items:center;
+			gap:8px;
+			background: color-mix(in srgb, var(--chip-color, #64748b) 12%, white 88%);
+			border: 1px solid color-mix(in srgb, var(--chip-color, #64748b) 35%, transparent);
+			color: color-mix(in srgb, var(--chip-color, #475569) 75%, black 25%);
+			padding: 10px 14px;
+			border-radius: 12px;
+			font-size: 13px;
+			font-weight:700;
+			flex: 0 0 auto;
+		}
+
+		.wps-code-capsule{
+			flex: 1 1 220px;
+			display:flex;
+			align-items:center;
+			justify-content:space-between;
+			gap:10px;
+			background: #f7f8fc;
+			border: 1px solid #eceef4;
+			border-radius:12px;
+			padding: 8px 8px 8px 14px;
+		}
+		.wps-code-text-wrap{ display:flex; flex-direction:column; gap:2px; min-width:0; }
+		.wps-code-label{ font-size:11px; color: #9498a8; font-weight:600; }
+		.wps-code-value{
+			direction:ltr;
+			unicode-bidi: plaintext;
+			font-variant-numeric: tabular-nums;
+			font-size: 15px;
+			font-weight:700;
+			color:#1c1f2e;
+			letter-spacing: .3px;
+			overflow-wrap: anywhere;
+		}
+		.wps-copy-btn{
+			flex:0 0 auto;
+			display:inline-flex;
+			align-items:center;
+			gap:6px;
+			background: #ffffff;
+			border: 1px solid #e2e4ee;
+			color:#4b4f63;
+			padding: 8px 12px;
+			border-radius: 9px;
+			font-size: 12px;
+			font-weight:700;
+			cursor:pointer;
+			transition: background .15s ease, border-color .15s ease;
+			white-space:nowrap;
+		}
+		.wps-copy-btn:hover{ background: #f1f2f8; }
+		.wps-copy-btn.wps-copied{
+			background: color-mix(in srgb, var(--wps-accent) 12%, white);
+			border-color: color-mix(in srgb, var(--wps-accent) 45%, transparent);
+			color: var(--wps-accent);
+		}
+		.wps-copy-icon{ flex:0 0 auto; }
+
+		.wps-tracking-cta{
+			display:flex;
+			align-items:center;
+			justify-content:center;
+			gap:8px;
+			width:100%;
+			background: var(--wps-accent);
+			color:#ffffff !important;
+			text-decoration:none !important;
+			font-weight:800;
+			font-size:14.5px;
+			padding: 13px 18px;
+			border-radius: 12px;
+			transition: filter .15s ease, transform .1s ease;
+			box-shadow: 0 10px 20px -10px color-mix(in srgb, var(--wps-accent) 70%, transparent);
+		}
+		.wps-tracking-cta:hover{
+			filter: brightness(1.08);
+			color:#ffffff !important;
+		}
+		.wps-tracking-cta:active{ transform: translateY(1px); }
+		.wps-tracking-cta svg{ transform: scaleX(-1); }
+		[dir='rtl'] .wps-tracking-cta svg{ transform: scaleX(1); }
+
+		@media (max-width: 480px){
+			.wps-tracking-inner{ padding: 18px 16px 16px; }
+			.wps-eyebrow{ font-size:14px; }
+			.wps-tracking-sub{ font-size:12px; }
+			.wps-top-row{ flex-direction: column; }
+			.wps-code-capsule{ flex-basis:auto; }
+			.wps-tracking-cta{ font-size:13.5px; padding:12px 16px; }
+		}
+		";
+	}
+
+
+	public function register_settings_page() {
+		add_submenu_page(
+			'woocommerce',
+			'تنظیمات پیگیری مرسوله',
+			'📦 پیگیری مرسوله',
+			'manage_woocommerce',
+			'wps-tracking-settings',
+			array( $this, 'settings_page_html' )
+		);
+	}
+
+	public function register_settings() {
+		register_setting( 'wps_tracking_settings_group', self::OPTION_KEY, array( $this, 'sanitize_settings' ) );
+	}
+
+	public function sanitize_settings( $input ) {
+		$clean = array();
+		$clean['title']           = isset( $input['title'] ) ? sanitize_text_field( $input['title'] ) : '';
+		$clean['subtitle']        = isset( $input['subtitle'] ) ? sanitize_text_field( $input['subtitle'] ) : '';
+		$clean['btn_text']        = isset( $input['btn_text'] ) ? sanitize_text_field( $input['btn_text'] ) : '';
+		$clean['color_primary']   = isset( $input['color_primary'] ) && sanitize_hex_color( $input['color_primary'] ) ? $input['color_primary'] : '#ffffff';
+		$clean['color_secondary'] = isset( $input['color_secondary'] ) && sanitize_hex_color( $input['color_secondary'] ) ? $input['color_secondary'] : '#f7f8fc';
+		$clean['color_accent']    = isset( $input['color_accent'] ) && sanitize_hex_color( $input['color_accent'] ) ? $input['color_accent'] : '#4f46e5';
+		$clean['post_url']        = isset( $input['post_url'] ) ? esc_url_raw( $input['post_url'] ) : '';
+		$clean['chapar_url']      = isset( $input['chapar_url'] ) ? esc_url_raw( $input['chapar_url'] ) : '';
+		$clean['tipax_url']       = isset( $input['tipax_url'] ) ? esc_url_raw( $input['tipax_url'] ) : '';
+		return $clean;
+	}
+
+	public function settings_page_html() {
+		if ( ! current_user_can( 'manage_woocommerce' ) ) {
+			return;
+		}
+		$settings = $this->get_settings();
+		?>
+		<div class="wrap wps-tracking-settings-wrap" dir="rtl">
+			<h1>📦 تنظیمات سیستم پیگیری مرسوله</h1>
+			<p>در این صفحه می‌توانید عنوان، متن‌ها، رنگ‌ها و آدرس‌های پیگیری هر شرکت حمل‌ونقل را تغییر دهید.</p>
+
+			<form method="post" action="options.php">
+				<?php settings_fields( 'wps_tracking_settings_group' ); ?>
+
+				<h2 class="wps-section-title">متن‌های نمایشی</h2>
+				<table class="form-table">
+					<tr>
+						<th><label for="wps_title">عنوان باکس</label></th>
+						<td><input type="text" id="wps_title" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[title]" value="<?php echo esc_attr( $settings['title'] ); ?>" class="regular-text"></td>
+					</tr>
+					<tr>
+						<th><label for="wps_subtitle">زیرعنوان</label></th>
+						<td><input type="text" id="wps_subtitle" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[subtitle]" value="<?php echo esc_attr( $settings['subtitle'] ); ?>" class="regular-text"></td>
+					</tr>
+					<tr>
+						<th><label for="wps_btn_text">متن دکمه پیگیری</label></th>
+						<td><input type="text" id="wps_btn_text" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[btn_text]" value="<?php echo esc_attr( $settings['btn_text'] ); ?>" class="regular-text"></td>
+					</tr>
+				</table>
+
+				<h2 class="wps-section-title">رنگ‌بندی کارت</h2>
+				<p style="color:#666;">کارت پیگیری به صورت روشن و ساده طراحی شده. دو رنگ اول، گرادینت پس‌زمینه سفید/خاکستری روشن کارت هستند و رنگ سوم «رنگ اصلی» نوار بالای کارت و دکمه پیگیری است.</p>
+				<table class="form-table">
+					<tr>
+						<th><label for="wps_color_primary">رنگ پس‌زمینه ۱ (روشن)</label></th>
+						<td>
+							<input type="text" id="wps_color_primary" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[color_primary]" value="<?php echo esc_attr( $settings['color_primary'] ); ?>" class="regular-text">
+							<span class="wps-color-preview" style="background:<?php echo esc_attr( $settings['color_primary'] ); ?>"></span>
+						</td>
+					</tr>
+					<tr>
+						<th><label for="wps_color_secondary">رنگ پس‌زمینه ۲ (روشن)</label></th>
+						<td>
+							<input type="text" id="wps_color_secondary" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[color_secondary]" value="<?php echo esc_attr( $settings['color_secondary'] ); ?>" class="regular-text">
+							<span class="wps-color-preview" style="background:<?php echo esc_attr( $settings['color_secondary'] ); ?>"></span>
+						</td>
+					</tr>
+					<tr>
+						<th><label for="wps_color_accent">رنگ اصلی (Accent)</label></th>
+						<td>
+							<input type="text" id="wps_color_accent" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[color_accent]" value="<?php echo esc_attr( $settings['color_accent'] ); ?>" class="regular-text">
+							<span class="wps-color-preview" style="background:<?php echo esc_attr( $settings['color_accent'] ); ?>"></span>
+						</td>
+					</tr>
+				</table>
+
+				<h2 class="wps-section-title">آدرس‌های پیگیری هر شرکت</h2>
+				<table class="form-table">
+					<tr>
+						<th><label for="wps_post_url">آدرس پیگیری پست</label></th>
+						<td><input type="url" id="wps_post_url" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[post_url]" value="<?php echo esc_attr( $settings['post_url'] ); ?>" class="regular-text" dir="ltr"></td>
+					</tr>
+					<tr>
+						<th><label for="wps_chapar_url">آدرس پیگیری چاپار</label></th>
+						<td><input type="url" id="wps_chapar_url" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[chapar_url]" value="<?php echo esc_attr( $settings['chapar_url'] ); ?>" class="regular-text" dir="ltr"></td>
+					</tr>
+					<tr>
+						<th><label for="wps_tipax_url">آدرس پیگیری تیپاکس</label></th>
+						<td><input type="url" id="wps_tipax_url" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[tipax_url]" value="<?php echo esc_attr( $settings['tipax_url'] ); ?>" class="regular-text" dir="ltr"></td>
+					</tr>
+				</table>
+
+				<?php submit_button( 'ذخیره تنظیمات' ); ?>
+			</form>
+
+			<hr>
+			<h2 class="wps-section-title">راهنمای استفاده</h2>
+			<ol>
+				<li>وارد ویرایش هر سفارش در بخش سفارشات ووکامرس شوید.</li>
+				<li>در باکس «پیگیری مرسوله» (سمت راست صفحه) شرکت حمل‌ونقل و کد رهگیری را وارد کنید.</li>
+				<li>سفارش را بروزرسانی (Update) کنید.</li>
+				<li>مشتری با ورود به «حساب کاربری من ← سفارشات ← مشاهده سفارش» باکس زیبای پیگیری را می‌بیند.</li>
+			</ol>
+		</div>
+		
+		<p style="background:red;width:100%;text-align:center;font-size:15px;font-weight:bold;color:#fff;padding:20px;">
+		برنامه نویس : علیرضا رحمتی | اینستاگرام : alireza.webcode | تلگرام : alireza_webcode | طراحی انواع وبسایت فروشگاهی ، آموزشی ، خبری و ...
+			</p>
+		<?php
+	}
+}
+
+WPS_Order_Tracking_System::instance();
+
+endif;
