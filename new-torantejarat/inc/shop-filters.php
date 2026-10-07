@@ -26,9 +26,10 @@ function torantejarat_shop_filters_setup() {
 	add_action( 'template_redirect', __NAMESPACE__ . '\\torantejarat_filters_canonical' );
 	remove_action( 'woocommerce_before_shop_loop', 'woocommerce_catalog_ordering', 30 );
 	remove_action( 'woocommerce_before_shop_loop', 'woocommerce_result_count', 20 );
-	add_action( 'woocommerce_before_shop_loop', __NAMESPACE__ . '\\torantejarat_sortbar', 30 );
+	add_action( 'woocommerce_before_shop_loop', __NAMESPACE__ . '\\torantejarat_sortbar', 4 );
 	add_filter( 'woocommerce_default_catalog_orderby', static fn() => 'date' );
 	add_filter( 'woocommerce_get_catalog_ordering_args', __NAMESPACE__ . '\\torantejarat_discount_ordering' );
+	add_action( 'wp_head', __NAMESPACE__ . '\\torantejarat_filter_seo', 5 );
 }
 
 /**
@@ -157,6 +158,16 @@ function torantejarat_filters_canonical() {
 		}
 		wp_safe_redirect( esc_url_raw( add_query_arg( $params, torantejarat_filters_base_url() ) ), 301 );
 		exit;
+	}
+	if ( torantejarat_filters_active() ) {
+		add_filter(
+			'wp_robots',
+			static function ( $robots ) {
+				$robots['noindex'] = true;
+				$robots['follow']  = true;
+				return $robots;
+			}
+		);
 	}
 }
 
@@ -327,7 +338,7 @@ function torantejarat_filters_sidebar() {
 	<aside class="torantejarat-filters" aria-label="<?php esc_attr_e( 'فیلترهای فروشگاه', 'torantejarat' ); ?>" data-filters>
 		<form method="get" action="<?php echo esc_url( torantejarat_filters_base_url() ); ?>" data-filters-form>
 			<div class="torantejarat-filter-head">
-				<h2><?php esc_html_e( 'فیلترها', 'torantejarat' ); ?></h2>
+				<h2><?php esc_html_e( 'فیلتر محصولات', 'torantejarat' ); ?></h2>
 				<button type="button" class="torantejarat-filter-close" data-filter-close aria-label="<?php esc_attr_e( 'بستن فیلترها', 'torantejarat' ); ?>">×</button>
 			</div>
 			<?php
@@ -337,9 +348,23 @@ function torantejarat_filters_sidebar() {
 				}
 			}
 			?>
+			<div class="torantejarat-filter-toggles">
+				<label class="torantejarat-switch">
+					<span><?php esc_html_e( 'فقط محصولات موجود', 'torantejarat' ); ?></span>
+					<input type="checkbox" name="instock" value="1"<?php checked( $input['instock'] ); ?>>
+					<i aria-hidden="true"></i>
+				</label>
+				<label class="torantejarat-switch">
+					<span><?php esc_html_e( 'فقط تخفیف‌دارها', 'torantejarat' ); ?></span>
+					<input type="checkbox" name="onsale" value="1"<?php checked( $input['onsale'] ); ?>>
+					<i aria-hidden="true"></i>
+				</label>
+			</div>
+			<?php $torantejarat_first_group = true; ?>
 			<?php if ( ! is_wp_error( $cats ) && $cats ) : ?>
-				<fieldset class="torantejarat-filter-group">
-					<legend><?php esc_html_e( 'دسته‌بندی', 'torantejarat' ); ?></legend>
+				<details class="torantejarat-filter-group"<?php echo $torantejarat_first_group ? ' open' : ''; $torantejarat_first_group = false; ?>>
+					<summary><?php esc_html_e( 'دسته‌بندی', 'torantejarat' ); ?></summary>
+					<div>
 					<?php foreach ( $cats as $cat ) : ?>
 						<label>
 							<input type="checkbox" name="pcat[]" value="<?php echo esc_attr( $cat->slug ); ?>"<?php checked( in_array( $cat->slug, $input['pcat'], true ) ); ?>>
@@ -347,11 +372,13 @@ function torantejarat_filters_sidebar() {
 							<b><?php echo esc_html( number_format_i18n( $cat->count ) ); ?></b>
 						</label>
 					<?php endforeach; ?>
-				</fieldset>
+					</div>
+				</details>
 			<?php endif; ?>
 			<?php foreach ( torantejarat_filters_facets() as $facet ) : ?>
-				<fieldset class="torantejarat-filter-group">
-					<legend><?php echo esc_html( $facet['label'] ); ?></legend>
+				<details class="torantejarat-filter-group"<?php echo $torantejarat_first_group ? ' open' : ''; $torantejarat_first_group = false; ?>>
+					<summary><?php echo esc_html( $facet['label'] ); ?></summary>
+					<div>
 					<?php foreach ( $facet['terms'] as $term ) : ?>
 						<?php $checked = isset( $input['attr'][ $facet['taxonomy'] ] ) && in_array( $term->slug, $input['attr'][ $facet['taxonomy'] ], true ); ?>
 						<label>
@@ -360,27 +387,19 @@ function torantejarat_filters_sidebar() {
 							<b><?php echo esc_html( number_format_i18n( $term->count ) ); ?></b>
 						</label>
 					<?php endforeach; ?>
-				</fieldset>
+					</div>
+				</details>
 			<?php endforeach; ?>
-			<fieldset class="torantejarat-filter-group">
-				<legend><?php esc_html_e( 'قیمت (تومان)', 'torantejarat' ); ?></legend>
+			<details class="torantejarat-filter-group"<?php echo $torantejarat_first_group ? ' open' : ''; ?>>
+				<summary><?php esc_html_e( 'قیمت (تومان)', 'torantejarat' ); ?></summary>
+				<div>
 				<div class="torantejarat-filter-price">
 					<input type="number" name="min_price" min="0" inputmode="numeric" placeholder="<?php esc_attr_e( 'از', 'torantejarat' ); ?>" value="<?php echo esc_attr( $input['min_price'] ); ?>">
 					<span aria-hidden="true">–</span>
 					<input type="number" name="max_price" min="0" inputmode="numeric" placeholder="<?php esc_attr_e( 'تا', 'torantejarat' ); ?>" value="<?php echo esc_attr( $input['max_price'] ); ?>">
 				</div>
-			</fieldset>
-			<fieldset class="torantejarat-filter-group">
-				<legend><?php esc_html_e( 'وضعیت', 'torantejarat' ); ?></legend>
-				<label>
-					<input type="checkbox" name="instock" value="1"<?php checked( $input['instock'] ); ?>>
-					<span><?php esc_html_e( 'فقط کالاهای موجود', 'torantejarat' ); ?></span>
-				</label>
-				<label>
-					<input type="checkbox" name="onsale" value="1"<?php checked( $input['onsale'] ); ?>>
-					<span><?php esc_html_e( 'فقط تخفیف‌دارها', 'torantejarat' ); ?></span>
-				</label>
-			</fieldset>
+				</div>
+			</details>
 			<div class="torantejarat-filter-foot">
 				<button type="submit" class="torantejarat-btn torantejarat-btn-primary"><?php esc_html_e( 'اعمال فیلتر', 'torantejarat' ); ?></button>
 				<a class="torantejarat-filter-clear" href="<?php echo esc_url( torantejarat_filters_base_url() ); ?>"><?php esc_html_e( 'حذف همه', 'torantejarat' ); ?></a>
@@ -388,6 +407,53 @@ function torantejarat_filters_sidebar() {
 		</form>
 	</aside>
 	<?php
+}
+
+/**
+ * Canonical + robots for filtered catalog views (cannibalization guard).
+ * Filtered URLs canonicalize to the clean archive; filtered views are
+ * noindexed (follow) so only canonical archives compete in search.
+ * Skipped entirely when Rank Math takes over SEO.
+ */
+function torantejarat_filter_seo() {
+	if ( defined( 'RANK_MATH_VERSION' ) || ! apply_filters( 'torantejarat_filter_seo', true ) ) {
+		return;
+	}
+	if ( ! ( is_shop() || is_product_taxonomy() ) ) {
+		return;
+	}
+	if ( ! torantejarat_filters_active() ) {
+		return;
+	}
+	$paged = max( 1, get_query_var( 'paged' ), get_query_var( 'page' ) );
+	$base  = torantejarat_filters_base_url();
+	if ( is_wp_error( $base ) ) {
+		return;
+	}
+	$canonical = $paged > 1 ? trailingslashit( $base ) . 'page/' . $paged . '/' : $base;
+	printf(
+		'<link rel="canonical" href="%s">' . "\n",
+		esc_url( $canonical )
+	);
+	add_filter(
+		'wp_robots',
+		static function ( $robots ) {
+			$robots['noindex'] = true;
+			$robots['follow']  = true;
+			return $robots;
+		}
+	);
+}
+
+function torantejarat_filters_active() {
+	$input = torantejarat_filters_input();
+	if ( $input['pcat'] || $input['attr'] || $input['instock'] || $input['onsale'] ) {
+		return true;
+	}
+	if ( '' !== $input['min_price'] || '' !== $input['max_price'] ) {
+		return true;
+	}
+	return isset( $_GET['orderby'] ) && is_string( $_GET['orderby'] ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 }
 
 /**
@@ -420,6 +486,17 @@ function torantejarat_filters_toolbar_extras() {
 			<?php if ( $count > 0 ) : ?><b><?php echo esc_html( number_format_i18n( $count ) ); ?></b><?php endif; ?>
 		</button>
 		<?php torantejarat_filters_chips( $input ); ?>
+	</div>
+	<div class="torantejarat-sticky-filterbar" aria-hidden="false">
+		<button type="button" data-filter-open>
+			<?php esc_html_e( 'فیلترها', 'torantejarat' ); ?>
+			<?php if ( $count > 0 ) : ?><b><?php echo esc_html( number_format_i18n( $count ) ); ?></b><?php endif; ?>
+		</button>
+		<?php
+		global $wp_query;
+		$torantejarat_total = $wp_query instanceof \WP_Query ? (int) $wp_query->found_posts : 0;
+		?>
+		<span data-sticky-count><?php echo esc_html( sprintf( __( '%s محصول', 'torantejarat' ), number_format_i18n( $torantejarat_total ) ) ); ?></span>
 	</div>
 	<?php
 }

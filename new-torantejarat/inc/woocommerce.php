@@ -40,8 +40,6 @@ function torantejarat_woocommerce_setup() {
 	add_filter( 'woocommerce_currency_symbol', __NAMESPACE__ . '\\torantejarat_currency_symbol', 10, 2 );
 	add_action( 'init', __NAMESPACE__ . '\\torantejarat_oembed_providers' );
 	add_action( 'woocommerce_shop_loop_header', __NAMESPACE__ . '\\torantejarat_archive_intro_end', 99 );
-	add_action( 'woocommerce_before_shop_loop', __NAMESPACE__ . '\\torantejarat_catalog_toolbar_start', 15 );
-	add_action( 'woocommerce_before_shop_loop', __NAMESPACE__ . '\\torantejarat_catalog_toolbar_end', 35 );
 	add_filter( 'woocommerce_output_related_products_args', __NAMESPACE__ . '\\torantejarat_related_layout' );
 	add_filter( 'woocommerce_cross_sell_columns', __NAMESPACE__ . '\\torantejarat_cross_sell_size' );
 	add_filter( 'woocommerce_cross_sell_total', __NAMESPACE__ . '\\torantejarat_cross_sell_size' );
@@ -455,8 +453,6 @@ function torantejarat_woocommerce_notice() {
 function torantejarat_archive_intro_end() {
 	echo '</div></section><section class="torantejarat-shop-body"><div class="torantejarat-container">';
 }
-function torantejarat_catalog_toolbar_start() { echo '<div class="torantejarat-catalog-toolbar">'; }
-function torantejarat_catalog_toolbar_end() { echo '</div>'; }
 
 function torantejarat_related_layout( $args ) {
 	$args['posts_per_page'] = 3;

@@ -63,6 +63,16 @@
 					throw new Error('no results');
 				}
 				results.innerHTML = fresh.innerHTML;
+				var freshBar = doc.querySelector('[data-sortbar]');
+				var liveBar = document.querySelector('[data-sortbar]');
+				if (freshBar && liveBar) {
+					liveBar.innerHTML = freshBar.innerHTML;
+				}
+				var freshCount = freshBar ? freshBar.querySelector('.torantejarat-sortbar-count') : null;
+				var stickyCount = document.querySelector('[data-sticky-count]');
+				if (freshCount && stickyCount) {
+					stickyCount.textContent = freshCount.textContent;
+				}
 				results.removeAttribute('aria-busy');
 				results.classList.remove('is-loading');
 				document.body.classList.remove('filter-open');
