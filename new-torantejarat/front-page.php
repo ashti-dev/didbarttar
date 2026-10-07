@@ -92,11 +92,11 @@ get_header();
 				</div></section>
 				<?php endif; ?>
 
+				<!-- Amazing deals — one level up, right under categories -->
+				<?php get_template_part( 'template-parts/home-deals' ); ?>
+
 				<!-- Product Grid — exact match to index.html -->
 				<?php get_template_part( 'template-parts/home-products' ); ?>
-
-				<!-- Amazing deals — renders only with 2+ genuine discounts -->
-				<?php get_template_part( 'template-parts/home-deals' ); ?>
 			<?php endif; ?>
 
 			<!-- Finder Banner — exact match to index.html -->
