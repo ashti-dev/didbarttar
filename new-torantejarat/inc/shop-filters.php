@@ -21,7 +21,7 @@ function torantejarat_shop_filters_setup() {
 	add_action( 'woocommerce_before_shop_loop', __NAMESPACE__ . '\\torantejarat_filters_layout_start', 5 );
 	add_action( 'woocommerce_before_shop_loop', __NAMESPACE__ . '\\torantejarat_filters_results_start', 12 );
 	add_action( 'woocommerce_before_shop_loop', __NAMESPACE__ . '\\torantejarat_filters_toolbar_extras', 13 );
-	add_action( 'woocommerce_after_shop_loop', __NAMESPACE__ . '\\torantejarat_filters_layout_end', 50 );
+	add_action( 'woocommerce_after_shop_loop', __NAMESPACE__ . '\\torantejarat_filters_layout_end', 49 );
 	add_action( 'woocommerce_product_query', __NAMESPACE__ . '\\torantejarat_filters_apply' );
 	add_action( 'template_redirect', __NAMESPACE__ . '\\torantejarat_filters_canonical' );
 }

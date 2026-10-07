@@ -1,7 +1,7 @@
 /* Recently viewed products: localStorage recorder (PDP) + slot renderer. No backend. */
 (function () {
 	'use strict';
-	var KEY = 'torantejarat-recently-viewed';
+	var KEY = 'torantejarat-recently-viewed-v2';
 	var MAX = 8;
 
 	function read() {
@@ -34,13 +34,27 @@
 	}
 
 	if (document.body && document.body.classList.contains('single-product')) {
-		var title = metaContent('og:title') || document.title;
-		if (title) {
-			var url = canonicalUrl();
+		var recorded = null;
+		var source = document.getElementById('torantejarat-recent-source');
+		if (source) {
+			try {
+				var data = JSON.parse(source.textContent);
+				if (data && data.url) {
+					recorded = { url: String(data.url).split('?')[0], title: String(data.title || ''), image: String(data.image || ''), price: String(data.price || '') };
+				}
+			} catch (error) { /* Fall through to meta scraping. */ }
+		}
+		if (!recorded) {
+			var title = metaContent('og:title') || document.title;
+			if (title) {
+				recorded = { url: canonicalUrl(), title: title, image: metaContent('og:image'), price: '' };
+			}
+		}
+		if (recorded && recorded.title) {
 			var rest = read().filter(function (item) {
-				return item.url !== url;
+				return item.url !== recorded.url;
 			});
-			rest.unshift({ url: url, title: title, image: metaContent('og:image') });
+			rest.unshift(recorded);
 			write(rest);
 		}
 	}
@@ -68,11 +82,22 @@
 					img.src = item.image;
 					img.alt = item.title;
 					img.loading = 'lazy';
+					img.width = 72;
+					img.height = 72;
 					card.appendChild(img);
 				}
-				var label = document.createElement('span');
+				var body = document.createElement('span');
+				body.className = 'torantejarat-recent-body';
+				var label = document.createElement('strong');
 				label.textContent = item.title;
-				card.appendChild(label);
+				body.appendChild(label);
+				if (item.price) {
+					var price = document.createElement('span');
+					price.className = 'torantejarat-recent-price';
+					price.textContent = item.price;
+					body.appendChild(price);
+				}
+				card.appendChild(body);
 				grid.appendChild(card);
 			});
 			section.hidden = false;

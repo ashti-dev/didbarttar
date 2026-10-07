@@ -45,7 +45,7 @@ function torantejarat_woocommerce_setup() {
 	add_filter( 'woocommerce_cross_sell_total', __NAMESPACE__ . '\\torantejarat_cross_sell_size' );
 	add_action( 'woocommerce_after_single_product_summary', __NAMESPACE__ . '\\torantejarat_product_alternatives', 19 );
 	add_action( 'woocommerce_after_single_product_summary', __NAMESPACE__ . '\\torantejarat_recently_viewed_slot', 25 );
-	add_action( 'woocommerce_after_shop_loop', __NAMESPACE__ . '\\torantejarat_recently_viewed_slot', 50 );
+	add_action( 'woocommerce_after_shop_loop', __NAMESPACE__ . '\\torantejarat_recently_viewed_slot', 51 );
 	add_action( 'woocommerce_archive_description', __NAMESPACE__ . '\\torantejarat_archive_categories', 30 );
 	add_action( 'wp_ajax_torantejarat_compare', __NAMESPACE__ . '\\torantejarat_compare_fragment' );
 	add_action( 'wp_ajax_nopriv_torantejarat_compare', __NAMESPACE__ . '\\torantejarat_compare_fragment' );
@@ -62,6 +62,7 @@ function torantejarat_woocommerce_setup() {
 	add_action( 'init', __NAMESPACE__ . '\\torantejarat_register_shipped_status' );
 	add_filter( 'wc_order_statuses', __NAMESPACE__ . '\\torantejarat_shipped_status_list' );
 	add_action( 'woocommerce_order_details_before_order_table', __NAMESPACE__ . '\\torantejarat_order_timeline' );
+	add_action( 'wp_footer', __NAMESPACE__ . '\\torantejarat_recent_source', 5 );
 
 	add_action( 'woocommerce_before_cart', __NAMESPACE__ . '\\torantejarat_cart_layout_start', 99 );
 	add_action( 'woocommerce_after_cart', __NAMESPACE__ . '\\torantejarat_cart_layout_end', 1 );
@@ -1196,6 +1197,30 @@ function torantejarat_loop_product_title() {
 	$level = in_array( wc_get_loop_prop( 'name' ), array( 'torantejarat-home', 'related', 'up-sells', 'cross-sells' ), true ) ? 3 : 2;
 	$class = apply_filters( 'woocommerce_product_loop_title_classes', 'woocommerce-loop-product__title' );
 	printf( '<h%1$d class="%2$s">%3$s</h%1$d>', $level, esc_attr( $class ), esc_html( get_the_title() ) );
+}
+
+/**
+ * Structured recorder source for recently-viewed (exact product name,
+ * image and price) — meta scraping (og:title/document.title) is only
+ * the fallback and carries the site-name suffix.
+ */
+function torantejarat_recent_source() {
+	if ( ! is_product() ) {
+		return;
+	}
+	global $product;
+	if ( ! $product instanceof \WC_Product ) {
+		return;
+	}
+	$image = $product->get_image_id() ? wp_get_attachment_image_url( $product->get_image_id(), 'torantejarat-card' ) : '';
+	$price = $product->get_price();
+	$data  = array(
+		'url'   => get_permalink( $product->get_id() ),
+		'title' => $product->get_name(),
+		'image' => $image ? $image : '',
+		'price' => '' !== $price && null !== $price ? trim( torantejarat_fa_number( $price ) . ' ' . __( 'تومان', 'torantejarat' ) ) : '',
+	);
+	echo '<script type="application/json" id="torantejarat-recent-source">' . wp_json_encode( $data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) . '</script>' . "\n";
 }
 
 /**

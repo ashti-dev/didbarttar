@@ -23,7 +23,6 @@ if ( is_shop() || is_product_taxonomy() ) { $torantejarat_card_class .= ' torant
 	<div class="torantejarat-product-info">
 		<?php if ( $product->get_sku() ) : ?><span class="torantejarat-product-code" dir="auto"><?php echo esc_html( $product->get_sku() ); ?></span><?php endif; ?>
 		<?php do_action( 'woocommerce_shop_loop_item_title' ); ?>
-		<?php if ( ! post_password_required( $product->get_id() ) && $product->get_short_description() ) : ?><p class="torantejarat-shop-card-description"><?php echo esc_html( wp_trim_words( wp_strip_all_tags( $product->get_short_description() ), 24 ) ); ?></p><?php endif; ?>
 		<?php $torantejarat_attributes = torantejarat_product_attribute_items( $product, 3 ); ?>
 		<?php if ( $torantejarat_attributes ) : ?>
 			<?php if ( is_shop() || is_product_taxonomy() ) : ?>
