@@ -23,6 +23,39 @@
 		});
 
 		var pending = null;
+		var COLS_KEY = 'torantejarat-cols';
+
+		function catalogGrid() {
+			return results.querySelector('ul.products');
+		}
+
+		function currentCols() {
+			try {
+				var saved = window.localStorage.getItem(COLS_KEY);
+				if (saved === '2' || saved === '3' || saved === '4') {
+					return saved;
+				}
+			} catch (e) { /* Private mode. */ }
+			return '3';
+		}
+
+		function applyCols(value) {
+			var grid = catalogGrid();
+			if (grid) {
+				grid.setAttribute('data-cols', value);
+			}
+			var buttons = document.querySelectorAll('[data-cols-switch] [data-cols]');
+			buttons.forEach(function (btn) {
+				var active = btn.getAttribute('data-cols') === value;
+				btn.classList.toggle('is-active', active);
+				btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+			});
+			try {
+				window.localStorage.setItem(COLS_KEY, value);
+			} catch (e) { /* Private mode. */ }
+		}
+
+		applyCols(currentCols());
 
 		function pageUrl(extra) {
 			var params = new URLSearchParams(new FormData(form));
@@ -65,6 +98,7 @@
 					results.innerHTML = fresh.innerHTML;
 					results.removeAttribute('aria-busy');
 					results.classList.remove('is-loading');
+					applyCols(currentCols());
 					document.body.classList.remove('filter-open');
 					if (push !== false) {
 						try {
@@ -87,6 +121,11 @@
 		});
 
 		document.addEventListener('click', function (event) {
+			var colsBtn = event.target.closest('[data-cols-switch] [data-cols]');
+			if (colsBtn) {
+				applyCols(colsBtn.getAttribute('data-cols'));
+				return;
+			}
 			var openBtn = event.target.closest('[data-filter-open]');
 			if (openBtn) {
 				document.body.classList.add('filter-open');

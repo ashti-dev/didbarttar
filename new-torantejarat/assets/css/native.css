@@ -644,6 +644,15 @@ body.js .torantejarat-video-cover{display:block}
 .torantejarat-active-filters a{display:inline-flex;align-items:center;gap:6px;font-size:11px;background:#eaf0e2;border-radius:20px;padding:5px 12px}
 .torantejarat-active-filters a span{font-weight:800}
 .torantejarat-active-filters .torantejarat-clear-all{background:none;text-decoration:underline}
+.torantejarat-cols-switch{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#fff}
+.torantejarat-cols-switch button{border:0;background:none;padding:8px 14px;font-size:12px;font-weight:700;color:var(--muted);cursor:pointer}
+.torantejarat-cols-switch button+button{border-inline-start:1px solid var(--line)}
+.torantejarat-cols-switch button.is-active{background:var(--ink);color:#fff}
+@media(min-width:700px){
+  .torantejarat-catalog-grid[data-cols="2"]{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .torantejarat-catalog-grid[data-cols="3"]{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .torantejarat-catalog-grid[data-cols="4"]{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
 .torantejarat-catalog-results.is-loading{opacity:.5;pointer-events:none;transition:opacity .2s}
 @media(max-width:900px){
   .torantejarat-catalog-layout{grid-template-columns:1fr}

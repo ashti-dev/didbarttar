@@ -312,6 +312,11 @@ function torantejarat_filters_toolbar_extras() {
 			<?php esc_html_e( 'فیلترها', 'torantejarat' ); ?>
 			<?php if ( $count > 0 ) : ?><b><?php echo esc_html( number_format_i18n( $count ) ); ?></b><?php endif; ?>
 		</button>
+		<div class="torantejarat-cols-switch" role="group" aria-label="<?php esc_attr_e( 'تعداد ستون‌ها', 'torantejarat' ); ?>" data-cols-switch>
+			<?php foreach ( array( 2, 3, 4 ) as $torantejarat_cols ) : ?>
+				<button type="button" data-cols="<?php echo esc_attr( $torantejarat_cols ); ?>" aria-label="<?php echo esc_attr( sprintf( __( 'نمایش %s ستونه', 'torantejarat' ), number_format_i18n( $torantejarat_cols ) ) ); ?>"><?php echo esc_html( number_format_i18n( $torantejarat_cols ) ); ?></button>
+			<?php endforeach; ?>
+		</div>
 		<?php torantejarat_filters_chips( $input ); ?>
 	</div>
 	<?php
