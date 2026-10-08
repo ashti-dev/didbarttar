@@ -32,7 +32,11 @@
 			editBtn.addEventListener('click', function () {
 				root.classList.remove('is-submitted');
 				editBtn.hidden = true;
-				showStep(firstUnanswered());
+				showStep(0);
+				var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+				try {
+					form.scrollIntoView({ block: 'start', behavior: reduced ? 'auto' : 'smooth' });
+				} catch (e) { /* Headless: skip scrolling. */ }
 			});
 		}
 
