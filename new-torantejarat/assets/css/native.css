@@ -642,6 +642,10 @@ body.js .torantejarat-video-cover{display:block}
 .torantejarat-widget-latest a{font-size:12px;font-weight:700;line-height:1.8;display:block}
 .torantejarat-widget-latest time{font-size:11px;color:var(--muted)}
 .torantejarat-widget .torantejarat-header-search{margin:0;max-width:none}
+/* Empty-search guard: positioned hint, no page change. */
+form.torantejarat-header-search{position:relative}
+.torantejarat-header-search.is-empty input{border-color:#d33f1f!important;box-shadow:0 0 0 3px #d33f1f33}
+.torantejarat-search-hint{position:absolute;top:100%;inset-inline-start:4px;margin:6px 0 0;font-size:11px;color:#b3402e;background:#fff;border:1px solid #f0c9ae;border-radius:8px;padding:4px 10px;box-shadow:0 8px 22px #1723251a;z-index:5;white-space:nowrap}
 @media(max-width:900px){.torantejarat-blog-layout{grid-template-columns:1fr}.torantejarat-blog-sidebar{position:static;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}}
 /* Smart shop filters: sidebar + chips + mobile bottom sheet. */
 .torantejarat-catalog-layout{display:grid;grid-template-columns:250px minmax(0,1fr);gap:28px;align-items:start}
