@@ -202,6 +202,7 @@ get_header();
 				<?php if ( $torantejarat_submitted ) : ?>
 					<div class="torantejarat-finder-results" data-finder-results>
 						<?php if ( $torantejarat_results ) : ?>
+						<div class="torantejarat-finder-box">
 							<span class="torantejarat-eyebrow"><?php esc_html_e( 'نتیجه بررسی اولیه', 'torantejarat' ); ?></span>
 							<h2><?php echo esc_html( sprintf( __( '%s گزینه مرتبط با پاسخ‌های شما', 'torantejarat' ), number_format_i18n( count( $torantejarat_results ) ) ) ); ?></h2>
 							<?php if ( '' !== $torantejarat_partial ) : ?><p class="torantejarat-finder-partial"><?php echo esc_html( sprintf( __( 'تطابق جزئی (%s) — هیچ مدلی تمام شرط‌ها را نداشت.', 'torantejarat' ), $torantejarat_partial ) ); ?></p><?php endif; ?>
@@ -244,6 +245,7 @@ get_header();
 							</div>
 							<p class="torantejarat-finder-note"><?php esc_html_e( 'این نتیجه تأیید تناسب فنی نیست؛ شرایط محیط و اطلاعات سازنده باید بررسی شوند.', 'torantejarat' ); ?></p>
 							<p><a class="torantejarat-text-link" href="<?php echo esc_url( get_permalink() ); ?>"><?php esc_html_e( 'شروع دوباره', 'torantejarat' ); ?> <?php torantejarat_icon( 'arrow' ); ?></a></p>
+						</div>
 						<?php else : ?>
 							<div class="torantejarat-empty-state">
 								<?php torantejarat_icon( 'search' ); ?>
