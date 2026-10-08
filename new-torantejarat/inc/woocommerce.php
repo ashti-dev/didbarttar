@@ -68,6 +68,7 @@ function torantejarat_woocommerce_setup() {
 	add_action( 'woocommerce_after_cart', __NAMESPACE__ . '\\torantejarat_cart_layout_end', 1 );
 	add_filter( 'woocommerce_return_to_shop_text', __NAMESPACE__ . '\\torantejarat_return_to_shop_text' );
 	add_action( 'template_redirect', __NAMESPACE__ . '\\torantejarat_cart_empty_takeover' );
+	add_action( 'template_redirect', __NAMESPACE__ . '\\torantejarat_empty_search_redirect' );
 	add_action( 'woocommerce_cart_is_empty', __NAMESPACE__ . '\\torantejarat_cart_empty_extras', 20 );
 	add_action( 'woocommerce_cart_is_empty', __NAMESPACE__ . '\\torantejarat_cart_empty_suggestions', 30 );
 	remove_action( 'woocommerce_cart_collaterals', 'woocommerce_cross_sell_display', 10 );
@@ -1064,6 +1065,23 @@ function torantejarat_compare_data( array $raw ) {
 		'labels'    => $labels,
 		'only_diff' => $only_diff,
 	);
+}
+
+/**
+ * Empty search (?s=) matches everything by default — redirect to the shop
+ * instead of a meaningless "all results" page.
+ */
+function torantejarat_empty_search_redirect() {
+	if ( is_admin() || ! is_search() ) {
+		return;
+	}
+	if ( '' === trim( (string) get_search_query( false ) ) ) {
+		$shop = torantejarat_woocommerce_available() && wc_get_page_id( 'shop' ) > 0
+			? wc_get_page_permalink( 'shop' )
+			: home_url( '/' );
+		wp_safe_redirect( esc_url_raw( $shop ), 302 );
+		exit;
+	}
 }
 
 /**
