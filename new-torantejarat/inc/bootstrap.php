@@ -46,6 +46,8 @@ add_filter( 'login_message', __NAMESPACE__ . '\\torantejarat_login_intro' );
 add_filter( 'login_headerurl', static fn() => home_url( '/' ) );
 add_filter( 'login_headertext', static fn() => get_bloginfo( 'name' ) );
 add_filter( 'login_display_language_dropdown', '__return_false' );
+add_action( 'wp_ajax_torantejarat_live_search', __NAMESPACE__ . '\\torantejarat_live_search' );
+add_action( 'wp_ajax_nopriv_torantejarat_live_search', __NAMESPACE__ . '\\torantejarat_live_search' );
 
 add_action( 'after_setup_theme', __NAMESPACE__ . '\\torantejarat_setup' );
 add_action( 'after_setup_theme', __NAMESPACE__ . '\\torantejarat_woocommerce_setup' );

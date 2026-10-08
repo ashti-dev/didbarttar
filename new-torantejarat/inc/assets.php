@@ -73,6 +73,23 @@ function torantejarat_enqueue_assets() {
 	if ( has_nav_menu( 'torantejarat-primary' ) ) {
 		wp_enqueue_script( 'torantejarat-navigation', get_template_directory_uri() . '/assets/js/navigation.js', array(), torantejarat_asset_version( 'assets/js/navigation.js' ), array( 'in_footer' => true, 'strategy' => 'defer' ) );
 	}
+	wp_enqueue_script( 'torantejarat-search-modal', get_template_directory_uri() . '/assets/js/search-modal.js', array(), torantejarat_asset_version( 'assets/js/search-modal.js' ), array( 'in_footer' => true, 'strategy' => 'defer' ) );
+	wp_localize_script(
+		'torantejarat-search-modal',
+		'torantejaratSearch',
+		array(
+			'ajaxUrl'    => admin_url( 'admin-ajax.php' ),
+			'nonce'      => wp_create_nonce( 'torantejarat-search' ),
+			'label'      => __( 'جست‌وجو', 'torantejarat' ),
+			'close'      => __( 'بستن', 'torantejarat' ),
+			'hint'       => __( 'حداقل ۲ حرف بنویسید تا نتیجه بیاید.', 'torantejarat' ),
+			'noResult'   => __( 'چیزی پیدا نشد؛ عبارت دیگری را امتحان کنید.', 'torantejarat' ),
+			'inCats'     => __( 'در دسته‌ها', 'torantejarat' ),
+			'inProducts' => __( 'در محصولات', 'torantejarat' ),
+			'viewAll'    => __( 'مشاهده همه نتایج', 'torantejarat' ),
+			'shopUrl'    => torantejarat_woocommerce_available() && wc_get_page_id( 'shop' ) > 0 ? wc_get_page_permalink( 'shop' ) : home_url( '/' ),
+		)
+	);
 	wp_enqueue_script( 'torantejarat-reveal', get_template_directory_uri() . '/assets/js/reveal.js', array(), torantejarat_asset_version( 'assets/js/reveal.js' ), array( 'in_footer' => true, 'strategy' => 'defer' ) );
 	if ( torantejarat_woocommerce_available() && is_product() ) {
 		wp_enqueue_script( 'torantejarat-pdp', get_template_directory_uri() . '/assets/js/pdp.js', array(), torantejarat_asset_version( 'assets/js/pdp.js' ), true );

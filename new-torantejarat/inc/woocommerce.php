@@ -1085,6 +1085,45 @@ function torantejarat_empty_search_redirect() {
 }
 
 /**
+ * Live search endpoint (products + categories). Read-only, nonce-verified,
+ * tight limits, no found-rows counting.
+ */
+function torantejarat_live_search() {
+	check_ajax_referer( 'torantejarat-search', 'nonce' );
+	$q = isset( $_GET['q'] ) ? sanitize_text_field( wp_unslash( $_GET['q'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Verified above.
+	$q = mb_substr( trim( $q ), 0, 60 );
+	if ( mb_strlen( $q ) < 2 ) {
+		wp_send_json_success( array( 'products' => array(), 'cats' => array() ) );
+	}
+	$products = array();
+	if ( torantejarat_woocommerce_available() ) {
+		foreach ( wc_get_products( array( 'status' => 'publish', 'visibility' => 'catalog', 'limit' => 6, 's' => $q ) ) as $p ) {
+			if ( ! $p instanceof \WC_Product || ! $p->is_visible() ) {
+				continue;
+			}
+			$img = $p->get_image_id() ? wp_get_attachment_image_url( $p->get_image_id(), 'thumbnail' ) : wc_placeholder_img_src( 'thumbnail' );
+			$price = $p->get_price();
+			$products[] = array(
+				'url'   => get_permalink( $p->get_id() ),
+				'name'  => $p->get_name(),
+				'image' => $img ? $img : '',
+				'price' => ( '' !== $price && null !== $price ) ? trim( torantejarat_fa_number( $price ) . ' ' . __( 'تومان', 'torantejarat' ) ) : '',
+			);
+		}
+	}
+	$cats = array();
+	$terms = get_terms( array( 'taxonomy' => 'product_cat', 'hide_empty' => true, 'number' => 20, 'search' => $q ) );
+	if ( ! is_wp_error( $terms ) ) {
+		foreach ( array_slice( $terms, 0, 3 ) as $t ) {
+			$url = get_term_link( $t );
+			if ( ! is_wp_error( $url ) ) {
+				$cats[] = array( 'url' => $url, 'name' => $t->name );
+			}
+		}
+	}
+	wp_send_json_success( array( 'products' => $products, 'cats' => $cats ) );
+}
+/**
  * Sanitize raw compare input (GET or AJAX) to the torantejarat_compare_data shape.
  */
 function torantejarat_compare_raw_input( array $input ) {
