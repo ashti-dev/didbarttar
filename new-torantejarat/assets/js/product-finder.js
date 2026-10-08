@@ -82,13 +82,44 @@
 		steps.forEach(function (step, index) {
 			step.addEventListener('change', function (event) {
 				if (event.target.matches('input[type="radio"]')) {
-					showStep(index + 1);
+					if (index === steps.length - 1) {
+						finishWizard();
+					} else {
+						showStep(index + 1);
+					}
 				}
 			});
 		});
 
+		var finishTimer = null;
+
+		function finishWizard() {
+			showStep(steps.length);
+			root.classList.add('is-loading');
+			var loader = document.createElement('div');
+			loader.className = 'torantejarat-finder-loading';
+			loader.setAttribute('role', 'status');
+			loader.innerHTML = '<span class="torantejarat-spinner" aria-hidden="true"></span><p>در حال بررسی مدل‌ها با پاسخ‌های شما…</p>';
+			form.appendChild(loader);
+			if (finishTimer) {
+				clearTimeout(finishTimer);
+			}
+			finishTimer = setTimeout(function () {
+				form.submit();
+			}, 1800);
+		}
+
 		if (backBtn) {
 			backBtn.addEventListener('click', function () {
+				if (finishTimer) {
+					clearTimeout(finishTimer);
+					finishTimer = null;
+				}
+				root.classList.remove('is-loading');
+				var loader = root.querySelector('.torantejarat-finder-loading');
+				if (loader) {
+					loader.remove();
+				}
 				showStep(currentIndex() - 1);
 			});
 		}
@@ -103,5 +134,13 @@
 		}
 
 		showStep(firstUnanswered());
+
+		var resultsBox = root.querySelector('[data-finder-results]');
+		if (resultsBox) {
+			var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+			try {
+				resultsBox.scrollIntoView({ block: 'start', behavior: reduced ? 'auto' : 'smooth' });
+			} catch (e) { /* Headless: skip scrolling. */ }
+		}
 	});
 })();

@@ -206,6 +206,16 @@ get_header();
 							<h2><?php echo esc_html( sprintf( __( '%s گزینه مرتبط با پاسخ‌های شما', 'torantejarat' ), number_format_i18n( count( $torantejarat_results ) ) ) ); ?></h2>
 							<?php if ( '' !== $torantejarat_partial ) : ?><p class="torantejarat-finder-partial"><?php echo esc_html( sprintf( __( 'تطابق جزئی (%s) — هیچ مدلی تمام شرط‌ها را نداشت.', 'torantejarat' ), $torantejarat_partial ) ); ?></p><?php endif; ?>
 							<?php if ( $torantejarat_chosen ) : ?><p class="torantejarat-finder-summary"><?php echo esc_html( implode( ' • ', $torantejarat_chosen ) ); ?></p><?php endif; ?>
+							<?php
+							$torantejarat_prices = array();
+							foreach ( $torantejarat_results as $torantejarat_item ) {
+								$torantejarat_p = $torantejarat_item->get_price();
+								if ( '' !== $torantejarat_p && null !== $torantejarat_p ) {
+									$torantejarat_prices[] = (float) $torantejarat_p;
+								}
+							}
+							?>
+							<?php if ( count( $torantejarat_prices ) > 1 ) : ?><p class="torantejarat-finder-range"><?php echo esc_html( sprintf( __( 'بازه قیمت مدل‌های مناسب: %s تا %s تومان', 'torantejarat' ), torantejarat_fa_number( min( $torantejarat_prices ) ), torantejarat_fa_number( max( $torantejarat_prices ) ) ) ); ?></p><?php endif; ?>
 							<?php if ( $torantejarat_skipped > 0 ) : ?><p class="torantejarat-finder-skipped"><?php echo esc_html( sprintf( __( '%s مدل چون مشخصات فنی کامل نداشتند در نظر گرفته نشدند — برای بررسی آن‌ها از کارشناس بپرسید.', 'torantejarat' ), number_format_i18n( $torantejarat_skipped ) ) ); ?></p><?php endif; ?>
 							<div class="torantejarat-finder-grid">
 								<?php foreach ( $torantejarat_results as $torantejarat_item ) : ?>
