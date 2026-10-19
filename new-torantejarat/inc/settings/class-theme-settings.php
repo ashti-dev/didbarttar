@@ -292,31 +292,90 @@ final class TT_Settings {
 		$fields = isset( $this->schema[ $tab_key ]['fields'] ) ? $this->schema[ $tab_key ]['fields'] : array();
 		$output = array();
 		foreach ( $fields as $key => $field ) {
-			$raw  = isset( $input[ $key ] ) ? $input[ $key ] : '';
-			$type = $field['type'];
-			if ( 'url' === $type ) {
-				$output[ $key ] = esc_url_raw( trim( $raw ) );
-			} elseif ( 'email' === $type ) {
-				$output[ $key ] = sanitize_email( $raw );
-			} elseif ( 'textarea' === $type || 'embed' === $type ) {
-				$output[ $key ] = ( 'embed' === $type )
-					? wp_kses( (string) $raw, array( 'iframe' => array( 'src' => true, 'width' => true, 'height' => true, 'style' => true, 'loading' => true, 'title' => true, 'allowfullscreen' => true ) ) )
-					: sanitize_textarea_field( $raw );
-			} elseif ( 'tel' === $type ) {
-				$output[ $key ] = preg_replace( '/[^0-9+]/', '', (string) $raw );
-			} elseif ( 'select' === $type ) {
-				$output[ $key ] = $this->sanitize_select( $raw, isset( $field['options'] ) && is_array( $field['options'] ) ? $field['options'] : array() );
-			} elseif ( 'color' === $type ) {
-				$torantejarat_color = sanitize_hex_color( (string) $raw );
-				$output[ $key ]     = $torantejarat_color ? $torantejarat_color : $field['default'];
-			} elseif ( 'checkbox' === $type ) {
-				$output[ $key ] = ! empty( $raw ) ? 1 : 0;
-			} else {
-				$callback        = isset( $field['sanitize'] ) ? $field['sanitize'] : 'sanitize_text_field';
-				$output[ $key ] = call_user_func( $callback, $raw );
-			}
+			$raw            = isset( $input[ $key ] ) ? $input[ $key ] : '';
+			$output[ $key ] = ( 'repeater' === $field['type'] )
+				? $this->sanitize_repeater( $raw, $field )
+				: $this->sanitize_value( $raw, $field );
 		}
 		return $output;
+	}
+
+	/**
+	 * Sanitize one scalar value using the field's declared type.
+	 *
+	 * Shared by flat fields and repeater sub-fields so a new field type is
+	 * implemented in exactly one place.
+	 *
+	 * @param mixed $raw   Submitted value.
+	 * @param array $field Field definition; needs "type", may need "options"/"default"/"sanitize".
+	 * @return mixed
+	 */
+	private function sanitize_value( $raw, array $field ) {
+		$type = isset( $field['type'] ) ? $field['type'] : 'text';
+		if ( 'url' === $type ) {
+			return esc_url_raw( trim( (string) $raw ) );
+		}
+		if ( 'email' === $type ) {
+			return sanitize_email( (string) $raw );
+		}
+		if ( 'textarea' === $type || 'embed' === $type ) {
+			return ( 'embed' === $type )
+				? wp_kses( (string) $raw, array( 'iframe' => array( 'src' => true, 'width' => true, 'height' => true, 'style' => true, 'loading' => true, 'title' => true, 'allowfullscreen' => true ) ) )
+				: sanitize_textarea_field( (string) $raw );
+		}
+		if ( 'tel' === $type ) {
+			return preg_replace( '/[^0-9+]/', '', (string) $raw );
+		}
+		if ( 'select' === $type ) {
+			return $this->sanitize_select( $raw, isset( $field['options'] ) && is_array( $field['options'] ) ? $field['options'] : array() );
+		}
+		if ( 'color' === $type ) {
+			$torantejarat_color = sanitize_hex_color( (string) $raw );
+			return $torantejarat_color ? $torantejarat_color : ( isset( $field['default'] ) ? $field['default'] : '' );
+		}
+		if ( 'checkbox' === $type ) {
+			return ! empty( $raw ) ? 1 : 0;
+		}
+		$callback = isset( $field['sanitize'] ) ? $field['sanitize'] : 'sanitize_text_field';
+		return call_user_func( $callback, $raw );
+	}
+
+	/**
+	 * Sanitize a repeater value.
+	 *
+	 * Every row is filtered sub-field by sub-field with the same rules as a
+	 * flat field, rows that end up completely empty are dropped, and the list
+	 * is re-indexed so the stored option is always a clean 0..n array.
+	 *
+	 * @param mixed $raw   Submitted rows.
+	 * @param array $field Repeater definition; needs "subfields".
+	 * @return array
+	 */
+	private function sanitize_repeater( $raw, array $field ) {
+		$subfields = isset( $field['subfields'] ) && is_array( $field['subfields'] ) ? $field['subfields'] : array();
+		if ( ! $subfields || ! is_array( $raw ) ) {
+			return array();
+		}
+		$rows = array();
+		foreach ( array_values( $raw ) as $row ) {
+			if ( ! is_array( $row ) ) {
+				continue;
+			}
+			$clean     = array();
+			$not_empty = false;
+			foreach ( $subfields as $sub_key => $sub ) {
+				$value             = isset( $row[ $sub_key ] ) ? $row[ $sub_key ] : '';
+				$value             = $this->sanitize_value( $value, $sub );
+				$clean[ $sub_key ] = $value;
+				if ( '' !== (string) $value && '0' !== (string) $value ) {
+					$not_empty = true;
+				}
+			}
+			if ( $not_empty ) {
+				$rows[] = $clean;
+			}
+		}
+		return $rows;
 	}
 
 	/**
@@ -378,6 +437,10 @@ final class TT_Settings {
 			$id    = 'tt-' . $tab_key . '-' . $key;
 			$name  = 'torantejarat_' . $tab_key . '[' . $key . ']';
 			$type  = $field['type'];
+			if ( 'repeater' === $type ) {
+				$this->render_repeater_field( $tab_key, $key, $field, $value );
+				continue;
+			}
 			?>
 			<div class="tt-field">
 				<?php if ( 'checkbox' !== $type ) : ?>
@@ -438,11 +501,162 @@ final class TT_Settings {
 		}
 	}
 
+	/**
+	 * Render a repeater field: a table of saved rows plus one trailing blank
+	 * row, so a row can still be added with JavaScript disabled. The JS
+	 * counterpart is assets/js/admin-settings.js (settings screen only).
+	 *
+	 * @param string $tab_key Tab the field belongs to.
+	 * @param string $key     Field key.
+	 * @param array  $field   Field definition; needs "subfields".
+	 * @param mixed  $value   Stored rows.
+	 */
+	private function render_repeater_field( $tab_key, $key, array $field, $value ) {
+		$subfields = isset( $field['subfields'] ) && is_array( $field['subfields'] ) ? $field['subfields'] : array();
+		if ( ! $subfields ) {
+			return;
+		}
+		$rows   = is_array( $value ) ? array_values( $value ) : array();
+		$rows[] = array(); // Trailing blank row = the no-JavaScript way to add a row.
+		$base   = 'torantejarat_' . $tab_key . '[' . $key . ']';
+		?>
+		<div class="tt-field tt-field-repeater" data-tt-repeater>
+			<div class="tt-repeater-head">
+				<span class="tt-label"><?php echo esc_html( $field['label'] ); ?></span>
+				<?php if ( ! empty( $field['desc'] ) ) : ?>
+					<p class="description"><?php echo esc_html( $field['desc'] ); ?></p>
+				<?php endif; ?>
+			</div>
+			<div class="tt-control">
+				<table class="widefat striped tt-repeater-table">
+					<thead>
+						<tr>
+							<?php foreach ( $subfields as $sub ) : ?>
+								<th scope="col"><?php echo esc_html( isset( $sub['label'] ) ? $sub['label'] : '' ); ?></th>
+							<?php endforeach; ?>
+							<th scope="col" class="tt-repeater-act"><span class="screen-reader-text"><?php esc_html_e( 'حذف ردیف', 'torantejarat' ); ?></span></th>
+						</tr>
+					</thead>
+					<tbody>
+						<?php foreach ( $rows as $index => $row ) : ?>
+							<?php $this->render_repeater_row( $base, (int) $index, $subfields, is_array( $row ) ? $row : array() ); ?>
+						<?php endforeach; ?>
+					</tbody>
+				</table>
+				<p class="tt-repeater-actions">
+					<button type="button" class="button" data-tt-repeater-add><?php esc_html_e( 'افزودن ردیف', 'torantejarat' ); ?></button>
+				</p>
+			</div>
+		</div>
+		<?php
+	}
+
+	/**
+	 * One repeater row. `data-tt-name` keeps an "%i%" placeholder so the admin
+	 * script can re-number rows after an add or a remove.
+	 *
+	 * @param string $base      Field name prefix, without the row index.
+	 * @param int    $index     Row index.
+	 * @param array  $subfields Sub-field definitions.
+	 * @param array  $row       Stored row values.
+	 */
+	private function render_repeater_row( $base, $index, array $subfields, array $row ) {
+		?>
+		<tr class="tt-repeater-row">
+			<?php foreach ( $subfields as $sub_key => $sub ) : ?>
+				<td>
+					<?php
+					$this->render_subfield_input(
+						$base,
+						$index,
+						(string) $sub_key,
+						$sub,
+						isset( $row[ $sub_key ] ) ? $row[ $sub_key ] : ''
+					);
+					?>
+				</td>
+			<?php endforeach; ?>
+			<td class="tt-repeater-act">
+				<button type="button" class="button-link tt-repeater-remove" data-tt-repeater-remove>
+					<?php esc_html_e( 'حذف', 'torantejarat' ); ?>
+					<span class="screen-reader-text"><?php esc_html_e( 'حذف این ردیف', 'torantejarat' ); ?></span>
+				</button>
+			</td>
+		</tr>
+		<?php
+	}
+
+	/**
+	 * Render one repeater sub-field input, reusing the same type vocabulary as
+	 * flat fields (text | url | email | tel | textarea | embed | select | color | checkbox).
+	 *
+	 * @param string $base    Field name prefix, without the row index.
+	 * @param int    $index   Row index.
+	 * @param string $sub_key Sub-field key.
+	 * @param array  $sub     Sub-field definition.
+	 * @param mixed  $value   Stored value.
+	 */
+	private function render_subfield_input( $base, $index, $sub_key, array $sub, $value ) {
+		$type = isset( $sub['type'] ) ? $sub['type'] : 'text';
+		$name = $base . '[' . $index . '][' . $sub_key . ']';
+		$tmpl = $base . '[%i%][' . $sub_key . ']';
+
+		if ( 'textarea' === $type || 'embed' === $type ) {
+			printf(
+				'<textarea rows="3" name="%1$s" data-tt-name="%2$s">%3$s</textarea>',
+				esc_attr( $name ),
+				esc_attr( $tmpl ),
+				esc_textarea( (string) $value )
+			);
+			return;
+		}
+
+		if ( 'checkbox' === $type ) {
+			printf(
+				'<label class="tt-check"><input type="checkbox" name="%1$s" data-tt-name="%2$s" value="1"%3$s></label>',
+				esc_attr( $name ),
+				esc_attr( $tmpl ),
+				checked( $value, 1, false )
+			);
+			return;
+		}
+
+		if ( 'select' === $type && ! empty( $sub['options'] ) && is_array( $sub['options'] ) ) {
+			$html = sprintf( '<select name="%1$s" data-tt-name="%2$s">', esc_attr( $name ), esc_attr( $tmpl ) );
+			foreach ( $sub['options'] as $opt_val => $opt_label ) {
+				$html .= sprintf(
+					'<option value="%1$s"%2$s>%3$s</option>',
+					esc_attr( $opt_val ),
+					selected( $value, $opt_val, false ),
+					esc_html( $opt_label )
+				);
+			}
+			echo $html . '</select>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built above from escaped parts.
+			return;
+		}
+
+		printf(
+			'<input type="%1$s" name="%2$s" data-tt-name="%3$s" value="%4$s" placeholder="%5$s">',
+			esc_attr( $type ),
+			esc_attr( $name ),
+			esc_attr( $tmpl ),
+			esc_attr( (string) $value ),
+			esc_attr( isset( $sub['label'] ) ? $sub['label'] : '' )
+		);
+	}
+
 	public function enqueue_styles( $hook ) {
 		if ( 'toplevel_page_torantejarat-settings' !== $hook ) {
 			return;
 		}
 		wp_add_inline_style( 'wp-admin', $this->get_admin_css() );
+		wp_enqueue_script(
+			'tt-settings',
+			get_template_directory_uri() . '/assets/js/admin-settings.js',
+			array(),
+			(string) wp_get_theme()->get( 'Version' ),
+			true
+		);
 	}
 
 	private function get_admin_css() {
@@ -460,6 +674,16 @@ final class TT_Settings {
 			.tt-field:last-child { border-bottom: none; }
 			.tt-label { font-weight: 600; font-size: .875rem; padding-top: 6px; color: #1d2327; }
 			.tt-control input, .tt-control textarea { width: 100% !important; }
+			.tt-field-repeater { grid-template-columns: 1fr; gap: 8px; }
+			.tt-repeater-head { display: flex; flex-direction: column; gap: 2px; }
+			.tt-repeater-table { border-collapse: collapse; }
+			.tt-repeater-table th { font-weight: 600; font-size: .8125rem; }
+			.tt-repeater-table td { vertical-align: middle; }
+			.tt-repeater-table input[type="text"], .tt-repeater-table input[type="url"], .tt-repeater-table input[type="email"], .tt-repeater-table input[type="tel"], .tt-repeater-table textarea, .tt-repeater-table select { width: 100% !important; }
+			.tt-repeater-act { width: 64px; text-align: center; }
+			.tt-repeater-remove { color: #b32d2e; }
+			.tt-repeater-remove:hover { color: #8a2424; }
+			.tt-repeater-actions { margin: 12px 0 0; }
 			.tt-footer { margin-top: 20px; padding-top: 18px; border-top: 1px solid #f0f0f1; }
 		';
 	}
