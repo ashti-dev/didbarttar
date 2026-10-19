@@ -22,6 +22,7 @@ function torantejarat_icon( $name ) {
 		'home'    => 'm3 10 9-7 9 7M5 9v12h5v-7h4v7h5V9',
 		'chevron' => 'm14 6-6 6 6 6',
 		'compare' => 'M5 4v16M19 4v16M2 8h6M16 16h6M12 4v16',
+		'percent' => 'M19 5 5 19M7.5 9.5h.01M16.5 14.5h.01',
 		'clock'   => 'M12 8v5l3 2M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0',
 		'phone'   => 'M5 4h4l2 5-2 2a12 12 0 0 0 5 5l2-2 5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2',
 		'chat'    => 'M4 5h16v11H9l-5 4V5zM8 9h8M8 12h5',
@@ -33,6 +34,21 @@ function torantejarat_icon( $name ) {
 		'aparat'  => 'M4 6h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2zM16 10l6-3.5v11L16 14',
 		'wrench'  => 'M14 6a5 5 0 0 0-6 6L3 17a3 3 0 0 0 4 4l6-6a5 5 0 0 0 6-6l-3 3-4-4 2-2z',
 		'book'    => 'M12 5c-3-2-6-2-10-1v15c4-1 7-1 10 1m0-15c3-2 6-2 10-1v15c-4-1-7-1-10 1V5',
+		'user'    => 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5',
+		'shop'    => 'M4 9l1.5-5h13L20 9M4 9v11h16V9M4 9h16M9.5 20v-6h5v6',
+		'factory' => 'M3 21h18M5 21V8l6-4 6 4v13M9 21v-4h6v4',
+		'monitor' => 'M4 5h16v11H4zM9 20h6M12 16v4',
+		'droplet' => 'M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z',
+		'wifi'    => 'M5 10a10 10 0 0 1 14 0M8 13a6 6 0 0 1 8 0M12 16.5h.01',
+		'globe'   => 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM3 12h18M12 3c3 3.5 3 14 0 18M12 3c-3 3.5-3 14 0 18',
+		'heart'   => 'M12 20s-7-4.4-9-9a5 5 0 0 1 9-3 5 5 0 0 1 9 3c-2 4.6-9 9-9 9z',
+		'box'     => 'M21 8 12 3 3 8v8l9 5 9-5zM3 8l9 5 9-5M12 13v8',
+		'ticket'  => 'M3 9a2 2 0 0 0 0 4v4h18v-4a2 2 0 0 0 0-4V5H3zM14 5v3M14 11v2M14 16v3',
+		'shield'  => 'M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6zM9 12l2 2 4-4',
+		'bell'    => 'M6 8a6 6 0 0 1 12 0c0 6 2 7 2 7H4s2-1 2-7M10 19a2 2 0 0 0 4 0',
+		'ticket'  => 'M3 9a2 2 0 0 0 0 4v4h18v-4a2 2 0 0 0 0-4V5H3zM14 5v3M14 11v2M14 16v3',
+		'logout'  => 'M15 4h4v16h-4M10 12h10M13 8l-4 4 4 4',
+		'trash'   => 'M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13',
 	);
 	$path = $paths[ $name ] ?? $paths['scan'];
 	$size = 'chevron' === $name ? 14 : 24;
@@ -180,6 +196,33 @@ function torantejarat_fa_number( $number ) {
 }
 
 /**
+ * Gregorian → Jalali Y/m/d with Persian digits (dependency-free).
+ * Input parts must already be in site timezone (e.g. WC_DateTime->date()).
+ */
+function torantejarat_jalali_ymd( $gy, $gm, $gd ) {
+	$gy = (int) $gy;
+	$gm = max( 1, min( 12, (int) $gm ) );
+	$gd = max( 1, min( 31, (int) $gd ) );
+	$g_d_m = array( 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334 );
+	$jy = ( $gy <= 1600 ) ? 0 : 979;
+	$gy2 = $gy - ( ( $gy <= 1600 ) ? 621 : 1600 );
+	$gy_next = ( $gm > 2 ) ? ( $gy2 + 1 ) : $gy2;
+	$days = ( 365 * $gy2 ) + (int) ( ( $gy_next + 3 ) / 4 ) - (int) ( ( $gy_next + 99 ) / 100 ) + (int) ( ( $gy_next + 399 ) / 400 ) - 80 + $gd + $g_d_m[ $gm - 1 ];
+	$jy += 33 * (int) ( $days / 12053 );
+	$days %= 12053;
+	$jy += 4 * (int) ( $days / 1461 );
+	$days %= 1461;
+	if ( $days > 365 ) {
+		$jy += (int) ( ( $days - 1 ) / 365 );
+		$days = ( $days - 1 ) % 365;
+	}
+	$jm = ( $days < 186 ) ? 1 + (int) ( $days / 31 ) : 7 + (int) ( ( $days - 186 ) / 30 );
+	$jd = 1 + ( ( $days < 186 ) ? ( $days % 31 ) : ( ( $days - 186 ) % 30 ) );
+	$out = sprintf( '%04d/%02d/%02d', $jy, $jm, $jd );
+	return str_replace( array( '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' ), array( '۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹' ), $out );
+}
+
+/**
  * Card price markup matching the HTML template: amount + تومان on the end side.
  */
 function torantejarat_card_price( $product ) {
@@ -209,7 +252,7 @@ function torantejarat_home_services() {
 	$services = array(
 		array( 'icon' => 'clock', 'title' => __( 'برای یک پروژه نیاز دارید؟', 'torantejarat' ), 'text' => __( 'اطلاعات پروژه را برای بررسی امکان اجاره آماده کنید.', 'torantejarat' ), 'link' => __( 'بررسی اجاره', 'torantejarat' ), 'slug' => 'rent' ),
 		array( 'icon' => 'wrench', 'title' => __( 'دستگاه نیاز به بررسی دارد؟', 'torantejarat' ), 'text' => __( 'مدل دستگاه و نشانه‌های خرابی را در یک درخواست جمع کنید.', 'torantejarat' ), 'link' => __( 'درخواست بررسی', 'torantejarat' ), 'slug' => 'repairs' ),
-		array( 'icon' => 'book', 'title' => __( 'دقیق‌تر کار کنید', 'torantejarat' ), 'text' => __( 'راهنماهای انتخاب، آماده‌سازی و نگهداری دستگاه را بخوانید.', 'torantejarat' ), 'link' => __( 'آموزش و نگهداری', 'torantejarat' ), 'slug' => 'academy' ),
+		array( 'icon' => 'book', 'title' => __( 'دقیق‌تر کار کنید', 'torantejarat' ), 'text' => __( 'راهنماهای انتخاب، آماده‌سازی و نگهداری دستگاه را بخوانید.', 'torantejarat' ), 'link' => __( 'آموزش و نگهداری', 'torantejarat' ), 'slug' => 'blog' ),
 	);
 	return apply_filters( 'torantejarat_home_services', $services );
 }

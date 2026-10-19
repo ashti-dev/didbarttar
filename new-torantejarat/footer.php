@@ -22,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 					<div>
 						<h2><?php echo esc_html( torantejarat_menu_title( $torantejarat_location ) ); ?></h2>
 						<?php wp_nav_menu( array( 'theme_location' => $torantejarat_location, 'container' => false, 'menu_class' => 'torantejarat-footer-menu', 'fallback_cb' => false ) ); ?>
-						<?php if ( 'torantejarat-footer-company' === $torantejarat_location ) { get_template_part( 'template-parts/footer-note' ); } ?>
+						<?php if ( 'torantejarat-footer-company' === $torantejarat_location ) { torantejarat_footer_preview_note(); } ?>
 					</div>
 				<?php endif; ?>
 			<?php endforeach; ?>
@@ -33,6 +33,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 		</div>
 	</div>
 </footer>
+<?php torantejarat_mobile_menu(); ?>
 <?php wp_footer(); ?>
 </body>
 </html>

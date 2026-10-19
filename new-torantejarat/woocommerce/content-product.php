@@ -15,7 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 global $product;
 if ( ! $product instanceof \WC_Product || ! $product->is_visible() ) { return; }
 $torantejarat_card_class = 'torantejarat-product-card';
-if ( is_shop() || is_product_taxonomy() ) { $torantejarat_card_class .= ' torantejarat-shop-card'; }
+if ( torantejarat_is_catalog() ) { $torantejarat_card_class .= ' torantejarat-shop-card'; }
 ?>
 <li <?php wc_product_class( $torantejarat_card_class, $product ); ?>>
 	<?php do_action( 'woocommerce_before_shop_loop_item' ); ?>
@@ -25,7 +25,7 @@ if ( is_shop() || is_product_taxonomy() ) { $torantejarat_card_class .= ' torant
 		<?php do_action( 'woocommerce_shop_loop_item_title' ); ?>
 		<?php $torantejarat_attributes = torantejarat_product_attribute_items( $product, 3 ); ?>
 		<?php if ( $torantejarat_attributes ) : ?>
-			<?php if ( is_shop() || is_product_taxonomy() ) : ?>
+			<?php if ( torantejarat_is_catalog() ) : ?>
 				<dl class="torantejarat-shop-card-specs"><?php foreach ( $torantejarat_attributes as $torantejarat_attribute ) : ?><div><dt><?php echo esc_html( $torantejarat_attribute['label'] ); ?></dt><dd><?php echo esc_html( $torantejarat_attribute['value'] ); ?></dd></div><?php endforeach; ?></dl>
 			<?php else : ?>
 				<div class="torantejarat-spec-chips"><?php foreach ( $torantejarat_attributes as $torantejarat_attribute ) : ?><span><?php echo esc_html( $torantejarat_attribute['label'] . ': ' . $torantejarat_attribute['value'] ); ?></span><?php endforeach; ?></div>

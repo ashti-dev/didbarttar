@@ -22,7 +22,7 @@ if ( ! $torantejarat_items ) { return; }
 	<?php foreach ( $torantejarat_items as $torantejarat_rank => $torantejarat_item ) : ?>
 		<?php $torantejarat_url = get_permalink( $torantejarat_item->get_id() ); ?>
 		<a class="torantejarat-bestseller-row" href="<?php echo esc_url( $torantejarat_url ); ?>">
-			<span class="torantejarat-bestseller-rank" aria-hidden="true"><?php echo esc_html( number_format_i18n( $torantejarat_rank + 1 ) ); ?></span>
+			<span class="torantejarat-bestseller-rank" aria-hidden="true"><?php echo esc_html( torantejarat_fa_number( $torantejarat_rank + 1 ) ); ?></span>
 			<span class="torantejarat-bestseller-thumb" aria-hidden="true">
 				<?php if ( $torantejarat_item->get_image_id() ) : ?>
 					<?php echo wp_get_attachment_image( $torantejarat_item->get_image_id(), 'torantejarat-card', false, array( 'loading' => 'lazy' ) ); ?>

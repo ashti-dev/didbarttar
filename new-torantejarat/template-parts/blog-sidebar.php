@@ -42,7 +42,7 @@ $torantejarat_latest = new \WP_Query(
 				<?php foreach ( $torantejarat_cats as $torantejarat_cat ) : ?>
 					<li>
 						<a href="<?php echo esc_url( get_category_link( $torantejarat_cat ) ); ?>"><?php echo esc_html( $torantejarat_cat->name ); ?></a>
-						<span><?php echo esc_html( number_format_i18n( $torantejarat_cat->count ) ); ?></span>
+						<span><?php echo esc_html( torantejarat_fa_number( $torantejarat_cat->count ) ); ?></span>
 					</li>
 				<?php endforeach; ?>
 			</ul>

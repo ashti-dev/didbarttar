@@ -204,7 +204,7 @@ get_header();
 						<?php if ( $torantejarat_results ) : ?>
 						<div class="torantejarat-finder-box">
 							<span class="torantejarat-eyebrow"><?php esc_html_e( 'نتیجه بررسی اولیه', 'torantejarat' ); ?></span>
-							<h2><?php echo esc_html( sprintf( __( '%s گزینه مرتبط با پاسخ‌های شما', 'torantejarat' ), number_format_i18n( count( $torantejarat_results ) ) ) ); ?></h2>
+							<h2><?php echo esc_html( sprintf( __( '%s گزینه مرتبط با پاسخ‌های شما', 'torantejarat' ), torantejarat_fa_number( count( $torantejarat_results ) ) ) ); ?></h2>
 							<?php if ( '' !== $torantejarat_partial ) : ?><p class="torantejarat-finder-partial"><?php echo esc_html( sprintf( __( 'تطابق جزئی (%s) — هیچ مدلی تمام شرط‌ها را نداشت.', 'torantejarat' ), $torantejarat_partial ) ); ?></p><?php endif; ?>
 							<?php if ( $torantejarat_chosen ) : ?><p class="torantejarat-finder-summary"><?php echo esc_html( implode( ' • ', $torantejarat_chosen ) ); ?></p><?php endif; ?>
 							<?php
@@ -217,7 +217,7 @@ get_header();
 							}
 							?>
 							<?php if ( count( $torantejarat_prices ) > 1 ) : ?><p class="torantejarat-finder-range"><?php echo esc_html( sprintf( __( 'بازه قیمت مدل‌های مناسب: %s تا %s تومان', 'torantejarat' ), torantejarat_fa_number( min( $torantejarat_prices ) ), torantejarat_fa_number( max( $torantejarat_prices ) ) ) ); ?></p><?php endif; ?>
-							<?php if ( $torantejarat_skipped > 0 ) : ?><p class="torantejarat-finder-skipped"><?php echo esc_html( sprintf( __( '%s مدل چون مشخصات فنی کامل نداشتند در نظر گرفته نشدند — برای بررسی آن‌ها از کارشناس بپرسید.', 'torantejarat' ), number_format_i18n( $torantejarat_skipped ) ) ); ?></p><?php endif; ?>
+							<?php if ( $torantejarat_skipped > 0 ) : ?><p class="torantejarat-finder-skipped"><?php echo esc_html( sprintf( __( '%s مدل چون مشخصات فنی کامل نداشتند در نظر گرفته نشدند — برای بررسی آن‌ها از کارشناس بپرسید.', 'torantejarat' ), torantejarat_fa_number( $torantejarat_skipped ) ) ); ?></p><?php endif; ?>
 							<div class="torantejarat-finder-grid">
 								<?php foreach ( $torantejarat_results as $torantejarat_item ) : ?>
 									<?php

@@ -30,7 +30,7 @@ get_header();
 				<?php for ( $torantejarat_slot = 1; $torantejarat_slot <= 3; $torantejarat_slot++ ) : ?>
 					<?php $torantejarat_current = $torantejarat_slots[ $torantejarat_slot - 1 ] ?? 0; ?>
 					<label>
-						<span><?php echo esc_html( sprintf( __( 'دستگاه %s', 'torantejarat' ), number_format_i18n( $torantejarat_slot ) ) ); ?></span>
+						<span><?php echo esc_html( sprintf( __( 'دستگاه %s', 'torantejarat' ), torantejarat_fa_number( $torantejarat_slot ) ) ); ?></span>
 						<select name="<?php echo esc_attr( 'p' . $torantejarat_slot ); ?>">
 							<option value="0"><?php esc_html_e( 'انتخاب کنید', 'torantejarat' ); ?></option>
 							<?php foreach ( $torantejarat_catalog as $torantejarat_option ) : ?>

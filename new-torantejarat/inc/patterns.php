@@ -8,7 +8,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 function torantejarat_register_patterns() {
-	register_block_pattern_category( 'torantejarat', array( 'label' => __( 'توران تجارت — چیدمان‌های منبع', 'torantejarat' ) ) );
+	register_block_pattern_category( 'torantejarat', array( 'label' => __( 'بلکوکم — چیدمان‌های منبع', 'torantejarat' ) ) );
 	register_block_pattern(
 		'torantejarat/benefits',
 		array(

@@ -1,6 +1,6 @@
 <?php
 /**
- * Organization Schema — توران‌تجارت.
+ * Organization Schema — بلکوکم.
  * Reads from theme settings only; no storage logic here.
  * Disable via the torantejarat_org_schema filter (Rank Math handoff).
  *

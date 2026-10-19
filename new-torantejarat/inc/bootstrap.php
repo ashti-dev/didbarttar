@@ -21,6 +21,12 @@ require_once __DIR__ . '/cleanup.php';
 require_once __DIR__ . '/login.php';
 require_once __DIR__ . '/admin.php';
 require_once __DIR__ . '/shop-filters.php';
+require_once __DIR__ . '/product-search.php';
+require_once __DIR__ . '/mobile-menu.php';
+require_once __DIR__ . '/auth.php';
+require_once __DIR__ . '/finder.php';
+require_once __DIR__ . '/account/account.php';
+require_once __DIR__ . '/../template-parts/footer-note.php';
 require_once __DIR__ . '/settings/helpers.php';
 
 // Settings panel class loads in admin only (plus WP-CLI so settings stay
@@ -55,6 +61,9 @@ add_action( 'after_setup_theme', __NAMESPACE__ . '\\torantejarat_shop_filters_se
 add_action( 'init', __NAMESPACE__ . '\\torantejarat_register_request_type' );
 add_action( 'admin_post_nopriv_torantejarat_request', __NAMESPACE__ . '\\torantejarat_handle_request' );
 add_action( 'admin_post_torantejarat_request', __NAMESPACE__ . '\\torantejarat_handle_request' );
+add_action( 'admin_post_torantejarat_ticket', __NAMESPACE__ . '\\torantejarat_handle_ticket' );
+add_action( 'add_meta_boxes_torantejarat_request', __NAMESPACE__ . '\\torantejarat_ticket_admin_metabox' );
+add_action( 'save_post_torantejarat_request', __NAMESPACE__ . '\\torantejarat_ticket_admin_save' );
 add_filter( 'manage_torantejarat_request_posts_columns', __NAMESPACE__ . '\\torantejarat_request_columns' );
 add_action( 'manage_torantejarat_request_posts_custom_column', __NAMESPACE__ . '\\torantejarat_request_column_content', 10, 2 );
 add_action( 'add_meta_boxes_torantejarat_request', __NAMESPACE__ . '\\torantejarat_request_metabox' );

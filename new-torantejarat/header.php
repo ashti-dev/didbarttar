@@ -42,12 +42,15 @@ if ( ! defined( 'ABSPATH' ) ) {
 <header class="torantejarat-site-header">
 	<div class="torantejarat-container torantejarat-header-main">
 		<?php get_template_part( 'template-parts/brand' ); ?>
-		<?php get_search_form(); ?>
+		<?php get_search_form( array( 'torantejarat_product_search' => true ) ); ?>
 		<div class="torantejarat-header-actions">
 			<?php
 			if ( torantejarat_woocommerce_available() ) {
-				if ( wc_get_page_id( 'myaccount' ) > 0 ) {
-					echo '<a class="torantejarat-icon-link" href="' . esc_url( wc_get_page_permalink( 'myaccount' ) ) . '">' . esc_html__( 'حساب کاربری', 'torantejarat' ) . '</a>';
+				$torantejarat_account_url = torantejarat_auth_url();
+				if ( is_user_logged_in() ) {
+					echo '<a class="torantejarat-icon-link" href="' . esc_url( $torantejarat_account_url ) . '">' . esc_html__( 'حساب کاربری', 'torantejarat' ) . '</a>';
+				} else {
+					echo '<a class="torantejarat-icon-link" href="' . esc_url( $torantejarat_account_url ) . '">' . esc_html__( 'ورود', 'torantejarat' ) . '<span aria-hidden="true"> | </span>' . esc_html__( 'ثبت نام', 'torantejarat' ) . '</a>';
 				}
 				echo '<div class="torantejarat-cart-wrap">';
 			torantejarat_cart_link();
@@ -64,6 +67,17 @@ if ( ! defined( 'ABSPATH' ) ) {
 		<div class="torantejarat-nav-wrap">
 			<nav class="torantejarat-container torantejarat-main-nav" id="torantejarat-main-nav" aria-label="<?php esc_attr_e( 'منوی اصلی', 'torantejarat' ); ?>">
 				<?php wp_nav_menu( array( 'theme_location' => 'torantejarat-primary', 'container' => false, 'menu_class' => 'torantejarat-nav-list', 'fallback_cb' => false ) ); ?>
+				<?php
+				$torantejarat_support_page = get_page_by_path( 'contact' );
+				$torantejarat_support_url  = $torantejarat_support_page ? get_permalink( $torantejarat_support_page ) : home_url( '/' );
+				$torantejarat_deals_url    = torantejarat_woocommerce_available() && wc_get_page_id( 'shop' ) > 0
+					? add_query_arg( 'orderby', 'discount', wc_get_page_permalink( 'shop' ) )
+					: home_url( '/' );
+				?>
+				<div class="torantejarat-nav-actions">
+					<a class="torantejarat-nav-btn" href="<?php echo esc_url( $torantejarat_support_url ); ?>"><?php torantejarat_icon( 'chat' ); ?><span><?php esc_html_e( 'پشتیبانی', 'torantejarat' ); ?></span></a>
+					<a class="torantejarat-nav-btn is-deals" href="<?php echo esc_url( $torantejarat_deals_url ); ?>"><?php torantejarat_icon( 'percent' ); ?><span><?php esc_html_e( 'شگفت‌انگیزها', 'torantejarat' ); ?></span></a>
+				</div>
 			</nav>
 		</div>
 	<?php endif; ?>

@@ -1,5 +1,5 @@
 /**
- * Hero Visual Slider — توران تجارت
+ * Hero Visual Slider — بلکوکم
  * Vanilla JS | RTL-aware | WordPress ready | No dependencies
  *
  * Based on: Yaghoub Tayebi / KhanWP slider kit

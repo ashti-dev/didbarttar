@@ -21,7 +21,6 @@
 		'.torantejarat-category-card',
 		'.torantejarat-product-card',
 		'.torantejarat-service-card',
-		'.torantejarat-finder-banner',
 		'.torantejarat-field-copy',
 		'.torantejarat-video-panel',
 		'.torantejarat-editorial-card',

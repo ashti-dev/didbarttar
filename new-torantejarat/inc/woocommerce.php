@@ -49,6 +49,12 @@ function torantejarat_woocommerce_setup() {
 	add_action( 'woocommerce_archive_description', __NAMESPACE__ . '\\torantejarat_archive_categories', 30 );
 	add_action( 'wp_ajax_torantejarat_compare', __NAMESPACE__ . '\\torantejarat_compare_fragment' );
 	add_action( 'wp_ajax_nopriv_torantejarat_compare', __NAMESPACE__ . '\\torantejarat_compare_fragment' );
+	add_action( 'wp_ajax_torantejarat_finder', __NAMESPACE__ . '\\torantejarat_finder_fragment' );
+	add_action( 'wp_ajax_nopriv_torantejarat_finder', __NAMESPACE__ . '\\torantejarat_finder_fragment' );
+	add_action( 'rest_api_init', __NAMESPACE__ . '\\torantejarat_search_rest_route' );
+	foreach ( array( 'save_post_product', 'created_product_cat', 'edited_product_cat', 'delete_product_cat' ) as $torantejarat_search_hook ) {
+		add_action( $torantejarat_search_hook, __NAMESPACE__ . '\\torantejarat_search_bust' );
+	}
 	add_filter( 'woocommerce_states', __NAMESPACE__ . '\\torantejarat_ir_states' );
 	add_filter( 'default_checkout_billing_country', static fn() => 'IR' );
 	add_filter( 'default_checkout_shipping_country', static fn() => 'IR' );
@@ -68,6 +74,7 @@ function torantejarat_woocommerce_setup() {
 	add_action( 'woocommerce_after_cart', __NAMESPACE__ . '\\torantejarat_cart_layout_end', 1 );
 	add_filter( 'woocommerce_return_to_shop_text', __NAMESPACE__ . '\\torantejarat_return_to_shop_text' );
 	add_action( 'template_redirect', __NAMESPACE__ . '\\torantejarat_cart_empty_takeover' );
+	add_action( 'template_redirect', __NAMESPACE__ . '\\torantejarat_shop_search_redirect', 9 );
 	add_action( 'template_redirect', __NAMESPACE__ . '\\torantejarat_empty_search_redirect' );
 	add_action( 'woocommerce_cart_is_empty', __NAMESPACE__ . '\\torantejarat_cart_empty_extras', 20 );
 	add_action( 'woocommerce_cart_is_empty', __NAMESPACE__ . '\\torantejarat_cart_empty_suggestions', 30 );
@@ -105,8 +112,17 @@ function torantejarat_woocommerce_setup() {
 	add_filter( 'woocommerce_single_product_image_thumbnail_html', __NAMESPACE__ . '\\torantejarat_main_image_tag', 10, 2 );
 	add_filter( 'gettext', __NAMESPACE__ . '\\torantejarat_related_heading', 10, 3 );
 	add_filter( 'woocommerce_no_available_payment_methods_message', __NAMESPACE__ . '\\torantejarat_no_payment_message' );
+	add_action( 'before_woocommerce_pay_form', __NAMESPACE__ . '\\torantejarat_invoice_header', 5 );
+	add_action( 'before_woocommerce_pay', __NAMESPACE__ . '\\torantejarat_receipt_invoice', 5 );
+	add_action( 'after_woocommerce_pay', __NAMESPACE__ . '\\torantejarat_receipt_actions', 5 );
+	add_action( 'woocommerce_pay_order_before_payment', __NAMESPACE__ . '\\torantejarat_pay_reminder' );
+	add_filter( 'woocommerce_pay_order_button_text', __NAMESPACE__ . '\\torantejarat_pay_button_text' );
+	add_action( 'woocommerce_view_order', __NAMESPACE__ . '\\torantejarat_invoice_header', 5 );
+	add_action( 'woocommerce_order_details_after_order_table', __NAMESPACE__ . '\\torantejarat_invoice_front_actions', 20 );
 	add_filter( 'formatted_woocommerce_price', __NAMESPACE__ . '\\torantejarat_price_digits' );
 	add_filter( 'woocommerce_price_format', __NAMESPACE__ . '\\torantejarat_price_format' );
+	add_filter( 'woocommerce_gateway_title', __NAMESPACE__ . '\\torantejarat_gateway_title_clean' );
+	add_action( 'woocommerce_login_form_end', __NAMESPACE__ . '\\torantejarat_wc_register_link' );
 	add_action( 'add_meta_boxes', __NAMESPACE__ . '\\torantejarat_product_meta_boxes' );
 	add_action( 'save_post_product', __NAMESPACE__ . '\\torantejarat_save_product_meta', 10, 3 );
 	add_action( 'admin_enqueue_scripts', __NAMESPACE__ . '\\torantejarat_admin_product_assets' );
@@ -257,7 +273,7 @@ function torantejarat_woocommerce_breadcrumb() {
 
 function torantejarat_product_loop_start( $html ) {
 	$class = 'torantejarat-product-grid';
-	if ( is_shop() || is_product_taxonomy() ) {
+	if ( torantejarat_is_catalog() ) {
 		$class .= ' torantejarat-catalog-grid';
 	} elseif ( is_product() || is_cart() ) {
 		$class .= ' torantejarat-related-grid';
@@ -270,11 +286,11 @@ function torantejarat_cart_link() {
 		return;
 	}
 	$count = WC()->cart ? WC()->cart->get_cart_contents_count() : null;
-	$label = null === $count ? __( 'سبد خرید', 'torantejarat' ) : sprintf( __( '%s کالا در سبد خرید', 'torantejarat' ), number_format_i18n( $count ) );
+	$label = null === $count ? __( 'سبد خرید', 'torantejarat' ) : sprintf( __( '%s کالا در سبد خرید', 'torantejarat' ), torantejarat_fa_number( $count ) );
 	?>
 	<a class="torantejarat-cart-link" href="<?php echo esc_url( wc_get_cart_url() ); ?>" aria-label="<?php echo esc_attr( $label ); ?>" aria-haspopup="true">
 		<?php torantejarat_icon( 'cart' ); ?><span class="torantejarat-cart-label"><?php esc_html_e( 'سبد خرید', 'torantejarat' ); ?></span>
-		<?php if ( WC()->cart ) : ?><b><?php echo esc_html( number_format_i18n( WC()->cart->get_cart_contents_count() ) ); ?></b><?php endif; ?>
+		<?php if ( WC()->cart ) : ?><b><?php echo esc_html( torantejarat_fa_number( WC()->cart->get_cart_contents_count() ) ); ?></b><?php endif; ?>
 	</a>
 	<?php
 }
@@ -312,6 +328,14 @@ function torantejarat_cart_fragments( $fragments ) {
 		torantejarat_cart_link();
 		$fragments['a.torantejarat-cart-link'] = ob_get_clean();
 	}
+	/* Bottom mobile menu badge. Always rendered (hidden when zero) so the
+	   fragment can update it in place after every AJAX add-to-cart. */
+	$menu_count = ( WC()->cart ) ? (int) WC()->cart->get_cart_contents_count() : 0;
+	ob_start();
+	?>
+	<b data-menu-cart-count<?php echo $menu_count > 0 ? '' : ' hidden'; ?>><?php echo esc_html( torantejarat_fa_number( $menu_count ) ); ?></b>
+	<?php
+	$fragments['b[data-menu-cart-count]'] = ob_get_clean();
 	return $fragments;
 }
 
@@ -327,7 +351,21 @@ function torantejarat_dropdown_fragments( $fragments ) {
 }
 
 function torantejarat_product_categories( $home = false ) {
-	$terms = get_terms( array( 'taxonomy' => 'product_cat', 'hide_empty' => true, 'parent' => 0, 'number' => $home ? 4 : 0 ) );
+	if ( $home ) {
+		$torantejarat_home_slugs = apply_filters(
+			'torantejarat_home_categories',
+			array( 'industrial', 'monitor', 'deep-well', 'wifi' )
+		);
+		$terms = array();
+		foreach ( $torantejarat_home_slugs as $torantejarat_slug ) {
+			$torantejarat_term = get_term_by( 'slug', $torantejarat_slug, 'product_cat' );
+			if ( $torantejarat_term && ! is_wp_error( $torantejarat_term ) ) {
+				$terms[] = $torantejarat_term;
+			}
+		}
+	} else {
+		$terms = get_terms( array( 'taxonomy' => 'product_cat', 'hide_empty' => true, 'parent' => 0, 'number' => 0 ) );
+	}
 	if ( is_wp_error( $terms ) || ! $terms ) {
 		return;
 	}
@@ -335,11 +373,20 @@ function torantejarat_product_categories( $home = false ) {
 	foreach ( $terms as $index => $term ) {
 		$url = get_term_link( $term );
 		if ( is_wp_error( $url ) ) { continue; }
-		echo '<a class="' . ( $home ? 'torantejarat-category-card' : 'torantejarat-category-link' ) . '" href="' . esc_url( $url ) . '"' . ( is_tax( 'product_cat', $term->term_id ) ? ' aria-current="page"' : '' ) . '>';
+		$torantejarat_icons = array(
+			'industrial' => 'factory',
+			'monitor'    => 'monitor',
+			'deep-well'  => 'droplet',
+			'wifi'       => 'wifi',
+			'imported'   => 'globe',
+		);
+		$torantejarat_icon = isset( $torantejarat_icons[ $term->slug ] ) ? $torantejarat_icons[ $term->slug ] : 'scan';
+		$torantejarat_mod  = $home && isset( $torantejarat_icons[ $term->slug ] ) ? ' is-' . $term->slug : '';
+		echo '<a class="' . ( $home ? 'torantejarat-category-card' . $torantejarat_mod : 'torantejarat-category-link' ) . '" href="' . esc_url( $url ) . '"' . ( is_tax( 'product_cat', $term->term_id ) ? ' aria-current="page"' : '' ) . '>';
 		if ( $home ) {
-			echo '<span class="torantejarat-category-number" aria-hidden="true">' . esc_html( sprintf( '%02d', $index + 1 ) ) . '</span><span class="torantejarat-category-icon">'; torantejarat_icon( 'scan' ); echo '</span><h3>' . esc_html( $term->name ) . '</h3><p>' . esc_html( wp_trim_words( wp_strip_all_tags( $term->description ), 18 ) ) . '</p><span class="torantejarat-category-arrow">'; torantejarat_icon( 'arrow' ); echo '</span>';
+			echo '<span class="torantejarat-category-number" aria-hidden="true">' . esc_html( sprintf( '%02d', $index + 1 ) ) . '</span><span class="torantejarat-category-icon">'; torantejarat_icon( $torantejarat_icon ); echo '</span><h3>' . esc_html( $term->name ) . '</h3><p>' . esc_html( wp_trim_words( wp_strip_all_tags( $term->description ), 18 ) ) . '</p><span class="torantejarat-category-foot"><span class="torantejarat-category-count">' . esc_html( sprintf( __( '%s دستگاه', 'torantejarat' ), torantejarat_fa_number( $term->count ) ) ) . '</span><span class="torantejarat-category-arrow">'; torantejarat_icon( 'arrow' ); echo '</span></span>';
 		} else {
-			echo '<span>' . esc_html( $term->name ) . '</span><b>' . esc_html( number_format_i18n( $term->count ) ) . '</b>';
+			echo '<span>' . esc_html( $term->name ) . '</span><b>' . esc_html( torantejarat_fa_number( $term->count ) ) . '</b>';
 		}
 		echo '</a>';
 	}
@@ -410,7 +457,7 @@ function torantejarat_product_purchase_start() {
 	global $product;
 	if ( ! $product instanceof \WC_Product ) { return; }
 	if ( $product->is_type( 'variable' ) ) {
-		$version = sprintf( __( '%s نسخه', 'torantejarat' ), number_format_i18n( count( $product->get_children() ) ) );
+		$version = sprintf( __( '%s نسخه', 'torantejarat' ), torantejarat_fa_number( count( $product->get_children() ) ) );
 	} elseif ( $product->get_sku() ) {
 		$version = $product->get_sku();
 	} else {
@@ -438,7 +485,7 @@ function torantejarat_product_social_proof() {
 	echo '<span>' . sprintf(
 		/* translators: %s: number of completed purchases. */
 		esc_html__( 'تا الان %s نفر این محصول را خریداری کرده‌اند.', 'torantejarat' ),
-		'<strong>' . esc_html( number_format_i18n( $count ) ) . '</strong>'
+		'<strong>' . esc_html( torantejarat_fa_number( $count ) ) . '</strong>'
 	) . '</span></div>';
 }
 function torantejarat_product_details_start() { echo '</div></section><div class="torantejarat-container torantejarat-product-details">'; }
@@ -820,8 +867,8 @@ function torantejarat_price_digits( $formatted ) {
  * Native product meta box: video URL + limitation text (no plugin).
  */
 function torantejarat_product_meta_boxes() {
-	add_meta_box( 'torantejarat-product-media', __( 'ویدیو محصول — توران تجارت', 'torantejarat' ), __NAMESPACE__ . '\\torantejarat_product_meta_box', 'product', 'side', 'default' );
-	add_meta_box( 'torantejarat-product-faq', __( 'پرسش‌های اختصاصی — توران تجارت', 'torantejarat' ), __NAMESPACE__ . '\\torantejarat_product_faq_box', 'product', 'side', 'default' );
+	add_meta_box( 'torantejarat-product-media', __( 'ویدیو محصول — بلکوکم', 'torantejarat' ), __NAMESPACE__ . '\\torantejarat_product_meta_box', 'product', 'side', 'default' );
+	add_meta_box( 'torantejarat-product-faq', __( 'پرسش‌های اختصاصی — بلکوکم', 'torantejarat' ), __NAMESPACE__ . '\\torantejarat_product_faq_box', 'product', 'side', 'default' );
 }
 
 function torantejarat_product_meta_box( $post ) {
@@ -1085,34 +1132,246 @@ function torantejarat_empty_search_redirect() {
 }
 
 /**
- * Live search endpoint (products + categories). Read-only, nonce-verified,
- * tight limits, no found-rows counting.
+ * Legacy shop search (?s= on shop/category) bounces to the dedicated
+ * product search page (/search/?q=), which owns its URL and breadcrumb.
  */
-function torantejarat_live_search() {
-	check_ajax_referer( 'torantejarat-search', 'nonce' );
-	$q = isset( $_GET['q'] ) ? sanitize_text_field( wp_unslash( $_GET['q'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Verified above.
-	$q = mb_substr( trim( $q ), 0, 60 );
-	if ( mb_strlen( $q ) < 2 ) {
-		wp_send_json_success( array( 'products' => array(), 'cats' => array() ) );
+function torantejarat_shop_search_redirect() {
+	if ( is_admin() || ! torantejarat_woocommerce_available() ) {
+		return;
 	}
-	$products = array();
+	if ( ! isset( $_GET['s'] ) || is_array( $_GET['s'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Public read-only redirect.
+		return;
+	}
+	$q = trim( (string) wp_unslash( $_GET['s'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	if ( '' === $q ) {
+		return;
+	}
+	if ( is_shop() || is_product_taxonomy() ) {
+		wp_safe_redirect( esc_url_raw( torantejarat_product_search_url( $q ) ), 302 );
+		exit;
+	}
+}
+
+/**
+ * Live search core — shared by the REST endpoint and the legacy admin-ajax
+ * action. Fast WP_Query with IDs only (no full product hydration),
+ * SKU fast-path, Persian/Latin digit variants, versioned transient.
+ */
+function torantejarat_search_normalize( $value ) {
+	$value = wp_strip_all_tags( (string) $value );
+	$value = strtr( $value, array( 'ي' => 'ی', 'ك' => 'ک' ) );
+	$value = trim( (string) preg_replace( '/\s+/u', ' ', $value ) );
+	return mb_substr( $value, 0, 60 );
+}
+
+function torantejarat_search_variants( $q ) {
+	$fa = array( '۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹' );
+	$en = array( '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' );
+	$q  = str_replace( $fa, $en, $q );
+	return array_values( array_unique( array( $q, str_replace( $en, $fa, $q ) ) ) );
+}
+
+function torantejarat_search_bust( $post_id = 0 ) {
+	/* save_post_product also fires for autosaves/revisions — those must not
+	   churn the index version. Term hooks pass a term_id, skip the guards. */
+	if ( 'save_post_product' === current_action() ) {
+		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+			return;
+		}
+		if ( $post_id && ( wp_is_post_revision( $post_id ) || 'auto-draft' === get_post_status( $post_id ) ) ) {
+			return;
+		}
+	}
+	update_option( 'torantejarat_search_ver', (int) get_option( 'torantejarat_search_ver', 1 ) + 1, false );
+}
+
+/**
+ * Single shape for "no results" so the REST handler, the data builder
+ * and the AJAX wrapper can never drift apart.
+ */
+function torantejarat_search_empty_response( $q = '' ) {
+	return array( 'q' => $q, 'total' => 0, 'products' => array(), 'cats' => array(), 'categories' => array() );
+}
+
+function torantejarat_search_rest_route() {
+	register_rest_route(
+		'torantejarat/v1',
+		'/search',
+		array(
+			'methods'             => 'GET',
+			'callback'            => __NAMESPACE__ . '\\torantejarat_search_rest_handle',
+			'permission_callback' => '__return_true',
+			'args'                => array(
+				'q' => array(
+					'type'              => 'string',
+					'required'          => true,
+					'sanitize_callback' => __NAMESPACE__ . '\\torantejarat_search_normalize',
+				),
+			),
+		)
+	);
+	register_rest_route(
+		'torantejarat/v1',
+		'/catalog',
+		array(
+			'methods'             => 'GET',
+			'callback'            => __NAMESPACE__ . '\\torantejarat_search_catalog_handle',
+			'permission_callback' => '__return_true',
+		)
+	);
+}
+
+/**
+ * Compact whole-catalog payload for instant client-side search.
+ * One small request per page load; the modal then answers keystrokes
+ * with zero network. Versioned transient, busted with the search index.
+ */
+function torantejarat_search_catalog_handle() {
+	$key    = 'torantejarat_catalog_' . (int) get_option( 'torantejarat_search_ver', 1 );
+	$cached = get_transient( $key );
+	if ( is_array( $cached ) ) {
+		$response = rest_ensure_response( $cached );
+		$response->header( 'Cache-Control', 'public, max-age=3600' );
+		return $response;
+	}
+	$items = array();
 	if ( torantejarat_woocommerce_available() ) {
-		foreach ( wc_get_products( array( 'status' => 'publish', 'visibility' => 'catalog', 'limit' => 6, 's' => $q ) ) as $p ) {
+		$ids = wc_get_products(
+			array(
+				'status'     => 'publish',
+				'visibility' => 'catalog',
+				'limit'      => 300,
+				'orderby'    => 'name',
+				'order'      => 'ASC',
+				'return'     => 'ids',
+			)
+		);
+		foreach ( array_slice( (array) $ids, 0, 300 ) as $id ) {
+			$p = wc_get_product( absint( $id ) );
 			if ( ! $p instanceof \WC_Product || ! $p->is_visible() ) {
 				continue;
 			}
-			$img = $p->get_image_id() ? wp_get_attachment_image_url( $p->get_image_id(), 'thumbnail' ) : wc_placeholder_img_src( 'thumbnail' );
+			$terms = get_the_terms( $p->get_id(), 'product_cat' );
+			$cat   = ( $terms && ! is_wp_error( $terms ) ) ? $terms[0]->name : '';
+			$img   = $p->get_image_id() ? wp_get_attachment_image_url( $p->get_image_id(), 'thumbnail' ) : wc_placeholder_img_src( 'thumbnail' );
 			$price = $p->get_price();
-			$products[] = array(
+			$items[] = array(
 				'url'   => get_permalink( $p->get_id() ),
-				'name'  => $p->get_name(),
+				'name'  => html_entity_decode( $p->get_name(), ENT_QUOTES, 'UTF-8' ),
+				'sku'   => (string) $p->get_sku(),
+				'cat'   => $cat,
 				'image' => $img ? $img : '',
 				'price' => ( '' !== $price && null !== $price ) ? trim( torantejarat_fa_number( $price ) . ' ' . __( 'تومان', 'torantejarat' ) ) : '',
 			);
 		}
 	}
-	$cats = array();
-	$terms = get_terms( array( 'taxonomy' => 'product_cat', 'hide_empty' => true, 'number' => 20, 'search' => $q ) );
+	$cats  = array();
+	$terms = get_terms( array( 'taxonomy' => 'product_cat', 'hide_empty' => true, 'number' => 6, 'orderby' => 'count', 'order' => 'DESC' ) );
+	if ( ! is_wp_error( $terms ) ) {
+		foreach ( $terms as $t ) {
+			$url = get_term_link( $t );
+			if ( ! is_wp_error( $url ) ) {
+				$cats[] = array( 'url' => $url, 'name' => $t->name );
+			}
+		}
+	}
+	$data = array(
+		'ver'      => (int) get_option( 'torantejarat_search_ver', 1 ),
+		'products' => $items,
+		'cats'     => $cats,
+	);
+	set_transient( $key, $data, 12 * HOUR_IN_SECONDS );
+	$response = rest_ensure_response( $data );
+	$response->header( 'Cache-Control', 'public, max-age=3600' );
+	return $response;
+}
+
+function torantejarat_search_rest_handle( \WP_REST_Request $request ) {
+	$q = torantejarat_search_normalize( (string) $request['q'] );
+	if ( mb_strlen( $q ) < 2 || ! torantejarat_woocommerce_available() ) {
+		return rest_ensure_response( torantejarat_search_empty_response( $q ) );
+	}
+	$data     = torantejarat_search_data( $q );
+	$response = rest_ensure_response( $data );
+	$response->header( 'Cache-Control', 'public, max-age=60' );
+	return $response;
+}
+
+function torantejarat_search_data( $q ) {
+	$q = torantejarat_search_normalize( $q );
+	if ( mb_strlen( $q ) < 2 ) {
+		return torantejarat_search_empty_response( $q );
+	}
+	$key    = 'torantejarat_search_' . (int) get_option( 'torantejarat_search_ver', 1 ) . '_' . md5( mb_strtolower( $q ) );
+	$cached = get_transient( $key );
+	if ( is_array( $cached ) ) {
+		return $cached;
+	}
+	$ids   = array();
+	$total = 0;
+	if ( torantejarat_woocommerce_available() ) {
+		if ( function_exists( 'wc_get_product_id_by_sku' ) ) {
+			$sku_id = (int) wc_get_product_id_by_sku( $q );
+			if ( $sku_id > 0 ) {
+				$ids[] = $sku_id;
+			}
+		}
+		foreach ( torantejarat_search_variants( $q ) as $term ) {
+			$query = new \WP_Query(
+				array(
+					'post_type'           => 'product',
+					'post_status'         => 'publish',
+					's'                   => $term,
+					'posts_per_page'      => 6,
+					'fields'              => 'ids',
+					'ignore_sticky_posts' => true,
+					'no_found_rows'       => false,
+					/* IDs only — hydration happens per visible hit via
+					   wc_get_product, so skip WP's own cache priming. */
+					'update_post_meta_cache' => false,
+					'update_post_term_cache' => false,
+					'tax_query'           => array( // phpcs:ignore WordPress.DB.SlowDBQuery -- Bounded to 6 IDs for live search.
+						array(
+							'taxonomy' => 'product_visibility',
+							'field'    => 'name',
+							'terms'    => array( 'exclude-from-search' ),
+							'operator' => 'NOT IN',
+						),
+					),
+				)
+			);
+			foreach ( (array) $query->posts as $found_id ) {
+				$ids[] = (int) $found_id;
+			}
+			$total = max( $total, (int) $query->found_posts );
+		}
+	}
+	$ids      = array_slice( array_unique( array_filter( $ids ) ), 0, 6 );
+	$products = array();
+	foreach ( $ids as $id ) {
+		$p = wc_get_product( absint( $id ) );
+		if ( ! $p instanceof \WC_Product || ! $p->is_visible() ) {
+			continue;
+		}
+		$img   = $p->get_image_id() ? wp_get_attachment_image_url( $p->get_image_id(), 'thumbnail' ) : wc_placeholder_img_src( 'thumbnail' );
+		$price = $p->get_price();
+		$products[] = array(
+			'url'   => get_permalink( $p->get_id() ),
+			'name'  => html_entity_decode( $p->get_name(), ENT_QUOTES, 'UTF-8' ),
+			'image' => $img ? $img : '',
+			'price' => ( '' !== $price && null !== $price ) ? trim( torantejarat_fa_number( $price ) . ' ' . __( 'تومان', 'torantejarat' ) ) : '',
+		);
+	}
+	$cats  = array();
+	$terms = get_terms(
+		array(
+			'taxonomy'   => 'product_cat',
+			'name__like' => $q,
+			'hide_empty' => true,
+			'number'     => 4,
+			'exclude'    => array( (int) get_option( 'default_product_cat' ) ),
+		)
+	);
 	if ( ! is_wp_error( $terms ) ) {
 		foreach ( array_slice( $terms, 0, 3 ) as $t ) {
 			$url = get_term_link( $t );
@@ -1121,7 +1380,25 @@ function torantejarat_live_search() {
 			}
 		}
 	}
-	wp_send_json_success( array( 'products' => $products, 'cats' => $cats ) );
+	$data = array(
+		'q'          => $q,
+		'total'      => max( $total, count( $products ) ),
+		'products'   => $products,
+		'cats'       => $cats,
+		'categories' => $cats,
+	);
+	set_transient( $key, $data, 10 * MINUTE_IN_SECONDS );
+	return $data;
+}
+
+/**
+ * Live search endpoint (legacy admin-ajax, nonce-verified).
+ * Thin wrapper over torantejarat_search_data so old cached pages keep working.
+ */
+function torantejarat_live_search() {
+	check_ajax_referer( 'torantejarat-search', 'nonce' );
+	$q = isset( $_GET['q'] ) ? torantejarat_search_normalize( wp_unslash( $_GET['q'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Verified above.
+	wp_send_json_success( torantejarat_search_data( $q ) );
 }
 /**
  * Sanitize raw compare input (GET or AJAX) to the torantejarat_compare_data shape.
@@ -1279,21 +1556,58 @@ function torantejarat_recent_source() {
 }
 
 /**
- * Postal tracking code per order: admin field + account display + emails.
- * Meta key: _torantejarat_tracking.
+ * Postal tracking per order: admin field + account card + emails + thankyou.
+ * Meta keys: _torantejarat_tracking (code), _torantejarat_carrier (post|chapar|tipax).
+ * Single source of truth — no parallel tracking system.
  */
-function torantejarat_tracking_field() {
-	global $post;
-	if ( ! $post instanceof \WP_Post || 'shop_order' !== $post->post_type ) {
+
+/**
+ * Carrier registry: slug => array( label, url ). Filterable.
+ */
+function torantejarat_tracking_carriers() {
+	return apply_filters(
+		'torantejarat_tracking_carriers',
+		array(
+			'post'   => array( 'label' => __( 'پست ایران', 'torantejarat' ), 'url' => 'https://tracking.post.ir/' ),
+			'chapar' => array( 'label' => __( 'چاپار', 'torantejarat' ), 'url' => 'https://www.chaparnet.com/track' ),
+			'tipax'  => array( 'label' => __( 'تیپاکس', 'torantejarat' ), 'url' => 'https://tipaxco.com/tracking' ),
+		)
+	);
+}
+
+function torantejarat_tracking_carrier_label( $carrier ) {
+	$carriers = torantejarat_tracking_carriers();
+	return isset( $carriers[ $carrier ] ) ? $carriers[ $carrier ]['label'] : '';
+}
+
+function torantejarat_tracking_carrier_url( $carrier ) {
+	$carriers = torantejarat_tracking_carriers();
+	return isset( $carriers[ $carrier ] ) ? $carriers[ $carrier ]['url'] : '';
+}
+
+function torantejarat_tracking_field( $order = null ) {
+	if ( ! $order instanceof \WC_Order ) {
+		$order = $order ? wc_get_order( $order ) : null;
+	}
+	if ( ! $order instanceof \WC_Order ) {
 		return;
 	}
-	$torantejarat_order = wc_get_order( $post->ID );
-	$value              = $torantejarat_order instanceof \WC_Order ? $torantejarat_order->get_meta( '_torantejarat_tracking' ) : '';
+	$value   = $order->get_meta( '_torantejarat_tracking' );
+	$carrier = $order->get_meta( '_torantejarat_carrier' );
 	?>
+	<p class="form-field form-field-wide">
+		<label for="torantejarat_carrier"><?php esc_html_e( 'شرکت حمل‌ونقل', 'torantejarat' ); ?></label>
+		<select id="torantejarat_carrier" name="torantejarat_carrier" style="width:100%">
+			<option value=""><?php esc_html_e( '— انتخاب کنید —', 'torantejarat' ); ?></option>
+			<?php foreach ( torantejarat_tracking_carriers() as $key => $info ) : ?>
+				<option value="<?php echo esc_attr( $key ); ?>" <?php selected( $carrier, $key ); ?>><?php echo esc_html( $info['label'] ); ?></option>
+			<?php endforeach; ?>
+		</select>
+	</p>
 	<p class="form-field form-field-wide">
 		<label for="torantejarat_tracking"><?php esc_html_e( 'کد مرسوله پستی', 'torantejarat' ); ?></label>
 		<input type="text" id="torantejarat_tracking" name="torantejarat_tracking" value="<?php echo esc_attr( $value ); ?>" dir="ltr" style="width:100%">
-		<span class="description"><?php esc_html_e( 'خالی = هنوز ارسال نشده. در حساب کاربری و ایمیل مشتری نمایش داده می‌شود.', 'torantejarat' ); ?></span>
+		<span class="description"><?php esc_html_e( 'خالی = هنوز ارسال نشده. در حساب کاربری، صفحه تشکر و ایمیل مشتری نمایش داده می‌شود.', 'torantejarat' ); ?></span>
 	</p>
 	<?php
 }
@@ -1302,20 +1616,31 @@ function torantejarat_tracking_save( $order_id ) {
 	if ( ! current_user_can( 'edit_shop_order', $order_id ) ) {
 		return;
 	}
+	/* HPOS: orders live in custom tables — CRUD only, never postmeta. */
+	$torantejarat_order = wc_get_order( $order_id );
+	if ( ! $torantejarat_order instanceof \WC_Order ) {
+		return;
+	}
+	if ( isset( $_POST['torantejarat_carrier'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Woo verifies its own order nonce.
+		$carrier = sanitize_key( wp_unslash( $_POST['torantejarat_carrier'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		$carriers = array_keys( torantejarat_tracking_carriers() );
+		if ( '' === $carrier || in_array( $carrier, $carriers, true ) ) {
+			if ( '' === $carrier ) {
+				$torantejarat_order->delete_meta_data( '_torantejarat_carrier' );
+			} else {
+				$torantejarat_order->update_meta_data( '_torantejarat_carrier', $carrier );
+			}
+		}
+	}
 	if ( isset( $_POST['torantejarat_tracking'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Woo verifies its own order nonce.
 		$code = sanitize_text_field( wp_unslash( $_POST['torantejarat_tracking'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
-		/* HPOS: orders live in custom tables — CRUD only, never postmeta. */
-		$torantejarat_order = wc_get_order( $order_id );
-		if ( ! $torantejarat_order instanceof \WC_Order ) {
-			return;
-		}
 		if ( '' === $code ) {
 			$torantejarat_order->delete_meta_data( '_torantejarat_tracking' );
 		} else {
 			$torantejarat_order->update_meta_data( '_torantejarat_tracking', $code );
 		}
-		$torantejarat_order->save();
 	}
+	$torantejarat_order->save();
 }
 
 function torantejarat_tracking_account( $order ) {
@@ -1326,9 +1651,31 @@ function torantejarat_tracking_account( $order ) {
 	if ( '' === $code ) {
 		return;
 	}
-	echo '<section class="torantejarat-tracking-box"><h2>' . esc_html__( 'کد مرسوله پستی', 'torantejarat' ) . '</h2>';
-	echo '<p><strong dir="ltr">' . esc_html( $code ) . '</strong></p>';
-	echo '<p>' . esc_html__( 'با این کد، مرسوله را در سامانه پست پیگیری کنید.', 'torantejarat' ) . '</p></section>';
+	$carrier       = $order->get_meta( '_torantejarat_carrier' );
+	$carrier_label = torantejarat_tracking_carrier_label( $carrier );
+	$carrier_url   = torantejarat_tracking_carrier_url( $carrier );
+	?>
+	<section class="torantejarat-tracking-card" aria-label="<?php esc_attr_e( 'پیگیری مرسوله', 'torantejarat' ); ?>">
+		<div class="torantejarat-tracking-card__head">
+			<span class="torantejarat-tracking-card__icon" aria-hidden="true"><?php torantejarat_icon( 'cart' ); ?></span>
+			<div>
+				<strong><?php esc_html_e( 'پیگیری مرسوله شما', 'torantejarat' ); ?></strong>
+				<span><?php esc_html_e( 'وضعیت ارسال بسته خود را از سامانه شرکت حمل‌ونقل ببینید.', 'torantejarat' ); ?></span>
+			</div>
+			<?php if ( '' !== $carrier_label ) : ?><b class="torantejarat-tracking-card__chip"><?php echo esc_html( $carrier_label ); ?></b><?php endif; ?>
+		</div>
+		<div class="torantejarat-tracking-card__code">
+			<div>
+				<span><?php esc_html_e( 'کد رهگیری', 'torantejarat' ); ?></span>
+				<strong id="torantejarat-tracking-code" dir="ltr"><?php echo esc_html( $code ); ?></strong>
+			</div>
+			<button type="button" class="torantejarat-btn torantejarat-btn-outline torantejarat-copy-btn" data-copy-target="torantejarat-tracking-code"><span data-copy-label><?php esc_html_e( 'کپی', 'torantejarat' ); ?></span></button>
+		</div>
+		<?php if ( '' !== $carrier_url ) : ?>
+			<a class="torantejarat-btn torantejarat-btn-primary torantejarat-btn-block" href="<?php echo esc_url( $carrier_url ); ?>" target="_blank" rel="noopener"><?php esc_html_e( 'پیگیری مرسوله', 'torantejarat' ); ?></a>
+		<?php endif; ?>
+	</section>
+	<?php
 }
 
 function torantejarat_tracking_email( $fields, $sent_to_admin, $order ) {
@@ -1337,9 +1684,10 @@ function torantejarat_tracking_email( $fields, $sent_to_admin, $order ) {
 	}
 	$code = $order->get_meta( '_torantejarat_tracking' );
 	if ( '' !== $code ) {
+		$carrier_label = torantejarat_tracking_carrier_label( $order->get_meta( '_torantejarat_carrier' ) );
 		$fields['torantejarat_tracking'] = array(
 			'label' => __( 'کد مرسوله پستی', 'torantejarat' ),
-			'value' => $code,
+			'value' => '' !== $carrier_label ? $code . ' (' . $carrier_label . ')' : $code,
 		);
 	}
 	return $fields;
@@ -1473,10 +1821,14 @@ function torantejarat_order_timeline( $order ) {
 		$stage = 3;
 	}
 	$tracking = $order->get_meta( '_torantejarat_tracking' );
+	$created  = $order->get_date_created();
+	$done     = $order->get_date_completed();
 	$steps    = array(
 		array(
 			'title' => __( 'ثبت سفارش', 'torantejarat' ),
-			'desc'  => sprintf( __( 'سفارش %s ثبت شد.', 'torantejarat' ), $order->get_date_created()->date( 'Y/m/d' ) ),
+			'desc'  => $created
+				? sprintf( __( 'سفارش %s ثبت شد.', 'torantejarat' ), torantejarat_jalali_ymd( $created->date( 'Y' ), $created->date( 'n' ), $created->date( 'j' ) ) )
+				: __( 'سفارش ثبت شد.', 'torantejarat' ),
 		),
 		array(
 			'title' => __( 'تأیید و آماده‌سازی', 'torantejarat' ),
@@ -1490,8 +1842,8 @@ function torantejarat_order_timeline( $order ) {
 		),
 		array(
 			'title' => __( 'تحویل شد', 'torantejarat' ),
-			'desc'  => $order->get_date_completed()
-				? sprintf( __( 'تحویل در %s.', 'torantejarat' ), $order->get_date_completed()->date( 'Y/m/d' ) )
+			'desc'  => $done
+				? sprintf( __( 'تحویل در %s.', 'torantejarat' ), torantejarat_jalali_ymd( $done->date( 'Y' ), $done->date( 'n' ), $done->date( 'j' ) ) )
 				: __( 'پس از تحویل، اینجا ثبت می‌شود.', 'torantejarat' ),
 		),
 	);
@@ -1549,4 +1901,242 @@ function torantejarat_cart_empty_suggestions() {
 			'title'    => __( 'پیشنهادهای امروز', 'torantejarat' ),
 		)
 	);
+}
+
+/**
+ * Receipt-flow order on order-pay (ZarinPal-style redirect page).
+ * Same key standard as Woo's own receipt branch; the classic pay-form flow
+ * returns false here (covered by before_woocommerce_pay_form).
+ *
+ * @return \WC_Order|false
+ */
+function torantejarat_receipt_order() {
+	if ( ! function_exists( 'is_checkout' ) || ! is_checkout() || ! is_wc_endpoint_url( 'order-pay' ) ) {
+		return false;
+	}
+	if ( isset( $_GET['pay_for_order'], $_GET['key'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only flow selector; key verified below.
+		return false;
+	}
+	$order_id = absint( get_query_var( 'order-pay' ) );
+	if ( $order_id <= 0 ) {
+		return false;
+	}
+	$order = wc_get_order( $order_id );
+	if ( ! $order instanceof \WC_Order ) {
+		return false;
+	}
+	$key = isset( $_GET['key'] ) && is_string( $_GET['key'] ) ? wc_clean( wp_unslash( $_GET['key'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Bearer-style order key, compared with hash_equals like Woo core.
+	if ( '' === $key || ! hash_equals( $order->get_order_key(), $key ) ) {
+		return false;
+	}
+	return $order;
+}
+
+/**
+ * Invoice header on the receipt page (before_woocommerce_pay).
+ */
+function torantejarat_receipt_invoice() {
+	$order = torantejarat_receipt_order();
+	if ( ! $order ) {
+		return;
+	}
+	torantejarat_invoice_header( $order );
+}
+
+/**
+ * Invoice buttons at the end of the receipt page (after_woocommerce_pay).
+ */
+function torantejarat_receipt_actions() {
+	$order = torantejarat_receipt_order();
+	if ( ! $order ) {
+		return;
+	}
+	torantejarat_invoice_buttons( $order );
+}
+
+/**
+ * Professional invoice header — order-pay (object), thankyou + view-order (ID).
+ * Hooks only; no Woo template override. Native Woo data, HPOS-safe.
+ *
+ * @param \WC_Order|int $maybe_order Order object or ID.
+ */
+function torantejarat_invoice_header( $maybe_order = 0 ) {
+	$order = $maybe_order instanceof \WC_Order ? $maybe_order : wc_get_order( absint( $maybe_order ) );
+	if ( ! $order instanceof \WC_Order ) {
+		return;
+	}
+	$status = $order->get_status();
+	$badge  = array( 'label' => __( 'در انتظار پرداخت', 'torantejarat' ), 'class' => 'is-pending' );
+	if ( 'failed' === $status ) {
+		$badge = array( 'label' => __( 'پرداخت ناموفق', 'torantejarat' ), 'class' => 'is-failed' );
+	} elseif ( in_array( $status, array( 'processing', 'on-hold' ), true ) ) {
+		$badge = array( 'label' => __( 'پرداخت شد — در حال آماده‌سازی', 'torantejarat' ), 'class' => 'is-paid' );
+	} elseif ( in_array( $status, array( 'shipped', 'completed' ), true ) ) {
+		$badge = array( 'label' => __( 'ارسال شد', 'torantejarat' ), 'class' => 'is-shipped' );
+	} elseif ( in_array( $status, array( 'cancelled', 'refunded' ), true ) ) {
+		$badge = array( 'label' => wc_get_order_status_name( $status ), 'class' => 'is-failed' );
+	}
+	$created = $order->get_date_created();
+	$date    = $created ? torantejarat_jalali_ymd( $created->date( 'Y' ), $created->date( 'n' ), $created->date( 'j' ) ) : __( '—', 'torantejarat' );
+	$name    = trim( $order->get_billing_first_name() . ' ' . $order->get_billing_last_name() );
+	$phone   = trim( (string) $order->get_billing_phone() );
+	$phone_digits = preg_replace( '/[^0-9+]/', '', $phone );
+	$state_code = $order->get_billing_state();
+	$state_name = $state_code;
+	if ( function_exists( 'WC' ) && WC()->countries ) {
+		$states = WC()->countries->get_states( $order->get_billing_country() ? $order->get_billing_country() : 'IR' );
+		if ( isset( $states[ $state_code ] ) ) {
+			$state_name = $states[ $state_code ];
+		}
+	}
+	$address_parts = array_filter( array( $state_name, $order->get_billing_city(), $order->get_billing_address_1(), $order->get_billing_address_2() ) );
+	if ( $order->get_billing_postcode() ) {
+		$address_parts[] = __( 'کد پستی:', 'torantejarat' ) . ' ' . $order->get_billing_postcode();
+	}
+	$txn = trim( (string) $order->get_transaction_id() );
+	?>
+	<section class="torantejarat-invoice" aria-label="<?php esc_attr_e( 'فاکتور سفارش', 'torantejarat' ); ?>">
+		<div class="torantejarat-invoice-head">
+			<div>
+				<strong class="torantejarat-invoice-brand"><?php esc_html_e( 'بلکوکم', 'torantejarat' ); ?></strong>
+				<span class="torantejarat-invoice-sub"><?php esc_html_e( 'فاکتور سفارش', 'torantejarat' ); ?></span>
+			</div>
+			<span class="torantejarat-invoice-badge <?php echo esc_attr( $badge['class'] ); ?>"><?php echo esc_html( $badge['label'] ); ?></span>
+		</div>
+		<dl class="torantejarat-invoice-meta">
+			<div><dt><?php esc_html_e( 'شماره سفارش', 'torantejarat' ); ?></dt><dd><?php echo esc_html( torantejarat_fa_number( $order->get_order_number() ) ); ?></dd></div>
+			<div><dt><?php esc_html_e( 'تاریخ ثبت', 'torantejarat' ); ?></dt><dd><?php echo esc_html( $date ); ?></dd></div>
+			<div><dt><?php esc_html_e( 'مبلغ نهایی', 'torantejarat' ); ?></dt><dd><?php echo wp_kses_post( $order->get_formatted_order_total() ); ?></dd></div>
+			<div><dt><?php esc_html_e( 'روش پرداخت', 'torantejarat' ); ?></dt><dd><?php echo $order->get_payment_method_title() ? esc_html( $order->get_payment_method_title() ) : esc_html__( '—', 'torantejarat' ); ?></dd></div>
+		</dl>
+		<?php if ( '' !== $txn ) : ?>
+			<p class="torantejarat-invoice-txn"><?php esc_html_e( 'کد پیگیری پرداخت:', 'torantejarat' ); ?> <strong dir="ltr"><?php echo esc_html( $txn ); ?></strong></p>
+		<?php endif; ?>
+		<div class="torantejarat-invoice-customer">
+			<strong><?php esc_html_e( 'مشخصات گیرنده', 'torantejarat' ); ?></strong>
+			<p>
+				<?php if ( '' !== $name ) : ?><span><?php echo esc_html( $name ); ?></span><?php endif; ?>
+				<?php if ( '' !== $phone && '' !== $phone_digits ) : ?><span><a href="tel:<?php echo esc_attr( $phone_digits ); ?>" dir="ltr"><?php echo esc_html( $phone ); ?></a></span><?php endif; ?>
+				<?php if ( $address_parts ) : ?><span><?php echo esc_html( implode( ' — ', $address_parts ) ); ?></span><?php endif; ?>
+			</p>
+		</div>
+	</section>
+	<?php
+}
+
+/**
+ * Amount reminder above the payment methods on order-pay.
+ */
+function torantejarat_pay_reminder() {
+	$order_id = absint( get_query_var( 'order-pay' ) );
+	$order    = $order_id > 0 ? wc_get_order( $order_id ) : false;
+	if ( ! $order instanceof \WC_Order || ! $order->needs_payment() ) {
+		return;
+	}
+	echo '<div class="torantejarat-pay-reminder" role="note"><div><strong>' . esc_html__( 'مبلغ قابل پرداخت', 'torantejarat' ) . '</strong><span>' . wp_kses_post( $order->get_formatted_order_total() ) . '</span></div>';
+	echo '<p>' . esc_html__( 'پس از پرداخت موفق، فاکتور و کد پیگیری همین‌جا نمایش داده می‌شود.', 'torantejarat' ) . '</p></div>';
+}
+
+/**
+ * Pay button with the real payable amount.
+ */
+function torantejarat_pay_button_text( $text ) {
+	if ( ! function_exists( 'is_checkout' ) || ! is_checkout() || ! is_wc_endpoint_url( 'order-pay' ) ) {
+		return $text;
+	}
+	$order_id = absint( get_query_var( 'order-pay' ) );
+	$order    = $order_id > 0 ? wc_get_order( $order_id ) : false;
+	if ( ! $order instanceof \WC_Order || ! $order->needs_payment() ) {
+		return $text;
+	}
+	return sprintf(
+		/* translators: %s: formatted order total. */
+		__( 'پرداخت %s', 'torantejarat' ),
+		wp_strip_all_tags( $order->get_formatted_order_total() )
+	);
+}
+
+/**
+ * Footer actions under the invoice — thankyou page.
+ *
+ * @param int $order_id Order ID.
+ */
+function torantejarat_invoice_actions( $order_id ) {
+	$order = wc_get_order( absint( $order_id ) );
+	if ( ! $order instanceof \WC_Order ) {
+		return;
+	}
+	torantejarat_invoice_buttons( $order );
+}
+
+/**
+ * Footer actions under the invoice — frontend order-details tables only.
+ * Skips Woo emails and admin screens; timeline/tracking boxes stay untouched.
+ *
+ * @param \WC_Order $order Order object.
+ */
+function torantejarat_invoice_front_actions( $order ) {
+	if ( is_admin() || function_exists( 'doing_action' ) && doing_action( 'woocommerce_email_order_details' ) ) {
+		return;
+	}
+	if ( ! $order instanceof \WC_Order ) {
+		return;
+	}
+	if ( ! ( function_exists( 'is_checkout' ) && is_checkout() ) && ! ( function_exists( 'is_account_page' ) && is_account_page() ) ) {
+		return;
+	}
+	/* thankyou already prints the same buttons via woocommerce_thankyou. */
+	if ( function_exists( 'is_order_received_page' ) && is_order_received_page() ) {
+		return;
+	}
+	torantejarat_invoice_buttons( $order );
+}
+
+/**
+ * Shared invoice buttons: print + account + shop (+ repay on failure).
+ *
+ * @param \WC_Order $order Order object.
+ */
+function torantejarat_invoice_buttons( $order ) {
+	$buttons = array();
+	if ( $order->has_status( 'failed' ) && $order->needs_payment() ) {
+		$buttons[] = '<a class="torantejarat-btn torantejarat-btn-primary" href="' . esc_url( $order->get_checkout_payment_url() ) . '">' . esc_html__( 'تلاش مجدد برای پرداخت', 'torantejarat' ) . '</a>';
+	}
+	$buttons[] = '<button type="button" class="torantejarat-btn torantejarat-btn-outline" onclick="window.print()">' . esc_html__( 'چاپ فاکتور', 'torantejarat' ) . '</button>';
+	if ( wc_get_page_id( 'myaccount' ) > 0 ) {
+		$buttons[] = '<a class="torantejarat-btn torantejarat-btn-outline" href="' . esc_url( wc_get_account_endpoint_url( 'orders' ) ) . '">' . esc_html__( 'پیگیری در حساب کاربری', 'torantejarat' ) . '</a>';
+	}
+	if ( wc_get_page_id( 'shop' ) > 0 ) {
+		$buttons[] = '<a class="torantejarat-text-link" href="' . esc_url( wc_get_page_permalink( 'shop' ) ) . '">' . esc_html__( 'ادامه خرید', 'torantejarat' ) . '</a>';
+	}
+	echo '<div class="torantejarat-invoice-actions">' . implode( '', $buttons ) . '</div>';
+}
+
+/**
+ * Strip test-mode markers from gateway titles on the frontend.
+ */
+function torantejarat_gateway_title_clean( $title, $gateway_id = '' ) {
+	if ( is_admin() ) {
+		return $title;
+	}
+	return str_replace( array( '(تست)', 'تست', '(test)', '(Test)' ), '', $title );
+}
+
+/**
+ * Registration link inside the WooCommerce login form (My Account, logged out).
+ * wp-login.php already shows one in #nav, but the WooCommerce form itself
+ * renders on /my-account/ without it — add an explicit styled link.
+ */
+function torantejarat_wc_register_link() {
+	if ( ! get_option( 'users_can_register' ) ) {
+		return;
+	}
+	$register_url = wp_registration_url();
+	echo '<p class="torantejarat-wc-register-link">';
+	printf(
+		/* translators: %s: registration URL */
+		esc_html__( 'حساب ندارید؟ %s', 'torantejarat' ),
+		'<a href="' . esc_url( $register_url ) . '">' . esc_html__( 'ثبت‌نام کنید', 'torantejarat' ) . '</a>'
+	);
+	echo '</p>';
 }

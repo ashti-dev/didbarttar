@@ -52,7 +52,7 @@ $torantejarat_visible  = min( 3, count( $torantejarat_deals ) );
 					?>
 					<div class="product-slide">
 						<article class="torantejarat-deal-card">
-							<span class="torantejarat-deal-badge"><?php echo esc_html( sprintf( __( '٪%s تخفیف', 'torantejarat' ), number_format_i18n( $torantejarat_deal['percent'] ) ) ); ?></span>
+							<span class="torantejarat-deal-badge"><?php echo esc_html( sprintf( __( '٪%s تخفیف', 'torantejarat' ), torantejarat_fa_number( $torantejarat_deal['percent'] ) ) ); ?></span>
 							<a class="torantejarat-deal-image" href="<?php echo esc_url( $torantejarat_url ); ?>" tabindex="-1" aria-hidden="true">
 								<?php if ( $torantejarat_item->get_image_id() ) : ?>
 									<?php echo wp_get_attachment_image( $torantejarat_item->get_image_id(), 'torantejarat-card', false, array( 'loading' => 'lazy' ) ); ?>

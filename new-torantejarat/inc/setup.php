@@ -40,7 +40,6 @@ function torantejarat_setup() {
 			'torantejarat-primary'        => __( 'منوی اصلی', 'torantejarat' ),
 			'torantejarat-utility'        => __( 'پیوند نوار بالای سایت', 'torantejarat' ),
 			'torantejarat-home-services'  => __( 'کارت‌های خدمات خانه — پیوند صفحات موجود', 'torantejarat' ),
-			'torantejarat-academy'        => __( 'منابع آکادمی — پیوند مطالب موجود', 'torantejarat' ),
 			'torantejarat-home-actions'   => __( 'پیوندهای اصلی خانه', 'torantejarat' ),
 			'torantejarat-footer-shop'    => __( 'ستون اول پیوندهای پابرگ', 'torantejarat' ),
 			'torantejarat-footer-help'    => __( 'ستون دوم پیوندهای پابرگ', 'torantejarat' ),

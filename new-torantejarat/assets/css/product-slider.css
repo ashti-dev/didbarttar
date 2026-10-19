@@ -1,5 +1,5 @@
 /* =============================================================
-   Product Slider — توران تجارت
+   Product Slider — بلکوکم
    RTL-first | No dependencies | WordPress ready
    Based on: Yaghoub Tayebi / KhanWP slider kit
    ============================================================= */
@@ -71,8 +71,8 @@
   position: absolute;
   top: 50%;
   transform: translateY(calc(-50% - 24px)); /* جبران padding-bottom */
-  /* بالاتر از همه المان‌ها */
-  z-index: 50;
+  /* بالاتر از اسلایدها ولی پایین‌تر از هدر چسبان (z-index:30) تا موقع اسکرول از هدر بیرون نزند */
+  z-index: 5;
   display: flex;
   align-items: center;
   justify-content: center;

@@ -1,6 +1,6 @@
 <?php
 /**
- * Theme Settings Panel — توران‌تجارت
+ * Theme Settings Panel — بلکوکم
  * Native WordPress Settings API — No dependencies.
  *
  * To add a tab or field, edit the $schema array only.
@@ -41,6 +41,17 @@ final class TT_Settings {
 					'default'  => '',
 					'desc'     => 'اختیاری — کل متن تاپ‌بار را کلیک‌پذیر می‌کند.',
 					'sanitize' => 'esc_url_raw',
+				),
+				'preview_note' => array(
+					'label'    => 'حالت پیش‌نمایش',
+					'type'     => 'select',
+					'default'  => 'no',
+					'desc'     => 'با فعال شدن، فوتر متن «نسخه پیش‌نمایش / داده‌های نمونه» را نشان می‌دهد.',
+					'options'  => array(
+						'no'  => 'خاموش — متن برند',
+						'yes' => 'روشن — متن پیش‌نمایش',
+					),
+					'sanitize' => 'sanitize_key',
 				),
 			),
 		),
@@ -250,8 +261,8 @@ final class TT_Settings {
 
 	public function register_menu() {
 		add_menu_page(
-			__( 'تنظیمات قالب توران‌تجارت', 'torantejarat' ),
-			__( 'توران‌تجارت', 'torantejarat' ),
+			__( 'تنظیمات قالب بلکوکم', 'torantejarat' ),
+			__( 'بلکوکم', 'torantejarat' ),
 			'manage_options',
 			'torantejarat-settings',
 			array( $this, 'render_page' ),
@@ -332,7 +343,7 @@ final class TT_Settings {
 			<div class="tt-header">
 				<h1>
 					<span class="dashicons dashicons-store"></span>
-					<?php esc_html_e( 'تنظیمات قالب توران‌تجارت', 'torantejarat' ); ?>
+					<?php esc_html_e( 'تنظیمات قالب بلکوکم', 'torantejarat' ); ?>
 				</h1>
 			</div>
 			<nav class="tt-tabs" role="tablist" aria-label="<?php esc_attr_e( 'بخش‌های تنظیمات', 'torantejarat' ); ?>">

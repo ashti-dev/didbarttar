@@ -21,7 +21,7 @@ if ( post_password_required() ) {
 			<?php
 			$comment_count = get_comments_number();
 			/* translators: %s: comment count */
-			printf( esc_html( _nx( '%s دیدگاه', '%s دیدگاه', $comment_count, 'comments title', 'torantejarat' ) ), esc_html( number_format_i18n( $comment_count ) ) );
+			printf( esc_html( _nx( '%s دیدگاه', '%s دیدگاه', $comment_count, 'comments title', 'torantejarat' ) ), esc_html( torantejarat_fa_number( $comment_count ) ) );
 			?>
 		</h2>
 		<ol class="torantejarat-comment-list">

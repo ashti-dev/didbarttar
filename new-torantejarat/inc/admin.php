@@ -108,5 +108,5 @@ function torantejarat_store_widget_html() {
 
 function torantejarat_admin_footer() {
 	/* translators: %s: theme version. */
-	return sprintf( __( 'توران‌تجارت — نسخه قالب %s', 'torantejarat' ), esc_html( wp_get_theme( get_template() )->get( 'Version' ) ) );
+	return sprintf( __( 'بلکوکم — نسخه قالب %s', 'torantejarat' ), esc_html( wp_get_theme( get_template() )->get( 'Version' ) ) );
 }
