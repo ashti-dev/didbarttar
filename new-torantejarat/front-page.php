@@ -145,7 +145,7 @@ get_header();
 			<section class="torantejarat-section torantejarat-soft-section"><div class="torantejarat-container">
 				<div class="torantejarat-section-heading">
 					<div>
-						<span class="torantejarat-eyebrow"><?php esc_html_e( 'مجله شلنگ‌بین', 'torantejarat' ); ?></span>
+						<span class="torantejarat-eyebrow"><?php esc_html_e( 'مجله بلکوکم', 'torantejarat' ); ?></span>
 						<h2><?php esc_html_e( 'قبل از خرید، بیشتر بدانید', 'torantejarat' ); ?></h2>
 						<p><?php esc_html_e( 'یادداشت‌های کوتاه برای سؤال‌های مهم.', 'torantejarat' ); ?></p>
 					</div>
@@ -203,10 +203,12 @@ get_header();
 						<summary><?php esc_html_e( 'از کجا بفهمم کدام مدل مناسب من است؟', 'torantejarat' ); ?></summary>
 						<p><?php esc_html_e( 'از راهنمای انتخاب شروع کنید. سپس قطر ورودی، شرایط محیط و محدودیت‌های مسیر را با مشخصات تأییدشده مدل تطبیق دهید.', 'torantejarat' ); ?></p>
 					</details>
-					<details>
-						<summary><?php esc_html_e( 'آیا قیمت‌ها و موجودی سایت قطعی هستند؟', 'torantejarat' ); ?></summary>
-						<p><?php esc_html_e( 'این نسخه، پیش‌نمایش فروشگاه است. قیمت‌ها و مشخصات نمونه‌اند و امکان پرداخت یا ثبت سفارش واقعی فعال نیست.', 'torantejarat' ); ?></p>
-					</details>
+					<?php if ( torantejarat_is_preview() ) : ?>
+						<details>
+							<summary><?php esc_html_e( 'آیا قیمت‌ها و موجودی سایت قطعی هستند؟', 'torantejarat' ); ?></summary>
+							<p><?php esc_html_e( 'این نسخه، پیش‌نمایش فروشگاه است. قیمت‌ها و مشخصات نمونه‌اند و امکان پرداخت یا ثبت سفارش واقعی فعال نیست.', 'torantejarat' ); ?></p>
+						</details>
+					<?php endif; ?>
 					<details>
 						<summary><?php esc_html_e( 'آیا همه دوربین‌ها برای محیط مرطوب مناسب‌اند؟', 'torantejarat' ); ?></summary>
 						<p><?php esc_html_e( 'محدوده مقاومت هر بخش دستگاه باید از دفترچه همان مدل بررسی شود. مشخصات هد لزوماً درباره نمایشگر یا اتصال‌ها صدق نمی‌کند.', 'torantejarat' ); ?></p>

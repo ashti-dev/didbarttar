@@ -468,7 +468,10 @@ function torantejarat_product_purchase_start() {
 	echo ' <span>' . esc_html( $version ) . '</span></strong></div>';
 }
 function torantejarat_product_purchase_end() {
-	echo '<p class="torantejarat-pdp-demo-note">' . esc_html__( 'این نسخه پیش‌نمایش است؛ قیمت و مشخصات نمونه‌اند و پرداخت فعال نیست.', 'torantejarat' ) . '</p></div>';
+	if ( torantejarat_is_preview() ) {
+		echo '<p class="torantejarat-pdp-demo-note">' . esc_html__( 'این نسخه پیش‌نمایش است؛ قیمت و مشخصات نمونه‌اند و پرداخت فعال نیست.', 'torantejarat' ) . '</p>';
+	}
+	echo '</div>';
 }
 
 /**
@@ -785,7 +788,11 @@ function torantejarat_product_faq() {
 			<?php else : ?>
 				<details><summary><?php esc_html_e( 'آیا این دستگاه برای کاربرد من مناسب است؟', 'torantejarat' ); ?></summary><p><?php esc_html_e( 'قطر ورودی، طول مسیر و شرایط محیط را با مشخصات تأییدشده مدل تطبیق دهید. راهنمای انتخاب فقط پیشنهاد اولیه ارائه می‌کند.', 'torantejarat' ); ?></p></details>
 				<details><summary><?php esc_html_e( 'چه اقلامی همراه دستگاه ارسال می‌شود؟', 'torantejarat' ); ?></summary><p><?php esc_html_e( 'اقلام همراه این نسخه هنوز تأیید نشده‌اند. پیش از سفارش، فهرست دقیق جعبه را از فروشنده بخواهید؛ وجود وسیله در عکس به‌تنهایی تأیید اقلام همراه نیست.', 'torantejarat' ); ?></p></details>
-				<details><summary><?php esc_html_e( 'شرایط ضمانت و ارسال چگونه است؟', 'torantejarat' ); ?></summary><p><?php esc_html_e( 'شرایط واقعی ضمانت، موجودی و ارسال هنوز به پیش‌نمایش اضافه نشده است. این موارد باید پیش از خرید مشخص شوند.', 'torantejarat' ); ?></p></details>
+				<?php if ( torantejarat_is_preview() ) : ?>
+					<details><summary><?php esc_html_e( 'شرایط ضمانت و ارسال چگونه است؟', 'torantejarat' ); ?></summary><p><?php esc_html_e( 'شرایط واقعی ضمانت، موجودی و ارسال هنوز به پیش‌نمایش اضافه نشده است. این موارد باید پیش از خرید مشخص شوند.', 'torantejarat' ); ?></p></details>
+				<?php else : ?>
+					<details><summary><?php esc_html_e( 'شرایط ضمانت و ارسال چگونه است؟', 'torantejarat' ); ?></summary><p><?php esc_html_e( 'شرایط ضمانت و نحوه ارسال را پیش از خرید از پشتیبانی بپرسید تا با مدل انتخابی و شهر شما تطبیق داده شود.', 'torantejarat' ); ?></p></details>
+				<?php endif; ?>
 			<?php endif; ?>
 		</div>
 	</section></div>

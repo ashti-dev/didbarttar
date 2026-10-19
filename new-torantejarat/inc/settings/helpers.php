@@ -37,3 +37,17 @@ function torantejarat_option( $tab, $key, $default = '' ) {
 function torantejarat_has_social( $network ) {
 	return (bool) torantejarat_option( 'social', $network );
 }
+
+/**
+ * Whether "preview mode" is on (general tab → preview_note).
+ *
+ * Single source of truth for every sample/preview notice: the homepage FAQ,
+ * the product page purchase note, the product FAQ and the footer note.
+ * Off by default, so a live store never publishes preview claims by accident.
+ *
+ * @return bool
+ */
+function torantejarat_is_preview() {
+	return ( 'yes' === torantejarat_option( 'general', 'preview_note', 'no' ) );
+}
+
