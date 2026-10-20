@@ -1,0 +1,24 @@
+# Build / export artifacts — never commit.
+*.zip
+
+# Personal reference uploads (screenshots, client assets).
+/تصاویر/
+
+# Loose product photos at repo root (upload via Media Library instead).
+/*.webp
+/*.png
+/*.jpg
+/*.jpeg
+
+# Personal snippet library (third-party code, not part of the theme).
+/code for web/
+
+# Host access notes / credentials — never commit.
+/pass/
+
+# Reference dumps and scratch exports — never commit.
+/AXFilePro 3.0.4.html
+/AXFilePro 3.0.4_files/
+/coming-soon.html
+/_removed-files/
+/*.svg

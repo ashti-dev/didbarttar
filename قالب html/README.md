@@ -1,6 +1,29 @@
-# شلنگ‌بین — قالب تخصصی تجهیزات بازرسی
+# توران تجارت — پروژه WordPress / WooCommerce
 
-نسخه بازطراحی‌شده با رابط فارسی و راست‌به‌چپ، هدر زغالی، بدنه روشن، رنگ تأکیدی نارنجی و چیدمان واکنش‌گرا. این پروژه یک پیش‌نمایش استاتیک است؛ پرداخت و ثبت سفارش واقعی ندارد.
+**Phase 6 — FROZEN:** `Core Migration: IMPLEMENTATION COMPLETE` / `Runtime QA: BLOCKED / NOT AVAILABLE`. NOT DONE / NOT READY FOR PRODUCTION. No further source-level iterations or cleanup; only evidence-backed defects may change the frozen code. Next phase: real-runtime QA. [Exit Record, prerequisites and Git baseline](wp-theme-agent-kit/PHASE-6-MIGRATION-REPORT.md).
+
+
+برند نهایی: **توران تجارت**؛ نام حقوقی: **دید برتر توران تجارت**؛ شناسه ملی: `14011384991`. هویت فنی نهایی Theme برابر `torantejarat` است؛ namespace برابر `ToranTejarat\Theme` و سایر نام‌های مصوب در [Final Decision Sheet](wp-theme-agent-kit/FINAL-DECISION-SHEET.md) ثبت‌اند.
+
+**ND-R01 = OWNER APPROVED**؛ **ND-R02 = OWNER APPROVED**؛ Database Support = MySQL، بدون MariaDB. **Phase 6 core migration = IMPLEMENTATION COMPLETE — RUNTIME QA BLOCKED** با مجوز مستقیم Owner: migration واقعی HTML به Classic Theme/WooCommerce در `theme/torantejarat/`. کار مستقل دیگری در migration هسته شناسایی نشد؛ این وضعیت DONE نیست. QA واقعی و قراردادهای باز پیش از release لازم‌اند. [مرز پیاده‌سازی](theme/torantejarat/README.md) و [Acceptance جاری](wp-theme-agent-kit/ACCEPTANCE.md) را ببینید. نسخه‌ها/مرورگرها PROPOSED و Compatibility Tested = No باقی‌اند. [گزارش Phase 6](wp-theme-agent-kit/PHASE-6-MIGRATION-REPORT.md)، [نقشه](wp-theme-agent-kit/PHASE-6-MIGRATION-MAP.md) و [QA](tests/README.md). دستورهای پیش‌نمایش زیر فقط HTML مرجع را اجرا می‌کنند، نه Theme PHP.
+
+**تاریخچه:** «شلنگ‌بین» نام قبلی Project/Concept و `didbarttar` شناسه موقت repository/project بود، نه هویت فعلی برند/Theme؛ `shalangbin` انتخاب نشده است. HTML/CSS/JS فعلی آثار پیش‌نمایش قبلی‌اند و در این مرحله rename یا rebrand اجرایی نشده‌اند.
+
+## Project Metadata
+
+### Project Identity / Credits
+
+`EXTRACTED — OWNER_CONFIRMED / Accepted`
+
+**Author:** یعقوب طیبی
+
+**Designer:** یعقوب طیبی
+
+**Website:** [https://yaghoubtayebi.ir/](https://yaghoubtayebi.ir/)
+
+این اطلاعات رسمی پروژه است و باید با همین نام، عنوان و Website در مستندات نهایی پروژه حفظ شود.
+
+نسخه بازطراحی‌شده با رابط فارسی و راست‌به‌چپ، هدر زغالی، بدنه روشن، رنگ تأکیدی نارنجی و چیدمان واکنش‌گرا. HTML ریشه repository پیش‌نمایش استاتیک تاریخی است و سفارش واقعی ندارد؛ Theme جداگانه به APIهای واقعی WP/Woo متصل می‌شود، اما runtime و پرداخت آن هنوز آزموده نشده‌اند.
 
 ## اجرا
 

@@ -1,0 +1,206 @@
+/* =============================================================
+   Product Slider — بلکوکم
+   RTL-first | No dependencies | WordPress ready
+   Based on: Yaghoub Tayebi / KhanWP slider kit
+   ============================================================= */
+
+/* ---------- Theme token mapping (light theme) ---------- */
+.torantejarat-product-slider-section {
+  --border: #e2e7e2;
+  --card-bg: #ffffff;
+  --text: #172325;
+  --muted: #657271;
+  --accent: #f77b3e;
+}
+
+/* ---------- Wrapper ---------- */
+.product-slider-section {
+  position: relative;
+}
+
+.product-slider-wrap {
+  position: relative;
+  /* visible تا دکمه‌های ناوبری که نصف بیرون هستن بریده نشن */
+  overflow: visible;
+  /* فاصله برای نشانگرها */
+  padding-bottom: 48px;
+}
+
+/* لایه کلیپ اسلایدها — جدا از دکمه‌ها */
+.product-slider-viewport {
+  overflow: hidden;
+}
+
+/* ---------- Track (کانتینر اسلایدها) ---------- */
+.product-slider-track {
+  display: flex;
+  /* RTL: اسلایدر از راست به چپ حرکت می‌کند */
+  flex-direction: row;
+  gap: 0;
+  transition: transform 0.42s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform;
+  /* غیرفعال کردن text-select هنگام drag */
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: grab;
+}
+
+.product-slider-track.is-dragging {
+  cursor: grabbing;
+  transition: none;
+}
+
+/* ---------- Slide ---------- */
+.product-slide {
+  /* عرض هر اسلاید توسط JS از طریق CSS variable تنظیم می‌شه */
+  flex: 0 0 var(--slide-width, 33.333%);
+  width: var(--slide-width, 33.333%);
+  padding: 0 10px;
+  box-sizing: border-box;
+}
+
+/* ---------- کارت محصول تم درون اسلاید ---------- */
+.product-slide .torantejarat-product-card {
+  /* مطمئن می‌شیم کارت پر عرض باشه */
+  width: 100%;
+  height: 100%;
+}
+
+/* ---------- دکمه‌های ناوبری (فِلش) ---------- */
+.slider-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(calc(-50% - 24px)); /* جبران padding-bottom */
+  /* بالاتر از اسلایدها ولی پایین‌تر از هدر چسبان (z-index:30) تا موقع اسکرول از هدر بیرون نزند */
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--border, #e2e7e2);
+  background: var(--card-bg, #ffffff);
+  color: var(--text, #172325);
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    opacity 0.2s ease,
+    transform 0.2s ease;
+}
+
+.slider-nav:hover:not(:disabled) {
+  background: var(--accent, #f77b3e);
+  border-color: var(--accent, #f77b3e);
+  color: #fff;
+}
+
+.slider-nav:active:not(:disabled) {
+  transform: translateY(calc(-50% - 24px)) scale(0.92);
+}
+
+.slider-nav:disabled {
+  opacity: 0.28;
+  cursor: not-allowed;
+}
+
+/* RTL: راست = بعدی، چپ = قبلی */
+.slider-nav-prev {
+  /* در RTL، دکمه «قبلی» سمت چپ است */
+  left: -22px;
+}
+
+.slider-nav-next {
+  /* در RTL، دکمه «بعدی» سمت راست است */
+  right: -22px;
+}
+
+/* روی موبایل دکمه‌ها درون محدوده بمانند */
+@media (max-width: 768px) {
+  .slider-nav-prev { left: 4px; }
+  .slider-nav-next { right: 4px; }
+}
+
+/* ---------- نقاط (Dots) ---------- */
+.slider-dots {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+}
+
+.slider-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  border: none;
+  background: var(--border, #e2e7e2);
+  cursor: pointer;
+  padding: 0;
+  transition:
+    background 0.25s ease,
+    width 0.25s ease,
+    border-radius 0.25s ease;
+  flex-shrink: 0;
+}
+
+.slider-dot.is-active {
+  background: var(--accent, #f77b3e);
+  width: 22px;
+  border-radius: 3px;
+}
+
+.slider-dot:hover:not(.is-active) {
+  background: var(--muted, #657271);
+}
+
+/* ---------- شماره اسلاید (اختیاری) ---------- */
+.slider-counter {
+  position: absolute;
+  bottom: 8px;
+  /* در RTL سمت چپ قرار می‌گیرد */
+  left: 0;
+  font-size: 0.75rem;
+  color: var(--muted, #657271);
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+  display: none; /* پیش‌فرض مخفی — اگر خواستی display:block کن */
+}
+
+/* ---------- حالت بدون JS (Fallback) ---------- */
+.no-js .product-slider-wrap {
+  overflow: visible;
+  padding-bottom: 0;
+}
+
+.no-js .product-slider-track {
+  flex-wrap: wrap;
+}
+
+.no-js .product-slide {
+  flex: 0 0 25%;
+  width: 25%;
+}
+
+.no-js .slider-nav,
+.no-js .slider-dots {
+  display: none;
+}
+
+/* ---------- انیمیشن fade برای لود اولیه ---------- */
+.product-slider-wrap:not(.slider-ready) .product-slider-track {
+  opacity: 0;
+}
+
+.product-slider-wrap.slider-ready .product-slider-track {
+  opacity: 1;
+  transition:
+    transform 0.42s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.3s ease;
+}

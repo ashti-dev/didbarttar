@@ -1,0 +1,11 @@
+(function(root){
+  const products = [
+    {id:'pro',slug:'product.html',name:'ویدئوبورسکوپ صنعتی ۵ اینچ',en:'INDUSTRIAL VIDEOSCOPE',image:'device-pro.webp',price:8900000,length:10,diameter:8,resolution:'1080p',waterproof:'IP68',recording:true,categories:['industrial','auto'],tag:'بازرسی صنعتی',description:'برای بررسی فضاهای دور از دسترس و مشاهده تصویر روی نمایشگر مستقل.',limitation:'قابلیت چرخش هد و مقاومت دمایی در اطلاعات فعلی تأیید نشده است.'},
+    {id:'g52',slug:'product-g52.html',name:'دوربین آندوسکوپی دستی G52',en:'HANDHELD INSPECTION CAMERA',image:'device-orange.webp',price:6400000,length:5,diameter:8,resolution:'1080p',waterproof:'IP68',recording:true,categories:['auto','general'],tag:'بازرسی خودرو',description:'یک گزینه دستی برای بررسی مسیرهای کوتاه و فضاهای محدود.',limitation:'سازگاری با محیط موتور گرم، روغن و مواد شیمیایی نیازمند تأیید سازنده است.'},
+    {id:'case',slug:'product-case.html',name:'دوربین بازرسی کابلی کیف‌دار',en:'PIPE INSPECTION SYSTEM',image:'device-case.webp',price:12600000,length:20,diameter:8,resolution:'1080p',waterproof:'IP68',recording:true,categories:['pipe','industrial'],tag:'بازرسی لوله',description:'مجموعه کیف‌دار برای بررسی مسیرهای طولانی‌تر و جابه‌جایی تجهیزات.',limitation:'حداقل قطر لوله، شعاع خمش و قابلیت عبور از زانو باید پیش از انتخاب بررسی شود.'},
+    {id:'head',slug:'product-head.html',name:'هد دوربین ضدآب LED',en:'INSPECTION CAMERA ACCESSORY',image:'lens-heads.webp',price:1250000,length:3,diameter:8,resolution:'1080p',waterproof:'IP68',recording:false,categories:['accessory'],tag:'قطعه و لوازم جانبی',description:'هد و کابل دوربین برای بررسی سازگاری با دستگاه موجود شما.',limitation:'این محصول دستگاه کامل نیست؛ نوع اتصال و سازگاری نمایشگر باید تأیید شود.'}
+  ];
+  const categories=[{id:'pipe',label:'لوله و تأسیسات',sub:'مسیرهای طولانی و نقاط پنهان',icon:'pipe'},{id:'auto',label:'خودرو و مکانیک',sub:'بررسی داخل قطعات و موتور',icon:'car'},{id:'industrial',label:'بازرسی صنعتی',sub:'تجهیزات و فضاهای دشوار',icon:'factory'},{id:'general',label:'کاربری عمومی',sub:'بازرسی‌های روزمره و مسیر کوتاه',icon:'scan'}];
+  const data={products,categories};
+  if(typeof module!=='undefined'&&module.exports)module.exports=data;else root.ShalangCatalog=data;
+})(typeof window!=='undefined'?window:globalThis);

@@ -1,0 +1,231 @@
+/* =============================================================
+   Hero Visual Slider — بلکوکم
+   Override روی .torantejarat-hero-visual موجود در theme.css
+   RTL-first | No dependencies | WordPress ready
+   Based on: Yaghoub Tayebi / KhanWP slider kit
+   ============================================================= */
+
+/* ── توکن‌های تم (روشن) برای متغیرهای اسلایدر ── */
+.torantejarat-hero-visual {
+  --accent: #f77b3e;
+}
+
+/* ── ۱. تبدیل hero-visual به ظرف اسلایدر ── */
+.torantejarat-hero-visual {
+  position: relative;
+  overflow: hidden; /* clip اسلایدها */
+}
+
+/* ── ۲. Track ── */
+.hero-slider-track {
+  display: flex;
+  flex-direction: row;
+  /* RTL: اسلاید اول سمت راست است */
+  /* حرکت آروم و لوکس */
+  transition: transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+  height: 100%;
+}
+
+.hero-slider-track.is-animating {
+  /* در حین انیمیشن pointer-events غیر فعال */
+  pointer-events: none;
+}
+
+/* ── ۳. هر اسلاید ── */
+.hero-slide {
+  flex: 0 0 100%;
+  width: 100%;
+  position: relative;
+  /* نسبت ثابت ۴ به ۳ — دسکتاپ و موبایل یکسان، همیشه فیت */
+  aspect-ratio: 4 / 3;
+  display: flex;
+  align-items: stretch;
+  /* گوشه‌های گرد + کلیپ محتوا */
+  border-radius: 24px;
+  overflow: hidden;
+}
+
+.hero-slide > a {
+  display: block;
+  width: 100%;
+}
+
+/* ── ۴. تصویر درون اسلاید (جایگزین .torantejarat-hero-device ثابت) ── */
+.hero-slide .torantejarat-hero-device {
+  width: 100%;
+  /* پر کردن کامل اسلاید — بدون نوار خالی، بدون کوچکی */
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+  border-radius: 24px;
+  /* انیمیشن ظریف scale هنگام ورود */
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity  0.5s ease;
+}
+
+.hero-slide:not(.is-active) .torantejarat-hero-device {
+  transform: scale(0.96);
+  opacity: 0.4;
+}
+
+.hero-slide.is-active .torantejarat-hero-device {
+  /* زوم آروم Ken Burns در طول نمایش اسلاید */
+  transform: scale(1.06);
+  opacity: 1;
+  transition: transform 6.5s ease,
+              opacity 0.5s ease;
+}
+
+/* ── ۶. شماره‌گذاری زنده در visual-label ── */
+/* .torantejarat-visual-label همان المان اصلی تم است — JS شماره را آپدیت می‌کند */
+.torantejarat-visual-label {
+  transition: opacity 0.3s ease;
+}
+
+/* ── ۷. نقاط ناوبری ── */
+.hero-slider-dots {
+  position: absolute;
+  /* سمت چپ، عمودی وسط */
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 10;
+}
+
+.hero-dot {
+  width: 4px;
+  height: 20px;
+  border-radius: 2px;
+  border: none;
+  background: rgba(255, 255, 255, 0.35);
+  cursor: pointer;
+  padding: 0;
+  transition: background 0.3s ease,
+              height    0.3s ease;
+}
+
+.hero-dot.is-active {
+  background: var(--accent, #f77b3e);
+  height: 36px;
+}
+
+.hero-dot:hover:not(.is-active) {
+  background: rgba(255, 255, 255, 0.6);
+}
+
+/* ── ۸. دکمه‌های قبلی / بعدی ── */
+/* پایین‌تر از ردیف شماره (visual-label) قرار می‌گیرند تا روی شمارنده نیفتند */
+.hero-slider-nav {
+  position: absolute;
+  bottom: 64px;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(20, 23, 26, 0.65);
+  color: rgba(255, 255, 255, 0.75);
+  cursor: pointer;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  transition: background 0.2s ease,
+              border-color 0.2s ease,
+              color 0.2s ease,
+              opacity 0.2s ease;
+}
+
+.hero-slider-nav:hover {
+  background: var(--accent, #f77b3e);
+  border-color: var(--accent, #f77b3e);
+  color: #fff;
+}
+
+.hero-slider-nav:disabled {
+  opacity: 0.25;
+  cursor: not-allowed;
+}
+
+/* RTL: چپ = بعدی، راست = قبلی */
+.hero-slider-nav-prev {
+  right: 60px; /* در RTL سمت راست = قبلی */
+}
+
+.hero-slider-nav-next {
+  right: 16px;
+}
+
+/* ── ۹. Progress bar اتوپلی ── */
+.hero-progress {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  left: 0;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.08);
+  z-index: 10;
+  overflow: hidden;
+}
+
+.hero-progress-bar {
+  height: 100%;
+  background: var(--accent, #f77b3e);
+  width: 0%;
+  transform-origin: right center; /* RTL */
+  transition: width linear; /* duration توسط JS تنظیم می‌شود */
+}
+
+/* ── ۱۰. Fade-in هنگام init ── */
+.torantejarat-hero-visual:not(.slider-ready) .hero-slider-track {
+  opacity: 0;
+}
+
+.torantejarat-hero-visual.slider-ready .hero-slider-track {
+  opacity: 1;
+  transition: transform 0.9s cubic-bezier(0.22, 1, 0.36, 1),
+              opacity  0.35s ease;
+}
+
+/* ── ۱۱. Responsive ── */
+@media (max-width: 768px) {
+  .hero-slider-dots {
+    /* در موبایل نقاط به پایین می‌رود */
+    left: 50%;
+    top: auto;
+    bottom: 48px;
+    transform: translateX(-50%);
+    flex-direction: row;
+    gap: 6px;
+  }
+
+  .hero-dot {
+    width: 20px;
+    height: 4px;
+    border-radius: 2px;
+  }
+
+  .hero-dot.is-active {
+    width: 36px;
+    height: 4px;
+  }
+
+  .hero-slider-nav {
+    /* در موبایل دکمه‌های ناوبری کوچک‌تر */
+    width: 32px;
+    height: 32px;
+    bottom: 48px;
+  }
+
+  .hero-slider-nav-prev { right: 56px; }
+  .hero-slider-nav-next { right: 14px; }
+}
+
+/* ── ۱۲. نسبت تصویر ثابت، نیازی به ارتفاع دستی در هر breakpoint نیست ── */
+/* ابعاد دقیق عکس آپلودی بعداً از تنظیمات قالب (Customizer) خوانده می‌شود. */
