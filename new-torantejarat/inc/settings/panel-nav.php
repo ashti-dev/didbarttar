@@ -276,5 +276,23 @@ function torantejarat_panel_readiness() {
 		$items[] = array( 'label' => 'ایمیل فرستندهٔ ووکامرس روی مقدار نمونه است', 'section' => 'general', 'sub' => '' );
 	}
 
+	// Local/dev URLs and demo social profiles — display only, never rewritten here.
+	$general     = get_option( 'torantejarat_general', array() );
+	$general     = is_array( $general ) ? $general : array();
+	$topbar_link = isset( $general['topbar_link'] ) ? (string) $general['topbar_link'] : '';
+	if ( '' !== $topbar_link && ( false !== strpos( $topbar_link, '127.0.0.1' ) || false !== strpos( $topbar_link, 'localhost' ) ) ) {
+		$items[] = array( 'label' => 'لینک نوار بالای سایت روی آدرس محلی است', 'section' => 'general', 'sub' => '' );
+	}
+
+	$social = get_option( 'torantejarat_social', array() );
+	$social = is_array( $social ) ? $social : array();
+	foreach ( array( 'instagram', 'telegram', 'aparat', 'youtube' ) as $network ) {
+		$url = isset( $social[ $network ] ) ? (string) $social[ $network ] : '';
+		if ( '' !== $url && ( false !== strpos( $url, 'demo' ) || false !== strpos( $url, 'example.' ) ) ) {
+			$items[] = array( 'label' => 'شبکه‌های اجتماعی نمایشی مانده‌اند', 'section' => 'social', 'sub' => '' );
+			break;
+		}
+	}
+
 	return $items;
 }
