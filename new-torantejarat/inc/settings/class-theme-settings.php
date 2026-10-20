@@ -392,6 +392,26 @@ final class TT_Settings {
 				),
 			),
 		),
+		'footer'  => array(
+			'label'  => 'فوتر',
+			'icon'   => 'dashicons-info-outline',
+			'fields' => array(
+				'copyright_text' => array(
+					'label'    => 'متن کپیرایت',
+					'type'     => 'textarea',
+					'default'  => '',
+					'desc'     => 'خالی = نام سایت و توضیح پیش‌فرض نمایش داده می‌شود.',
+					'sanitize' => 'sanitize_textarea_field',
+				),
+				'bar_text'       => array(
+					'label'    => 'متن نوار پاسخ‌گویی',
+					'type'     => 'text',
+					'default'  => 'طراحی برای انتخاب آگاهانه',
+					'desc'     => '',
+					'sanitize' => 'sanitize_text_field',
+				),
+			),
+		),
 		'login'    => array(
 			'label'  => 'صفحه ورود',
 			'icon'   => 'dashicons-lock',

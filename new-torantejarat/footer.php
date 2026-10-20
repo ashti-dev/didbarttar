@@ -28,8 +28,15 @@ if ( ! defined( 'ABSPATH' ) ) {
 			<?php endforeach; ?>
 		</div>
 		<div class="torantejarat-footer-bottom">
-			<span><?php echo esc_html( get_bloginfo( 'name' ) ); ?> — <?php echo esc_html( get_bloginfo( 'description' ) ); ?></span>
-			<span><?php esc_html_e( 'طراحی برای انتخاب آگاهانه', 'torantejarat' ); ?></span>
+			<?php
+			$torantejarat_copyright = torantejarat_option( 'footer', 'copyright_text' );
+			if ( '' !== $torantejarat_copyright ) {
+				echo '<span>' . esc_html( $torantejarat_copyright ) . '</span>';
+			} else {
+				echo '<span>' . esc_html( get_bloginfo( 'name' ) ) . ' — ' . esc_html( get_bloginfo( 'description' ) ) . '</span>';
+			}
+			?>
+			<span><?php echo esc_html( torantejarat_option( 'footer', 'bar_text', __( 'طراحی برای انتخاب آگاهانه', 'torantejarat' ) ) ); ?></span>
 		</div>
 	</div>
 </footer>
