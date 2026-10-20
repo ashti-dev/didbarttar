@@ -51,6 +51,36 @@
 		} );
 	}
 
+	/**
+	 * Apply the row cap of a repeater (data-tt-max): the add button is disabled
+	 * and the guidance line switches to the "limit reached" text once full. A
+	 * repeater without a cap (max = 0) behaves exactly as before.
+	 *
+	 * @param {HTMLElement} wrap Repeater wrapper.
+	 */
+	function updateLimit( wrap ) {
+		var limit = parseInt( wrap.getAttribute( 'data-tt-max' ), 10 ) || 0;
+		if ( limit < 1 ) {
+			return;
+		}
+		var body = wrap.querySelector( 'tbody' );
+		var add  = wrap.querySelector( '[data-tt-repeater-add]' );
+		var note = wrap.querySelector( '[data-tt-repeater-note]' );
+		var full = body ? body.children.length >= limit : false;
+
+		if ( add ) {
+			add.disabled = full;
+			add.setAttribute( 'aria-disabled', full ? 'true' : 'false' );
+		}
+		if ( note ) {
+			var text = full ? note.getAttribute( 'data-tt-text-limit' ) : note.getAttribute( 'data-tt-text-guide' );
+			if ( text ) {
+				note.textContent = text;
+			}
+			note.classList.toggle( 'is-limit', full );
+		}
+	}
+
 	document.querySelectorAll( '[data-tt-repeater]' ).forEach( function ( wrap ) {
 		var body = wrap.querySelector( 'tbody' );
 		var add  = wrap.querySelector( '[data-tt-repeater-add]' );
@@ -58,10 +88,16 @@
 
 		if ( add && body && last ) {
 			add.addEventListener( 'click', function () {
+				var limit = parseInt( wrap.getAttribute( 'data-tt-max' ), 10 ) || 0;
+				if ( limit > 0 && body.children.length >= limit ) {
+					updateLimit( wrap );
+					return;
+				}
 				var row = last.cloneNode( true );
 				clearRow( row );
 				body.appendChild( row );
 				renumber( wrap );
+				updateLimit( wrap );
 				var first = row.querySelector( 'input, textarea, select' );
 				if ( first ) {
 					first.focus();
@@ -86,6 +122,9 @@
 				clearRow( row );
 			}
 			renumber( wrap );
+			updateLimit( wrap );
 		} );
+
+		updateLimit( wrap );
 	} );
 }() );

@@ -240,6 +240,136 @@ function torantejarat_card_price( $product ) {
 }
 
 /**
+ * Home page copy — the single source of truth for the "home" settings tab.
+ *
+ * CONTRACT (Phase 3.2): every key below is a field of the `home` tab in
+ * inc/settings/class-theme-settings.php, and every consumer reads it through
+ * torantejarat_home(). Each default is the exact text that was hardcoded in
+ * front-page.php before the panel existed, so an empty (never saved) option
+ * reproduces the previous markup byte for byte — that equality is asserted by
+ * the acceptance test (MD5 of "/" with every field empty).
+ *
+ * Keys deliberately NOT here (data-driven, not copy): hero slides (built from
+ * products by SKU), category grid, deals/products/finder/bestsellers/latest
+ * partials, and the blog cards.
+ *
+ * @return array<string,string> Field key => default text.
+ */
+function torantejarat_home_defaults() {
+	return array(
+		'hero_kicker'        => __( 'نگاه دقیق‌تر. انتخاب مطمئن‌تر.', 'torantejarat' ),
+		'hero_title_1'       => __( 'قبل از باز کردن،', 'torantejarat' ),
+		'hero_title_2'       => __( 'داخلش را ببین.', 'torantejarat' ),
+		'hero_lead'          => __( 'برای هر مسیر پنهان، ابزار مناسبی وجود دارد. دوربین بازرسی را بر اساس کارتان انتخاب کنید؛ با مشخصات روشن و مقایسه‌ای ساده.', 'torantejarat' ),
+		'hero_cta_primary'   => __( 'پیدا کردن دوربین مناسب', 'torantejarat' ),
+		'hero_cta_secondary' => __( 'راهنمای انتخاب', 'torantejarat' ),
+		'hero_foot_1'        => __( 'مقایسه فنی دستگاه‌ها', 'torantejarat' ),
+		'hero_foot_2'        => __( 'مسیر مشاوره تخصصی', 'torantejarat' ),
+		'benefit_1'          => __( 'انتخاب بر اساس کاربرد', 'torantejarat' ),
+		'benefit_2'          => __( 'مشخصات قابل مقایسه', 'torantejarat' ),
+		'benefit_3'          => __( 'مسیر تعمیر و نگهداری', 'torantejarat' ),
+		'benefit_4'          => __( 'راهنمای استفاده و انتخاب', 'torantejarat' ),
+		'cat_eyebrow'        => __( 'از کارتان شروع کنید', 'torantejarat' ),
+		'cat_title'          => __( 'کجا را می‌خواهید ببینید؟', 'torantejarat' ),
+		'cat_text'           => __( 'مسیر انتخاب دستگاه مناسب، از شناخت کاربرد شروع می‌شود.', 'torantejarat' ),
+		'field_eyebrow'      => __( 'پیش از تصمیم، دقیق‌تر ببینید', 'torantejarat' ),
+		'field_title'        => __( 'فقط تصویر دستگاه کافی نیست؛ خروجی آن را هم ببینید.', 'torantejarat' ),
+		'field_text'         => __( 'برای ارزیابی هر مدل، نمونه تصویر همان دستگاه در شرایط مشابه کارتان را درخواست کنید.', 'torantejarat' ),
+		'field_check_1'      => __( 'وضوح جزئیات در فاصله کاری', 'torantejarat' ),
+		'field_check_2'      => __( 'نور و میدان دید در محیط مورد نظر', 'torantejarat' ),
+		'field_check_3'      => __( 'مشخص بودن مدل و شرایط تصویربرداری', 'torantejarat' ),
+		'field_link_label'   => __( 'آماده‌سازی درخواست نمونه تصویر', 'torantejarat' ),
+		'video_label_1'      => 'INSIDE THE FIELD',
+		'video_label_2'      => 'DEMO / 01',
+		'video_aria'         => __( 'ویدیوی نمایشی بازرسی مسیر', 'torantejarat' ),
+		'video_caption'      => __( 'ویدیوی نمایشی قالب؛ خروجی تأییدشده هیچ‌یک از مدل‌های فروشگاه نیست.', 'torantejarat' ),
+		'blog_eyebrow'       => __( 'مجله بلکوکم', 'torantejarat' ),
+		'blog_title'         => __( 'قبل از خرید، بیشتر بدانید', 'torantejarat' ),
+		'blog_text'          => __( 'یادداشت‌های کوتاه برای سؤال‌های مهم.', 'torantejarat' ),
+		'blog_link'          => __( 'همه راهنماها', 'torantejarat' ),
+		'faq_eyebrow'        => __( 'پرسش‌های متداول', 'torantejarat' ),
+		'faq_title'          => __( 'از همین‌جا ابهام‌ها را برطرف کنید.', 'torantejarat' ),
+		'faq_link'           => __( 'پرسش دیگری دارید؟', 'torantejarat' ),
+	);
+}
+
+/**
+ * Read one home page string. Empty option = built-in default, so clearing a
+ * field in the panel restores the text the theme shipped with.
+ *
+ * @param string $key Key from torantejarat_home_defaults().
+ * @return string
+ */
+function torantejarat_home( $key ) {
+	$defaults = torantejarat_home_defaults();
+	return torantejarat_option( 'home', $key, isset( $defaults[ $key ] ) ? $defaults[ $key ] : '' );
+}
+
+/**
+ * Built-in home FAQ items — the fallback used when the repeater is empty.
+ *
+ * The fourth item on the home page is a preview-only notice gated by
+ * torantejarat_is_preview(); it is intentionally NOT part of this list.
+ *
+ * @return array<int,array<string,string>>
+ */
+function torantejarat_home_faq_defaults() {
+	return array(
+		array(
+			'q' => __( 'از کجا بفهمم کدام مدل مناسب من است؟', 'torantejarat' ),
+			'a' => __( 'از راهنمای انتخاب شروع کنید. سپس قطر ورودی، شرایط محیط و محدودیت‌های مسیر را با مشخصات تأییدشده مدل تطبیق دهید.', 'torantejarat' ),
+		),
+		array(
+			'q' => __( 'آیا همه دوربین‌ها برای محیط مرطوب مناسب‌اند؟', 'torantejarat' ),
+			'a' => __( 'محدوده مقاومت هر بخش دستگاه باید از دفترچه همان مدل بررسی شود. مشخصات هد لزوماً درباره نمایشگر یا اتصال‌ها صدق نمی‌کند.', 'torantejarat' ),
+		),
+		array(
+			'q' => __( 'برای مشاوره چه اطلاعاتی آماده کنم؟', 'torantejarat' ),
+			'a' => __( 'کاربرد، قطر ورودی، طول مسیر، شرایط محیط و بودجه تقریبی. عکس محل بازرسی هم می‌تواند به بررسی بهتر کمک کند.', 'torantejarat' ),
+		),
+	);
+}
+
+/**
+ * Home FAQ rows exactly as saved in the repeater (empty when never saved).
+ *
+ * @return array<int,array<string,string>>
+ */
+function torantejarat_home_faq_rows() {
+	$rows = torantejarat_option( 'home', 'faq', array() );
+	return ( is_array( $rows ) && $rows ) ? array_values( $rows ) : array();
+}
+
+/**
+ * One half of one FAQ slot, with a positional fallback to the built-in text.
+ *
+ * The three built-in slots are bound to their position, so clearing a field
+ * restores the default for that slot instead of leaving an empty <details>.
+ *
+ * @param int    $index Slot index (0-based).
+ * @param string $part  "q" or "a".
+ * @return string
+ */
+function torantejarat_home_faq_slot( $index, $part ) {
+	$defaults = torantejarat_home_faq_defaults();
+	$rows     = torantejarat_home_faq_rows();
+	$value    = isset( $rows[ $index ][ $part ] ) ? (string) $rows[ $index ][ $part ] : '';
+	if ( '' !== trim( $value ) ) {
+		return $value;
+	}
+	return isset( $defaults[ $index ][ $part ] ) ? $defaults[ $index ][ $part ] : '';
+}
+
+/**
+ * Extra FAQ rows past the three built-in slots.
+ *
+ * @return array<int,array<string,string>>
+ */
+function torantejarat_home_faq_extra() {
+	return array_slice( torantejarat_home_faq_rows(), count( torantejarat_home_faq_defaults() ) );
+}
+
+/**
  * Home service cards — exact index.html copy (rent / repairs / academy).
  *
  * BLOCK CONTRACT: when these cards become Gutenberg blocks, the dynamic

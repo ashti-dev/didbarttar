@@ -55,6 +55,255 @@ final class TT_Settings {
 				),
 			),
 		),
+		'home'    => array(
+			'label'  => 'صفحه اصلی',
+			'icon'   => 'dashicons-admin-appearance',
+			'fields' => array(
+				'hero_kicker'        => array(
+					'label'    => 'کیکر بالای تیتر',
+					'type'     => 'text',
+					'default'  => 'نگاه دقیق‌تر. انتخاب مطمئن‌تر.',
+					'desc'     => 'خالی = متن پیش‌فرض قالب.',
+					'sanitize' => 'sanitize_text_field',
+				),
+				'hero_title_1'       => array(
+					'label'    => 'تیتر، خط اول',
+					'type'     => 'text',
+					'default'  => 'قبل از باز کردن،',
+					'desc'     => '',
+					'sanitize' => 'sanitize_text_field',
+				),
+				'hero_title_2'       => array(
+					'label'    => 'تیتر، خط دوم (رنگی)',
+					'type'     => 'text',
+					'default'  => 'داخلش را ببین.',
+					'desc'     => '',
+					'sanitize' => 'sanitize_text_field',
+				),
+				'hero_lead'          => array(
+					'label'    => 'متن توضیح',
+					'type'     => 'textarea',
+					'default'  => 'برای هر مسیر پنهان، ابزار مناسبی وجود دارد. دوربین بازرسی را بر اساس کارتان انتخاب کنید؛ با مشخصات روشن و مقایسه‌ای ساده.',
+					'desc'     => '',
+					'sanitize' => 'sanitize_textarea_field',
+				),
+				'hero_cta_primary'   => array(
+					'label'    => 'دکمه اصلی',
+					'type'     => 'text',
+					'default'  => 'پیدا کردن دوربین مناسب',
+					'desc'     => 'مقصد این دکمه صفحهٔ فروشگاه است؛ فقط متن تغییر می‌کند.',
+					'sanitize' => 'sanitize_text_field',
+				),
+				'hero_cta_secondary' => array(
+					'label'    => 'دکمه دوم',
+					'type'     => 'text',
+					'default'  => 'راهنمای انتخاب',
+					'desc'     => 'مقصد این دکمه صفحهٔ راهنما (quiz) است.',
+					'sanitize' => 'sanitize_text_field',
+				),
+				'hero_foot_1'        => array(
+					'label'    => 'نشانه پایین ۱',
+					'type'     => 'text',
+					'default'  => 'مقایسه فنی دستگاه‌ها',
+					'desc'     => '',
+					'sanitize' => 'sanitize_text_field',
+				),
+				'hero_foot_2'        => array(
+					'label'    => 'نشانه پایین ۲',
+					'type'     => 'text',
+					'default'  => 'مسیر مشاوره تخصصی',
+					'desc'     => '',
+					'sanitize' => 'sanitize_text_field',
+				),
+				'benefit_1'          => array(
+					'label'    => 'مورد ۱',
+					'type'     => 'text',
+					'default'  => 'انتخاب بر اساس کاربرد',
+					'desc'     => '',
+					'sanitize' => 'sanitize_text_field',
+				),
+				'benefit_2'          => array(
+					'label'    => 'مورد ۲',
+					'type'     => 'text',
+					'default'  => 'مشخصات قابل مقایسه',
+					'desc'     => '',
+					'sanitize' => 'sanitize_text_field',
+				),
+				'benefit_3'          => array(
+					'label'    => 'مورد ۳',
+					'type'     => 'text',
+					'default'  => 'مسیر تعمیر و نگهداری',
+					'desc'     => '',
+					'sanitize' => 'sanitize_text_field',
+				),
+				'benefit_4'          => array(
+					'label'    => 'مورد ۴',
+					'type'     => 'text',
+					'default'  => 'راهنمای استفاده و انتخاب',
+					'desc'     => '',
+					'sanitize' => 'sanitize_text_field',
+				),
+				'cat_eyebrow'        => array(
+					'label'    => 'پیش‌تیتر',
+					'type'     => 'text',
+					'default'  => 'از کارتان شروع کنید',
+					'desc'     => '',
+					'sanitize' => 'sanitize_text_field',
+				),
+				'cat_title'          => array(
+					'label'    => 'تیتر',
+					'type'     => 'text',
+					'default'  => 'کجا را می‌خواهید ببینید؟',
+					'desc'     => 'کارت‌های دسته‌بندی از خود ووکامرس می‌آیند و اینجا نیستند.',
+					'sanitize' => 'sanitize_text_field',
+				),
+				'cat_text'           => array(
+					'label'    => 'متن',
+					'type'     => 'textarea',
+					'default'  => 'مسیر انتخاب دستگاه مناسب، از شناخت کاربرد شروع می‌شود.',
+					'desc'     => '',
+					'sanitize' => 'sanitize_textarea_field',
+				),
+				'field_eyebrow'      => array(
+					'label'    => 'پیش‌تیتر',
+					'type'     => 'text',
+					'default'  => 'پیش از تصمیم، دقیق‌تر ببینید',
+					'desc'     => '',
+					'sanitize' => 'sanitize_text_field',
+				),
+				'field_title'        => array(
+					'label'    => 'تیتر',
+					'type'     => 'text',
+					'default'  => 'فقط تصویر دستگاه کافی نیست؛ خروجی آن را هم ببینید.',
+					'desc'     => '',
+					'sanitize' => 'sanitize_text_field',
+				),
+				'field_text'         => array(
+					'label'    => 'متن',
+					'type'     => 'textarea',
+					'default'  => 'برای ارزیابی هر مدل، نمونه تصویر همان دستگاه در شرایط مشابه کارتان را درخواست کنید.',
+					'desc'     => '',
+					'sanitize' => 'sanitize_textarea_field',
+				),
+				'field_check_1'      => array(
+					'label'    => 'چک‌لیست ۱',
+					'type'     => 'text',
+					'default'  => 'وضوح جزئیات در فاصله کاری',
+					'desc'     => '',
+					'sanitize' => 'sanitize_text_field',
+				),
+				'field_check_2'      => array(
+					'label'    => 'چک‌لیست ۲',
+					'type'     => 'text',
+					'default'  => 'نور و میدان دید در محیط مورد نظر',
+					'desc'     => '',
+					'sanitize' => 'sanitize_text_field',
+				),
+				'field_check_3'      => array(
+					'label'    => 'چک‌لیست ۳',
+					'type'     => 'text',
+					'default'  => 'مشخص بودن مدل و شرایط تصویربرداری',
+					'desc'     => '',
+					'sanitize' => 'sanitize_text_field',
+				),
+				'field_link_label'   => array(
+					'label'    => 'متن لینک',
+					'type'     => 'text',
+					'default'  => 'آماده‌سازی درخواست نمونه تصویر',
+					'desc'     => 'مقصد این لینک صفحهٔ تماس است.',
+					'sanitize' => 'sanitize_text_field',
+				),
+				'video_label_1'      => array(
+					'label'    => 'برچسب چپ (انگلیسی)',
+					'type'     => 'text',
+					'default'  => 'INSIDE THE FIELD',
+					'desc'     => '',
+					'sanitize' => 'sanitize_text_field',
+				),
+				'video_label_2'      => array(
+					'label'    => 'برچسب راست (انگلیسی)',
+					'type'     => 'text',
+					'default'  => 'DEMO / 01',
+					'desc'     => '',
+					'sanitize' => 'sanitize_text_field',
+				),
+				'video_aria'         => array(
+					'label'    => 'برچسب دسترس‌پذیری',
+					'type'     => 'text',
+					'default'  => 'ویدیوی نمایشی بازرسی مسیر',
+					'desc'     => 'در aria-label ویدیو استفاده می‌شود؛ متن جایگزین ویدیو برای صفحه‌خوان است.',
+					'sanitize' => 'sanitize_text_field',
+				),
+				'video_caption'      => array(
+					'label'    => 'زیرنویس',
+					'type'     => 'text',
+					'default'  => 'ویدیوی نمایشی قالب؛ خروجی تأییدشده هیچ‌یک از مدل‌های فروشگاه نیست.',
+					'desc'     => '',
+					'sanitize' => 'sanitize_text_field',
+				),
+				'blog_eyebrow'       => array(
+					'label'    => 'پیش‌تیتر',
+					'type'     => 'text',
+					'default'  => 'مجله بلکوکم',
+					'desc'     => '',
+					'sanitize' => 'sanitize_text_field',
+				),
+				'blog_title'         => array(
+					'label'    => 'تیتر',
+					'type'     => 'text',
+					'default'  => 'قبل از خرید، بیشتر بدانید',
+					'desc'     => 'کارت‌های مقاله از نوشته‌های واقعی می‌آیند و اینجا نیستند.',
+					'sanitize' => 'sanitize_text_field',
+				),
+				'blog_text'          => array(
+					'label'    => 'متن',
+					'type'     => 'textarea',
+					'default'  => 'یادداشت‌های کوتاه برای سؤال‌های مهم.',
+					'desc'     => '',
+					'sanitize' => 'sanitize_textarea_field',
+				),
+				'blog_link'          => array(
+					'label'    => 'متن لینک',
+					'type'     => 'text',
+					'default'  => 'همه راهنماها',
+					'desc'     => 'مقصد این لینک صفحهٔ مجله است.',
+					'sanitize' => 'sanitize_text_field',
+				),
+				'faq_eyebrow'        => array(
+					'label'    => 'پیش‌تیتر',
+					'type'     => 'text',
+					'default'  => 'پرسش‌های متداول',
+					'desc'     => '',
+					'sanitize' => 'sanitize_text_field',
+				),
+				'faq_title'          => array(
+					'label'    => 'تیتر',
+					'type'     => 'text',
+					'default'  => 'از همین‌جا ابهام‌ها را برطرف کنید.',
+					'desc'     => '',
+					'sanitize' => 'sanitize_text_field',
+				),
+				'faq_link'           => array(
+					'label'    => 'متن لینک',
+					'type'     => 'text',
+					'default'  => 'پرسش دیگری دارید؟',
+					'desc'     => 'مقصد این لینک صفحهٔ تماس است.',
+					'sanitize' => 'sanitize_text_field',
+				),
+				'faq'                => array(
+					'label'            => 'پرسش‌های متداول',
+					'type'             => 'repeater',
+					'default'          => array(),
+					'default_callback' => 'ToranTejarat\\Theme\\torantejarat_home_faq_defaults',
+					'desc'             => 'خالی = سه پرسش پیش‌فرض قالب. هر ردیف به جای خودش گره خورده است: خالی گذاشتن یک فیلد، متن پیش‌فرض همان ردیف را برمی‌گرداند. ردیف چهارم به بعد به انتهای فهرست اضافه می‌شود. متن «حالت پیش‌نمایش» (تب عمومی) همیشه بعد از ردیف اول و فقط وقتی روشن باشد نمایش داده می‌شود.',
+					'subfields'        => array(
+						'q' => array( 'label' => 'پرسش', 'type' => 'text' ),
+						'a' => array( 'label' => 'پاسخ', 'type' => 'textarea' ),
+					),
+					'max'              => 12,
+				),
+			),
+		),
 		'contact' => array(
 			'label'  => 'تماس',
 			'icon'   => 'dashicons-phone',
@@ -285,13 +534,61 @@ final class TT_Settings {
 		}
 	}
 
+	/**
+	 * Sanitize a submitted tab.
+	 *
+	 * A form may render only part of a tab: every home sub-section is its own
+	 * page, so the hero form posts eight fields out of thirty-four. Such a form
+	 * declares what it rendered in a hidden `_tt_scope` field, and every key
+	 * outside that scope is carried over from the stored option untouched —
+	 * otherwise saving the hero page would wipe the stored trust items and the
+	 * whole FAQ repeater.
+	 *
+	 * Without a `_tt_scope` marker the submitted keys are used as the scope:
+	 * a partial payload (an old cached form, a script, a plugin) can no longer
+	 * blank the keys it did not send. Clearing a field still works, because a
+	 * rendered form always submits every field it shows — including the empty
+	 * ones — and a full payload (all keys) behaves exactly as before.
+	 *
+	 * @param mixed  $input   Submitted value for the option.
+	 * @param string $tab_key Tab key.
+	 * @return array
+	 */
 	private function sanitize_tab( $input, $tab_key ) {
 		if ( ! is_array( $input ) ) {
 			return array();
 		}
 		$fields = isset( $this->schema[ $tab_key ]['fields'] ) ? $this->schema[ $tab_key ]['fields'] : array();
+		$stored = get_option( 'torantejarat_' . $tab_key, array() );
+		$stored = is_array( $stored ) ? $stored : array();
+
+		$scope = null;
+		if ( isset( $input['_tt_scope'] ) && is_array( $input['_tt_scope'] ) ) {
+			$scope = array_map( 'strval', $input['_tt_scope'] );
+		} elseif ( isset( $input['_tt_scope'] ) && is_string( $input['_tt_scope'] ) ) {
+			$scope = array_map( 'trim', explode( ',', $input['_tt_scope'] ) );
+		}
+
+		if ( null === $scope ) {
+			// No marker: the scope is exactly what was submitted, so a partial
+			// payload cannot empty the keys it left out.
+			$scope = array();
+			foreach ( $fields as $key => $field ) {
+				if ( array_key_exists( $key, $input ) ) {
+					$scope[] = (string) $key;
+				}
+			}
+		}
+
 		$output = array();
 		foreach ( $fields as $key => $field ) {
+			if ( ! in_array( (string) $key, $scope, true ) ) {
+				// Not sent by this form: keep whatever is stored.
+				if ( array_key_exists( $key, $stored ) ) {
+					$output[ $key ] = $stored[ $key ];
+				}
+				continue;
+			}
 			$raw            = isset( $input[ $key ] ) ? $input[ $key ] : '';
 			$output[ $key ] = ( 'repeater' === $field['type'] )
 				? $this->sanitize_repeater( $raw, $field )
@@ -338,6 +635,22 @@ final class TT_Settings {
 		}
 		$callback = isset( $field['sanitize'] ) ? $field['sanitize'] : 'sanitize_text_field';
 		return call_user_func( $callback, $raw );
+	}
+
+	/**
+	 * Whether a field value counts as "not filled in".
+	 *
+	 * Used only by the optional default_callback path; a flat field is blank
+	 * when it is the empty string, a repeater is blank when it has no rows.
+	 *
+	 * @param mixed $value Raw field value.
+	 * @return bool
+	 */
+	private static function value_is_blank( $value ) {
+		if ( is_array( $value ) ) {
+			return ! $value;
+		}
+		return '' === (string) $value;
 	}
 
 	/**
@@ -395,45 +708,249 @@ final class TT_Settings {
 		if ( ! current_user_can( 'manage_options' ) ) {
 			return;
 		}
-		$requested = isset( $_GET['tab'] ) ? sanitize_key( $_GET['tab'] ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Tab navigation only.
-		$active    = isset( $this->schema[ $requested ] ) ? $requested : array_key_first( $this->schema );
+		$requested = '';
+		if ( isset( $_GET['tab'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Tab navigation only.
+			$requested = sanitize_key( $_GET['tab'] );
+		} elseif ( isset( $_GET['section'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Tab navigation only.
+			$requested = sanitize_key( $_GET['section'] );
+		}
+		$active = isset( $this->schema[ $requested ] ) ? $requested : array_key_first( $this->schema );
+
+		$nav    = torantejarat_panel_nav( $this->schema );
+		$groups = isset( $nav[ $active ]['groups'] ) ? $nav[ $active ]['groups'] : array();
+		// Only a tab that really has sub-sections is split into separate pages.
+		$split = count( $groups ) > 1;
+
+		$sub = isset( $_GET['sub'] ) ? sanitize_key( $_GET['sub'] ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Page navigation only.
+
+		$active_group = null;
+		if ( $split ) {
+			foreach ( $groups as $group ) {
+				if ( $group['id'] === $sub ) {
+					$active_group = $group;
+					break;
+				}
+			}
+		} else {
+			$sub = '';
+		}
+
+		// A sub-page renders its own fields only; without a sub a split tab shows
+		// its section index, and a flat tab keeps rendering one single form.
+		if ( $active_group ) {
+			$ordered = $active_group['fields'];
+		} elseif ( $split ) {
+			$ordered = array();
+		} else {
+			$ordered = array_keys( $this->schema[ $active ]['fields'] );
+		}
+
+		$ready   = torantejarat_panel_readiness();
+		$version = (string) wp_get_theme()->get( 'Version' );
 		?>
 		<div class="wrap tt-wrap">
 			<div class="tt-header">
 				<h1>
 					<span class="dashicons dashicons-store"></span>
 					<?php esc_html_e( 'تنظیمات قالب بلکوکم', 'torantejarat' ); ?>
+					<span class="tt-version"><?php echo esc_html( 'v' . $version ); ?></span>
 				</h1>
+				<div class="tt-search" data-tt-search>
+					<label class="screen-reader-text" for="tt-search-input">
+						<?php esc_html_e( 'جست‌وجو در تنظیمات', 'torantejarat' ); ?>
+					</label>
+					<input
+						type="search"
+						id="tt-search-input"
+						class="tt-search-input"
+						role="combobox"
+						aria-expanded="false"
+						aria-controls="tt-search-results"
+						aria-autocomplete="list"
+						autocomplete="off"
+						placeholder="<?php esc_attr_e( 'جست‌وجو در تنظیمات…', 'torantejarat' ); ?>"
+					>
+					<ul class="tt-search-results" id="tt-search-results" role="listbox" hidden></ul>
+				</div>
 			</div>
-			<nav class="tt-tabs" role="tablist" aria-label="<?php esc_attr_e( 'بخش‌های تنظیمات', 'torantejarat' ); ?>">
-				<?php foreach ( $this->schema as $key => $tab ) : ?>
-					<a href="<?php echo esc_url( admin_url( 'admin.php?page=torantejarat-settings&tab=' . $key ) ); ?>"
-						class="tt-tab <?php echo $key === $active ? 'is-active' : ''; ?>"
-						role="tab"
-						aria-selected="<?php echo $key === $active ? 'true' : 'false'; ?>">
-						<span class="dashicons <?php echo esc_attr( $tab['icon'] ); ?>"></span>
-						<?php echo esc_html( $tab['label'] ); ?>
-					</a>
-				<?php endforeach; ?>
-			</nav>
-			<form method="post" action="options.php" class="tt-form" novalidate>
-				<?php settings_fields( 'torantejarat_' . $active ); ?>
-				<div class="tt-fields">
-					<?php $this->render_fields( $active ); ?>
-				</div>
-				<div class="tt-footer">
-					<?php submit_button( __( 'ذخیره تنظیمات', 'torantejarat' ), 'primary', 'submit', false ); ?>
-				</div>
-			</form>
+			<div class="tt-readiness" role="status" data-tt-readiness>
+				<?php if ( ! $ready ) : ?>
+					<span class="tt-ready-ok">
+						<span class="dashicons dashicons-yes-alt"></span>
+						<?php esc_html_e( 'آماده انتشار', 'torantejarat' ); ?>
+					</span>
+				<?php else : ?>
+					<span class="tt-ready-title">
+						<span class="dashicons dashicons-warning"></span>
+						<?php
+						printf(
+							/* translators: %s: number of open items. */
+							esc_html__( '%s مورد باز پیش از انتشار', 'torantejarat' ),
+							esc_html( number_format_i18n( count( $ready ) ) )
+						);
+						?>
+					</span>
+					<ul class="tt-ready-list">
+						<?php foreach ( $ready as $item ) : ?>
+							<li>
+								<a href="<?php echo esc_url( admin_url( 'admin.php?page=torantejarat-settings&section=' . $item['section'] . ( $item['sub'] ? '&sub=' . $item['sub'] : '' ) ) ); ?>">
+									<?php echo esc_html( $item['label'] ); ?>
+								</a>
+							</li>
+						<?php endforeach; ?>
+					</ul>
+				<?php endif; ?>
+			</div>
+			<div class="tt-layout">
+				<nav class="tt-sidebar" aria-label="<?php esc_attr_e( 'بخش‌های تنظیمات', 'torantejarat' ); ?>">
+					<ul class="tt-nav">
+						<?php foreach ( $nav as $key => $tab ) : ?>
+							<?php
+							$tab_groups = $tab['groups'];
+							$is_open    = ( $key === $active );
+							$base_url   = 'admin.php?page=torantejarat-settings&section=' . $key;
+							?>
+							<li class="tt-nav-item <?php echo $is_open ? 'is-active' : ''; ?>">
+								<a class="tt-nav-link" href="<?php echo esc_url( admin_url( $base_url ) ); ?>">
+									<span class="dashicons <?php echo esc_attr( $tab['icon'] ); ?>"></span>
+									<span class="tt-nav-text"><?php echo esc_html( $tab['label'] ); ?></span>
+								</a>
+								<?php if ( $is_open && count( $tab_groups ) > 1 ) : ?>
+									<ul class="tt-subnav">
+										<?php foreach ( $tab_groups as $group ) : ?>
+											<li>
+												<a class="tt-subnav-link <?php echo $group['id'] === $sub ? 'is-active' : ''; ?>"
+													href="<?php echo esc_url( admin_url( $base_url . '&sub=' . $group['id'] ) ); ?>">
+													<span class="dashicons <?php echo esc_attr( $group['icon'] ); ?>"></span>
+													<span class="tt-subnav-text"><?php echo esc_html( $group['label'] ); ?></span>
+												</a>
+											</li>
+										<?php endforeach; ?>
+									</ul>
+								<?php endif; ?>
+							</li>
+						<?php endforeach; ?>
+					</ul>
+				</nav>
+				<main class="tt-main">
+					<?php if ( ! $ordered ) : ?>
+						<?php $this->render_overview( $active, $nav[ $active ] ); ?>
+					<?php else : ?>
+						<form method="post" action="options.php" class="tt-form" novalidate>
+							<?php settings_fields( 'torantejarat_' . $active ); ?>
+							<div class="tt-fields">
+								<?php $this->render_fields( $active, $ordered, $active_group ); ?>
+							</div>
+							<div class="tt-footer">
+								<?php submit_button( __( 'ذخیره تنظیمات', 'torantejarat' ), 'primary', 'submit', false ); ?>
+								<span class="tt-saved-hint description">
+									<?php esc_html_e( 'خالی گذاشتن هر فیلد یعنی برگشت به متن پیش‌فرض قالب.', 'torantejarat' ); ?>
+								</span>
+							</div>
+						</form>
+					<?php endif; ?>
+				</main>
+			</div>
 		</div>
 		<?php
 	}
 
-	private function render_fields( $tab_key ) {
+	/**
+	 * Section index: the list of sub-sections of a split tab. Each entry links
+	 * to its own page; no form is rendered here, so nothing can be saved from
+	 * this screen.
+	 *
+	 * @param string $tab_key Tab key.
+	 * @param array  $tab     Entry from torantejarat_panel_nav().
+	 */
+	private function render_overview( $tab_key, array $tab ) {
+		$base = 'admin.php?page=torantejarat-settings&section=' . $tab_key;
+		?>
+		<div class="tt-overview">
+			<h2 class="tt-overview-title">
+				<span class="dashicons <?php echo esc_attr( $tab['icon'] ); ?>"></span>
+				<?php echo esc_html( $tab['label'] ); ?>
+			</h2>
+			<p class="tt-overview-lead">
+				<?php esc_html_e( 'هر زیربخش صفحهٔ جداگانه دارد؛ ذخیره در هر صفحه فقط همان فیلدها را می‌نویسد و بقیهٔ مقادیر دست‌نخورده می‌مانند.', 'torantejarat' ); ?>
+			</p>
+			<ul class="tt-cards">
+				<?php foreach ( $tab['groups'] as $group ) : ?>
+					<li>
+						<a class="tt-card-link" href="<?php echo esc_url( admin_url( $base . '&sub=' . $group['id'] ) ); ?>">
+							<span class="dashicons <?php echo esc_attr( $group['icon'] ); ?>"></span>
+							<span class="tt-card-title"><?php echo esc_html( $group['label'] ); ?></span>
+							<span class="tt-card-meta">
+								<?php
+								printf(
+									/* translators: %s: number of fields in the sub-section. */
+									esc_html__( '%s فیلد', 'torantejarat' ),
+									esc_html( number_format_i18n( count( $group['fields'] ) ) )
+								);
+								?>
+							</span>
+						</a>
+					</li>
+				<?php endforeach; ?>
+			</ul>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Render one page's fields.
+	 *
+	 * A tab with sub-sections is split across pages, so this renders only the
+	 * fields of the active page and declares them in hidden `_tt_scope` markers.
+	 * The sanitizer uses that list to leave every other stored key untouched —
+	 * saving the hero page must not wipe the trust items or the FAQ repeater.
+	 *
+	 * @param string     $tab_key Tab key.
+	 * @param array      $ordered Field keys to render, in order.
+	 * @param array|null $group   Sub-section being rendered, if any.
+	 */
+	private function render_fields( $tab_key, array $ordered, $group = null ) {
 		$fields = $this->schema[ $tab_key ]['fields'];
 		$saved  = get_option( 'torantejarat_' . $tab_key, array() );
-		foreach ( $fields as $key => $field ) {
+
+		$ordered = array_values(
+			array_filter(
+				$ordered,
+				static function ( $field_key ) use ( $fields ) {
+					return isset( $fields[ $field_key ] );
+				}
+			)
+		);
+		if ( ! $ordered ) {
+			$ordered = array_keys( $fields );
+		}
+
+		// Declare which keys this form owns.
+		foreach ( $ordered as $scope_key ) {
+			echo '<input type="hidden" name="' . esc_attr( 'torantejarat_' . $tab_key . '[_tt_scope][]' ) . '" value="' . esc_attr( (string) $scope_key ) . '">';
+		}
+
+		if ( is_array( $group ) ) {
+			?>
+			<section class="tt-group">
+				<h2 class="tt-group-title">
+					<span class="dashicons <?php echo esc_attr( $group['icon'] ); ?>"></span>
+					<?php echo esc_html( $group['label'] ); ?>
+				</h2>
+			<?php
+		}
+
+		foreach ( $ordered as $key ) {
+			$field = $fields[ $key ];
+
 			$value = isset( $saved[ $key ] ) ? $saved[ $key ] : $field['default'];
+			// Optional: a field may supply a callback for its blank state when
+			// the default cannot be a constant expression — e.g. a repeater
+			// whose built-in rows live in a theme function. This keeps the
+			// panel showing the same rows the frontend falls back to.
+			if ( ! empty( $field['default_callback'] ) && is_callable( $field['default_callback'] ) && self::value_is_blank( $value ) ) {
+				$value = call_user_func( $field['default_callback'] );
+			}
 			$id    = 'tt-' . $tab_key . '-' . $key;
 			$name  = 'torantejarat_' . $tab_key . '[' . $key . ']';
 			$type  = $field['type'];
@@ -442,7 +959,7 @@ final class TT_Settings {
 				continue;
 			}
 			?>
-			<div class="tt-field">
+			<div class="tt-field" id="ttf-<?php echo esc_attr( $tab_key . '-' . $key ); ?>">
 				<?php if ( 'checkbox' !== $type ) : ?>
 				<label class="tt-label" for="<?php echo esc_attr( $id ); ?>">
 					<?php echo esc_html( $field['label'] ); ?>
@@ -499,6 +1016,9 @@ final class TT_Settings {
 			</div>
 			<?php
 		}
+		if ( is_array( $group ) ) {
+			echo '</section>';
+		}
 	}
 
 	/**
@@ -519,8 +1039,9 @@ final class TT_Settings {
 		$rows   = is_array( $value ) ? array_values( $value ) : array();
 		$rows[] = array(); // Trailing blank row = the no-JavaScript way to add a row.
 		$base   = 'torantejarat_' . $tab_key . '[' . $key . ']';
+		$max    = isset( $field['max'] ) ? (int) $field['max'] : 0;
 		?>
-		<div class="tt-field tt-field-repeater" data-tt-repeater>
+		<div class="tt-field tt-field-repeater" id="ttf-<?php echo esc_attr( $tab_key . '-' . $key ); ?>" data-tt-repeater data-tt-max="<?php echo esc_attr( (string) $max ); ?>">
 			<div class="tt-repeater-head">
 				<span class="tt-label"><?php echo esc_html( $field['label'] ); ?></span>
 				<?php if ( ! empty( $field['desc'] ) ) : ?>
@@ -546,6 +1067,21 @@ final class TT_Settings {
 				<p class="tt-repeater-actions">
 					<button type="button" class="button" data-tt-repeater-add><?php esc_html_e( 'افزودن ردیف', 'torantejarat' ); ?></button>
 				</p>
+				<?php if ( $max > 0 ) : ?>
+					<?php
+					$guide = sprintf(
+						/* translators: %s: maximum number of rows. */
+						__( 'حداکثر %s ردیف. برای افزودن بیشتر، ابتدا یک ردیف را حذف کنید.', 'torantejarat' ),
+						number_format_i18n( (int) $max )
+					);
+					$limit = __( 'به سقف رسیدید؛ برای افزودن ردیف تازه، ابتدا یک ردیف را حذف کنید.', 'torantejarat' );
+					?>
+					<p class="tt-repeater-note" data-tt-repeater-note
+						data-tt-text-guide="<?php echo esc_attr( $guide ); ?>"
+						data-tt-text-limit="<?php echo esc_attr( $limit ); ?>">
+						<?php echo esc_html( $guide ); ?>
+					</p>
+				<?php endif; ?>
 			</div>
 		</div>
 		<?php
@@ -649,7 +1185,16 @@ final class TT_Settings {
 		if ( 'toplevel_page_torantejarat-settings' !== $hook ) {
 			return;
 		}
-		wp_add_inline_style( 'wp-admin', $this->get_admin_css() );
+		// Styling lives in a real stylesheet (assets/admin/panel.css), scoped to
+		// this screen only. filemtime() busts the browser cache while the file
+		// is still being iterated on.
+		$css_path = get_template_directory() . '/assets/admin/panel.css';
+		wp_enqueue_style(
+			'tt-panel',
+			get_template_directory_uri() . '/assets/admin/panel.css',
+			array(),
+			file_exists( $css_path ) ? (string) filemtime( $css_path ) : (string) wp_get_theme()->get( 'Version' )
+		);
 		wp_enqueue_script(
 			'tt-settings',
 			get_template_directory_uri() . '/assets/js/admin-settings.js',
@@ -657,36 +1202,28 @@ final class TT_Settings {
 			(string) wp_get_theme()->get( 'Version' ),
 			true
 		);
+		// Panel-wide search. The index is generated server-side from $schema and
+		// the nav map (inc/settings/panel-nav.php) — the script never discovers
+		// fields from the DOM and never searches stored values.
+		$search_path = get_template_directory() . '/assets/admin/panel-search.js';
+		wp_enqueue_script(
+			'tt-panel-search',
+			get_template_directory_uri() . '/assets/admin/panel-search.js',
+			array(),
+			file_exists( $search_path ) ? (string) filemtime( $search_path ) : (string) wp_get_theme()->get( 'Version' ),
+			true
+		);
+		wp_localize_script(
+			'tt-panel-search',
+			'ttPanelSearch',
+			array(
+				'baseUrl'   => admin_url( 'admin.php?page=torantejarat-settings' ),
+				'noResults' => __( 'موردی یافت نشد', 'torantejarat' ),
+				'index'     => torantejarat_panel_search_index( $this->schema ),
+			)
+		);
 	}
 
-	private function get_admin_css() {
-		return '
-			.tt-wrap { max-width: 860px; }
-			.tt-header { display: flex; align-items: center; padding: 20px 0 0; border-bottom: 1px solid #dcdcde; margin-bottom: 0; }
-			.tt-header h1 { display: flex; align-items: center; gap: 8px; font-size: 1.35rem; margin: 0 0 16px; }
-			.tt-tabs { display: flex; gap: 2px; margin-bottom: 0; padding-top: 8px; }
-			.tt-tab { display: inline-flex; align-items: center; gap: 6px; padding: 9px 16px; text-decoration: none; color: #50575e; border: 1px solid transparent; border-bottom: none; border-radius: 3px 3px 0 0; font-size: .85rem; transition: color .15s; background: transparent; }
-			.tt-tab:hover { color: #2271b1; }
-			.tt-tab.is-active { color: #2271b1; font-weight: 600; background: #fff; border-color: #dcdcde; margin-bottom: -1px; padding-bottom: 10px; }
-			.tt-form { background: #fff; border: 1px solid #dcdcde; border-top: none; border-radius: 0 0 3px 3px; padding: 24px; }
-			.tt-fields { display: grid; gap: 0; }
-			.tt-field { display: grid; grid-template-columns: 180px 1fr; gap: 16px; align-items: start; padding: 18px 0; border-bottom: 1px solid #f0f0f1; }
-			.tt-field:last-child { border-bottom: none; }
-			.tt-label { font-weight: 600; font-size: .875rem; padding-top: 6px; color: #1d2327; }
-			.tt-control input, .tt-control textarea { width: 100% !important; }
-			.tt-field-repeater { grid-template-columns: 1fr; gap: 8px; }
-			.tt-repeater-head { display: flex; flex-direction: column; gap: 2px; }
-			.tt-repeater-table { border-collapse: collapse; }
-			.tt-repeater-table th { font-weight: 600; font-size: .8125rem; }
-			.tt-repeater-table td { vertical-align: middle; }
-			.tt-repeater-table input[type="text"], .tt-repeater-table input[type="url"], .tt-repeater-table input[type="email"], .tt-repeater-table input[type="tel"], .tt-repeater-table textarea, .tt-repeater-table select { width: 100% !important; }
-			.tt-repeater-act { width: 64px; text-align: center; }
-			.tt-repeater-remove { color: #b32d2e; }
-			.tt-repeater-remove:hover { color: #8a2424; }
-			.tt-repeater-actions { margin: 12px 0 0; }
-			.tt-footer { margin-top: 20px; padding-top: 18px; border-top: 1px solid #f0f0f1; }
-		';
-	}
 }
 
 TT_Settings::get_instance();

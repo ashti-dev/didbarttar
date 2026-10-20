@@ -1,0 +1,506 @@
+/**
+ * Settings panel styling — BellcoCam (بلکوکم) theme.
+ *
+ * Scope: ONLY the theme settings screen, body class
+ * `toplevel_page_torantejarat-settings`. All selectors are prefixed `tt-` so
+ * nothing here can leak into the rest of wp-admin.
+ *
+ * This file replaced the inline stylesheet that used to be printed by
+ * TT_Settings::get_admin_css(); the rules were moved here unchanged and the
+ * layout was extended with the sidebar tree.
+ *
+ * State accent: #b34700 (dark orange) for anything that carries meaning —
+ * active tab/sub text and icons, the active bar and the jump bar. Contrast on
+ * white 5.5:1, on #fff5ef 5.12:1.
+ * Brand: #f77b3e (2.67:1 on white) is decorative only — section/card icons and
+ * hover flourishes, where the neighbouring text carries the meaning.
+ */
+
+/* ---------------------------------------------------------------- layout -- */
+.tt-wrap {
+	max-width: 1180px;
+	margin-inline-end: 20px;
+}
+
+.tt-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16px;
+	padding: 20px 0 0;
+	border-bottom: 1px solid #dcdcde;
+}
+
+.tt-header h1 {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font-size: 1.35rem;
+	margin: 0 0 16px;
+}
+
+.tt-version {
+	font-size: 0.75rem;
+	font-weight: 400;
+	color: #646970;
+	background: #f0f0f1;
+	border-radius: 10px;
+	padding: 2px 8px;
+	line-height: 1.6;
+}
+
+/*
+ * Sidebar on the physical RIGHT, independent of the admin locale: the flex
+ * container is forced LTR so `row-reverse` is deterministic, while the two
+ * children re-declare rtl for their own text.
+ */
+.tt-layout {
+	display: flex;
+	flex-direction: row-reverse;
+	align-items: flex-start;
+	gap: 20px;
+	direction: ltr;
+	padding-top: 16px;
+}
+
+.tt-sidebar {
+	flex: 0 0 250px;
+	width: 250px;
+	direction: rtl;
+}
+
+.tt-main {
+	flex: 1 1 auto;
+	min-width: 0;
+	direction: rtl;
+}
+
+/* ------------------------------------------------------------- nav tree -- */
+.tt-nav {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+.tt-nav-item {
+	margin: 0 0 2px;
+}
+
+.tt-nav-link {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 10px 12px;
+	border: 1px solid transparent;
+	border-radius: 6px;
+	color: #1d2327;
+	text-decoration: none;
+	font-size: 0.9rem;
+	font-weight: 600;
+	line-height: 1.4;
+}
+
+.tt-nav-link:hover,
+.tt-nav-link:focus {
+	background: #f0f0f1;
+	color: #1d2327;
+}
+
+.tt-nav-link .dashicons {
+	font-size: 18px;
+	width: 18px;
+	height: 18px;
+	color: #646970;
+}
+
+.tt-nav-item.is-active > .tt-nav-link {
+	color: #b34700;
+	background: #fff;
+	border-color: #dcdcde;
+	box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+}
+
+/* State indicators use the darker #b34700 (5.5:1 / 5.12:1). The brand orange
+   #f77b3e is 2.67:1 on white, so it is kept for decoration only (section and
+   card icons, hover flourishes) where the adjacent text carries the meaning. */
+.tt-nav-item.is-active > .tt-nav-link .dashicons {
+	color: #b34700;
+}
+
+/* One level deep only: sub-sections exist solely under their own parent. */
+.tt-subnav {
+	list-style: none;
+	margin: 4px 0 10px;
+	padding: 0;
+	border-inline-end: 2px solid #f0f0f1;
+}
+
+.tt-subnav-link {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	padding: 7px 10px;
+	margin: 0 6px 2px 0;
+	border-radius: 4px;
+	color: #50575e;
+	text-decoration: none;
+	font-size: 0.82rem;
+	line-height: 1.4;
+}
+
+.tt-subnav-link:hover,
+.tt-subnav-link:focus {
+	background: #f6f7f7;
+	color: #b34700;
+}
+
+.tt-subnav-link.is-active {
+	color: #b34700;
+	font-weight: 600;
+	background: #fff5ef;
+	box-shadow: inset 3px 0 0 #b34700;
+}
+
+.tt-subnav-link.is-active .dashicons {
+	color: #b34700;
+}
+
+.tt-subnav-link .dashicons {
+	font-size: 16px;
+	width: 16px;
+	height: 16px;
+}
+
+/* ---------------------------------------------------------------- form --- */
+.tt-form {
+	background: #fff;
+	border: 1px solid #dcdcde;
+	border-radius: 3px;
+	padding: 24px;
+}
+
+.tt-fields {
+	display: grid;
+	gap: 0;
+}
+
+.tt-field {
+	display: grid;
+	grid-template-columns: 180px 1fr;
+	gap: 16px;
+	align-items: start;
+	padding: 18px 0;
+	border-bottom: 1px solid #f0f0f1;
+}
+
+.tt-field:last-child {
+	border-bottom: none;
+}
+
+.tt-label {
+	font-weight: 600;
+	font-size: 0.875rem;
+	padding-top: 6px;
+	color: #1d2327;
+}
+
+.tt-control input,
+.tt-control textarea {
+	width: 100% !important;
+}
+
+/* Machine-readable values stay LTR inside the rtl panel. */
+.tt-control input.code,
+.tt-control input[type="url"],
+.tt-control input[type="email"],
+.tt-control input[type="tel"],
+.tt-control input[type="number"],
+#tt-contact-whatsapp {
+	direction: ltr;
+	text-align: left;
+}
+
+/* Free text stays RTL, including the map embed snippet. */
+#tt-contact-map_embed {
+	direction: rtl;
+	text-align: start;
+}
+
+/* ------------------------------------------------------------ group head -- */
+.tt-group {
+	scroll-margin-top: 40px;
+}
+
+.tt-group + .tt-group {
+	margin-top: 10px;
+	padding-top: 10px;
+	border-top: 1px solid #dcdcde;
+}
+
+.tt-group-title {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin: 0;
+	padding: 6px 0 0;
+	font-size: 1rem;
+	font-weight: 600;
+	color: #1d2327;
+}
+
+.tt-group-title .dashicons {
+	color: #f77b3e;
+	font-size: 20px;
+	width: 20px;
+	height: 20px;
+}
+
+/* ------------------------------------------------------------- repeater -- */
+.tt-field-repeater {
+	grid-template-columns: 1fr;
+	gap: 8px;
+}
+
+.tt-repeater-head {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+}
+
+.tt-repeater-table {
+	border-collapse: collapse;
+}
+
+.tt-repeater-table th {
+	font-weight: 600;
+	font-size: 0.8125rem;
+}
+
+.tt-repeater-table td {
+	vertical-align: middle;
+}
+
+.tt-repeater-table input[type="text"],
+.tt-repeater-table input[type="url"],
+.tt-repeater-table input[type="email"],
+.tt-repeater-table input[type="tel"],
+.tt-repeater-table textarea,
+.tt-repeater-table select {
+	width: 100% !important;
+}
+
+.tt-repeater-act {
+	width: 64px;
+	text-align: center;
+}
+
+.tt-repeater-remove {
+	color: #b32d2e;
+}
+
+.tt-repeater-remove:hover {
+	color: #8a2424;
+}
+
+.tt-repeater-actions {
+	margin: 12px 0 0;
+}
+
+/* ------------------------------------------------------------ save bar --- */
+.tt-footer {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	margin-top: 20px;
+	padding: 14px 0 0;
+	border-top: 1px solid #f0f0f1;
+	position: sticky;
+	bottom: 0;
+	background: #fff;
+	z-index: 5;
+}
+
+.tt-saved-hint {
+	margin: 0;
+}
+
+/* ------------------------------------------------------------ search ----- */
+.tt-search {
+	position: relative;
+	margin-bottom: 16px;
+}
+
+.tt-search-input {
+	width: 240px;
+	max-width: 100%;
+}
+
+.tt-search-results {
+	position: absolute;
+	inset-inline-end: 0;
+	z-index: 20;
+	width: 100%;
+	max-height: 260px;
+	overflow-y: auto;
+	margin: 2px 0 0;
+	padding: 4px;
+	list-style: none;
+	background: #fff;
+	border: 1px solid #dcdcde;
+	border-radius: 4px;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.tt-search-item {
+	padding: 7px 10px;
+	border-radius: 3px;
+	font-size: 0.82rem;
+	color: #1d2327;
+	cursor: pointer;
+}
+
+.tt-search-item.is-active,
+.tt-search-item:hover {
+	background: #fff5ef;
+	color: #b34700;
+}
+
+.tt-search-empty {
+	padding: 8px 10px;
+	font-size: 0.82rem;
+	color: #646970;
+}
+
+/* --------------------------------------------------------- readiness ---- */
+.tt-readiness {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 6px 14px;
+	margin: 12px 0 0;
+	padding: 10px 14px;
+	border: 1px solid #dcdcde;
+	border-inline-start: 3px solid #dba617;
+	border-radius: 3px;
+	background: #fff;
+	font-size: 0.82rem;
+}
+
+.tt-ready-title,
+.tt-ready-ok {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	font-weight: 600;
+	color: #1d2327;
+}
+
+.tt-ready-ok {
+	color: #007017;
+}
+
+.tt-ready-list {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4px 16px;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.tt-ready-list a {
+	color: #b34700;
+	text-decoration: underline;
+}
+
+/* --------------------------------------------------- jump highlight ----- */
+.tt-field:target {
+	background: #fff5ef;
+}
+
+.tt-field:target {
+	box-shadow: inset 3px 0 0 #b34700;
+}
+
+/* ---------------------------------------------------- repeater note ----- */
+.tt-repeater-note {
+	margin: 8px 0 0;
+	font-size: 0.8rem;
+	color: #646970;
+}
+
+.tt-repeater-note.is-limit {
+	color: #b32d2e;
+	font-weight: 600;
+}
+
+/* ------------------------------------------------------- section index --- */
+.tt-overview {
+	background: #fff;
+	border: 1px solid #dcdcde;
+	border-radius: 3px;
+	padding: 20px 24px 24px;
+}
+
+.tt-overview-title {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin: 0 0 4px;
+	font-size: 1.05rem;
+	color: #1d2327;
+}
+
+.tt-overview-title .dashicons {
+	color: #f77b3e;
+}
+
+.tt-overview-lead {
+	margin: 0 0 18px;
+	font-size: 0.82rem;
+	color: #646970;
+}
+
+.tt-cards {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+	gap: 10px;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.tt-card-link {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 12px 14px;
+	border: 1px solid #dcdcde;
+	border-radius: 4px;
+	text-decoration: none;
+	color: #1d2327;
+	background: #fff;
+	transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.tt-card-link:hover,
+.tt-card-link:focus {
+	border-color: #f77b3e;
+	box-shadow: 0 0 0 1px #f77b3e inset;
+	color: #b34700;
+}
+
+.tt-card-link .dashicons {
+	color: #f77b3e;
+}
+
+.tt-card-title {
+	font-weight: 600;
+	font-size: 0.88rem;
+}
+
+.tt-card-meta {
+	margin-inline-start: auto;
+	font-size: 0.75rem;
+	color: #646970;
+}

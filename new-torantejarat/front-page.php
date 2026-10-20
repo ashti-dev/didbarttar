@@ -27,20 +27,20 @@ get_header();
 			<!-- Hero Section — exact match to index.html -->
 			<section class="torantejarat-hero"><div class="torantejarat-container torantejarat-hero-grid">
 				<div class="torantejarat-hero-copy">
-					<span class="torantejarat-hero-kicker"><i></i> <?php esc_html_e( 'نگاه دقیق‌تر. انتخاب مطمئن‌تر.', 'torantejarat' ); ?></span>
-					<h1><?php esc_html_e( 'قبل از باز کردن،', 'torantejarat' ); ?> <span><?php esc_html_e( 'داخلش را ببین.', 'torantejarat' ); ?></span></h1>
-					<p><?php esc_html_e( 'برای هر مسیر پنهان، ابزار مناسبی وجود دارد. دوربین بازرسی را بر اساس کارتان انتخاب کنید؛ با مشخصات روشن و مقایسه‌ای ساده.', 'torantejarat' ); ?></p>
+					<span class="torantejarat-hero-kicker"><i></i> <?php echo esc_html( torantejarat_home( 'hero_kicker' ) ); ?></span>
+					<h1><?php echo esc_html( torantejarat_home( 'hero_title_1' ) ); ?> <span><?php echo esc_html( torantejarat_home( 'hero_title_2' ) ); ?></span></h1>
+					<p><?php echo esc_html( torantejarat_home( 'hero_lead' ) ); ?></p>
 					<div class="torantejarat-hero-actions">
 						<?php
 						$torantejarat_shop_page = wc_get_page_id( 'shop' ) > 0 ? get_permalink( wc_get_page_id( 'shop' ) ) : '';
 						$torantejarat_quiz_page = get_page_by_path( 'quiz' );
 						?>
-						<?php if ( $torantejarat_shop_page ) : ?><a class="torantejarat-btn torantejarat-btn-primary" href="<?php echo esc_url( $torantejarat_shop_page ); ?>"><?php esc_html_e( 'پیدا کردن دوربین مناسب', 'torantejarat' ); ?> <?php torantejarat_icon( 'arrow' ); ?></a><?php endif; ?>
-						<?php if ( $torantejarat_quiz_page ) : ?><a class="torantejarat-btn torantejarat-btn-dark-ghost" href="<?php echo esc_url( get_permalink( $torantejarat_quiz_page ) ); ?>"><?php esc_html_e( 'راهنمای انتخاب', 'torantejarat' ); ?> <?php torantejarat_icon( 'scan' ); ?></a><?php endif; ?>
+						<?php if ( $torantejarat_shop_page ) : ?><a class="torantejarat-btn torantejarat-btn-primary" href="<?php echo esc_url( $torantejarat_shop_page ); ?>"><?php echo esc_html( torantejarat_home( 'hero_cta_primary' ) ); ?> <?php torantejarat_icon( 'arrow' ); ?></a><?php endif; ?>
+						<?php if ( $torantejarat_quiz_page ) : ?><a class="torantejarat-btn torantejarat-btn-dark-ghost" href="<?php echo esc_url( get_permalink( $torantejarat_quiz_page ) ); ?>"><?php echo esc_html( torantejarat_home( 'hero_cta_secondary' ) ); ?> <?php torantejarat_icon( 'scan' ); ?></a><?php endif; ?>
 					</div>
 					<div class="torantejarat-hero-foot">
-						<span><?php torantejarat_icon( 'cart' ); ?> <?php esc_html_e( 'مقایسه فنی دستگاه‌ها', 'torantejarat' ); ?></span>
-						<span><?php torantejarat_icon( 'search' ); ?> <?php esc_html_e( 'مسیر مشاوره تخصصی', 'torantejarat' ); ?></span>
+						<span><?php torantejarat_icon( 'cart' ); ?> <?php echo esc_html( torantejarat_home( 'hero_foot_1' ) ); ?></span>
+						<span><?php torantejarat_icon( 'search' ); ?> <?php echo esc_html( torantejarat_home( 'hero_foot_2' ) ); ?></span>
 					</div>
 				</div>
 				<?php $torantejarat_hero_slides = torantejarat_hero_slides(); ?>
@@ -70,10 +70,10 @@ get_header();
 
 			<!-- Benefit Strip — exact match to index.html -->
 			<div class="torantejarat-benefit-strip"><div class="torantejarat-container">
-				<span><?php torantejarat_icon( 'scan' ); ?> <?php esc_html_e( 'انتخاب بر اساس کاربرد', 'torantejarat' ); ?></span>
-				<span><?php torantejarat_icon( 'cart' ); ?> <?php esc_html_e( 'مشخصات قابل مقایسه', 'torantejarat' ); ?></span>
-				<span><?php torantejarat_icon( 'search' ); ?> <?php esc_html_e( 'مسیر تعمیر و نگهداری', 'torantejarat' ); ?></span>
-				<span><?php torantejarat_icon( 'home' ); ?> <?php esc_html_e( 'راهنمای استفاده و انتخاب', 'torantejarat' ); ?></span>
+				<span><?php torantejarat_icon( 'scan' ); ?> <?php echo esc_html( torantejarat_home( 'benefit_1' ) ); ?></span>
+				<span><?php torantejarat_icon( 'cart' ); ?> <?php echo esc_html( torantejarat_home( 'benefit_2' ) ); ?></span>
+				<span><?php torantejarat_icon( 'search' ); ?> <?php echo esc_html( torantejarat_home( 'benefit_3' ) ); ?></span>
+				<span><?php torantejarat_icon( 'home' ); ?> <?php echo esc_html( torantejarat_home( 'benefit_4' ) ); ?></span>
 			</div></div>
 
 			<!-- Category Grid — exact match to index.html -->
@@ -83,9 +83,9 @@ get_header();
 				<section class="torantejarat-section"><div class="torantejarat-container">
 					<div class="torantejarat-section-heading">
 						<div>
-							<span class="torantejarat-eyebrow"><?php esc_html_e( 'از کارتان شروع کنید', 'torantejarat' ); ?></span>
-							<h2><?php esc_html_e( 'کجا را می‌خواهید ببینید؟', 'torantejarat' ); ?></h2>
-							<p><?php esc_html_e( 'مسیر انتخاب دستگاه مناسب، از شناخت کاربرد شروع می‌شود.', 'torantejarat' ); ?></p>
+							<span class="torantejarat-eyebrow"><?php echo esc_html( torantejarat_home( 'cat_eyebrow' ) ); ?></span>
+							<h2><?php echo esc_html( torantejarat_home( 'cat_title' ) ); ?></h2>
+							<p><?php echo esc_html( torantejarat_home( 'cat_text' ) ); ?></p>
 						</div>
 					</div>
 					<?php echo $torantejarat_category_html; ?>
@@ -105,28 +105,28 @@ get_header();
 			<!-- Field/Video Section — exact match to index.html -->
 			<section class="torantejarat-section torantejarat-field-section"><div class="torantejarat-container torantejarat-field-grid">
 				<div class="torantejarat-field-copy">
-					<span class="torantejarat-eyebrow"><?php esc_html_e( 'پیش از تصمیم، دقیق‌تر ببینید', 'torantejarat' ); ?></span>
-					<h2><?php esc_html_e( 'فقط تصویر دستگاه کافی نیست؛ خروجی آن را هم ببینید.', 'torantejarat' ); ?></h2>
-					<p><?php esc_html_e( 'برای ارزیابی هر مدل، نمونه تصویر همان دستگاه در شرایط مشابه کارتان را درخواست کنید.', 'torantejarat' ); ?></p>
+					<span class="torantejarat-eyebrow"><?php echo esc_html( torantejarat_home( 'field_eyebrow' ) ); ?></span>
+					<h2><?php echo esc_html( torantejarat_home( 'field_title' ) ); ?></h2>
+					<p><?php echo esc_html( torantejarat_home( 'field_text' ) ); ?></p>
 					<ul class="torantejarat-check-list">
-						<li><?php torantejarat_icon( 'check' ); ?> <?php esc_html_e( 'وضوح جزئیات در فاصله کاری', 'torantejarat' ); ?></li>
-						<li><?php torantejarat_icon( 'check' ); ?> <?php esc_html_e( 'نور و میدان دید در محیط مورد نظر', 'torantejarat' ); ?></li>
-						<li><?php torantejarat_icon( 'check' ); ?> <?php esc_html_e( 'مشخص بودن مدل و شرایط تصویربرداری', 'torantejarat' ); ?></li>
+						<li><?php torantejarat_icon( 'check' ); ?> <?php echo esc_html( torantejarat_home( 'field_check_1' ) ); ?></li>
+						<li><?php torantejarat_icon( 'check' ); ?> <?php echo esc_html( torantejarat_home( 'field_check_2' ) ); ?></li>
+						<li><?php torantejarat_icon( 'check' ); ?> <?php echo esc_html( torantejarat_home( 'field_check_3' ) ); ?></li>
 					</ul>
 					<?php
 					$torantejarat_contact_page = get_page_by_path( 'contact' );
 					if ( $torantejarat_contact_page ) :
 						?>
-						<a class="torantejarat-text-link" href="<?php echo esc_url( get_permalink( $torantejarat_contact_page ) . '?topic=video' ); ?>"><?php esc_html_e( 'آماده‌سازی درخواست نمونه تصویر', 'torantejarat' ); ?> <?php torantejarat_icon( 'arrow' ); ?></a>
+						<a class="torantejarat-text-link" href="<?php echo esc_url( get_permalink( $torantejarat_contact_page ) . '?topic=video' ); ?>"><?php echo esc_html( torantejarat_home( 'field_link_label' ) ); ?> <?php torantejarat_icon( 'arrow' ); ?></a>
 					<?php endif; ?>
 				</div>
 				<div class="torantejarat-video-panel">
-					<div class="torantejarat-video-top"><span class="torantejarat-status-dot"></span><span>INSIDE THE FIELD</span><span dir="ltr">DEMO / 01</span></div>
-					<video controls playsinline preload="none" aria-label="<?php esc_attr_e( 'ویدیوی نمایشی بازرسی مسیر', 'torantejarat' ); ?>">
+					<div class="torantejarat-video-top"><span class="torantejarat-status-dot"></span><span><?php echo esc_html( torantejarat_home( 'video_label_1' ) ); ?></span><span dir="ltr"><?php echo esc_html( torantejarat_home( 'video_label_2' ) ); ?></span></div>
+					<video controls playsinline preload="none" aria-label="<?php echo esc_attr( torantejarat_home( 'video_aria' ) ); ?>">
 						<source src="<?php echo esc_url( get_template_directory_uri() . '/assets/video/tunnel-inspection.mp4' ); ?>" type="video/mp4">
 						<?php esc_html_e( 'مرورگر شما پخش ویدیو را پشتیبانی نمی‌کند.', 'torantejarat' ); ?>
 					</video>
-					<p><?php esc_html_e( 'ویدیوی نمایشی قالب؛ خروجی تأییدشده هیچ‌یک از مدل‌های فروشگاه نیست.', 'torantejarat' ); ?></p>
+					<p><?php echo esc_html( torantejarat_home( 'video_caption' ) ); ?></p>
 				</div>
 			</div></section>
 
@@ -145,15 +145,15 @@ get_header();
 			<section class="torantejarat-section torantejarat-soft-section"><div class="torantejarat-container">
 				<div class="torantejarat-section-heading">
 					<div>
-						<span class="torantejarat-eyebrow"><?php esc_html_e( 'مجله بلکوکم', 'torantejarat' ); ?></span>
-						<h2><?php esc_html_e( 'قبل از خرید، بیشتر بدانید', 'torantejarat' ); ?></h2>
-						<p><?php esc_html_e( 'یادداشت‌های کوتاه برای سؤال‌های مهم.', 'torantejarat' ); ?></p>
+						<span class="torantejarat-eyebrow"><?php echo esc_html( torantejarat_home( 'blog_eyebrow' ) ); ?></span>
+						<h2><?php echo esc_html( torantejarat_home( 'blog_title' ) ); ?></h2>
+						<p><?php echo esc_html( torantejarat_home( 'blog_text' ) ); ?></p>
 					</div>
 					<?php
 					$torantejarat_blog_page = get_page_by_path( 'blog' );
 					if ( $torantejarat_blog_page ) :
 						?>
-						<a class="torantejarat-text-link" href="<?php echo esc_url( get_permalink( $torantejarat_blog_page ) ); ?>"><?php esc_html_e( 'همه راهنماها', 'torantejarat' ); ?> <?php torantejarat_icon( 'arrow' ); ?></a>
+						<a class="torantejarat-text-link" href="<?php echo esc_url( get_permalink( $torantejarat_blog_page ) ); ?>"><?php echo esc_html( torantejarat_home( 'blog_link' ) ); ?> <?php torantejarat_icon( 'arrow' ); ?></a>
 					<?php endif; ?>
 				</div>
 				<div class="torantejarat-editorial-grid">
@@ -189,19 +189,19 @@ get_header();
 			<!-- FAQ Section — exact match to index.html -->
 			<section class="torantejarat-section"><div class="torantejarat-container torantejarat-faq-grid">
 				<div>
-					<span class="torantejarat-eyebrow"><?php esc_html_e( 'پرسش‌های متداول', 'torantejarat' ); ?></span>
-					<h2><?php esc_html_e( 'از همین‌جا ابهام‌ها را برطرف کنید.', 'torantejarat' ); ?></h2>
+					<span class="torantejarat-eyebrow"><?php echo esc_html( torantejarat_home( 'faq_eyebrow' ) ); ?></span>
+					<h2><?php echo esc_html( torantejarat_home( 'faq_title' ) ); ?></h2>
 					<?php
 					$torantejarat_contact_page = get_page_by_path( 'contact' );
 					if ( $torantejarat_contact_page ) :
 						?>
-						<a class="torantejarat-text-link" href="<?php echo esc_url( get_permalink( $torantejarat_contact_page ) ); ?>"><?php esc_html_e( 'پرسش دیگری دارید؟', 'torantejarat' ); ?> <?php torantejarat_icon( 'arrow' ); ?></a>
+						<a class="torantejarat-text-link" href="<?php echo esc_url( get_permalink( $torantejarat_contact_page ) ); ?>"><?php echo esc_html( torantejarat_home( 'faq_link' ) ); ?> <?php torantejarat_icon( 'arrow' ); ?></a>
 					<?php endif; ?>
 				</div>
 				<div class="torantejarat-faq">
 					<details>
-						<summary><?php esc_html_e( 'از کجا بفهمم کدام مدل مناسب من است؟', 'torantejarat' ); ?></summary>
-						<p><?php esc_html_e( 'از راهنمای انتخاب شروع کنید. سپس قطر ورودی، شرایط محیط و محدودیت‌های مسیر را با مشخصات تأییدشده مدل تطبیق دهید.', 'torantejarat' ); ?></p>
+						<summary><?php echo esc_html( torantejarat_home_faq_slot( 0, 'q' ) ); ?></summary>
+						<p><?php echo esc_html( torantejarat_home_faq_slot( 0, 'a' ) ); ?></p>
 					</details>
 					<?php if ( torantejarat_is_preview() ) : ?>
 						<details>
@@ -210,13 +210,19 @@ get_header();
 						</details>
 					<?php endif; ?>
 					<details>
-						<summary><?php esc_html_e( 'آیا همه دوربین‌ها برای محیط مرطوب مناسب‌اند؟', 'torantejarat' ); ?></summary>
-						<p><?php esc_html_e( 'محدوده مقاومت هر بخش دستگاه باید از دفترچه همان مدل بررسی شود. مشخصات هد لزوماً درباره نمایشگر یا اتصال‌ها صدق نمی‌کند.', 'torantejarat' ); ?></p>
+						<summary><?php echo esc_html( torantejarat_home_faq_slot( 1, 'q' ) ); ?></summary>
+						<p><?php echo esc_html( torantejarat_home_faq_slot( 1, 'a' ) ); ?></p>
 					</details>
 					<details>
-						<summary><?php esc_html_e( 'برای مشاوره چه اطلاعاتی آماده کنم؟', 'torantejarat' ); ?></summary>
-						<p><?php esc_html_e( 'کاربرد، قطر ورودی، طول مسیر، شرایط محیط و بودجه تقریبی. عکس محل بازرسی هم می‌تواند به بررسی بهتر کمک کند.', 'torantejarat' ); ?></p>
+						<summary><?php echo esc_html( torantejarat_home_faq_slot( 2, 'q' ) ); ?></summary>
+						<p><?php echo esc_html( torantejarat_home_faq_slot( 2, 'a' ) ); ?></p>
 					</details>
+<?php foreach ( torantejarat_home_faq_extra() as $torantejarat_faq_item ) : ?>
+					<details>
+						<summary><?php echo esc_html( $torantejarat_faq_item['q'] ); ?></summary>
+						<p><?php echo esc_html( $torantejarat_faq_item['a'] ); ?></p>
+					</details>
+<?php endforeach; ?>
 				</div>
 			</div></section>
 
