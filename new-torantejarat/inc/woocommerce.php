@@ -370,7 +370,7 @@ function torantejarat_product_categories( $home = false ) {
 		return;
 	}
 	echo '<div class="' . ( $home ? 'torantejarat-category-grid' : 'torantejarat-shop-categories' ) . '">';
-	foreach ( $terms as $index => $term ) {
+	foreach ( $terms as $term ) {
 		$url = get_term_link( $term );
 		if ( is_wp_error( $url ) ) { continue; }
 		$torantejarat_icons = array(
@@ -384,7 +384,7 @@ function torantejarat_product_categories( $home = false ) {
 		$torantejarat_mod  = $home && isset( $torantejarat_icons[ $term->slug ] ) ? ' is-' . $term->slug : '';
 		echo '<a class="' . ( $home ? 'torantejarat-category-card' . $torantejarat_mod : 'torantejarat-category-link' ) . '" href="' . esc_url( $url ) . '"' . ( is_tax( 'product_cat', $term->term_id ) ? ' aria-current="page"' : '' ) . '>';
 		if ( $home ) {
-			echo '<span class="torantejarat-category-number" aria-hidden="true">' . esc_html( sprintf( '%02d', $index + 1 ) ) . '</span><span class="torantejarat-category-icon">'; torantejarat_icon( $torantejarat_icon ); echo '</span><h3>' . esc_html( $term->name ) . '</h3><p>' . esc_html( wp_trim_words( wp_strip_all_tags( $term->description ), 18 ) ) . '</p><span class="torantejarat-category-foot"><span class="torantejarat-category-count">' . esc_html( sprintf( __( '%s دستگاه', 'torantejarat' ), torantejarat_fa_number( $term->count ) ) ) . '</span><span class="torantejarat-category-arrow">'; torantejarat_icon( 'arrow' ); echo '</span></span>';
+			echo '<span class="torantejarat-category-icon">'; torantejarat_icon( $torantejarat_icon ); echo '</span><h3>' . esc_html( $term->name ) . '</h3><p>' . esc_html( wp_trim_words( wp_strip_all_tags( $term->description ), 18 ) ) . '</p><span class="torantejarat-category-foot"><span class="torantejarat-category-count">' . esc_html( sprintf( __( '%s دستگاه', 'torantejarat' ), torantejarat_fa_number( $term->count ) ) ) . '</span><span class="torantejarat-category-arrow">'; torantejarat_icon( 'arrow' ); echo '</span></span>';
 		} else {
 			echo '<span>' . esc_html( $term->name ) . '</span><b>' . esc_html( torantejarat_fa_number( $term->count ) ) . '</b>';
 		}
