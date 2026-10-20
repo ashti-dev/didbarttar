@@ -276,6 +276,13 @@ function torantejarat_panel_readiness() {
 		$items[] = array( 'label' => 'ایمیل فرستندهٔ ووکامرس روی مقدار نمونه است', 'section' => 'general', 'sub' => '' );
 	}
 
+	// Publish mode: either half of preview means the site is not fully public.
+	$coming_soon = (string) get_option( 'woocommerce_coming_soon', 'no' );
+	$blog_public = (string) get_option( 'blog_public', '1' );
+	if ( 'yes' === $coming_soon || '0' === $blog_public ) {
+		$items[] = array( 'label' => 'حالت انتشار روی پیش‌نمایش/غیرعمومی است', 'section' => 'general', 'sub' => '' );
+	}
+
 	// Local/dev URLs and demo social profiles — display only, never rewritten here.
 	$general     = get_option( 'torantejarat_general', array() );
 	$general     = is_array( $general ) ? $general : array();

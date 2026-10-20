@@ -33,6 +33,7 @@ require_once __DIR__ . '/settings/helpers.php';
 // manageable from the command line); helpers serve both sides.
 if ( is_admin() || ( defined( 'WP_CLI' ) && WP_CLI ) ) {
 	require_once __DIR__ . '/settings/panel-nav.php';
+	require_once __DIR__ . '/settings/publish-mode.php';
 	require_once __DIR__ . '/settings/class-theme-settings.php';
 }
 

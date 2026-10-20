@@ -849,9 +849,86 @@ final class TT_Settings {
 							</div>
 						</form>
 					<?php endif; ?>
+					<?php if ( 'general' === $active ) : ?>
+						<?php $this->render_publish_mode(); ?>
+					<?php endif; ?>
 				</main>
 			</div>
 		</div>
+		<?php
+	}
+
+	/**
+	 * Publish-mode card on the General tab.
+	 *
+	 * Display-only status plus a separate admin-post form. It never enters the
+	 * Settings API form, so $schema, sanitize and the stored option stay untouched.
+	 */
+	private function render_publish_mode() {
+		$coming_soon = (string) get_option( 'woocommerce_coming_soon', 'no' );
+		$blog_public = (string) get_option( 'blog_public', '1' );
+		$is_public   = ( 'no' === $coming_soon && '1' === $blog_public );
+		$is_preview  = ( 'yes' === $coming_soon && '0' === $blog_public );
+		$mode_label  = $is_public ? __( 'عمومی', 'torantejarat' ) : ( $is_preview ? __( 'پیش‌نمایش', 'torantejarat' ) : __( 'ناهمخوان', 'torantejarat' ) );
+		$selected    = $is_public ? 'public' : 'preview';
+
+		$notice  = isset( $_GET['tt_publish'] ) ? sanitize_key( wp_unslash( $_GET['tt_publish'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Status display only.
+		$notices = array(
+			'public'  => array( 'success', __( 'حالت عمومی فعال شد.', 'torantejarat' ) ),
+			'preview' => array( 'success', __( 'حالت پیش‌نمایش فعال شد.', 'torantejarat' ) ),
+			'email'   => array( 'error', __( 'برای رفتن به حالت عمومی، ابتدا ایمیل‌های نمونه را اصلاح کنید.', 'torantejarat' ) ),
+			'confirm' => array( 'error', __( 'برای رفتن به حالت عمومی، تأیید لازم است.', 'torantejarat' ) ),
+			'invalid' => array( 'error', __( 'حالت انتخاب‌شده معتبر نیست.', 'torantejarat' ) ),
+		);
+		?>
+		<section class="tt-publish-mode" id="tt-publish-mode">
+			<h2 class="tt-group-title">
+				<span class="dashicons dashicons-visibility"></span>
+				<?php esc_html_e( 'حالت انتشار', 'torantejarat' ); ?>
+			</h2>
+			<?php if ( isset( $notices[ $notice ] ) ) : ?>
+				<div class="notice notice-<?php echo esc_attr( $notices[ $notice ][0] ); ?>">
+					<p><?php echo esc_html( $notices[ $notice ][1] ); ?></p>
+				</div>
+			<?php endif; ?>
+			<p class="description">
+				<?php esc_html_e( 'این وضعیت از دو گزینهٔ بومی وردپرس/ووکامرس خوانده می‌شود و در تنظیمات عمومی قالب ذخیره نمی‌شود.', 'torantejarat' ); ?>
+			</p>
+			<div class="tt-field">
+				<span class="tt-label"><?php esc_html_e( 'وضعیت فعلی', 'torantejarat' ); ?></span>
+				<div class="tt-control">
+					<p>
+						<strong><?php echo esc_html( $mode_label ); ?></strong>
+						— <?php echo esc_html( sprintf( 'woocommerce_coming_soon=%s / blog_public=%s', $coming_soon, $blog_public ) ); ?>
+					</p>
+				</div>
+			</div>
+			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="tt-form">
+				<input type="hidden" name="action" value="torantejarat_publish_mode">
+				<?php wp_nonce_field( 'torantejarat_publish_mode' ); ?>
+				<fieldset>
+					<legend class="tt-label"><?php esc_html_e( 'حالت مقصد', 'torantejarat' ); ?></legend>
+					<label>
+						<input type="radio" name="mode" value="preview" <?php checked( 'preview' === $selected ); ?>>
+						<?php esc_html_e( 'پیش‌نمایش — فروشگاه به‌زودی، سایت noindex', 'torantejarat' ); ?>
+					</label>
+					<br>
+					<label>
+						<input type="radio" name="mode" value="public" <?php checked( 'public' === $selected ); ?>>
+						<?php esc_html_e( 'عمومی — فروشگاه باز، سایت ایندکس', 'torantejarat' ); ?>
+					</label>
+				</fieldset>
+				<p>
+					<label>
+						<input type="checkbox" name="confirm" value="yes">
+						<?php esc_html_e( 'تأیید می‌کنم که برای حالت عمومی، ایمیل‌ها واقعی هستند.', 'torantejarat' ); ?>
+					</label>
+				</p>
+				<p class="tt-footer">
+					<button type="submit" class="button button-primary"><?php esc_html_e( 'اعمال حالت', 'torantejarat' ); ?></button>
+				</p>
+			</form>
+		</section>
 		<?php
 	}
 
