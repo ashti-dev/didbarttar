@@ -479,3 +479,6 @@
 - `torantejarat_general.topbar_link = http://127.0.0.1:8098/contact/` — آدرس لوکال؛ قبل از انتشار باید دامنهٔ واقعی شود. **مقدار دست نخورد.**
 - `admin_email` و `woocommerce_email_from_address` = `admin@example.com` — بلاکر انتشار.
 - `torantejarat_social` = اینستاگرام/تلگرام نمایشی — دست‌نخورده.
+
+### یادداشت مالک — مقادیر هیرو (۲۰۲۶-۱۰-۲۰)
+- مقادیر `hero_kicker`، `hero_lead` و `hero_foot_1` در `torantejarat_home` **وارد شده توسط مالک** هستند و بدون دستور صریح تغییر نمی‌کنند.
