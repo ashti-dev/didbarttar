@@ -480,5 +480,8 @@
 - `admin_email` و `woocommerce_email_from_address` = `admin@example.com` — بلاکر انتشار.
 - `torantejarat_social` = اینستاگرام/تلگرام نمایشی — دست‌نخورده.
 
+### یادداشت وضعیت فعلی (۲۰۲۶-۱۰-۲۱)
+- phase32 T2 ناسبز (baseline قدیمی)؛ T3 سبز؛ notice global-styles منشأ تأیید نشده.
+
 ### یادداشت مالک — مقادیر هیرو (۲۰۲۶-۱۰-۲۰)
 - مقادیر `hero_kicker`، `hero_lead` و `hero_foot_1` در `torantejarat_home` **وارد شده توسط مالک** هستند و بدون دستور صریح تغییر نمی‌کنند.
