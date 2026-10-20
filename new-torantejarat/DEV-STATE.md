@@ -446,7 +446,7 @@
 - بقیهٔ هش‌ها بدون تغییر: `class-theme-settings.php 2A1CA897…`, `panel-nav.php 78C14656…`, `panel-search.js 00B2ECB8…`, `admin-settings.js 338C770C…`, `bootstrap.php 588ADF7D…`, `presentation.php CF5C9572…`, `front-page.php 56CF2CEB…`, `DEV-STATE.md 7FA31CC9…`.
 
 ### وضعیت این دور
-- **تأیید بصری پنل: توسط مالک، تاریخ ۲۰۲۶-۱۰-۲۰، روی wp-admin.**
+- **تأیید بصری توسط مالک (گزارش شفاهی).**
 - بدون `git add` (هیچ چیز stage نشده)، بدون commit، بدون push.
 
 ## فاز ۳.۳ — ایزوله‌سازی T2 (تشخیصی، صفر نوشتن DB) — ۲۰۲۶-۱۰-۲۰
