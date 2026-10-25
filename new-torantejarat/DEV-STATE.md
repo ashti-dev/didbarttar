@@ -13,7 +13,17 @@
 | TT-005-A | اصلاح شد | Parse + DOM smoke | در انتظار Staging | امنیت No-JS و Registration Policy/Customer API |
 | TT-005-B | اصلاح شد | Parse + source assertions | در انتظار Staging | Login/Recovery با موبایلِ یکتا و حفظ ایمیل نقطه‌دار |
 | TT-006 | اصلاح شد | Parse هر ۷۲ PHP + ۲۱ JS + DOM smoke | در انتظار Staging | علاقه‌مندی واقعی با REST سازگار، Native fallback و کنترل‌های صادقانه |
+| UX-001 | اصلاح شد | PHP/JS/CSS Parse + source/print assertions | در انتظار Staging | تطبیق ایده‌های `sample woo` و بازطراحی صفحهٔ تشکر/بعد از خرید |
 | TT-029 | اصلاح شد | انجام شد؛ هر ۲۰ JS | در انتظار Staging | رفع خطای Parse اسکریپت ویدیوی محصول در ادمین |
+
+### UX-001 — تطبیق `sample woo` و بازطراحی صفحهٔ تشکر
+
+- **منبع بررسی:** پوشهٔ `sample woo` روی `arena/01a0c314-didbarttar` در Commitِ `bdbf720` بررسی شد. هر ۲۸ PHP و ۳ JS نمونه از نظر Syntax سالم بودند؛ این فقط Parse است، نه تأیید Runtime یا سازگاری با قالب.
+- **تغییر اعمال‌شده:** `woocommerce/checkout/thankyou.php` و `assets/css/thankyou.css` با کلاس‌ها، Text Domain و وضعیت‌های خود قالب بازطراحی شدند. Hero وضعیت‌محور، شماره/تاریخ/مبلغ/تعداد اقلام، مسیر ثبت تا تحویل، راهنمای درگاه، کارت اقلام، خلاصهٔ مالی، اطلاعات گیرنده/ایمیل/کد رهگیری، اقدام بعدی و حالت‌های Failed/Empty ساختار تازه گرفتند. متن‌ها مستقل بازنویسی شدند و در این Template نیم‌فاصله با فاصلهٔ معمولی جایگزین شده است.
+- **سازگاری حفظ‌شده:** Helper صادقانهٔ وضعیت پرداخت، Shipping/Refund/Fee/Tax/Payment rows، Item Visibility/Meta/Purchase Note، Download مجاز، Customer Note، Currency سفارش و Hookهای Woo حفظ شدند. Gateway Hook در هر شاخه فقط یک‌بار اجرا می‌شود. Markup فاکتور چاپی و CSS مربوط به Print نسبت به HEAD قبلی byte-identical است.
+- **موارد عمداً واردنشده:** Loader و Prefixهای FrontBaz، Shortcode و Fallback مبتنی بر `order_id` در GET، تغییرات سراسری Hook/Field، و Overrideهای Cart/Checkout/My Account کپی نشدند؛ با معماری و Endpointهای فعلی هم‌پوشانی دارند. متن نمونه که هر وضعیت غیر Failed را «موفق/در حال بسته‌بندی» نشان می‌دهد و ادعای بدون‌مبنای ضمانت نیز استفاده نشد. بنابراین این لاگ ادغام کامل Package یا بازطراحی همهٔ صفحات Woo نیست.
+- **تست انجام‌شده:** Parse هر ۷۲ PHP و ۲۱ JS؛ Parse فایل CSS با PostCSS (۱۷۰ Rule)؛ Source assertions برای Hookها، اقلام/مبلغ/Refund/Download و نبود Prefix نمونه؛ تطابق بخش Print با نسخهٔ قبلی؛ `git diff --check`.
+- **تست باقی‌مانده:** بررسی بصری در مرورگر و عرض‌های ۳۲۰/۳۹۰/۷۶۸/۱۴۴۰، چاپ واقعی، و ماتریس Online/COD/BACS در Pending، On-hold، Processing، Shipped، Completed، Failed، Cancelled و Refunded روی Staging. خروجی درگاه و افزونه‌های ثالث نیز باید با سفارش واقعی بررسی شود؛ Runtime در این محیط اجرا نشده است.
 
 ### TT-006 — علاقه‌مندی‌ها و حذف کنترل نمایشی
 
