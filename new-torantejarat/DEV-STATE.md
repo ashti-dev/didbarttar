@@ -8,7 +8,15 @@
 |---|---|---|---|---|
 | TT-001 | اصلاح شد | انجام شد | در انتظار Staging | بازگرداندن `billing_email` به Checkout |
 | TT-002 | اصلاح شد | DOM smoke + هر ۲۰ JS | در انتظار Staging | محدودسازی AJAX Cart به فرم داخلی سازگار |
+| TT-003 | اصلاح شد | Parse هر ۷۲ PHP | در انتظار Staging | جداسازی وضعیت پرداخت از ارسال در فاکتور و رسید |
 | TT-029 | اصلاح شد | انجام شد؛ هر ۲۰ JS | در انتظار Staging | رفع خطای Parse اسکریپت ویدیوی محصول در ادمین |
+
+### TT-003 — وضعیت صادقانهٔ پرداخت و ارسال
+
+- **تغییر:** Helper مشترک `torantejarat_order_status_badge()` در `inc/woocommerce.php` اضافه و در هدر فاکتور و `woocommerce/checkout/thankyou.php` مصرف شد؛ حالت‌های Failed/Cancelled/Refunded نیز رنگ و برچسب مستقل گرفتند.
+- **منطق:** COD دیگر صرفاً به‌خاطر Processing/Completed «پرداخت شد» نمی‌شود. BACS روی On-hold در انتظار پرداخت می‌ماند. در سفارش غیر CODِ ارسال‌شده، `date_paid` نیز در کنار `is_paid()` ملاک است تا خروج از Paid Statusهای جاری، سابقهٔ پرداخت را مخفی نکند. اگر پرداخت قابل‌اثبات نباشد، برچسب فقط مرحلهٔ ارسال/تحویل را می‌گوید.
+- **تست انجام‌شده:** Parse هر ۷۲ فایل PHP با `php-parser`، بررسی مصرف‌کنندهٔ قدیمی و `git diff --check`.
+- **تست باقی‌مانده:** ماتریس Online/COD/BACS در Pending، On-hold، Processing، Shipped، Completed، Failed و Refunded روی Staging؛ تطابق برچسب با پرداخت واقعی Gateway و ادمین.
 
 ### TT-002 — AJAX Cart با انواع محصول
 

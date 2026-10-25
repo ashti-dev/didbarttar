@@ -99,6 +99,16 @@
 	color: #9a4a17;
 }
 
+.torantejarat-thx__badge--failed {
+	background: #fef2f2;
+	color: #b91c1c;
+}
+
+.torantejarat-thx__badge--shipped {
+	background: #eff6ff;
+	color: #1d4ed8;
+}
+
 .torantejarat-thx__meta {
 	display: grid;
 	grid-template-columns: repeat(4, minmax(0, 1fr));
