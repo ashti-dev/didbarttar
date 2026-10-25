@@ -1497,6 +1497,8 @@ function torantejarat_checkout_fields( $fields ) {
 		'billing_address_1'  => array( 'label' => __( 'آدرس خیابان', 'torantejarat' ), 'placeholder' => __( 'نام خیابان، پلاک و واحد', 'torantejarat' ), 'priority' => 50, 'autocomplete' => 'street-address', 'class' => array( 'form-row-wide' ) ),
 		'billing_postcode'   => array( 'label' => __( 'کد پستی', 'torantejarat' ), 'placeholder' => __( 'کد پستی ۱۰ رقمی', 'torantejarat' ), 'priority' => 60, 'autocomplete' => 'postal-code', 'class' => array( 'form-row-first' ), 'custom_attributes' => array( 'dir' => 'ltr', 'inputmode' => 'numeric' ) ),
 		'billing_phone'      => array( 'label' => __( 'تلفن همراه', 'torantejarat' ), 'placeholder' => '09123456789', 'priority' => 70, 'autocomplete' => 'tel', 'class' => array( 'form-row-last' ), 'custom_attributes' => array( 'dir' => 'ltr' ) ),
+		// WooCommerce uses this field for order emails and checkout account creation.
+		'billing_email'      => array( 'label' => __( 'ایمیل', 'torantejarat' ), 'placeholder' => 'name@example.com', 'priority' => 80, 'autocomplete' => 'email', 'class' => array( 'form-row-wide' ), 'custom_attributes' => array( 'dir' => 'ltr', 'inputmode' => 'email' ) ),
 	);
 	$billing = array();
 	foreach ( $keep as $key => $overrides ) {
