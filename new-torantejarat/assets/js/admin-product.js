@@ -21,13 +21,13 @@
 				$preview.html($('<video>', { controls: true, preload: 'none', src: src, css: { width: '100%' } }));
 			} else if (/aparat\.com\/(?:v\/|video\/video\/embed\/videohash\/)([a-zA-Z0-9]+)/i.test(src)) {
 				var m = src.match(/aparat\.com\/(?:v\/|video\/video\/embed\/videohash\/)([a-zA-Z0-9]+)/i);
-				$preview.html($('<iframe>', { src: 'https://www.aparat.com/video/video/embed/videohash/' + m[1] + '/vt/frame', css: { width: '100%', height: '200', frameborder: '0', allowfullscreen: true }));
+				$preview.html($('<iframe>', { src: 'https://www.aparat.com/video/video/embed/videohash/' + m[1] + '/vt/frame', css: { width: '100%', height: '200', frameborder: '0', allowfullscreen: true } }));
 			} else if (/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{6,})/.test(src)) {
 				var m = src.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{6,})/);
-				$preview.html($('<iframe>', { src: 'https://www.youtube.com/embed/' + m[1], css: { width: '100%', height: '200', frameborder: '0', allowfullscreen: true }));
+				$preview.html($('<iframe>', { src: 'https://www.youtube.com/embed/' + m[1], css: { width: '100%', height: '200', frameborder: '0', allowfullscreen: true } }));
 			} else if (/vimeo\.com\/(\d+)/.test(src)) {
 				var m = src.match(/vimeo\.com\/(\d+)/);
-				$preview.html($('<iframe>', { src: 'https://player.vimeo.com/video/' + m[1], css: { width: '100%', height: '200', frameborder: '0', allowfullscreen: true }));
+				$preview.html($('<iframe>', { src: 'https://player.vimeo.com/video/' + m[1], css: { width: '100%', height: '200', frameborder: '0', allowfullscreen: true } }));
 			} else {
 				$preview.html($('<p>', { class: 'description', css: { overflowWrap: 'anywhere' }, text: src }));
 			}
