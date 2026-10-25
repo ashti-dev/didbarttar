@@ -11,6 +11,7 @@
 
 use function ToranTejarat\Theme\torantejarat_jalali_ymd;
 use function ToranTejarat\Theme\torantejarat_fa_number;
+use function ToranTejarat\Theme\torantejarat_order_payment_state;
 use function ToranTejarat\Theme\torantejarat_tracking_carrier_label;
 
 defined( 'ABSPATH' ) || exit;
@@ -60,7 +61,6 @@ endif;
 $created   = $order->get_date_created();
 $status    = $order->get_status();
 $is_cod    = 'cod' === $order->get_payment_method();
-$is_paid   = $order->is_paid();
 $tracking       = $order->get_meta( '_torantejarat_tracking' );
 $tracking_label = torantejarat_tracking_carrier_label( $order->get_meta( '_torantejarat_carrier' ) );
 
@@ -75,16 +75,14 @@ $headlines = array(
 );
 $headline  = isset( $headlines[ $status ] ) ? $headlines[ $status ] : __( 'سفارش شما ثبت شد', 'torantejarat' );
 
-if ( $is_paid ) {
-	$badge_text = __( 'پرداخت شد', 'torantejarat' );
-	$badge_cls  = '';
-} elseif ( $is_cod ) {
-	$badge_text = __( 'پرداخت هنگام تحویل', 'torantejarat' );
-	$badge_cls  = ' torantejarat-thx__badge--pending';
-} else {
-	$badge_text = __( 'در انتظار پرداخت', 'torantejarat' );
-	$badge_cls  = ' torantejarat-thx__badge--pending';
-}
+/*
+ * Payment badge comes from the payment state only; the headline and the steps
+ * below describe fulfilment, so a "shipped" order still reads as paid and a
+ * COD/BACS order never claims money that has not been collected yet.
+ */
+$payment_state = torantejarat_order_payment_state( $order );
+$badge_text    = $payment_state['label'];
+$badge_cls     = 'paid' === $payment_state['key'] ? '' : ' torantejarat-thx__badge--pending';
 
 $pay_label = $is_cod ? __( 'پرداخت نقدی هنگام تحویل', 'torantejarat' ) : $order->get_payment_method_title();
 

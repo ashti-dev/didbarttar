@@ -124,10 +124,43 @@
 		setAddedState($btn);
 	});
 
+	/**
+	 * WooCommerce's wc-ajax add_to_cart endpoint only reads product_id/quantity.
+	 * Hijacking anything else drops the customer's choices, so only Simple
+	 * product forms go through AJAX:
+	 * - Variable (variations_form) must submit natively so core validates the
+	 *   chosen variation_id/attributes, price and stock.
+	 * - External is a GET form whose action is the partner URL.
+	 * - Grouped posts quantity[] and is handled natively.
+	 */
+	function isSameOrigin(url) {
+		var anchor = document.createElement('a');
+		anchor.href = url;
+		return !anchor.host || anchor.host === window.location.host;
+	}
+
+	function isSimpleProductForm($form) {
+		if ($form.hasClass('variations_form') || $form.hasClass('grouped_form')) {
+			return false;
+		}
+
+		if ('post' !== String($form.attr('method') || '').toLowerCase()) {
+			return false;
+		}
+
+		if ($form.find('input[name="variation_id"], select[name^="attribute_"], input[name^="quantity["]').length) {
+			return false;
+		}
+
+		var action = $form.attr('action');
+
+		return !action || isSameOrigin(action);
+	}
+
 	$(document).on('submit', 'form.cart', function (e) {
 		var $form = $(this);
 
-		if ($form.find('input[name^="quantity["]').length) {
+		if (e.isDefaultPrevented() || !isSimpleProductForm($form)) {
 			return;
 		}
 
@@ -137,16 +170,17 @@
 			return;
 		}
 
+		var formData = new FormData(this);
+		var productId = formData.get('product_id') || formData.get('add-to-cart') || $btn.val();
+
+		// Without a real product ID, fall back to WooCommerce's native submit.
+		if (!productId || !/^\d+$/.test(String(productId))) {
+			return;
+		}
+
 		e.preventDefault();
 
-		var formData = new FormData(this);
-
-		if (!formData.get('product_id')) {
-			var addToCartVal = formData.get('add-to-cart') || $btn.val();
-			if (addToCartVal) {
-				formData.set('product_id', addToCartVal);
-			}
-		}
+		formData.set('product_id', productId);
 
 		if (!formData.get('quantity')) {
 			formData.set('quantity', 1);

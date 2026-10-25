@@ -1,0 +1,201 @@
+/* ==========================================================================
+   FrontBaz WooCommerce Framework
+   Package     : FrontBaz Store Framework
+   Module      : Core Base & Design System (هسته پایه و دیزاین‌سیستم فرانت‌باز)
+   File        : assets/css/fb-base.css
+   Author      : Sina Samipour (FrontBaz)
+   Description : Single Source of Truth (SSOT) for Design Tokens, Presets,
+                 and Global Foundation across all WooCommerce templates.
+   Namespace   : All custom classes strictly adhere to .fb- prefix.
+   ========================================================================== */
+
+:root {
+	/* --- Brand Palette / پالت رنگی اصلی --- */
+	--fb-primary: #024a4c;
+	--fb-primary-hover: #013a3c;
+	--fb-primary-light: rgba(2, 74, 76, 0.08);
+	--fb-primary-border: rgba(2, 74, 76, 0.15);
+	--fb-accent: var(--fb-primary);
+
+	/* --- Semantic & Status Palette / پالت وضعیت‌ها --- */
+	--fb-success: #10b981;
+	--fb-success-hover: #059669;
+	--fb-success-light: #ecfdf5;
+	--fb-danger: #ef4444;
+	--fb-danger-hover: #dc2626;
+	--fb-danger-light: #fef2f2;
+	--fb-danger-border: #fecaca;
+	--fb-warning: #f59e0b;
+	--fb-warning-hover: #d97706;
+	--fb-warning-light: #fffbeb;
+	--fb-info: #3b82f6;
+	--fb-info-hover: #2563eb;
+	--fb-info-light: #eff6ff;
+
+	/* --- Typography & Text Hierarchy / تایپوگرافی و رنگ‌های متن --- */
+	--fb-font-family: 'Vazirmatn', -apple-system, sans-serif;
+	--fb-font-weight-num: 500;
+	--fb-font-weight-title: 700;
+	--fb-font-weight-bold: 800;
+	--fb-qty-font-weight: 500;
+	--fb-text-main: #111827;
+	--fb-text-body: var(--fb-text-main);
+	--fb-text-muted: #64748b;
+	--fb-text-subtle: #94a3b8;
+	--fb-text-accent: #024a4c;
+	--fb-text-on-primary: #ffffff;
+
+	/* --- Surfaces & Backgrounds / سطوح و پس‌زمینه‌ها --- */
+	--fb-bg-card: #ffffff;
+	--fb-bg-subtle: #f8fafc;
+	--fb-bg-elevated: #ffffff;
+
+	/* --- Borders & Dividers / خطوط کادر و جداکننده‌ها --- */
+	--fb-border-color: #e5e7eb;
+	--fb-border-light: #f1f5f9;
+	--fb-border-hover: #cbd5e1;
+	--fb-border-focus: var(--fb-primary);
+
+	/* --- Standardized Border Radius (Strict 8px System) --- */ 
+	--fb-radius-box: 8px;
+	--fb-radius-card: 8px;
+	--fb-radius-lg: 8px;
+	--fb-radius-md: 8px;
+	--fb-radius-sm: 6px;
+	--fb-radius-btn: 8px;
+	--fb-radius-pill: 20px;
+	--fb-radius-full: 9999px;
+
+	/* --- Standard Shadows / سایه‌ها --- */
+	--fb-shadow-card: 0 4px 16px -2px rgba(0, 0, 0, 0.04);
+	--fb-shadow-hover: 0 4px 16px -2px rgba(0, 0, 0, 0.04);
+	--fb-shadow-hero: 0 10px 30px -5px rgba(2, 74, 76, 0.05);
+
+	/* --- Interaction & Hover Policy Tokens --- */
+	--fb-hover-lift: 0px;
+
+	/* --- Primary Buttons / دکمه‌های اصلی --- */ 
+	--fb-btn-bg: var(--fb-primary);
+	--fb-btn-bg-hover: var(--fb-primary-hover);
+	--fb-btn-text-color: #ffffff;
+	--fb-btn-radius: 8px;
+	--fb-btn-height: 48px;
+	--fb-btn-shadow: 0 8px 16px -2px rgba(1, 35, 36, 0.32);
+	--fb-btn-shadow-hover: 0 8px 16px -2px rgba(1, 35, 36, 0.32);
+
+	/* --- Form Controls / اینپوت‌ها و فیلدهای ورودی --- */
+	--fb-input-height: 46px;
+	--fb-input-radius: 8px;
+	--fb-input-border: #e5e7eb;
+	--fb-input-bg: #ffffff;
+}
+
+
+
+/* ==========================================================================
+   Master Outer Wrappers: Pure Zero-Spacing (Full Elementor Container Control)
+   ========================================================================== */
+.fb-cart-wrapper,
+.fb-checkout-wrapper,
+.fb-myaccount-wrapper,
+.fb-thankyou-wrapper,
+.elementor-widget-woocommerce-cart .e-cart__container,
+.elementor-widget-woocommerce-checkout-page .woocommerce {
+	margin: 0 !important;
+	padding: 0 !important;
+	width: 100% !important;
+	max-width: 100% !important;
+	box-sizing: border-box !important;}
+
+/* Typography Enforcement for Master FrontBaz Wrappers & Buttons */
+:is(.fb-cart-wrapper, .fb-checkout-wrapper, .fb-myaccount-wrapper, .fb-thankyou-wrapper),
+:is(.fb-cart-wrapper, .fb-checkout-wrapper, .fb-myaccount-wrapper, .fb-thankyou-wrapper) :is(button, input, select, textarea),
+:is(.fb-btn-primary, .fb-btn-outline, .fb-btn-sm) {
+	font-family: var(--fb-font-family) !important;
+}
+
+/* Unified Master Primary Button (SSOT) */
+.fb-btn-primary {
+	height: var(--fb-btn-height, 48px) !important;
+	min-height: var(--fb-btn-height, 48px) !important;
+	border-radius: var(--fb-btn-radius, 8px) !important;
+	background: var(--fb-btn-bg) !important;
+	color: var(--fb-btn-text-color) !important;
+	border: none !important;
+	font-family: var(--fb-font-family) !important;
+	font-size: 0.90625rem !important;
+	font-weight: 700 !important;
+	cursor: pointer !important;
+	display: inline-flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	gap: 4px !important;
+	padding: 0 24px !important;
+	box-shadow: var(--fb-btn-shadow) !important;
+	text-decoration: none !important;
+	user-select: none !important;
+	margin: 0 !important;
+	line-height: 1 !important;
+	transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;}
+
+.fb-btn-primary:hover,
+.fb-btn-primary:focus,
+.fb-btn-primary:active {
+	background: var(--fb-btn-bg-hover) !important;
+	color: #ffffff !important;
+	box-shadow: var(--fb-btn-shadow-hover) !important;
+	text-decoration: none !important;}
+
+.fb-btn-sm {
+	height: 38px !important;
+	min-height: 38px !important;
+	font-size: 0.8125rem !important;
+	padding: 0 14px !important;}
+
+/* Select2 Accessibility Protection: Prevent hidden select from causing RTL layout overflow */
+select.select2-hidden-accessible {
+	width: 1px !important;
+	height: 1px !important;
+	padding: 0 !important;
+	margin: -1px !important;
+	border: 0 !important;
+	clip: rect(0, 0, 0, 0) !important;
+	-webkit-clip-path: inset(50%) !important;
+	clip-path: inset(50%) !important;
+	overflow: hidden !important;
+	position: absolute !important;
+	white-space: nowrap !important;}
+
+
+
+.fb-order-total-val :is(.woocommerce-Price-amount, bdi),
+.fb-meta-total :is(.woocommerce-Price-amount, bdi),
+.fb-btn-amount :is(.woocommerce-Price-amount, bdi),
+.fb-checkout-submit-amount :is(.woocommerce-Price-amount, bdi),
+.fb-cart-submit-amount :is(.woocommerce-Price-amount, bdi),
+.fb-checkout-submit-btn bdi,
+.fb-cart-submit-btn bdi,
+.fb-mobile-bar-btn bdi {
+	direction: rtl !important;
+	unicode-bidi: isolate !important;
+}
+
+/* Clean WooCommerce Notices (Universal) */
+.woocommerce-message,
+.woocommerce-info,
+.woocommerce-error {
+	border-radius: var(--fb-radius-card) !important;
+	font-family: var(--fb-font-family) !important;
+	font-size: 0.84375rem !important;
+	line-height: 1.6 !important;
+	margin-bottom: 24px !important;
+}
+
+:is(.woocommerce-message, .woocommerce-info, .woocommerce-error) a {
+	color: var(--fb-text-main) !important;
+	font-family: var(--fb-font-family) !important;
+}
+
+:is(.woocommerce-message, .woocommerce-info, .woocommerce-error) :is(.button, .wc-forward) {
+	border-radius: var(--fb-radius-md) !important;
+}

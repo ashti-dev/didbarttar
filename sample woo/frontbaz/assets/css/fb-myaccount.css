@@ -1,0 +1,3251 @@
+/* ==========================================================================
+   FrontBaz WooCommerce Framework
+   Package     : FrontBaz Store Framework
+   Module      : My Account (صفحه حساب کاربری)
+   File        : assets/css/fb-myaccount.css
+   Author      : Sina Samipour (FrontBaz)
+   Description : Native RTL styling for My Account. Inherits design tokens from fb-base.css.
+   Namespace   : All custom classes strictly adhere to .fb- prefix.
+   ========================================================================== */
+
+/* Master Wrapper (Zero-spacing for Elementor container control) */
+.fb-myaccount-wrapper {
+	margin: 0 !important;
+	padding: 0 !important;
+	width: 100% !important;
+	max-width: 100% !important;
+	text-align: start !important;
+	font-family: var(--fb-font-family) !important;
+	box-sizing: border-box !important;
+	clear: both !important;
+}
+
+.fb-myaccount-wrapper *,
+.fb-myaccount-wrapper *::before,
+.fb-myaccount-wrapper *::after {
+	box-sizing: border-box !important;
+}
+
+/* Hide Default WooCommerce Account Elements outside our custom grid */
+.fb-myaccount-wrapper > .woocommerce-MyAccount-navigation:not(.fb-myaccount-nav),
+.woocommerce-account .page-content > .woocommerce > .woocommerce-MyAccount-navigation:not(.fb-myaccount-nav) {
+	display: none !important;
+}
+
+/* WooCommerce Notices */
+.fb-myaccount-wrapper .woocommerce-notices-wrapper,
+.woocommerce-account .woocommerce-notices-wrapper {
+	margin-bottom: 24px !important;
+	width: 100% !important;
+}
+
+
+/* Two-Column Grid */
+.fb-myaccount-grid {
+	display: grid !important;
+	grid-template-columns: 290px minmax(0, 1fr) !important;
+	gap: 28px !important;
+	align-items: start !important;
+	width: 100% !important;
+}
+
+/* ==========================================================================
+   Sidebar: Profile Card & Navigation
+   ========================================================================== */
+.fb-myaccount-sidebar {
+	position: sticky !important;
+	top: 24px !important;
+}
+
+@media (max-width: 991px) {
+	.fb-myaccount-grid {
+		display: flex !important;
+		flex-direction: column !important;
+		gap: 24px !important;
+	}
+
+	.fb-myaccount-sidebar,
+	.fb-myaccount-main {
+		width: 100% !important;
+		max-width: 100% !important;
+	}
+
+	.fb-myaccount-sidebar {
+		position: static !important;
+	}
+}
+
+.fb-account-nav-card {
+	background: var(--fb-bg-card, #ffffff) !important;
+	border: 2px solid var(--fb-border-color) !important;
+	border-radius: var(--fb-radius-lg, 8px) !important;
+	box-shadow: var(--fb-shadow-card) !important;
+	overflow: hidden !important;
+}
+
+/* User Profile Header */
+.fb-user-profile-header {
+	padding: 24px 20px !important;
+	text-align: center !important;
+	background: var(--fb-bg-card) !important;
+	border-bottom: 1px solid var(--fb-border-light) !important;
+	display: flex !important;
+	flex-direction: column !important;
+	align-items: center !important;
+	justify-content: center !important;
+}
+
+.fb-user-avatar-wrap {
+	width: 72px !important;
+	height: 72px !important;
+	border-radius: 50% !important;
+	overflow: hidden !important;
+	margin-bottom: 12px !important;
+	padding: 3px !important;
+	background: var(--fb-primary) !important;
+	display: flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	box-shadow: 0 4px 12px var(--fb-primary-border) !important;
+}
+
+.fb-user-avatar-img,
+.fb-user-avatar-wrap img,
+.elementor .fb-user-avatar-wrap img {
+	width: 100% !important;
+	height: 100% !important;
+	border-radius: 50% !important;
+	object-fit: cover !important;
+	display: block !important;
+	background: #ffffff !important;
+}
+
+.fb-user-avatar-fallback {
+	width: 100% !important;
+	height: 100% !important;
+	border-radius: 50% !important;
+	background: #ffffff !important;
+	color: var(--fb-primary) !important;
+	font-size: 1.5rem !important;
+	font-weight: 800 !important;
+	display: flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+}
+
+.fb-user-info-meta {
+	display: flex !important;
+	flex-direction: column !important;
+	align-items: center !important;
+	width: 100% !important;
+}
+
+.fb-user-name {
+	font-size: 1rem !important;
+	font-weight: 700 !important;
+	color: var(--fb-text-main) !important;
+	font-family: var(--fb-font-family) !important;
+	margin: 0 0 4px 0 !important;
+	white-space: nowrap !important;
+	overflow: hidden !important;
+	text-overflow: ellipsis !important;
+	max-width: 240px !important;
+	unicode-bidi: plaintext !important;
+}
+
+.fb-user-name a,
+.fb-user-name a:hover,
+.fb-user-name a:focus,
+.fb-user-name a:visited {
+	color: inherit !important;
+	text-decoration: none !important;
+	cursor: default !important;
+	pointer-events: none !important;
+}
+
+.fb-user-email {
+	font-size: 0.78125rem !important;
+	color: var(--fb-text-muted) !important;
+	font-family: var(--fb-font-family) !important;
+	direction: ltr !important;
+	margin-bottom: 8px !important;
+	white-space: nowrap !important;
+	overflow: hidden !important;
+	text-overflow: ellipsis !important;
+	max-width: 240px !important;
+}
+
+.fb-user-badge-wrap {
+	margin-top: 4px !important;
+}
+
+.fb-user-badge {
+	display: inline-block !important;
+	padding: 3px 10px !important;
+	background: var(--fb-primary-light) !important;
+	color: var(--fb-primary) !important;
+	font-family: var(--fb-font-family) !important;
+	font-size: 0.6875rem !important;
+	font-weight: 600 !important;
+	border-radius: var(--fb-radius-pill, 20px) !important;
+	border: 1px solid var(--fb-primary-border) !important;
+}
+
+/* Nav Menu List */
+.fb-myaccount-nav {
+	padding: 10px !important;
+	float: none !important;
+	width: 100% !important;
+	background: transparent !important;
+	border: none !important;
+	margin: 0 !important;
+}
+
+.fb-nav-list {
+	list-style: none !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	display: flex !important;
+	flex-direction: column !important;
+	gap: 4px !important;
+	background: transparent !important;
+	border: none !important;
+}
+
+.fb-nav-item {
+	margin: 0 !important;
+	padding: 0 !important;
+	background: transparent !important;
+	border: none !important;
+}
+
+.fb-nav-item a {
+	display: flex !important;
+	align-items: center !important;
+	gap: 12px !important;
+	padding: 11px 14px !important;
+	border-radius: var(--fb-radius-md, 8px) !important;
+	background: transparent !important;
+	color: var(--fb-text-main) !important;
+	font-family: var(--fb-font-family) !important;
+	font-size: 0.84375rem !important;
+	font-weight: 600 !important;
+	text-decoration: none !important;
+	transition: all 0.2s ease !important;
+	position: relative !important;
+	border: 1px solid transparent !important;
+	box-sizing: border-box !important;
+	width: 100% !important;
+	text-align: start !important;
+}
+
+.fb-nav-icon {
+	display: flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	color: var(--fb-text-muted) !important;
+	transition: all 0.2s ease !important;
+	flex-shrink: 0 !important;
+}
+
+.fb-nav-label {
+	flex: 1 !important;
+}
+
+.fb-nav-badge {
+	display: inline-flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	min-width: 20px !important;
+	height: 20px !important;
+	padding: 0 6px !important;
+	background: #f59e0b !important;
+	color: #ffffff !important;
+	font-size: 0.6875rem !important;
+	font-weight: 700 !important;
+	border-radius: 10px !important;
+}
+
+.fb-nav-item:hover a {
+	background: var(--fb-bg-subtle) !important;
+	color: var(--fb-primary) !important;
+}
+
+.fb-nav-item:hover .fb-nav-icon {
+	color: var(--fb-primary) !important;
+}
+
+/* Active Nav Item */
+.fb-nav-item.fb-active a,
+.fb-nav-item.is-active a {
+	background: var(--fb-primary-light) !important;
+	color: var(--fb-primary) !important;
+	border-color: var(--fb-primary-border) !important;
+	font-weight: 700 !important;
+}
+
+.fb-nav-item.fb-active .fb-nav-icon,
+.fb-nav-item.is-active .fb-nav-icon {
+	color: var(--fb-primary) !important;
+}
+
+/* Logout Item */
+.fb-nav-item.woocommerce-MyAccount-navigation-link--customer-logout {
+	margin-top: 8px !important;
+	border-top: 1px solid var(--fb-border-light) !important;
+	padding-top: 8px !important;
+}
+
+.fb-nav-item.woocommerce-MyAccount-navigation-link--customer-logout a {
+	color: var(--fb-danger) !important;
+}
+
+.fb-nav-item.woocommerce-MyAccount-navigation-link--customer-logout .fb-nav-icon {
+	color: var(--fb-danger) !important;
+}
+
+.fb-nav-item.woocommerce-MyAccount-navigation-link--customer-logout:hover a {
+	background: var(--fb-danger-light);
+	color: var(--fb-danger-hover) !important;
+}
+
+/* Mobile Horizontal Navigation */
+@media (max-width: 991px) {
+	.fb-account-nav-card {
+		overflow: hidden !important;
+	}
+
+	.fb-myaccount-nav {
+		padding: 8px !important;
+		overflow: hidden !important;
+		width: 100% !important;
+	}
+
+	.fb-nav-list {
+		flex-direction: row !important;
+		flex-wrap: nowrap !important;
+		overflow-x: auto !important;
+		overflow-y: hidden !important;
+		scrollbar-width: thin !important;
+		-webkit-overflow-scrolling: touch !important;
+		gap: 6px !important;
+		padding-bottom: 4px !important;
+	}
+
+	.fb-nav-list::-webkit-scrollbar {
+		height: 3px !important;
+	}
+
+	.fb-nav-list::-webkit-scrollbar-track {
+		background: transparent !important;
+	}
+
+	.fb-nav-list::-webkit-scrollbar-thumb {
+		background: var(--fb-border-light, #e2e8f0) !important;
+		border-radius: 4px !important;
+	}
+
+	.fb-nav-item {
+		width: auto !important;
+		flex: 0 0 auto !important;
+		margin: 0 !important;
+		padding: 0 !important;
+	}
+
+	.fb-nav-item a {
+		width: auto !important;
+		white-space: nowrap !important;
+		padding: 8px 12px !important;
+		gap: 6px !important;
+		font-size: 0.8125rem !important;
+	}
+
+	.fb-nav-label {
+		flex: 0 0 auto !important;
+		white-space: nowrap !important;
+	}
+
+	.fb-nav-item.woocommerce-MyAccount-navigation-link--customer-logout {
+		margin-top: 0 !important;
+		border-top: none !important;
+		padding-top: 0 !important;
+	}
+}
+
+/* ==========================================================================
+   Main Content Card Area
+   ========================================================================== */
+.fb-myaccount-main {
+	float: none !important;
+	width: 100% !important;
+}
+
+.fb-myaccount-content-card {
+	background: var(--fb-bg-card, #ffffff) !important;
+	border: 2px solid var(--fb-border-color) !important;
+	border-radius: var(--fb-radius-lg, 8px) !important;
+	padding: 24px !important;
+	box-shadow: var(--fb-shadow-card) !important;
+}
+
+.woocommerce-MyAccount-content-wrapper,
+.fb-myaccount-content-card .woocommerce-MyAccount-content-wrapper {
+	background: transparent !important;
+	padding: 0 !important;
+	border: none !important;
+}
+
+@media (max-width: 640px) {
+	.fb-myaccount-content-card {
+		padding: 20px 16px !important;
+		border-radius: var(--fb-radius-md, 8px) !important;
+	}
+}
+
+/* Common Card Header inside content */
+.fb-content-card-header {
+	display: flex !important;
+	justify-content: space-between !important;
+	align-items: center !important;
+	flex-wrap: wrap !important;
+	gap: 12px !important;
+	margin-bottom: 24px !important;
+	padding-bottom: 18px !important;
+	border-bottom: 1px solid var(--fb-border-light) !important;
+}
+
+.fb-header-icon-title {
+	display: flex !important;
+	align-items: center !important;
+	gap: 12px !important;
+}
+
+.fb-card-icon {
+	width: 38px !important;
+	height: 38px !important;
+	border-radius: 6px !important;
+	background: var(--fb-primary-light) !important;
+	color: var(--fb-primary) !important;
+	display: flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	flex-shrink: 0 !important;
+}
+
+.fb-card-title,
+.fb-myaccount-wrapper h2,
+.fb-myaccount-wrapper h3,
+.elementor-widget-woocommerce-my-account .e-my-account-tab .woocommerce h2,
+.elementor-widget-woocommerce-my-account .e-my-account-tab .woocommerce h3,
+.fb-card-title {
+	font-family: var(--fb-font-family) !important;
+	font-size: 1.125rem !important;
+	font-weight: 700 !important;
+	color: var(--fb-text-main, #111827) !important;
+	margin: 0 0 4px 0 !important;
+	line-height: 1.3 !important;
+}
+
+.fb-card-desc,
+.fb-myaccount-wrapper p,
+.elementor-widget-woocommerce-my-account .e-my-account-tab .woocommerce p,
+.fb-card-desc {
+	font-family: var(--fb-font-family) !important;
+	font-size: 0.875rem !important;
+	color: var(--fb-text-main, #111827) !important;
+	margin: 0 !important;
+	line-height: 1.6 !important;
+}
+
+/* ==========================================================================
+   Dashboard Overview
+   ========================================================================== */
+/* Welcome Banner */
+.fb-welcome-banner {
+	display: flex !important;
+	align-items: center !important;
+	justify-content: space-between !important;
+	gap: 20px !important;
+	background: var(--fb-primary-light) !important;
+	border: 1px solid var(--fb-primary-border) !important;
+	border-radius: var(--fb-radius-md) !important;
+	padding: 20px 24px !important;
+	margin-bottom: 24px !important;
+}
+
+.fb-welcome-action {
+	flex-shrink: 0 !important;
+}
+
+.fb-welcome-action .fb-btn-primary {
+	display: inline-flex !important;
+	align-items: center !important;
+	gap: 8px !important;
+	background-color: var(--fb-btn-bg) !important;
+	background: var(--fb-btn-bg) !important;
+	color: #ffffff !important;
+	border-radius: var(--fb-radius-btn) !important;
+	box-shadow: var(--fb-btn-shadow) !important;
+	font-family: var(--fb-font-family) !important;
+	font-weight: 700 !important;
+	text-decoration: none !important;
+	transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+	border: none !important;
+}
+
+.fb-welcome-action .fb-btn-primary:hover {
+	background-color: var(--fb-btn-bg-hover) !important;
+	background: var(--fb-btn-bg-hover) !important;
+	box-shadow: var(--fb-btn-shadow-hover) !important;
+	color: #ffffff !important;
+}
+
+@media (max-width: 640px) {
+	.fb-welcome-banner {
+		flex-direction: column !important;
+		align-items: flex-start !important;
+		gap: 16px !important;
+		padding: 16px !important;
+	}
+	.fb-welcome-action {
+		width: 100% !important;
+	}
+	.fb-welcome-action .fb-btn-primary {
+		width: 100% !important;
+		justify-content: center !important;
+	}
+}
+
+.fb-welcome-title {
+	font-size: 1.09375rem !important;
+	font-weight: 800 !important;
+	color: var(--fb-text-main) !important;
+	margin: 0 0 6px 0 !important;
+}
+
+.fb-welcome-desc {
+	font-size: 0.8125rem !important;
+	color: var(--fb-text-muted) !important;
+	margin: 0 !important;
+	line-height: 1.6 !important;
+}
+
+/* Stats Counter Grid - 4 Column Balanced Grid */
+.fb-stats-grid {
+	display: grid !important;
+	grid-template-columns: repeat(4, 1fr) !important;
+	gap: 14px !important;
+	margin-bottom: 28px !important;
+}
+
+@media (max-width: 1024px) {
+	.fb-stats-grid {
+		grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+		gap: 12px !important;
+	}
+}
+
+@media (max-width: 768px) {
+	.fb-stats-grid {
+		grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+		gap: 10px !important;
+	}
+}
+
+@media (max-width: 480px) {
+	.fb-stats-grid {
+		grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+		gap: 10px !important;
+	}
+	.fb-stat-card {
+		padding: 10px 12px !important;
+		gap: 8px !important;
+	}
+	.fb-stat-icon {
+		width: 32px !important;
+		height: 32px !important;
+	}
+	.fb-stat-icon svg {
+		width: 18px !important;
+		height: 18px !important;
+	}
+	.fb-stat-num {
+		font-size: 1rem !important;
+	}
+	.fb-stat-label {
+		font-size: 0.6875rem !important;
+	}
+}
+
+.fb-stat-card,
+.fb-stat-card {
+	display: flex !important;
+	align-items: center !important;
+	gap: 10px !important;
+	padding: 12px 14px !important;
+	background: #ffffff !important;
+	border: 1.5px solid var(--fb-border-color) !important;
+	border-radius: var(--fb-radius-md, 8px) !important;
+	text-decoration: none !important;
+	color: var(--fb-text-main) !important;
+	min-width: 0 !important;
+	box-sizing: border-box !important;
+	transition: all 0.2s ease !important;
+}
+
+.fb-stat-card:hover,
+.fb-stat-card:hover {
+	transform: translateY(var(--fb-hover-lift, 0px)) !important;
+	border-color: var(--fb-border-hover) !important;
+	box-shadow: 0 4px 14px -2px rgba(0, 0, 0, 0.05) !important;
+}
+
+.fb-stat-icon {
+	width: 38px !important;
+	height: 38px !important;
+	border-radius: var(--fb-radius-md) !important;
+	display: flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	flex-shrink: 0 !important;
+}
+
+.fb-stat-processing .fb-stat-icon {
+	background: #fef3c7 !important;
+	color: #d97706 !important;
+}
+
+.fb-stat-completed .fb-stat-icon {
+	background: #d1fae5 !important;
+	color: #059669 !important;
+}
+
+.fb-stat-cancelled .fb-stat-icon {
+	background: #fee2e2 !important;
+	color: var(--fb-danger-hover) !important;
+}
+
+.fb-stat-total .fb-stat-icon {
+	background: var(--fb-primary-light) !important;
+	color: var(--fb-primary) !important;
+}
+
+.fb-stat-info {
+	display: flex !important;
+	flex-direction: column !important;
+	min-width: 0 !important;
+	overflow: hidden !important;
+}
+
+.fb-stat-num {
+	font-size: 1.125rem !important;
+	font-weight: 800 !important;
+	color: var(--fb-text-main) !important;
+	line-height: 1.2 !important;
+	font-family: var(--fb-font-family) !important;
+}
+
+.fb-stat-label {
+	font-size: 0.71875rem !important;
+	font-weight: 500 !important;
+	color: var(--fb-text-muted) !important;
+	white-space: nowrap !important;
+	overflow: hidden !important;
+	text-overflow: ellipsis !important;
+	margin-top: 2px !important;
+	font-family: var(--fb-font-family) !important;
+}
+
+/* Dashboard Sections */
+.fb-dashboard-section {
+	margin-bottom: 30px !important;
+}
+
+.fb-section-header {
+	display: flex !important;
+	align-items: center !important;
+	justify-content: space-between !important;
+	flex-wrap: wrap !important;
+	gap: 10px !important;
+	margin-bottom: 16px !important;
+}
+
+.fb-section-title {
+	font-size: 0.96875rem !important;
+	font-weight: 700 !important;
+	color: var(--fb-text-main) !important;
+	margin: 0 !important;
+	display: flex !important;
+	align-items: center !important;
+	gap: 8px !important;
+}
+
+.fb-section-more {
+	font-family: var(--fb-font-family) !important;
+	font-size: 0.78125rem !important;
+	font-weight: 600 !important;
+	color: var(--fb-primary) !important;
+	background: transparent !important;
+	box-shadow: none !important;
+	text-decoration: none !important;
+	display: inline-flex !important;
+	align-items: center !important;
+	gap: 6px !important;
+	padding: 6px 12px !important;
+	border-radius: 6px !important;
+	border: 1px solid transparent !important;
+	transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+	line-height: 1.4 !important;
+}
+
+.fb-section-more:hover {
+	text-decoration: none !important;
+	color: var(--fb-primary-hover) !important;
+	background: var(--fb-primary-light) !important;
+	box-shadow: none !important;
+	border-color: transparent !important;
+}
+
+.fb-section-more .fb-arrow-icon {
+	width: 14px !important;
+	height: 14px !important;
+	stroke: currentColor !important;
+	transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+	flex-shrink: 0 !important;
+}
+
+.fb-section-more:hover .fb-arrow-icon {
+	transform: translateX(-3px) !important;
+}
+
+/* Recent Orders List */
+.fb-orders-list {
+	display: flex !important;
+	flex-direction: column !important;
+	gap: 12px !important;
+}
+
+.fb-order-card {
+	border: 2px solid var(--fb-border-color) !important;
+	border-radius: var(--fb-radius-md, 8px) !important;
+	padding: 16px 20px !important;
+	background: #ffffff !important;
+	transition: all 0.2s ease !important;
+}
+
+.fb-order-card:hover {
+	border-color: var(--fb-border-hover) !important;
+	box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04) !important;
+}
+
+.fb-order-card-header {
+	display: flex !important;
+	align-items: center !important;
+	justify-content: space-between !important;
+	margin-bottom: 12px !important;
+	padding-bottom: 10px !important;
+	border-bottom: 1px solid var(--fb-border-light) !important;
+}
+
+.fb-order-meta-info {
+	display: flex !important;
+	align-items: center !important;
+	gap: 8px !important;
+	font-size: 0.8125rem !important;
+	color: var(--fb-text-muted) !important;
+	flex-wrap: wrap !important;
+}
+
+.fb-order-id {
+	font-weight: 700 !important;
+	color: var(--fb-text-main) !important;
+}
+
+.fb-order-dot {
+	color: #cbd5e1 !important;
+}
+
+.fb-order-card-body {
+	display: flex !important;
+	align-items: center !important;
+	justify-content: space-between !important;
+	flex-wrap: wrap !important;
+	gap: 12px !important;
+}
+
+.fb-order-total-wrap {
+	display: flex !important;
+	align-items: center !important;
+	gap: 8px !important;
+}
+
+.fb-order-total-label {
+	font-size: 0.8125rem !important;
+	color: var(--fb-text-muted) !important;
+}
+
+.fb-order-total-val {
+	font-size: 0.90625rem !important;
+	font-weight: 700 !important;
+	color: var(--fb-text-accent) !important;
+}
+
+/* Status Badges - Default Fallback Style for any standard or custom status */
+.fb-order-status {
+	display: inline-flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	padding: 4px 12px !important;
+	border-radius: var(--fb-radius-pill, 20px) !important;
+	font-size: 0.71875rem !important;
+	font-weight: 700 !important;
+	flex-shrink: 0 !important;
+	background: var(--fb-bg-subtle, #f8fafc) !important;
+	color: var(--fb-text-main, #334155) !important;
+	border: 1px solid var(--fb-border-color, #e2e8f0) !important;
+	line-height: 1.4 !important;
+	box-sizing: border-box !important;
+	transition: all 0.2s ease !important;
+}
+
+.fb-status-processing,
+.fb-status-on-hold,
+.fb-status-pending {
+	background: #fef3c7 !important;
+	color: #b45309 !important;
+	border: 1px solid rgba(245, 158, 11, 0.25) !important;
+}
+
+.fb-status-completed {
+	background: #d1fae5 !important;
+	color: #065f46 !important;
+	border: 1px solid rgba(16, 185, 129, 0.25) !important;
+}
+
+.fb-status-cancelled,
+.fb-status-failed,
+.fb-status-refunded {
+	background: #fee2e2 !important;
+	color: #991b1b !important;
+	border: 1px solid rgba(239, 68, 68, 0.25) !important;
+}
+
+/* Shipping / Delivery statuses */
+.fb-status-shipped,
+.fb-status-delivery,
+.fb-status-post,
+.fb-status-post-delivery,
+.fb-status-wc-post-delivery,
+.fb-status-wc-delivery {
+	background: #eff6ff !important;
+	color: #1d4ed8 !important;
+	border: 1px solid rgba(59, 130, 246, 0.25) !important;
+}
+
+/* Shortcuts Grid */
+.fb-shortcuts-grid {
+	display: grid !important;
+	grid-template-columns: 1fr 1fr !important;
+	gap: 16px !important;
+}
+
+@media (max-width: 640px) {
+	.fb-shortcuts-grid {
+		grid-template-columns: 1fr !important;
+	}
+}
+
+.fb-shortcut-card {
+	border: 2px solid var(--fb-border-color) !important;
+	border-radius: var(--fb-radius-md, 8px) !important;
+	padding: 20px !important;
+	background: #ffffff !important;
+	display: flex !important;
+	flex-direction: column !important;
+	justify-content: space-between !important;
+	transition: all 0.2s ease !important;
+}
+
+.fb-shortcut-card:hover {
+	border-color: var(--fb-border-hover) !important;
+	box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04) !important;
+}
+
+.fb-shortcut-header {
+	display: flex !important;
+	align-items: center !important;
+	gap: 10px !important;
+	margin-bottom: 10px !important;
+}
+
+.fb-shortcut-icon {
+	color: var(--fb-primary) !important;
+	display: flex !important;
+	align-items: center !important;
+}
+
+.fb-shortcut-title {
+	font-size: 0.90625rem !important;
+	font-weight: 700 !important;
+	color: var(--fb-text-main) !important;
+	margin: 0 !important;
+}
+
+.fb-shortcut-desc {
+	font-size: 0.8125rem !important;
+	color: var(--fb-text-muted) !important;
+	line-height: 1.6 !important;
+	margin: 0 0 14px 0 !important;
+}
+
+.fb-shortcut-footer {
+	margin-top: auto !important;
+}
+
+.fb-btn-link {
+	font-family: var(--fb-font-family) !important;
+	font-size: 0.78125rem !important;
+	font-weight: 600 !important;
+	color: var(--fb-text-muted, #64748b) !important;
+	background: transparent !important;
+	box-shadow: none !important;
+	text-decoration: none !important;
+	display: inline-flex !important;
+	align-items: center !important;
+	gap: 6px !important;
+	padding: 6px 12px !important;
+	border-radius: var(--fb-radius-sm) !important;
+	border: 1px solid transparent !important;
+	transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+	line-height: 1.4 !important;
+}
+
+.fb-btn-link:hover {
+	text-decoration: none !important;
+	color: var(--fb-text-accent) !important;
+	background: var(--fb-primary-light) !important;
+	box-shadow: none !important;
+	border-color: transparent !important;
+}
+
+.fb-btn-link .fb-arrow-icon {
+	width: 14px !important;
+	height: 14px !important;
+	stroke: currentColor !important;
+	transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+	flex-shrink: 0 !important;
+}
+
+.fb-btn-link:hover .fb-arrow-icon {
+	transform: translateX(-3px) !important;
+}
+
+/* ==========================================================================
+   Full Orders Page Styles
+   ========================================================================== */
+.fb-orders-cards-container {
+	display: flex !important;
+	flex-direction: column !important;
+	gap: 14px !important;
+}
+
+.fb-order-full-card {
+	border: 1.5px solid var(--fb-border-color) !important;
+	border-radius: var(--fb-radius-md, 8px) !important;
+	background: #ffffff !important;
+	padding: 18px 22px !important;
+	transition: all 0.2s ease !important;
+}
+
+.fb-order-full-card:hover {
+	border-color: var(--fb-border-hover) !important;
+	box-shadow: 0 6px 18px rgba(0, 0, 0, 0.04) !important;
+}
+
+.fb-order-full-top {
+	display: flex !important;
+	flex-wrap: wrap !important;
+	align-items: center !important;
+	justify-content: space-between !important;
+	gap: 10px !important;
+	padding-bottom: 12px !important;
+	border-bottom: 1px solid var(--fb-border-light) !important;
+	margin-bottom: 14px !important;
+}
+
+.fb-order-id-meta {
+	display: flex !important;
+	flex-wrap: wrap !important;
+	align-items: center !important;
+	gap: 12px !important;
+}
+
+.fb-order-badge-num {
+	font-size: 0.9375rem !important;
+	font-weight: 800 !important;
+	color: var(--fb-text-main) !important;
+}
+
+.fb-order-date-text {
+	font-size: 0.78125rem !important;
+	color: var(--fb-text-muted) !important;
+	display: flex !important;
+	align-items: center !important;
+	gap: 5px !important;
+}
+
+/* Order Cards Items Preview List */
+.fb-order-items-preview {
+	display: flex !important;
+	flex-direction: column !important;
+	gap: 10px !important;
+	padding: 12px 0 !important;
+	margin-bottom: 12px !important;
+	border-bottom: 1px solid var(--fb-border-light, #f1f5f9) !important;
+}
+
+.fb-order-preview-row {
+	display: flex !important;
+	align-items: center !important;
+	justify-content: space-between !important;
+	gap: 10px !important;
+}
+
+.fb-preview-product-col {
+	display: flex !important;
+	align-items: center !important;
+	gap: 10px !important;
+	flex: 1 !important;
+	min-width: 0 !important;
+}
+
+.fb-preview-thumb {
+	width: 42px !important;
+	height: 42px !important;
+	border-radius: 10px !important;
+	overflow: hidden !important;
+	border: 1px solid var(--fb-border-color, #e5e7eb) !important;
+	flex-shrink: 0 !important;
+	background: #ffffff !important;
+}
+
+.fb-preview-thumb img {
+	width: 100% !important;
+	height: 100% !important;
+	object-fit: cover !important;
+	display: block !important;
+}
+
+.fb-preview-thumb-placeholder {
+	width: 100% !important;
+	height: 100% !important;
+	display: flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	color: var(--fb-text-subtle) !important;
+	background: var(--fb-bg-subtle) !important;
+}
+
+.fb-preview-meta {
+	display: flex !important;
+	flex-direction: column !important;
+	gap: 2px !important;
+	min-width: 0 !important;
+	flex: 1 !important;
+}
+
+.fb-preview-name {
+	font-size: 0.8125rem !important;
+	font-weight: 700 !important;
+	color: var(--fb-text-main) !important;
+	text-decoration: none !important;
+	line-height: 1.4 !important;
+	display: -webkit-box !important;
+	-webkit-line-clamp: 2 !important;
+	-webkit-box-orient: vertical !important;
+	overflow: hidden !important;
+	text-overflow: ellipsis !important;
+	white-space: normal !important;
+	word-break: break-word !important;
+	transition: color 0.2s ease !important;
+}
+
+.fb-preview-name:hover {
+	color: var(--fb-primary) !important;
+}
+
+/* Order Items Variations / Item Metadata (Modern Chips/Badges) */
+:is(.fb-preview-meta, .fb-product-info, .fb-myaccount-wrapper, .woocommerce-account) :is(.wc-item-meta, dl.variation),
+.wc-item-meta {
+	display: flex !important;
+	flex-wrap: wrap !important;
+	align-items: center !important;
+	gap: 4px !important;
+	margin: 3px 0 2px 0 !important;
+	padding: 0 !important;
+	background: transparent !important;
+	border: none !important;
+	border-radius: 0 !important;
+	list-style: none !important;
+	box-sizing: border-box !important;
+	max-width: 100% !important;
+	width: auto !important;
+}
+
+:is(.fb-preview-meta, .fb-product-info, .fb-myaccount-wrapper, .woocommerce-account) .wc-item-meta li {
+	display: inline-flex !important;
+	align-items: center !important;
+	gap: 4px !important;
+	padding: 2px 4px !important;
+	background: var(--fb-bg-subtle, #f8fafc) !important;
+	border: 1px solid var(--fb-border-light, #e2e8f0) !important;
+	border-radius: 6px !important;
+	font-size: 0.6875rem !important;
+	line-height: 1.4 !important;
+	color: var(--fb-text-main, #0f172a) !important;
+	box-sizing: border-box !important;
+	white-space: nowrap !important;
+	list-style: none !important;
+	margin: 0 !important;
+}
+
+:is(.fb-preview-meta, .fb-product-info, .fb-myaccount-wrapper, .woocommerce-account) .wc-item-meta :is(.wc-item-meta-label, strong),
+:is(.fb-preview-meta, .fb-product-info, .fb-myaccount-wrapper, .woocommerce-account) dl.variation dt {
+	display: inline !important;
+	float: none !important;
+	clear: none !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	font-size: 0.6875rem !important;
+	font-weight: 500 !important;
+	color: var(--fb-text-muted, #64748b) !important;
+	line-height: inherit !important;
+	font-family: var(--fb-font-family) !important;
+	white-space: nowrap !important;
+}
+
+:is(.fb-preview-meta, .fb-product-info, .fb-myaccount-wrapper, .woocommerce-account) :is(.wc-item-meta p, dl.variation dd) {
+	display: inline !important;
+	float: none !important;
+	clear: none !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	font-size: 0.6875rem !important;
+	font-weight: 600 !important;
+	color: var(--fb-text-main, #0f172a) !important;
+	line-height: inherit !important;
+	font-family: var(--fb-font-family) !important;
+	white-space: nowrap !important;
+}
+
+:is(.fb-preview-meta, .fb-product-info, .fb-myaccount-wrapper, .woocommerce-account) dl.variation dd p {
+	display: inline !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	font-size: inherit !important;
+	font-weight: inherit !important;
+	color: inherit !important;
+	line-height: inherit !important;
+	font-family: inherit !important;
+	white-space: nowrap !important;
+}
+
+:is(.fb-preview-meta, .fb-product-info, .fb-myaccount-wrapper, .woocommerce-account) dl.variation dd:not(:last-of-type)::after {
+	content: " • " !important;
+	display: inline !important;
+	margin: 0 5px !important;
+	color: var(--fb-text-muted, #64748b) !important;
+	font-weight: 600 !important;
+}
+
+.fb-preview-qty-col {
+	flex-shrink: 0 !important;
+}
+
+.fb-preview-qty-col .fb-item-qty-badge {
+	font-size: 0.71875rem !important;
+	padding: 2.5px 8px !important;
+	white-space: nowrap !important;
+}
+
+.fb-preview-price-col {
+	flex-shrink: 0 !important;
+	text-align: end !important;
+}
+
+.fb-preview-price {
+	font-size: 0.8125rem !important;
+	font-weight: 700 !important;
+	color: var(--fb-text-main) !important;
+	white-space: nowrap !important;
+}
+
+@media (max-width: 640px) {
+	.fb-order-full-card {
+		padding: 14px 12px !important;
+	}
+	.fb-order-preview-row {
+		gap: 6px !important;
+	}
+	.fb-preview-product-col {
+		gap: 6px !important;
+	}
+	.fb-preview-thumb {
+		width: 34px !important;
+		height: 34px !important;
+	}
+	.fb-preview-name {
+		font-size: 0.75rem !important;
+		line-height: 1.35 !important;
+	}
+	.fb-preview-qty-col .fb-item-qty-badge {
+		font-size: 0.65625rem !important;
+		padding: 2px 5px !important;
+	}
+	.fb-preview-price {
+		font-size: 0.75rem !important;
+	}
+}
+
+.fb-order-full-bottom {
+	display: flex !important;
+	align-items: center !important;
+	justify-content: space-between !important;
+	gap: 16px !important;
+	flex-wrap: wrap !important;
+}
+
+.fb-order-total-summary {
+	display: flex !important;
+	align-items: center !important;
+	gap: 8px !important;
+	font-size: 0.84375rem !important;
+}
+
+.fb-meta-label {
+	color: var(--fb-text-muted) !important;
+	font-weight: 600 !important;
+}
+
+.fb-meta-total {
+	font-weight: 800 !important;
+	font-size: 0.875rem !important;
+	color: var(--fb-text-main) !important;
+}
+
+/* ==========================================================================
+   Discounted Price / Strikethrough Layout (Matching Cart & Checkout UX)
+   ========================================================================== */
+:is(.fb-meta-total, .fb-total-val):has(del) {
+	display: inline-flex !important;
+	flex-direction: column !important;
+	align-items: flex-start !important;
+	gap: 2px !important;
+	text-align: start !important;
+	line-height: 1.2 !important;
+}
+
+.fb-totals-row :is(.fb-total-val):has(del) {
+	align-items: flex-end !important;
+	text-align: end !important;
+}
+
+:is(.fb-meta-total, .fb-total-val) del {
+	display: block !important;
+	font-size: 0.75rem !important;
+	font-weight: 500 !important;
+	color: var(--fb-text-subtle, #94a3b8) !important;
+	text-decoration: line-through !important;
+	line-height: 1.2 !important;
+	letter-spacing: -0.2px !important;
+	opacity: 0.85 !important;
+}
+
+:is(.fb-meta-total, .fb-total-val) ins {
+	display: block !important;
+	text-decoration: none !important;
+	background: transparent !important;
+	color: var(--fb-text-main) !important;
+	line-height: 1.3 !important;
+}
+
+.fb-meta-total ins,
+.fb-meta-total ins :is(.woocommerce-Price-amount, bdi) {
+	font-size: 0.875rem !important;
+	font-weight: 800 !important;
+	color: var(--fb-text-main) !important;
+}
+
+.fb-totals-row-final .fb-total-val ins,
+.fb-totals-row-final .fb-total-val ins :is(.woocommerce-Price-amount, bdi) {
+	font-size: 1.125rem !important;
+	font-weight: 900 !important;
+	color: var(--fb-text-main) !important;
+}
+
+.fb-order-actions-wrap {
+	display: flex !important;
+	align-items: center !important;
+	gap: 10px !important;
+}
+
+/* Pagination */
+.fb-pagination-wrap {
+	display: flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	gap: 14px !important;
+	margin-top: 24px !important;
+	padding-top: 18px !important;
+	border-top: 1px solid var(--fb-border-light) !important;
+}
+
+.fb-pagination-btn {
+	padding: 8px 16px !important;
+	border-radius: var(--fb-btn-radius, 8px) !important;
+	background: #ffffff !important;
+	border: 1px solid var(--fb-border-color) !important;
+	color: var(--fb-text-main) !important;
+	text-decoration: none !important;
+	font-size: 0.8125rem !important;
+	font-weight: 600 !important;
+	transition: all 0.2s ease !important;
+}
+
+.fb-pagination-btn:hover {
+	background: var(--fb-bg-subtle) !important;
+	border-color: var(--fb-border-hover) !important;
+	color: var(--fb-primary) !important;
+}
+
+.fb-pagination-current {
+	font-size: 0.8125rem !important;
+	color: var(--fb-text-muted) !important;
+	font-weight: 600 !important;
+}
+
+/* ==========================================================================
+   Addresses Page Styles
+   ========================================================================== */
+.fb-addresses-grid {
+	display: grid !important;
+	grid-template-columns: 1fr 1fr !important;
+	gap: 20px !important;
+}
+
+@media (max-width: 768px) {
+	.fb-addresses-grid {
+		grid-template-columns: 1fr !important;
+	}
+}
+
+.fb-address-card {
+	border: 1.5px solid var(--fb-border-color) !important;
+	border-radius: var(--fb-radius-md, 8px) !important;
+	background: #ffffff !important;
+	padding: 20px !important;
+	display: flex !important;
+	flex-direction: column !important;
+	justify-content: space-between !important;
+	transition: all 0.2s ease !important;
+}
+
+.fb-address-card:hover {
+	border-color: var(--fb-border-hover) !important;
+	box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04) !important;
+}
+
+.fb-address-card-header {
+	display: flex !important;
+	align-items: center !important;
+	justify-content: space-between !important;
+	padding-bottom: 12px !important;
+	border-bottom: 1px solid var(--fb-border-light) !important;
+	margin-bottom: 14px !important;
+}
+
+.fb-address-card-title-wrap {
+	display: flex !important;
+	align-items: center !important;
+	gap: 10px !important;
+}
+
+.fb-address-icon {
+	color: var(--fb-primary) !important;
+	display: flex !important;
+	align-items: center !important;
+}
+
+.fb-address-title {
+	font-size: 0.90625rem !important;
+	font-weight: 700 !important;
+	color: var(--fb-text-main) !important;
+	margin: 0 !important;
+}
+
+.fb-address-edit-link {
+	display: inline-flex !important;
+	align-items: center !important;
+	gap: 5px !important;
+	font-size: 0.78125rem !important;
+	font-weight: 600 !important;
+	color: var(--fb-text-main) !important;
+	text-decoration: none !important;
+	padding: 4px 10px !important;
+	border-radius: var(--fb-radius-sm) !important;
+	background: transparent !important;
+	transition: all 0.2s ease !important;
+}
+
+.fb-address-edit-link:hover {
+	background: var(--fb-primary-light) !important;
+}
+
+.fb-address-content {
+	font-style: normal !important;
+	font-size: 0.84375rem !important;
+	color: var(--fb-text-muted) !important;
+	line-height: 1.8 !important;
+}
+
+/* ==========================================================================
+   Edit Account Form Styles
+   ========================================================================== */
+.fb-edit-account-form {
+	display: flex !important;
+	flex-direction: column !important;
+	gap: 24px !important;
+}
+
+.fb-form-section {
+	padding-bottom: 20px !important;
+	border-bottom: 1px solid var(--fb-border-light) !important;
+}
+
+.fb-form-section-title {
+	font-size: 0.96875rem !important;
+	font-weight: 700 !important;
+	color: var(--fb-text-main) !important;
+	margin: 0 0 4px 0 !important;
+	display: flex !important;
+	align-items: center !important;
+	gap: 8px !important;
+}
+
+.fb-form-section-subtitle {
+	font-size: 0.78125rem !important;
+	color: var(--fb-text-muted) !important;
+	margin: 0 0 16px 0 !important;
+}
+
+.fb-form-row-grid {
+	display: grid !important;
+	grid-template-columns: 1fr 1fr !important;
+	gap: 16px !important;
+}
+
+@media (max-width: 640px) {
+	.fb-form-row-grid {
+		grid-template-columns: 1fr !important;
+		gap: 12px !important;
+	}
+}
+
+.fb-form-group {
+	display: flex !important;
+	flex-direction: column !important;
+	margin: 0 0 14px 0 !important;
+	width: 100% !important;
+	float: none !important;
+}
+
+.fb-form-group label {
+	font-size: 0.8125rem !important;
+	font-weight: 600 !important;
+	color: var(--fb-text-main) !important;
+	margin-bottom: 6px !important;
+	font-family: var(--fb-font-family) !important;
+}
+
+.fb-form-group label .required {
+	color: var(--fb-danger) !important;
+	text-decoration: none !important;
+}
+
+:is(.fb-myaccount-wrapper, .woocommerce-EditAccountForm, .woocommerce-address-fields, .elementor-widget-woocommerce-my-account) :is(
+	.fb-input,
+	input.input-text,
+	input[type="text"],
+	input[type="email"],
+	input[type="password"],
+	select:not(.select2-hidden-accessible),
+	textarea
+) {
+	width: 100% !important;
+	height: 46px !important;
+	padding: 0 14px !important;
+	background: #ffffff !important;
+	border: 1.5px solid var(--fb-border-color) !important;
+	border-radius: var(--fb-input-radius, 8px) !important;
+	font-size: 0.875rem !important;
+	color: var(--fb-text-main) !important;
+	outline: none !important;
+	font-family: var(--fb-font-family) !important;
+	box-sizing: border-box !important;
+	transition: all 0.2s ease !important;
+}
+
+:is(.fb-myaccount-wrapper, .woocommerce-EditAccountForm, .woocommerce-address-fields, .elementor-widget-woocommerce-my-account) :is(
+	.fb-input,
+	input.input-text,
+	input[type="text"],
+	input[type="email"],
+	input[type="password"],
+	select:not(.select2-hidden-accessible),
+	textarea
+):focus {
+	border-color: var(--fb-primary) !important;
+	box-shadow: 0 0 0 3px var(--fb-primary-light, rgba(2, 74, 76, 0.12)) !important;
+}
+
+.fb-field-hint {
+	font-size: 0.71875rem !important;
+	color: var(--fb-text-muted) !important;
+	margin-top: 4px !important;
+}
+
+.fb-password-change-section {
+	background: var(--fb-bg-subtle) !important;
+	border: 1px solid var(--fb-border-color) !important;
+	border-radius: var(--fb-radius-md, 8px) !important;
+	padding: 20px !important;
+	margin-top: 8px !important;
+}
+
+.fb-form-submit-row {
+	display: flex !important;
+	align-items: center !important;
+	justify-content: flex-start !important;
+	margin-top: 14px !important;
+	width: 100% !important;
+}
+
+/* ==========================================================================
+   Edit Address Form Styles & Address Overrides
+   ========================================================================== */
+.elementor-widget-woocommerce-my-account .e-my-account-tab:not(.e-my-account-tab__dashboard--custom) .woocommerce-address-fields,
+.elementor-widget-woocommerce-my-account .e-my-account-tab:not(.e-my-account-tab__dashboard--custom) address,
+.woocommerce-address-fields,
+.woocommerce-MyAccount-content address {
+	padding: 0 !important;
+	border: none !important;
+}
+
+.fb-edit-address-wrap {
+	width: 100% !important;
+	font-family: var(--fb-font-family) !important;
+}
+
+.fb-address-fields-wrap {
+	display: flex !important;
+	flex-direction: column !important;
+	gap: 20px !important;
+	width: 100% !important;
+}
+
+.fb-fields-grid,
+.woocommerce-address-fields__field-wrapper {
+	display: grid !important;
+	grid-template-columns: repeat(2, 1fr) !important;
+	gap: 16px !important;
+	width: 100% !important;
+	float: none !important;
+}
+
+@media (max-width: 640px) {
+	.fb-fields-grid,
+	.woocommerce-address-fields__field-wrapper {
+		grid-template-columns: 1fr !important;
+		gap: 12px !important;
+	}
+}
+
+:is(.fb-fields-grid, .woocommerce-address-fields__field-wrapper) p.form-row {
+	display: flex !important;
+	flex-direction: column !important;
+	margin: 0 0 14px 0 !important;
+	padding: 0 !important;
+	float: none !important;
+	width: 100% !important;
+}
+
+:is(.fb-fields-grid, .woocommerce-address-fields__field-wrapper) :is(
+	p.form-row-wide,
+	#billing_address_1_field,
+	#billing_address_2_field,
+	#shipping_address_1_field,
+	#shipping_address_2_field
+) {
+	grid-column: 1 / -1 !important;
+}
+
+:is(.fb-fields-grid, .woocommerce-address-fields__field-wrapper) label {
+	font-family: var(--fb-font-family) !important;
+	font-size: 0.8125rem !important;
+	font-weight: 600 !important;
+	color: var(--fb-text-main) !important;
+	margin-bottom: 6px !important;
+	line-height: 1.4 !important;
+}
+
+:is(.fb-fields-grid, .woocommerce-address-fields__field-wrapper) label .required {
+	color: var(--fb-danger) !important;
+	text-decoration: none !important;
+}
+
+:is(.fb-fields-grid, .woocommerce-address-fields__field-wrapper) :is(
+	input.input-text,
+	select:not(.select2-hidden-accessible),
+	textarea
+) {
+	width: 100% !important;
+	height: 46px !important;
+	padding: 0 14px !important;
+	background: #ffffff !important;
+	border: 1.5px solid var(--fb-border-color) !important;
+	border-radius: var(--fb-input-radius, 8px) !important;
+	font-size: 0.875rem !important;
+	color: var(--fb-text-main) !important;
+	font-family: var(--fb-font-family) !important;
+	outline: none !important;
+	box-sizing: border-box !important;
+	transition: all 0.2s ease !important;
+}
+
+:is(.fb-fields-grid, .woocommerce-address-fields__field-wrapper) textarea {
+	height: auto !important;
+	min-height: 90px !important;
+	padding: 10px 14px !important;
+}
+
+:is(.fb-fields-grid, .woocommerce-address-fields__field-wrapper) :is(
+	input.input-text,
+	select:not(.select2-hidden-accessible),
+	textarea
+):focus {
+	border-color: var(--fb-primary) !important;
+	box-shadow: 0 0 0 3px var(--fb-primary-light, rgba(2, 74, 76, 0.12)) !important;
+}
+
+/* Select2 Accessibility Protection: Prevent hidden select from causing RTL layout overflow */
+select.select2-hidden-accessible {
+	width: 1px !important;
+	height: 1px !important;
+	padding: 0 !important;
+	margin: -1px !important;
+	border: 0 !important;
+	clip: rect(0, 0, 0, 0) !important;
+	-webkit-clip-path: inset(50%) !important;
+	clip-path: inset(50%) !important;
+	overflow: hidden !important;
+	position: absolute !important;
+	white-space: nowrap !important;
+}
+
+/* ==========================================================================
+   Select2 / Dropdown Overrides in Address & Account Forms
+   ========================================================================== */
+:is(.woocommerce-account, .elementor-widget-woocommerce-my-account, .fb-myaccount-wrapper) .select2-container .select2-selection--single {
+	height: 46px !important;
+	border: 1.5px solid var(--fb-border-color) !important;
+	border-radius: var(--fb-input-radius, 8px) !important;
+	background: #ffffff !important;
+	display: flex !important;
+	align-items: center !important;
+	font-family: var(--fb-font-family) !important;
+	transition: all 0.2s ease !important;
+}
+
+:is(.woocommerce-account, .elementor-widget-woocommerce-my-account, .fb-myaccount-wrapper) .select2-container--default:is(.select2-container--open, .select2-container--focus) .select2-selection--single {
+	border-color: var(--fb-primary) !important;
+	box-shadow: 0 0 0 3px var(--fb-primary-light, rgba(2, 74, 76, 0.12)) !important;
+}
+
+:is(.woocommerce-account, .elementor-widget-woocommerce-my-account, .fb-myaccount-wrapper) .select2-container--default .select2-selection--single .select2-selection__rendered {
+	line-height: 44px !important;
+	padding-inline-start: 14px !important;
+	padding-inline-end: 28px !important;
+	color: var(--fb-text-main) !important;
+	font-family: var(--fb-font-family) !important;
+	font-size: 0.875rem !important;
+}
+
+:is(.woocommerce-account, .elementor-widget-woocommerce-my-account, .fb-myaccount-wrapper) .select2-container--default .select2-selection--single .select2-selection__arrow {
+	height: 44px !important;
+	inset-inline-end: 10px !important;
+	inset-inline-start: auto !important;
+}
+
+/* Select2 Modern Dropdown Menu & Options Styling (My Account Dropdown) */
+:is(.fb-myaccount-wrapper, body) .select2-dropdown {
+	background-color: var(--fb-bg-card, #ffffff) !important;
+	border: 1.5px solid var(--fb-border-color, #e5e7eb) !important;
+	border-radius: var(--fb-radius-md, 8px) !important;
+	box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04) !important;
+	overflow: hidden !important;
+	z-index: 99999 !important;
+	font-family: var(--fb-font-family) !important;
+	margin-top: 4px !important;
+}
+
+:is(.fb-myaccount-wrapper, body) .select2-dropdown.select2-dropdown--above {
+	margin-top: -4px !important;
+}
+
+/* Select2 Search Box inside Dropdown */
+:is(.fb-myaccount-wrapper, body) .select2-search--dropdown {
+	padding: 6px !important;
+	background: var(--fb-bg-subtle, #f8fafc) !important;
+	border-bottom: 1px solid var(--fb-border-color, #e5e7eb) !important;
+}
+
+:is(.fb-myaccount-wrapper, body) .select2-search--dropdown .select2-search__field {
+	height: 38px !important;
+	padding: 6px 12px !important;
+	border: 1.5px solid var(--fb-border-color, #e5e7eb) !important;
+	border-radius: 6px !important;
+	background-color: #ffffff !important;
+	font-family: var(--fb-font-family) !important;
+	font-size: 0.8125rem !important;
+	color: var(--fb-text-main, #111827) !important;
+	outline: none !important;
+	box-shadow: none !important;
+	transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+	box-sizing: border-box !important;
+	width: 100% !important;
+}
+
+:is(.fb-myaccount-wrapper, body) .select2-search--dropdown .select2-search__field:focus {
+	border-color: var(--fb-primary) !important;
+	box-shadow: 0 0 0 2px var(--fb-primary-light, rgba(2, 74, 76, 0.12)) !important;
+}
+
+/* Select2 Results Options List */
+:is(.fb-myaccount-wrapper, body) .select2-results > .select2-results__options {
+	max-height: 250px !important;
+	padding: 6px !important;
+	overflow-y: auto !important;
+	font-family: var(--fb-font-family) !important;
+}
+
+/* Custom Slim Scrollbar for Results */
+:is(.fb-myaccount-wrapper, body) .select2-results__options::-webkit-scrollbar {
+	width: 5px !important;
+}
+
+:is(.fb-myaccount-wrapper, body) .select2-results__options::-webkit-scrollbar-track {
+	background: transparent !important;
+}
+
+:is(.fb-myaccount-wrapper, body) .select2-results__options::-webkit-scrollbar-thumb {
+	background-color: var(--fb-border-hover, #cbd5e1) !important;
+	border-radius: 9999px !important;
+}
+
+:is(.fb-myaccount-wrapper, body) .select2-results__options::-webkit-scrollbar-thumb:hover {
+	background-color: var(--fb-text-subtle, #94a3b8) !important;
+}
+
+/* Select2 Option Item */
+:is(.fb-myaccount-wrapper, body) .select2-results__option {
+	padding: 8px 12px !important;
+	font-family: var(--fb-font-family) !important;
+	font-size: 0.84375rem !important;
+	font-weight: 400 !important;
+	line-height: 1.5 !important;
+	color: var(--fb-text-main, #111827) !important;
+	border-radius: 6px !important;
+	margin-bottom: 2px !important;
+	cursor: pointer !important;
+	transition: background-color 0.15s ease, color 0.15s ease !important;
+	user-select: none !important;
+	text-align: start !important;
+}
+
+/* Hover / Highlighted State */
+:is(.fb-myaccount-wrapper, body) .select2-container--default :is(.select2-results__option--highlighted, .select2-results__option--highlighted[aria-selected]) {
+	background-color: var(--fb-bg-subtle, #f1f5f9) !important;
+	color: var(--fb-primary, #024a4c) !important;
+	font-weight: 500 !important;
+}
+
+/* Selected State */
+:is(.fb-myaccount-wrapper, body) .select2-container--default .select2-results__option[aria-selected="true"] {
+	background-color: var(--fb-primary-light, rgba(2, 74, 76, 0.08)) !important;
+	color: var(--fb-primary, #024a4c) !important;
+	font-weight: 600 !important;
+}
+
+/* Selected + Highlighted (Hover on selected option) */
+:is(.fb-myaccount-wrapper, body) .select2-container--default .select2-results__option--highlighted[aria-selected="true"] {
+	background-color: var(--fb-primary, #024a4c) !important;
+	color: #ffffff !important;
+}
+
+/* Disabled Option */
+:is(.fb-myaccount-wrapper, body) .select2-container--default .select2-results__option[aria-disabled="true"] {
+	color: var(--fb-text-subtle, #94a3b8) !important;
+	cursor: not-allowed !important;
+	background-color: transparent !important;
+}
+
+/* Empty / No Results Message */
+:is(.fb-myaccount-wrapper, body) .select2-results__message {
+	padding: 12px 14px !important;
+	color: var(--fb-text-muted, #64748b) !important;
+	font-size: 0.8125rem !important;
+	text-align: center !important;
+	font-family: var(--fb-font-family) !important;
+}
+
+/* ==========================================================================
+   Buttons (Matching Figma Specs & FrontBaz Design Tokens)
+   Scoped to defeat Elementor Pro defaults reliably
+   ========================================================================== */
+.fb-btn-primary,
+.woocommerce-address-fields button.button,
+.woocommerce-address-fields .button,
+button[name="save_address"],
+.woocommerce-EditAccountForm button.button,
+.woocommerce-EditAccountForm .button,
+button[name="save_account_details"],
+.woocommerce-form-login button.button,
+.woocommerce-form-login__submit,
+.woocommerce-ResetPassword button.button,
+.elementor-widget-woocommerce-my-account .woocommerce-address-fields .button,
+.elementor-widget-woocommerce-my-account .woocommerce-EditAccountForm .button,
+.elementor-widget-woocommerce-my-account
+	.e-my-account-tab:not(.e-my-account-tab__dashboard--custom)
+	.woocommerce-address-fields
+	.button,
+.elementor-widget-woocommerce-my-account
+	.e-my-account-tab:not(.e-my-account-tab__dashboard--custom)
+	.woocommerce-EditAccountForm
+	.button,
+.elementor-widget-woocommerce-my-account
+	.e-my-account-tab:not(.e-my-account-tab__dashboard--custom)
+	.woocommerce
+	.login
+	.button,
+.elementor-widget-woocommerce-my-account
+	.e-my-account-tab:not(.e-my-account-tab__dashboard--custom)
+	.woocommerce
+	.register
+	.button,
+.elementor-widget-woocommerce-my-account
+	.e-my-account-tab:not(.e-my-account-tab__dashboard--custom)
+	.woocommerce
+	.woocommerce-ResetPassword
+	.button {
+	height: var(--fb-btn-height, 48px) !important;
+	min-height: var(--fb-btn-height, 48px) !important;
+	border-radius: var(--fb-btn-radius, 8px) !important;
+	background-color: var(--fb-btn-bg) !important;
+	background: var(--fb-btn-bg) !important;
+	color: var(--fb-btn-text-color, #ffffff) !important;
+	border: none !important;
+	font-family: var(--fb-font-family) !important;
+	font-size: 0.90625rem !important;
+	font-weight: 700 !important;
+	cursor: pointer !important;
+	display: inline-flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	gap: 8px !important;
+	padding: 0 24px !important;
+	box-shadow: var(--fb-btn-shadow) !important;
+	text-decoration: none !important;
+	user-select: none !important;
+	margin: 0 !important;
+	line-height: 1 !important;
+	transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.fb-btn-primary:hover,
+.woocommerce-address-fields button.button:hover,
+.woocommerce-address-fields .button:hover,
+button[name="save_address"]:hover,
+.woocommerce-EditAccountForm button.button:hover,
+.woocommerce-EditAccountForm .button:hover,
+button[name="save_account_details"]:hover,
+.woocommerce-form-login button.button:hover,
+.woocommerce-form-login__submit:hover,
+.woocommerce-ResetPassword button.button:hover,
+.elementor-widget-woocommerce-my-account .woocommerce-address-fields .button:hover,
+.elementor-widget-woocommerce-my-account .woocommerce-EditAccountForm .button:hover,
+.elementor-widget-woocommerce-my-account
+	.e-my-account-tab:not(.e-my-account-tab__dashboard--custom)
+	.woocommerce-address-fields
+	.button:hover,
+.elementor-widget-woocommerce-my-account
+	.e-my-account-tab:not(.e-my-account-tab__dashboard--custom)
+	.woocommerce-EditAccountForm
+	.button:hover,
+.elementor-widget-woocommerce-my-account
+	.e-my-account-tab:not(.e-my-account-tab__dashboard--custom)
+	.woocommerce
+	.login
+	.button:hover,
+.elementor-widget-woocommerce-my-account
+	.e-my-account-tab:not(.e-my-account-tab__dashboard--custom)
+	.woocommerce
+	.register
+	.button:hover,
+.elementor-widget-woocommerce-my-account
+	.e-my-account-tab:not(.e-my-account-tab__dashboard--custom)
+	.woocommerce
+	.woocommerce-ResetPassword
+	.button:hover {
+	background-color: var(--fb-btn-bg-hover) !important;
+	background: var(--fb-btn-bg-hover) !important;
+	color: #ffffff !important;
+	box-shadow: var(--fb-btn-shadow-hover) !important;
+	transform: none !important;
+}
+
+.fb-btn-sm {
+	height: 38px !important;
+	min-height: 38px !important;
+	font-size: 0.8125rem !important;
+	padding: 0 14px !important;
+	font-family: var(--fb-font-family) !important;
+}
+
+.fb-btn-outline {
+	height: 38px !important;
+	border-radius: var(--fb-btn-radius, 8px) !important;
+	background: transparent !important;
+	border: none !important;
+	color: var(--fb-text-main, #1f2937) !important;
+	font-family: var(--fb-font-family) !important;
+	font-size: 0.8125rem !important;
+	font-weight: 600 !important;
+	display: inline-flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	padding: 0 14px !important;
+	text-decoration: none !important;
+	transition: all 0.2s ease !important;
+}
+
+.fb-btn-outline:hover {
+	color: var(--fb-primary) !important;
+	background: var(--fb-primary-light) !important;
+}
+
+/* Empty State */
+.fb-empty-state {
+	display: flex !important;
+	flex-direction: column !important;
+	gap: 8px !important;
+	align-items: center !important;
+	text-align: center !important;
+	padding: 40px 20px !important;
+	background: var(--fb-bg-subtle) !important;
+	border-radius: var(--fb-radius-md, 8px) !important;
+	border: 1.5px dashed var(--fb-border-color) !important;
+}
+
+.fb-empty-icon {
+	color: var(--fb-text-subtle) !important;
+	margin-bottom: 14px !important;
+}
+
+.fb-empty-title {
+	font-size: 1rem !important;
+	font-weight: 700 !important;
+	color: var(--fb-text-main) !important;
+	margin: 0 0 6px 0 !important;
+}
+
+.fb-empty-desc {
+	font-size: 0.8125rem !important;
+	color: var(--fb-text-muted) !important;
+	margin: 0 0 18px 0 !important;
+	max-width: 400px !important;
+	margin-left: auto !important;
+	margin-right: auto !important;
+}
+
+/* ==========================================================================
+   View Order / Digital Invoice Page Styles (.fb-invoice-*)
+   ========================================================================== */
+.fb-view-order-wrap {
+	width: 100% !important;
+	box-sizing: border-box !important;
+}
+
+.fb-view-order-topbar {
+	display: flex !important;
+	flex-wrap: wrap !important;
+	align-items: center !important;
+	justify-content: space-between !important;
+	gap: 16px !important;
+	margin-bottom: 20px !important;
+	padding-bottom: 16px !important;
+	border-bottom: 1px solid var(--fb-border-color) !important;
+}
+
+.fb-btn-print {
+	display: inline-flex !important;
+	align-items: center !important;
+	gap: 8px !important;
+	height: 38px !important;
+	padding: 0 16px !important;
+	font-size: 0.8125rem !important;
+	font-weight: 600 !important;
+	color: var(--fb-text-main) !important;
+	background: #ffffff !important;
+	border: 1.5px solid var(--fb-border-color) !important;
+	border-radius: var(--fb-radius-btn, 8px) !important;
+	cursor: pointer !important;
+	transition: all 0.2s ease !important;
+	box-shadow: none !important;
+}
+
+.fb-btn-print:hover {
+	background: var(--fb-bg-subtle, #f8fafc) !important;
+	border-color: var(--fb-border-hover, #cbd5e1) !important;
+	color: var(--fb-primary) !important;
+}
+
+.fb-invoice-card {
+	background: var(--fb-bg-card) !important;
+	border: 2px solid var(--fb-border-color) !important;
+	border-radius: var(--fb-radius-card, 8px) !important;
+	box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.04) !important;
+	overflow: hidden !important;
+}
+
+.fb-invoice-header {
+	padding: 24px 28px !important;
+	background: var(--fb-bg-card) !important;
+	border-bottom: 1px solid var(--fb-border-color) !important;
+}
+
+.fb-invoice-title-row {
+	display: flex !important;
+	align-items: center !important;
+	justify-content: space-between !important;
+	gap: 14px !important;
+	flex-wrap: wrap !important;
+	margin-bottom: 6px !important;
+}
+
+.fb-invoice-title {
+	font-size: 1.25rem !important;
+	font-weight: 800 !important;
+	color: var(--fb-text-main) !important;
+	margin: 0 !important;
+	letter-spacing: -0.01em !important;
+}
+
+/* 4-Grid Key Meta Highlights */
+.fb-invoice-meta-grid {
+	display: grid !important;
+	grid-template-columns: repeat(4, 1fr) !important;
+	gap: 14px !important;
+	padding: 20px 28px !important;
+	background: var(--fb-bg-card) !important;
+	border-bottom: 1px solid var(--fb-border-light) !important;
+}
+
+@media (max-width: 768px) {
+	.fb-invoice-meta-grid {
+		grid-template-columns: repeat(2, 1fr) !important;
+	}
+}
+
+@media (max-width: 480px) {
+	.fb-invoice-meta-grid {
+		grid-template-columns: 1fr !important;
+	}
+}
+
+.fb-meta-item {
+	background: var(--fb-bg-subtle) !important;
+	border: 1px solid #edf2f7 !important;
+	border-radius: var(--fb-radius-box, 8px) !important;
+	padding: 12px 14px !important;
+	display: flex !important;
+	flex-direction: column !important;
+	gap: 6px !important;
+}
+
+.fb-invoice-meta-grid .fb-meta-label {
+	font-size: 0.75rem !important;
+	font-weight: 600 !important;
+	color: var(--fb-text-muted) !important;
+}
+
+.fb-meta-val {
+	font-size: 0.875rem !important;
+	font-weight: 700 !important;
+	color: var(--fb-text-main) !important;
+	line-height: 1.4 !important;
+}
+
+.fb-meta-val.fb-order-num {
+	color: var(--fb-text-main) !important;
+	font-weight: 800 !important;
+}
+
+.fb-meta-val.fb-total-num {
+	color: var(--fb-text-main) !important;
+	font-weight: 800 !important;
+}
+
+/* Items Table */
+.fb-invoice-section-title {
+	display: flex !important;
+	align-items: center !important;
+	gap: 8px !important;
+	font-size: 0.9375rem !important;
+	font-weight: 700 !important;
+	color: var(--fb-text-main) !important;
+	margin: 0 0 16px 0 !important;
+}
+
+.fb-invoice-section-title svg {
+	color: var(--fb-primary) !important;
+}
+
+.fb-invoice-table-wrap {
+	padding: 20px 24px !important;
+}
+
+.fb-invoice-table {
+	display: block !important;
+	width: 100% !important;
+	border: none !important;
+	border-collapse: collapse !important;
+	border-spacing: 0 !important;
+}
+
+.fb-invoice-table thead {
+	display: none !important; /* Hide old spreadsheet table headers */
+}
+
+.fb-invoice-table tbody {
+	display: flex !important;
+	flex-direction: column !important;
+	gap: 12px !important;
+	width: 100% !important;
+}
+
+.fb-invoice-table tbody tr.fb-invoice-row,
+.fb-invoice-row {
+	display: flex !important;
+	align-items: center !important;
+	justify-content: space-between !important;
+	gap: 16px !important;
+	padding: 14px 18px !important;
+	background: #ffffff !important;
+	border: 1px solid var(--fb-border-color, #e2e8f0) !important;
+	border-radius: var(--fb-radius-md, 10px) !important;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02) !important;
+	transition: all 0.2s ease !important;
+	width: 100% !important;
+	box-sizing: border-box !important;
+}
+
+.fb-invoice-table tbody tr.fb-invoice-row:hover,
+.fb-invoice-row:hover {
+	border-color: var(--fb-border-hover, #cbd5e1) !important;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04) !important;
+}
+
+.fb-invoice-table tbody tr.fb-invoice-row td,
+.fb-invoice-row td {
+	padding: 0 !important;
+	border: none !important;
+	background: transparent !important;
+	box-sizing: border-box !important;
+}
+
+/* Product Info Cell (Thumb, Title, Badges) */
+.fb-invoice-table tbody tr.fb-invoice-row td.fb-td-product,
+.fb-td-product {
+	flex: 1 1 auto !important;
+	min-width: 0 !important;
+}
+
+.fb-product-cell {
+	display: flex !important;
+	align-items: center !important;
+	gap: 14px !important;
+}
+
+.fb-product-thumb {
+	width: 56px !important;
+	height: 56px !important;
+	border-radius: 10px !important;
+	overflow: hidden !important;
+	border: 1px solid var(--fb-border-color, #e2e8f0) !important;
+	flex-shrink: 0 !important;
+	background: var(--fb-bg-subtle, #f8fafc) !important;
+}
+
+.fb-product-thumb img {
+	width: 100% !important;
+	height: 100% !important;
+	object-fit: cover !important;
+	display: block !important;
+}
+
+.fb-product-info {
+	display: flex !important;
+	flex-direction: column !important;
+	gap: 4px !important;
+	min-width: 0 !important;
+}
+
+.fb-product-link,
+.fb-product-name {
+	font-size: 0.875rem !important;
+	font-weight: 700 !important;
+	color: var(--fb-text-main, #0f172a) !important;
+	text-decoration: none !important;
+	line-height: 1.4 !important;
+	transition: color 0.2s ease !important;
+}
+
+.fb-product-link:hover {
+	color: var(--fb-primary) !important;
+}
+
+/* Quantity Cell */
+.fb-invoice-table tbody tr.fb-invoice-row td.fb-td-qty,
+.fb-td-qty {
+	display: flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	flex-shrink: 0 !important;
+}
+
+.fb-item-qty-badge {
+	display: inline-flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	background: var(--fb-bg-subtle, #f8fafc) !important;
+	color: var(--fb-text-main, #0f172a) !important;
+	font-size: 0.75rem !important;
+	font-weight: 700 !important;
+	padding: 3px 10px !important;
+	border-radius: 6px !important;
+	border: 1px solid var(--fb-border-color, #e2e8f0) !important;
+	white-space: nowrap !important;
+}
+
+/* Unit Price Cell */
+.fb-invoice-table tbody tr.fb-invoice-row td.fb-td-price,
+.fb-td-price {
+	display: flex !important;
+	flex-direction: column !important;
+	align-items: flex-start !important;
+	flex-shrink: 0 !important;
+	min-width: 120px !important;
+	text-align: start !important;
+}
+
+.fb-invoice-table tbody tr.fb-invoice-row td.fb-td-price::before,
+.fb-td-price::before {
+	content: "قیمت واحد:" !important;
+	font-size: 0.6875rem !important;
+	color: var(--fb-text-muted, #64748b) !important;
+	font-weight: 500 !important;
+	margin-bottom: 2px !important;
+}
+
+.fb-item-unit-price {
+	font-size: 0.8125rem !important;
+	font-weight: 600 !important;
+	color: var(--fb-text-muted, #64748b) !important;
+	white-space: nowrap !important;
+}
+
+/* Line Total Cell */
+.fb-invoice-table tbody tr.fb-invoice-row td.fb-td-total,
+.fb-td-total {
+	display: flex !important;
+	flex-direction: column !important;
+	align-items: flex-end !important;
+	flex-shrink: 0 !important;
+	min-width: 130px !important;
+	text-align: end !important;
+}
+
+.fb-invoice-table tbody tr.fb-invoice-row td.fb-td-total::before,
+.fb-td-total::before {
+	content: "مجموع:" !important;
+	font-size: 0.6875rem !important;
+	color: var(--fb-text-muted, #64748b) !important;
+	font-weight: 500 !important;
+	margin-bottom: 2px !important;
+}
+
+.fb-item-line-total {
+	font-size: 0.90625rem !important;
+	font-weight: 800 !important;
+	color: var(--fb-text-main, #0f172a) !important;
+	white-space: nowrap !important;
+}
+
+/* Financial Totals Breakdown Box (Desktop Base) */
+.fb-invoice-totals-section {
+	padding: 0 28px 24px !important;
+	display: flex !important;
+	justify-content: flex-end !important;
+}
+
+.fb-invoice-totals-box {
+	width: 360px !important;
+	max-width: 100% !important;
+	background: var(--fb-bg-subtle) !important;
+	border: 1px solid var(--fb-border-color) !important;
+	border-radius: var(--fb-radius-box, 8px) !important;
+	padding: 16px 20px !important;
+	display: flex !important;
+	flex-direction: column !important;
+	gap: 10px !important;
+}
+
+.fb-totals-row {
+	display: flex !important;
+	justify-content: space-between !important;
+	align-items: center !important;
+	font-size: 0.84375rem !important;
+	color: var(--fb-text-main) !important;
+	padding: 4px 0 !important;
+}
+
+.fb-total-label {
+	color: var(--fb-text-muted) !important;
+	font-weight: 600 !important;
+}
+
+.fb-total-val {
+	font-weight: 700 !important;
+	color: var(--fb-text-main) !important;
+}
+
+.fb-totals-row-final {
+	border-top: 1px dashed #cbd5e1 !important;
+	padding-top: 12px !important;
+	margin-top: 6px !important;
+}
+
+.fb-totals-row-final .fb-total-label {
+	font-size: 0.9375rem !important;
+	font-weight: 800 !important;
+	color: var(--fb-text-main) !important;
+}
+
+.fb-totals-row-final .fb-total-val {
+	font-size: 1.125rem !important;
+	font-weight: 900 !important;
+	color: var(--fb-text-main) !important;
+}
+
+.fb-total-discount .fb-total-val {
+	color: var(--fb-success) !important;
+}
+
+/* Customer Addresses Section */
+.fb-invoice-addresses-section {
+	padding: 24px 28px !important;
+	border-top: 1px solid var(--fb-border-color) !important;
+	background: #ffffff !important;
+}
+
+.fb-addresses-grid {
+	display: grid !important;
+	grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)) !important;
+	gap: 16px !important;
+	width: 100% !important;
+	max-width: 100% !important;
+	min-width: 0 !important;
+	box-sizing: border-box !important;
+}
+
+.fb-address-box {
+	background: var(--fb-bg-subtle) !important;
+	border: 1px solid #edf2f7 !important;
+	border-radius: var(--fb-radius-card, 8px) !important;
+	padding: 18px 20px !important;
+	display: flex !important;
+	flex-direction: column !important;
+	gap: 12px !important;
+	box-sizing: border-box !important;
+	width: 100% !important;
+	max-width: 100% !important;
+	min-width: 0 !important;
+}
+
+.fb-address-box-header {
+	display: flex !important;
+	align-items: center !important;
+	gap: 8px !important;
+	padding-bottom: 10px !important;
+	border-bottom: 1px solid var(--fb-border-color) !important;
+}
+
+.fb-address-box-header svg {
+	color: var(--fb-primary) !important;
+}
+
+.fb-address-box-header h5 {
+	font-size: 0.875rem !important;
+	font-weight: 700 !important;
+	color: var(--fb-text-main) !important;
+	margin: 0 !important;
+}
+
+.fb-address-box-body {
+	display: flex !important;
+	flex-direction: column !important;
+	gap: 10px !important;
+}
+
+.fb-address-text {
+	font-size: 0.84375rem !important;
+	line-height: 1.7 !important;
+	color: var(--fb-text-main) !important;
+	margin: 0 !important;
+}
+
+.fb-address-contacts {
+	display: flex !important;
+	flex-direction: column !important;
+	gap: 6px !important;
+	padding-top: 8px !important;
+	border-top: 1px dashed #e2e8f0 !important;
+}
+
+.fb-contact-item {
+	display: flex !important;
+	align-items: center !important;
+	gap: 8px !important;
+	font-size: 0.8125rem !important;
+	color: var(--fb-text-muted) !important;
+}
+
+.fb-contact-item svg {
+	color: var(--fb-primary) !important;
+	flex-shrink: 0 !important;
+}
+
+.fb-contact-email {
+	direction: ltr !important;
+	unicode-bidi: embed !important;
+	word-break: break-all !important;
+}
+
+/* Customer Note Box */
+.fb-invoice-note-box {
+	margin: 0 28px 24px !important;
+	padding: 16px 20px !important;
+	background: #fffbeb !important;
+	border: 1px solid #fef3c7 !important;
+	border-radius: var(--fb-radius-box, 8px) !important;
+}
+
+.fb-note-title {
+	display: flex !important;
+	align-items: center !important;
+	gap: 8px !important;
+	font-size: 0.84375rem !important;
+	font-weight: 700 !important;
+	color: #92400e !important;
+	margin: 0 0 6px 0 !important;
+}
+
+.fb-note-content {
+	font-size: 0.8125rem !important;
+	line-height: 1.6 !important;
+	color: #78350f !important;
+	margin: 0 !important;
+}
+
+/* Order Updates Timeline */
+.fb-invoice-updates-section {
+	padding: 20px 28px !important;
+	border-top: 1px solid var(--fb-border-color) !important;
+	border-bottom: 1px solid var(--fb-border-color) !important;
+	background: var(--fb-bg-subtle) !important;
+}
+
+.fb-updates-title {
+	display: flex !important;
+	align-items: center !important;
+	gap: 8px !important;
+	font-size: 0.875rem !important;
+	font-weight: 700 !important;
+	color: var(--fb-text-main) !important;
+	margin: 0 0 14px 0 !important;
+}
+
+.fb-updates-title svg {
+	color: var(--fb-primary) !important;
+	flex-shrink: 0 !important;
+}
+
+.fb-updates-list {
+	margin: 0 !important;
+	padding: 0 !important;
+	list-style: none !important;
+	display: flex !important;
+	flex-direction: column !important;
+	gap: 12px !important;
+}
+
+.fb-update-item {
+	padding: 12px 16px !important;
+	background: #ffffff !important;
+	border: 1px solid var(--fb-border-color) !important;
+	border-radius: var(--fb-radius-md, 8px) !important;
+}
+
+.fb-update-date {
+	font-size: 0.75rem !important;
+	font-weight: 600 !important;
+	color: var(--fb-text-muted) !important;
+	display: block !important;
+	margin-bottom: 4px !important;
+}
+
+.fb-update-content,
+.fb-update-content p {
+	font-size: 0.875rem !important;
+	font-weight: 800 !important;
+	color: var(--fb-text-main) !important;
+	line-height: 1.6 !important;
+	margin: 0 !important;
+}
+
+/* Highlight Removal & Fallback Safety */
+mark.order-number,
+mark.order-date,
+mark.order-status {
+	background: transparent !important;
+	font-weight: 700 !important;
+	color: var(--fb-primary) !important;
+	padding: 0 !important;
+}
+
+/* ==========================================================================
+   Mobile Responsive Alignment & Card Transformation for Invoice (View Order)
+   ========================================================================== */
+@media (max-width: 640px) {
+	.fb-invoice-card {
+		padding: 0 !important;
+	}
+
+	.fb-invoice-header {
+		padding: 16px 14px 14px !important;
+	}
+
+	.fb-invoice-meta-grid {
+		padding: 14px !important;
+		grid-template-columns: 1fr 1fr !important;
+		gap: 10px !important;
+	}
+
+	.fb-invoice-table-wrap {
+		padding: 14px 14px 8px !important;
+		overflow: visible !important;
+	}
+
+	.fb-invoice-table tbody {
+		display: flex !important;
+		flex-direction: column !important;
+		gap: 10px !important;
+		width: 100% !important;
+	}
+
+	.fb-invoice-table tbody tr.fb-invoice-row {
+		display: flex !important;
+		flex-wrap: wrap !important;
+		align-items: center !important;
+		justify-content: space-between !important;
+		gap: 8px 12px !important;
+		padding: 12px 14px !important;
+		border: 1px solid var(--fb-border-color, #e2e8f0) !important;
+		border-radius: var(--fb-radius-md, 8px) !important;
+		box-sizing: border-box !important;
+		width: 100% !important;
+	}
+
+	.fb-invoice-table tbody tr.fb-invoice-row td {
+		padding: 0 !important;
+		border: none !important;
+		box-sizing: border-box !important;
+	}
+
+	.fb-invoice-table tbody tr.fb-invoice-row td.fb-td-product {
+		width: 100% !important;
+		padding-bottom: 8px !important;
+		border-bottom: 1px dashed #e2e8f0 !important;
+	}
+
+	.fb-product-cell {
+		display: flex !important;
+		align-items: flex-start !important;
+		gap: 10px !important;
+	}
+
+	.fb-product-thumb {
+		width: 44px !important;
+		height: 44px !important;
+		flex-shrink: 0 !important;
+	}
+
+	.fb-product-info {
+		flex: 1 !important;
+		min-width: 0 !important;
+	}
+
+	.fb-product-link,
+	.fb-product-name {
+		font-size: 0.8125rem !important;
+		font-weight: 700 !important;
+		line-height: 1.45 !important;
+		display: block !important;
+		word-break: break-word !important;
+	}
+
+	/* Row 2: Quantity Badge + Unit Price */
+	.fb-invoice-table tbody tr.fb-invoice-row td.fb-td-qty {
+		order: 2 !important;
+		display: flex !important;
+		align-items: center !important;
+	}
+
+	.fb-invoice-table tbody tr.fb-invoice-row td.fb-td-qty .fb-item-qty-badge {
+		font-size: 0.6875rem !important;
+		font-weight: 700 !important;
+		padding: 2px 7px !important;
+		background: var(--fb-bg-subtle) !important;
+		white-space: nowrap !important;
+	}
+
+	.fb-invoice-table tbody tr.fb-invoice-row td.fb-td-price {
+		font-size: 0.75rem !important;
+		color: var(--fb-text-muted) !important;
+		display: flex !important;
+		align-items: flex-start !important;
+		gap: 4px !important;
+		white-space: nowrap !important;
+	}
+
+	.fb-invoice-table tbody tr.fb-invoice-row td.fb-td-price::before {
+		content: "قیمت واحد:" !important;
+		font-size: 0.6875rem !important;
+		color: var(--fb-text-muted) !important;
+	}
+
+	/* Row 3: Total price (Full width flex row with label) */
+	.fb-invoice-table tbody tr.fb-invoice-row td.fb-td-total {
+		width: 100% !important;
+		order: 4 !important;
+		display: flex !important;
+		flex-direction: row !important;
+		align-items: center !important;
+		justify-content: space-between !important;
+		padding-top: 6px !important;
+		border-top: 1px dashed #e2e8f0 !important;
+		font-size: 0.84375rem !important;
+		font-weight: 800 !important;
+		color: var(--fb-primary) !important;
+		white-space: nowrap !important;
+	}
+
+	.fb-invoice-table tbody tr.fb-invoice-row td.fb-td-total::before {
+		content: "مجموع کل این قلم:" !important;
+		font-size: 0.71875rem !important;
+		font-weight: 600 !important;
+		color: var(--fb-text-muted) !important;
+	}
+
+	.fb-invoice-table tbody tr.fb-invoice-row td.fb-td-total .fb-item-line-total {
+		color: var(--fb-text-main) !important;
+		font-weight: 800 !important;
+	}
+
+	/* Financial Totals Breakdown Box: Perfect 100% width and aligned padding */
+	.fb-invoice-totals-section {
+		padding: 0 14px 16px !important;
+		width: 100% !important;
+		box-sizing: border-box !important;
+		display: block !important;
+	}
+
+	.fb-invoice-totals-box {
+		width: 100% !important;
+		max-width: 100% !important;
+		box-sizing: border-box !important;
+		padding: 14px !important;
+	}
+
+	.fb-totals-row-final .fb-total-val,
+	.fb-totals-row-final .fb-total-val ins,
+	.fb-totals-row-final .fb-total-val ins :is(.woocommerce-Price-amount, bdi) {
+		font-size: 1rem !important;
+	}
+
+	:is(.fb-meta-total, .fb-total-val) del {
+		font-size: 0.71875rem !important;
+	}
+
+	.fb-invoice-addresses-section {
+		padding: 14px !important;
+		box-sizing: border-box !important;
+		width: 100% !important;
+		max-width: 100% !important;
+	}
+
+	.fb-addresses-grid {
+		grid-template-columns: 1fr !important;
+		width: 100% !important;
+		max-width: 100% !important;
+		gap: 12px !important;
+	}
+
+	.fb-address-box {
+		width: 100% !important;
+		max-width: 100% !important;
+		min-width: 0 !important;
+		box-sizing: border-box !important;
+		padding: 14px 16px !important;
+	}
+
+	.fb-invoice-note-box {
+		margin: 0 14px 14px !important;
+		padding: 14px !important;
+	}
+
+	.fb-invoice-updates-section {
+		padding: 14px !important;
+	}
+}
+
+/* ==========================================================================
+   Clean Official Invoice Print Styles (@media print)
+   ========================================================================== */
+@media print {
+	/* 1. Strictly suppress URL printing after links (Overrides hello-elementor reset.css) */
+	a[href]:after,
+	a[href]::after,
+	a:after,
+	a::after,
+	abbr[title]:after,
+	abbr[title]::after {
+		content: "" !important;
+		display: none !important;
+	}
+
+	a,
+	a:visited,
+	a:hover {
+		text-decoration: none !important;
+		color: inherit !important;
+	}
+
+	/* 2. Hide WordPress, Admin Bar, and non-printable navigation */
+	#wpadminbar,
+	header,
+	footer,
+	.site-header,
+	.site-footer,
+	.elementor-location-header,
+	.elementor-location-footer,
+	.fb-myaccount-sidebar,
+	.fb-view-order-topbar,
+	.fb-order-actions-wrap,
+	.fb-btn-print {
+		display: none !important;
+	}
+
+	/* 3. Base page & container for printing */
+	@page {
+		size: auto;
+		margin: 8mm 10mm;
+	}
+
+	html,
+	body {
+		background: #ffffff !important;
+		color: #0f172a !important;
+		font-size: 0.75rem !important;
+		margin: 0 !important;
+		padding: 0 !important;
+		height: auto !important;
+		min-height: auto !important;
+		overflow: visible !important;
+		-webkit-print-color-adjust: exact !important;
+		print-color-adjust: exact !important;
+	}
+
+	.site,
+	.site-content,
+	#content,
+	#primary,
+	main,
+	.elementor {
+		margin: 0 !important;
+		padding: 0 !important;
+		height: auto !important;
+		min-height: auto !important;
+		overflow: visible !important;
+		width: 100% !important;
+		max-width: 100% !important;
+	}
+
+	.fb-myaccount-wrapper,
+	.fb-myaccount-grid,
+	.fb-myaccount-main,
+	.fb-myaccount-content-card,
+	.fb-view-order-wrap {
+		display: block !important;
+		border: none !important;
+		box-shadow: none !important;
+		padding: 0 !important;
+		margin: 0 !important;
+		max-width: 100% !important;
+		width: 100% !important;
+		background: transparent !important;
+		height: auto !important;
+		min-height: auto !important;
+		overflow: visible !important;
+	}
+
+	.fb-invoice-card {
+		border: 1px solid #cbd5e1 !important;
+		box-shadow: none !important;
+		border-radius: 8px !important;
+		padding: 0 !important;
+		margin: 0 !important;
+		width: 100% !important;
+		background: #ffffff !important;
+		overflow: visible !important;
+		page-break-inside: auto !important;
+		break-inside: auto !important;
+	}
+
+	.fb-invoice-header {
+		padding: 16px 20px !important;
+		background: #f8fafc !important;
+		border-bottom: 1.5px solid #e2e8f0 !important;
+		-webkit-print-color-adjust: exact !important;
+		print-color-adjust: exact !important;
+	}
+
+	/* Meta Highlights Grid */
+	.fb-invoice-meta-grid {
+		display: grid !important;
+		grid-template-columns: repeat(4, 1fr) !important;
+		gap: 10px !important;
+		padding: 16px 20px !important;
+		background: #ffffff !important;
+		border-bottom: 1px solid #e2e8f0 !important;
+	}
+
+	.fb-meta-item {
+		border: 1px solid #e2e8f0 !important;
+		border-radius: 6px !important;
+		background: #f8fafc !important;
+		padding: 10px 12px !important;
+		-webkit-print-color-adjust: exact !important;
+		print-color-adjust: exact !important;
+	}
+
+	/* Purchased Items Table - keep tabular display in print */
+	.fb-invoice-table-wrap {
+		padding: 16px 20px !important;
+		border: none !important;
+		background: #ffffff !important;
+	}
+
+	.fb-invoice-table {
+		display: table !important;
+		width: 100% !important;
+		border-collapse: collapse !important;
+	}
+
+	.fb-invoice-table thead {
+		display: table-header-group !important;
+		background: #f8fafc !important;
+		-webkit-print-color-adjust: exact !important;
+		print-color-adjust: exact !important;
+	}
+
+	.fb-invoice-table thead th {
+		display: table-cell !important;
+		padding: 10px 12px !important;
+		border-bottom: 2px solid #cbd5e1 !important;
+		font-size: 0.71875rem !important;
+		font-weight: 700 !important;
+		color: #475569 !important;
+	}
+
+	.fb-invoice-table tbody {
+		display: table-row-group !important;
+	}
+
+	.fb-invoice-table tbody tr.fb-invoice-row {
+		display: table-row !important;
+		page-break-inside: avoid !important;
+		break-inside: avoid !important;
+		border-bottom: 1px solid #e2e8f0 !important;
+		background: transparent !important;
+		padding: 0 !important;
+	}
+
+	.fb-invoice-table tbody tr.fb-invoice-row td {
+		display: table-cell !important;
+		padding: 12px 10px !important;
+		border-bottom: 1px solid #f1f5f9 !important;
+		vertical-align: middle !important;
+	}
+
+	.fb-invoice-table tbody tr.fb-invoice-row td.fb-td-product {
+		border-bottom: 1px solid #f1f5f9 !important;
+		padding-bottom: 12px !important;
+	}
+
+	.fb-product-cell {
+		display: flex !important;
+		align-items: center !important;
+		gap: 12px !important;
+	}
+
+	.fb-product-thumb {
+		width: 48px !important;
+		height: 48px !important;
+		flex-shrink: 0 !important;
+		border: 1px solid #e2e8f0 !important;
+		border-radius: 10px !important;
+		overflow: hidden !important;
+		-webkit-print-color-adjust: exact !important;
+		print-color-adjust: exact !important;
+	}
+
+	.fb-product-thumb img {
+		width: 100% !important;
+		height: 100% !important;
+		object-fit: cover !important;
+	}
+
+	.fb-product-link,
+	.fb-product-name {
+		font-size: 0.8125rem !important;
+		font-weight: 700 !important;
+		color: #0f172a !important;
+		text-decoration: none !important;
+	}
+
+	/* Product Variations in Print (Clean Badge, Full Display) */
+	:is(.fb-preview-meta, .fb-product-info, .fb-myaccount-wrapper, .woocommerce-account) :is(.wc-item-meta, dl.variation) {
+		display: inline-block !important;
+		background: #f8fafc !important;
+		border: 1px solid #e2e8f0 !important;
+		border-radius: 6px !important;
+		padding: 2px 7px !important;
+		font-size: 0.65625rem !important;
+		line-height: 1.4 !important;
+		margin: 4px 0 2px 0 !important;
+		white-space: normal !important;
+		-webkit-print-color-adjust: exact !important;
+		print-color-adjust: exact !important;
+	}
+
+	:is(.fb-preview-meta, .fb-product-info, .fb-myaccount-wrapper, .woocommerce-account) .wc-item-meta li {
+		display: inline !important;
+	}
+
+	:is(.fb-preview-meta, .fb-product-info, .fb-myaccount-wrapper, .woocommerce-account) .wc-item-meta li:not(:last-child)::after {
+		content: " • " !important;
+		display: inline !important;
+		margin: 0 4px !important;
+		color: #94a3b8 !important;
+	}
+
+	:is(.fb-preview-meta, .fb-product-info, .fb-myaccount-wrapper, .woocommerce-account) .wc-item-meta :is(.wc-item-meta-label, strong),
+	:is(.fb-preview-meta, .fb-product-info, .fb-myaccount-wrapper, .woocommerce-account) dl.variation dt {
+		display: inline !important;
+		font-weight: 500 !important;
+		color: #64748b !important;
+	}
+
+	:is(.fb-preview-meta, .fb-product-info, .fb-myaccount-wrapper, .woocommerce-account) .wc-item-meta p,
+	:is(.fb-preview-meta, .fb-product-info, .fb-myaccount-wrapper, .woocommerce-account) dl.variation dd {
+		display: inline !important;
+		font-weight: 600 !important;
+		color: #0f172a !important;
+		margin: 0 !important;
+	}
+
+	:is(.fb-preview-meta, .fb-product-info, .fb-myaccount-wrapper, .woocommerce-account) dl.variation dd:not(:last-of-type)::after {
+		content: " • " !important;
+		display: inline !important;
+		margin: 0 4px !important;
+		color: #94a3b8 !important;
+	}
+
+	/* Totals & Addresses */
+	.fb-invoice-totals-section {
+		padding: 16px 20px !important;
+		background: #f8fafc !important;
+		border-top: 1px solid #e2e8f0 !important;
+		-webkit-print-color-adjust: exact !important;
+		print-color-adjust: exact !important;
+	}
+
+	.fb-addresses-grid {
+		display: grid !important;
+		grid-template-columns: 1fr 1fr !important;
+		gap: 16px !important;
+		padding: 16px 20px !important;
+		background: #ffffff !important;
+		border-top: 1px solid #e2e8f0 !important;
+	}
+}
+
+/* ==========================================================================
+   Payment Methods & Saved Cards (روش‌های پرداخت و کارت‌های ذخیره شده)
+   ========================================================================== */
+.fb-payment-methods-page-wrap,
+.fb-add-payment-method-page-wrap {
+	display: flex !important;
+	flex-direction: column !important;
+	gap: 20px !important;
+	width: 100% !important;
+}
+
+.fb-add-payment-method-btn {
+	display: inline-flex !important;
+	align-items: center !important;
+	gap: 6px !important;
+	text-decoration: none !important;
+	white-space: nowrap !important;
+}
+
+.fb-saved-cards-grid {
+	display: grid !important;
+	grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)) !important;
+	gap: 16px !important;
+	width: 100% !important;
+}
+
+.fb-saved-card-item {
+	background: #ffffff !important;
+	border: 1px solid var(--fb-border-color) !important;
+	border-radius: var(--fb-radius-lg, 14px) !important;
+	padding: 20px !important;
+	position: relative !important;
+	transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+	display: flex !important;
+	flex-direction: column !important;
+	justify-content: space-between !important;
+	min-height: 160px !important;
+}
+
+.fb-saved-card-item:hover {
+	border-color: var(--fb-primary) !important;
+	box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06) !important;
+	transform: translateY(-2px) !important;
+}
+
+.fb-saved-card-item.is-default {
+	border-color: var(--fb-primary) !important;
+	background: linear-gradient(135deg, #ffffff 0%, var(--fb-primary-light, #f0fdf4) 100%) !important;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05) !important;
+}
+
+.fb-card-chip-row {
+	display: flex !important;
+	align-items: center !important;
+	justify-content: space-between !important;
+	width: 100% !important;
+}
+
+.fb-card-chip {
+	color: #d97706 !important;
+	display: flex !important;
+	align-items: center !important;
+}
+
+.fb-card-brand-wrap {
+	display: flex !important;
+	align-items: center !important;
+	gap: 8px !important;
+}
+
+.fb-brand-name {
+	font-size: 0.84375rem !important;
+	font-weight: 700 !important;
+	color: var(--fb-text-main) !important;
+	text-transform: capitalize !important;
+}
+
+.fb-default-badge {
+	font-size: 0.6875rem !important;
+	font-weight: 700 !important;
+	padding: 2px 8px !important;
+	border-radius: 999px !important;
+	background: var(--fb-primary) !important;
+	color: #ffffff !important;
+}
+
+.fb-card-number-row {
+	display: flex !important;
+	align-items: center !important;
+	gap: 8px !important;
+	margin: 18px 0 !important;
+	font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+	font-size: 1rem !important;
+	font-weight: 700 !important;
+	letter-spacing: 1.5px !important;
+	color: var(--fb-text-main) !important;
+}
+
+.fb-card-dots {
+	opacity: 0.5 !important;
+	letter-spacing: 2px !important;
+}
+
+.fb-card-last4 {
+	font-weight: 800 !important;
+}
+
+.fb-card-footer-row {
+	display: flex !important;
+	align-items: center !important;
+	justify-content: space-between !important;
+	padding-top: 12px !important;
+	border-top: 1px dashed var(--fb-border-color) !important;
+	margin-top: auto !important;
+}
+
+.fb-card-expiry-wrap {
+	display: flex !important;
+	align-items: center !important;
+	gap: 5px !important;
+}
+
+.fb-expiry-label {
+	font-size: 0.6875rem !important;
+	font-weight: 600 !important;
+	color: var(--fb-text-muted) !important;
+}
+
+.fb-expiry-val {
+	font-size: 0.78125rem !important;
+	font-weight: 700 !important;
+	color: var(--fb-text-main) !important;
+	font-family: ui-monospace, SFMono-Regular, monospace !important;
+}
+
+.fb-card-actions {
+	display: flex !important;
+	align-items: center !important;
+	gap: 8px !important;
+}
+
+.fb-btn-card-default {
+	font-size: 0.71875rem !important;
+	font-weight: 600 !important;
+	padding: 3px 9px !important;
+	border-radius: var(--fb-radius-sm, 6px) !important;
+	border: 1px solid var(--fb-border-color) !important;
+	color: var(--fb-text-main) !important;
+	background: #ffffff !important;
+	text-decoration: none !important;
+	transition: all 0.2s ease !important;
+}
+
+.fb-btn-card-default:hover {
+	border-color: var(--fb-primary) !important;
+	color: var(--fb-primary) !important;
+}
+
+.fb-btn-card-del {
+	width: 28px !important;
+	height: 28px !important;
+	border-radius: var(--fb-radius-sm, 6px) !important;
+	border: 1px solid var(--fb-border-color) !important;
+	color: var(--fb-text-muted) !important;
+	background: #ffffff !important;
+	display: inline-flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	text-decoration: none !important;
+	transition: all 0.2s ease !important;
+}
+
+.fb-btn-card-del:hover {
+	background: #fef2f2 !important;
+	border-color: #ef4444 !important;
+	color: #ef4444 !important;
+}
+
+/* Add Payment Method Form */
+.fb-add-payment-form {
+	background: #ffffff !important;
+	border: 1px solid var(--fb-border-color) !important;
+	border-radius: var(--fb-radius-lg, 14px) !important;
+	padding: 24px !important;
+}
+
+.fb-add-payment-form .fb-payment-gateways-list {
+	list-style: none !important;
+	margin: 0 0 20px 0 !important;
+	padding: 0 !important;
+	display: flex !important;
+	flex-direction: column !important;
+	gap: 12px !important;
+}
+
+.fb-add-payment-form .fb-gateway-item {
+	border: 1px solid var(--fb-border-color) !important;
+	border-radius: var(--fb-radius-md, 8px) !important;
+	padding: 16px !important;
+	background: #ffffff !important;
+	transition: border-color 0.2s ease !important;
+}
+
+.fb-add-payment-form .fb-gateway-header-row {
+	display: flex !important;
+	align-items: center !important;
+	gap: 10px !important;
+}
+
+.fb-add-payment-form .fb-gateway-label {
+	display: flex !important;
+	align-items: center !important;
+	justify-content: space-between !important;
+	width: 100% !important;
+	font-weight: 700 !important;
+	font-size: 0.90625rem !important;
+	color: var(--fb-text-main) !important;
+	cursor: pointer !important;
+	margin: 0 !important;
+}
+
+.fb-add-payment-form .fb-gateway-box {
+	margin-top: 14px !important;
+	padding-top: 14px !important;
+	border-top: 1px dashed var(--fb-border-color) !important;
+}
+

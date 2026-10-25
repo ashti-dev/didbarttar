@@ -1497,6 +1497,8 @@ function torantejarat_checkout_fields( $fields ) {
 		'billing_address_1'  => array( 'label' => __( 'آدرس خیابان', 'torantejarat' ), 'placeholder' => __( 'نام خیابان، پلاک و واحد', 'torantejarat' ), 'priority' => 50, 'autocomplete' => 'street-address', 'class' => array( 'form-row-wide' ) ),
 		'billing_postcode'   => array( 'label' => __( 'کد پستی', 'torantejarat' ), 'placeholder' => __( 'کد پستی ۱۰ رقمی', 'torantejarat' ), 'priority' => 60, 'autocomplete' => 'postal-code', 'class' => array( 'form-row-first' ), 'custom_attributes' => array( 'dir' => 'ltr', 'inputmode' => 'numeric' ) ),
 		'billing_phone'      => array( 'label' => __( 'تلفن همراه', 'torantejarat' ), 'placeholder' => '09123456789', 'priority' => 70, 'autocomplete' => 'tel', 'class' => array( 'form-row-last' ), 'custom_attributes' => array( 'dir' => 'ltr' ) ),
+		/* WooCommerce needs billing_email for order emails and for creating an account at checkout - do not remove. */
+		'billing_email'      => array( 'label' => __( 'ایمیل', 'torantejarat' ), 'placeholder' => 'name@example.com', 'priority' => 80, 'autocomplete' => 'email', 'class' => array( 'form-row-wide' ), 'custom_attributes' => array( 'dir' => 'ltr', 'inputmode' => 'email' ) ),
 	);
 	$billing = array();
 	foreach ( $keep as $key => $overrides ) {
@@ -1962,6 +1964,49 @@ function torantejarat_receipt_actions() {
 }
 
 /**
+ * Payment state, kept separate from the order/fulfilment status.
+ *
+ * WooCommerce marks an order paid by status (processing/completed) and stamps
+ * date_paid as soon as it enters those statuses - including COD, where cash is
+ * collected on delivery - and a custom status such as "shipped" is not in the
+ * paid list at all. Payment is therefore derived from date_paid/is_paid plus
+ * the COD lifecycle, never from one status label.
+ *
+ * @param \WC_Order $order Order object.
+ * @return array{key:string,label:string} key: paid|cod|awaiting|failed|cancelled|refunded|unknown.
+ */
+function torantejarat_order_payment_state( $order ) {
+	if ( ! $order instanceof \WC_Order ) {
+		return array( 'key' => 'unknown', 'label' => __( 'نامشخص', 'torantejarat' ) );
+	}
+
+	if ( $order->has_status( 'failed' ) ) {
+		return array( 'key' => 'failed', 'label' => __( 'پرداخت ناموفق', 'torantejarat' ) );
+	}
+
+	if ( $order->has_status( 'cancelled' ) ) {
+		return array( 'key' => 'cancelled', 'label' => __( 'سفارش لغو شد', 'torantejarat' ) );
+	}
+
+	$total = (float) $order->get_total();
+	if ( $order->has_status( 'refunded' ) || ( $total > 0 && (float) $order->get_total_refunded() >= $total ) ) {
+		return array( 'key' => 'refunded', 'label' => __( 'مبلغ بازگردانده شد', 'torantejarat' ) );
+	}
+
+	// Cash on delivery: money is handed over at the door, so only a completed
+	// order proves that it was collected (zero-total orders are not COD).
+	if ( 'cod' === $order->get_payment_method() && $total > 0 && ! $order->has_status( 'completed' ) ) {
+		return array( 'key' => 'cod', 'label' => __( 'پرداخت هنگام تحویل', 'torantejarat' ) );
+	}
+
+	if ( $order->is_paid() || $order->get_date_paid() ) {
+		return array( 'key' => 'paid', 'label' => __( 'پرداخت شد', 'torantejarat' ) );
+	}
+
+	return array( 'key' => 'awaiting', 'label' => __( 'در انتظار پرداخت', 'torantejarat' ) );
+}
+
+/**
  * Professional invoice header — order-pay (object), thankyou + view-order (ID).
  * Hooks only; no Woo template override. Native Woo data, HPOS-safe.
  *
@@ -1972,17 +2017,19 @@ function torantejarat_invoice_header( $maybe_order = 0 ) {
 	if ( ! $order instanceof \WC_Order ) {
 		return;
 	}
-	$status = $order->get_status();
-	$badge  = array( 'label' => __( 'در انتظار پرداخت', 'torantejarat' ), 'class' => 'is-pending' );
-	if ( 'failed' === $status ) {
-		$badge = array( 'label' => __( 'پرداخت ناموفق', 'torantejarat' ), 'class' => 'is-failed' );
-	} elseif ( in_array( $status, array( 'processing', 'on-hold' ), true ) ) {
-		$badge = array( 'label' => __( 'پرداخت شد — در حال آماده‌سازی', 'torantejarat' ), 'class' => 'is-paid' );
-	} elseif ( in_array( $status, array( 'shipped', 'completed' ), true ) ) {
-		$badge = array( 'label' => __( 'ارسال شد', 'torantejarat' ), 'class' => 'is-shipped' );
-	} elseif ( in_array( $status, array( 'cancelled', 'refunded' ), true ) ) {
-		$badge = array( 'label' => wc_get_order_status_name( $status ), 'class' => 'is-failed' );
-	}
+	$payment   = torantejarat_order_payment_state( $order );
+	$classes   = array(
+		'paid'      => 'is-paid',
+		'cod'       => 'is-pending',
+		'awaiting'  => 'is-pending',
+		'failed'    => 'is-failed',
+		'cancelled' => 'is-failed',
+		'refunded'  => 'is-failed',
+	);
+	$badge     = array(
+		'label' => $payment['label'],
+		'class' => isset( $classes[ $payment['key'] ] ) ? $classes[ $payment['key'] ] : 'is-pending',
+	);
 	$created = $order->get_date_created();
 	$date    = $created ? torantejarat_jalali_ymd( $created->date( 'Y' ), $created->date( 'n' ), $created->date( 'j' ) ) : __( '—', 'torantejarat' );
 	$name    = trim( $order->get_billing_first_name() . ' ' . $order->get_billing_last_name() );

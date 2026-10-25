@@ -1,0 +1,1160 @@
+/* ==========================================================================
+   FrontBaz WooCommerce Framework
+   Package     : FrontBaz Store Framework
+   Module      : Thank You & Order Received (صفحه سفارش دریافت شده / تشکر)
+   File        : assets/css/fb-thankyou.css
+   Author      : Sina Samipour (FrontBaz)
+   Description : Native RTL styling for Order Received / Thank You. Inherits design tokens from fb-base.css.
+   Namespace   : All custom classes strictly adhere to .fb- prefix.
+   ========================================================================== */
+
+/* Main Container (Zero-spacing for Elementor container control) */
+.fb-thankyou-wrapper {
+	max-width: 880px !important;
+	margin: 0 auto !important;
+	padding: 0 !important;
+	width: 100% !important;
+	font-family: var(--fb-font-family) !important;
+	box-sizing: border-box !important;
+}
+
+.fb-thankyou-wrapper *,
+.fb-thankyou-wrapper *::before,
+.fb-thankyou-wrapper *::after {
+	box-sizing: inherit !important;
+}
+
+/* ==========================================================================
+   1. HERO CELEBRATION BANNER
+   ========================================================================== */
+.fb-thankyou-hero {
+	background: var(--fb-bg-card) !important;
+	border: 2px solid var(--fb-border-color) !important;
+	border-radius: var(--fb-radius-lg) !important;
+	padding: 44px 28px 36px !important;
+	text-align: center !important;
+	margin-bottom: 30px !important;
+	box-shadow: var(--fb-shadow-card) !important;
+	position: relative !important;
+	overflow: hidden !important;
+}
+
+.fb-thankyou-hero::before {
+	content: "" !important;
+	position: absolute !important;
+	top: 0 !important;
+	left: 0 !important;
+	right: 0 !important;
+	height: 5px !important;
+	background: var(--fb-success) !important;
+}
+
+/* Animated Checkmark Icon */
+.fb-hero-icon-wrap {
+	width: 76px !important;
+	height: 76px !important;
+	margin: 0 auto 20px !important;
+	position: relative !important;
+	display: flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+}
+
+.fb-checkmark-circle-glow {
+	position: absolute !important;
+	inset: 0 !important;
+	border-radius: 50% !important;
+	background: rgba(16, 185, 129, 0.15) !important;
+	animation: fbPulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite !important;
+}
+
+.fb-checkmark-svg {
+	width: 64px !important;
+	height: 64px !important;
+	border-radius: 50% !important;
+	display: block !important;
+	stroke-width: 3.5 !important;
+	stroke: var(--fb-success, #10b981) !important;
+	stroke-miterlimit: 10 !important;
+	box-shadow: inset 0px 0px 0px var(--fb-success, #10b981);
+	animation:
+		fbFill 0.4s ease-in-out 0.4s forwards,
+		fbScale 0.3s ease-in-out 0.9s both !important;
+	position: relative !important;
+	z-index: 1 !important;
+}
+
+.fb-checkmark-circle {
+	stroke-dasharray: 166;
+	stroke-dashoffset: 166;
+	stroke-width: 3.5 !important;
+	stroke-miterlimit: 10 !important;
+	stroke: var(--fb-success, #10b981) !important;
+	fill: #ecfdf5 !important;
+	animation: fbStroke 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards !important;
+}
+
+.fb-checkmark-check {
+	transform-origin: 50% 50% !important;
+	stroke-dasharray: 48;
+	stroke-dashoffset: 48;
+	stroke-width: 3.5 !important;
+	stroke: var(--fb-success, #10b981) !important;
+	stroke-linecap: round !important;
+	stroke-linejoin: round !important;
+	fill: none !important;
+	animation: fbStroke 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.6s forwards !important;
+}
+
+@keyframes fbStroke {
+	100% {
+		stroke-dashoffset: 0;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.fb-checkmark-circle,
+	.fb-checkmark-check {
+		stroke-dashoffset: 0 !important;
+		animation: none !important;
+	}
+	.fb-checkmark-svg,
+	.fb-checkmark-circle-glow {
+		animation: none !important;
+	}
+}
+
+@keyframes fbScale {
+	0%, 100% {
+		transform: none;
+	}
+	50% {
+		transform: scale3d(1.1, 1.1, 1);
+	}
+}
+
+@keyframes fbFill {
+	100% {
+		box-shadow: inset 0px 0px 0px 30px rgba(16, 185, 129, 0.08);
+	}
+}
+
+@keyframes fbPulse {
+	0%, 100% {
+		transform: scale(1);
+		opacity: 0.8;
+	}
+	50% {
+		transform: scale(1.22);
+		opacity: 0.25;
+	}
+}
+
+.fb-hero-title {
+	font-size: 1.625rem !important;
+	font-weight: 800 !important;
+	color: var(--fb-text-main) !important;
+	margin: 0 0 12px !important;
+	line-height: 1.35 !important;
+	letter-spacing: -0.02em !important;
+}
+
+.fb-hero-desc {
+	font-size: 0.9375rem !important;
+	color: var(--fb-text-main) !important;
+	max-width: 640px !important;
+	margin: 0 auto 32px !important;
+	line-height: 1.8 !important;
+}
+
+/* Order Fulfillment Timeline / Stepper */
+.fb-order-timeline {
+	display: flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	max-width: 620px !important;
+	margin: 0 auto !important;
+	padding: 10px 0 6px !important;
+}
+
+.fb-step {
+	display: flex !important;
+	flex-direction: column !important;
+	align-items: center !important;
+	gap: 10px !important;
+	position: relative !important;
+	z-index: 1 !important;
+	flex-shrink: 0 !important;
+}
+
+.fb-step-dot {
+	width: 36px !important;
+	height: 36px !important;
+	border-radius: 50% !important;
+	display: flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	font-size: 0.875rem !important;
+	font-weight: 700 !important;
+	background: var(--fb-border-light) !important;
+	color: var(--fb-text-muted) !important;
+	border: 2px solid var(--fb-border-color) !important;
+	transition: all 0.3s ease !important;
+}
+
+.fb-step-completed .fb-step-dot {
+	background: var(--fb-success) !important;
+	color: #ffffff !important;
+	border-color: var(--fb-success) !important;
+	box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3) !important;
+}
+
+.fb-step-completed .fb-step-dot svg,
+.fb-step-completed .fb-step-dot svg polyline {
+	stroke: #ffffff !important;
+	color: #ffffff !important;
+}
+
+.fb-step-active .fb-step-dot {
+	background: var(--fb-success-light) !important;
+	color: var(--fb-success) !important;
+	border-color: var(--fb-success) !important;
+	box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.2) !important;
+}
+
+.fb-step-label {
+	font-size: 0.8125rem !important;
+	font-weight: 600 !important;
+	color: var(--fb-text-muted) !important;
+	white-space: nowrap !important;
+}
+
+.fb-step-completed .fb-step-label,
+.fb-step-active .fb-step-label {
+	color: var(--fb-text-main) !important;
+	font-weight: 700 !important;
+}
+
+.fb-step-line {
+	flex: 1 !important;
+	height: 3px !important;
+	background: var(--fb-border-color) !important;
+	margin: 0 12px 26px !important;
+	position: relative !important;
+	border-radius: 2px !important;
+}
+
+.fb-step-line.fb-line-active {
+	background: var(--fb-success) !important;
+}
+
+/* ==========================================================================
+   2. PRESTIGIOUS DIGITAL INVOICE CARD
+   ========================================================================== */
+.fb-invoice-card {
+	background: var(--fb-bg-card) !important;
+	border: 2px solid var(--fb-border-color) !important;
+	border-radius: var(--fb-radius-lg) !important;
+	box-shadow: var(--fb-shadow-card) !important;
+	overflow: hidden !important;
+	margin-bottom: 30px !important;
+}
+
+/* Invoice Header */
+.fb-invoice-header {
+	display: flex !important;
+	justify-content: space-between !important;
+	align-items: center !important;
+	padding: 24px 30px !important;
+	background: var(--fb-bg-card) !important;
+	border-bottom: 1px solid var(--fb-border-color) !important;
+}
+
+.fb-invoice-brand {
+	display: flex !important;
+	flex-direction: column !important;
+	gap: 4px !important;
+}
+
+.fb-invoice-brand-title {
+	font-size: 1.375rem !important;
+	font-weight: 900 !important;
+	color: var(--fb-text-main) !important;
+	margin: 0 !important;
+	letter-spacing: -0.02em !important;
+}
+
+.fb-invoice-badge {
+	font-size: 0.8125rem !important;
+	color: var(--fb-text-muted) !important;
+	font-weight: 600 !important;
+}
+
+.fb-btn-print {
+	display: inline-flex !important;
+	align-items: center !important;
+	gap: 8px !important;
+	padding: 9px 18px !important;
+	background: var(--fb-bg-card) !important;
+	border: 1.5px solid var(--fb-border-hover) !important;
+	border-radius: var(--fb-radius-sm) !important;
+	color: var(--fb-text-main) !important;
+	font-size: 0.8125rem !important;
+	font-weight: 700 !important;
+	cursor: pointer !important;
+	transition: all 0.2s ease !important;
+}
+
+.fb-btn-print:hover {
+	background: var(--fb-border-light) !important;
+	border-color: var(--fb-text-subtle) !important;
+	color: var(--fb-text-main) !important;
+}
+
+/* 4 Key Meta Items Grid */
+.fb-invoice-meta-grid {
+	display: grid !important;
+	grid-template-columns: repeat(4, 1fr) !important;
+	gap: 16px !important;
+	padding: 24px 30px !important;
+	background: var(--fb-bg-card) !important;
+	border-bottom: 1px solid var(--fb-border-light) !important;
+}
+
+.fb-meta-item {
+	background: var(--fb-bg-subtle) !important;
+	border: 1px solid #edf2f7 !important;
+	border-radius: var(--fb-radius-box, 8px) !important;
+	padding: 14px 16px !important;
+	display: flex !important;
+	flex-direction: column !important;
+	gap: 6px !important;
+}
+
+.fb-meta-label {
+	font-size: 0.75rem !important;
+	font-weight: 600 !important;
+	color: var(--fb-text-muted) !important;
+}
+
+.fb-meta-val {
+	font-size: 0.875rem !important;
+	font-weight: 800 !important;
+	color: var(--fb-text-main) !important;
+	line-height: 1.4 !important;
+}
+
+.fb-meta-val.fb-order-num {
+	color: var(--fb-text-main) !important;
+	font-size: 1rem !important;
+	letter-spacing: 0.02em !important;
+}
+
+.fb-meta-val.fb-status-success {
+	color: #059669 !important;
+	display: inline-flex !important;
+	align-items: center !important;
+	gap: 5px !important;
+}
+
+/* Invoice Purchased Items Table (Modern Borderless List View) */
+.fb-invoice-table-wrap {
+	padding: 16px 30px 24px !important;
+}
+
+.fb-invoice-table,
+.fb-invoice-table thead,
+.fb-invoice-table tbody,
+.fb-invoice-table tr,
+.fb-invoice-table thead th,
+.fb-invoice-table tbody td {
+	border: none !important;
+	background: transparent !important;
+	box-shadow: none !important;
+}
+
+.fb-invoice-table {
+	width: 100% !important;
+	border-collapse: collapse !important;
+	text-align: start !important;
+	border-spacing: 0 !important;
+}
+
+.fb-invoice-table thead th {
+	padding: 13px 14px !important;
+	font-size: 0.78125rem !important;
+	font-weight: 700 !important;
+	color: var(--fb-text-muted, #64748b) !important;
+	background: var(--fb-bg-subtle, #f8fafc) !important;
+	border: none !important;
+	border-bottom: 2px solid var(--fb-border-light, #e2e8f0) !important;
+	text-align: start !important;
+}
+
+.fb-invoice-table thead th.fb-th-price,
+.fb-invoice-table thead th.fb-th-subtotal {
+	text-align: end !important;
+}
+
+.fb-invoice-table thead th.fb-th-qty {
+	text-align: center !important;
+}
+
+.fb-invoice-table thead th:first-child {
+	border-start-start-radius: 8px !important;
+}
+
+.fb-invoice-table thead th:last-child {
+	border-start-end-radius: 8px !important;
+}
+
+.fb-invoice-table tbody tr.fb-invoice-row td {
+	padding: 16px 14px !important;
+	border: none !important;
+	border-bottom: 1px solid var(--fb-border-light, #f1f5f9) !important;
+	vertical-align: middle !important;
+	font-size: 0.84375rem !important;
+	color: var(--fb-text-main, #0f172a) !important;
+	background: transparent !important;
+}
+
+.fb-invoice-table tbody tr.fb-invoice-row:last-child td {
+	border-bottom: none !important;
+}
+
+.fb-invoice-table tbody tr.fb-invoice-row:hover td {
+	background-color: rgba(248, 250, 252, 0.7) !important;
+}
+
+.fb-td-thumb {
+	width: 68px !important;
+}
+
+.fb-invoice-thumb {
+	width: 58px !important;
+	height: 58px !important;
+	border-radius: 10px !important;
+	overflow: hidden !important;
+	border: 1px solid var(--fb-border-color) !important;
+	background: var(--fb-bg-subtle) !important;
+	display: flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+}
+
+.fb-invoice-thumb img {
+	width: 100% !important;
+	height: 100% !important;
+	object-fit: cover !important;
+	display: block !important;
+}
+
+.fb-invoice-item-name {
+	font-size: 0.875rem !important;
+	font-weight: 700 !important;
+	margin: 0 0 6px !important;
+	line-height: 1.45 !important;
+	color: var(--fb-text-main) !important;
+}
+
+.fb-invoice-item-name a {
+	color: inherit !important;
+	text-decoration: none !important;
+	transition: color 0.15s ease !important;
+}
+
+.fb-invoice-item-name a:hover {
+	color: var(--fb-primary) !important;
+}
+
+/* Order Item Variations / Metadata (Modern Chips/Badges - Full Display) */
+.fb-thankyou-wrapper :is(.wc-item-meta, dl.variation) {
+	display: flex !important;
+	flex-wrap: wrap !important;
+	align-items: center !important;
+	gap: 4px !important;
+	margin: 4px 0 2px 0 !important;
+	padding: 0 !important;
+	background: transparent !important;
+	border: none !important;
+	border-radius: 0 !important;
+	list-style: none !important;
+	box-sizing: border-box !important;
+	max-width: 100% !important;
+	width: auto !important;
+}
+
+.fb-thankyou-wrapper :is(.wc-item-meta li, dl.variation .fb-variation-item) {
+	display: inline-flex !important;
+	align-items: center !important;
+	gap: 4px !important;
+	padding: 2px 4px !important;
+	background: var(--fb-bg-subtle, #f8fafc) !important;
+	border: 1px solid var(--fb-border-light, #e2e8f0) !important;
+	border-radius: 6px !important;
+	font-size: 0.6875rem !important;
+	line-height: 1.4 !important;
+	color: var(--fb-text-main, #0f172a) !important;
+	box-sizing: border-box !important;
+	white-space: nowrap !important;
+	list-style: none !important;
+	margin: 0 !important;
+}
+
+.fb-thankyou-wrapper :is(.wc-item-meta :is(.wc-item-meta-label, strong), dl.variation dt) {
+	display: inline !important;
+	float: none !important;
+	clear: none !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	font-size: 0.6875rem !important;
+	font-weight: 500 !important;
+	color: var(--fb-text-muted, #64748b) !important;
+	line-height: inherit !important;
+	font-family: var(--fb-font-family) !important;
+}
+
+.fb-thankyou-wrapper :is(.wc-item-meta p, dl.variation dd, dl.variation dd p) {
+	display: inline !important;
+	float: none !important;
+	clear: none !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	font-size: 0.6875rem !important;
+	font-weight: 600 !important;
+	color: var(--fb-text-main, #0f172a) !important;
+	line-height: inherit !important;
+	font-family: var(--fb-font-family) !important;
+}
+
+.fb-td-price {
+	font-weight: 700 !important;
+	color: var(--fb-text-main) !important;
+	white-space: nowrap !important;
+}
+
+.fb-td-subtotal {
+	font-weight: 700 !important;
+	color: var(--fb-text-accent) !important;
+	font-size: 0.9375rem !important;
+	white-space: nowrap !important;
+}
+
+.fb-qty-badge {
+	display: inline-block !important;
+	background: var(--fb-border-light) !important;
+	color: var(--fb-text-main) !important;
+	padding: 4px 12px !important;
+	border-radius: var(--fb-radius-sm, 6px) !important;
+	font-weight: 700 !important;
+	font-size: 0.8125rem !important;
+	border: 1px solid var(--fb-border-color) !important;
+}
+
+/* Invoice Bottom Grid: Delivery & Financial Breakdown */
+.fb-invoice-bottom-grid {
+	display: grid !important;
+	grid-template-columns: 1.25fr 1fr !important;
+	gap: 28px !important;
+	padding: 26px 30px !important;
+	background: var(--fb-bg-subtle) !important;
+	border-top: 1px solid var(--fb-border-color) !important;
+}
+
+.fb-card-title {
+	font-size: 0.875rem !important;
+	font-weight: 800 !important;
+	color: var(--fb-text-main) !important;
+	display: flex !important;
+	align-items: center !important;
+	gap: 8px !important;
+	margin: 0 0 16px !important;
+	padding-bottom: 10px !important;
+	border-bottom: 1.5px solid var(--fb-border-color) !important;
+}
+
+.fb-card-title svg {
+	color: var(--fb-text-main) !important;
+}
+
+/* Customer Delivery Meta */
+.fb-customer-meta {
+	display: flex !important;
+	flex-direction: column !important;
+	gap: 12px !important;
+}
+
+.fb-cm-row {
+	display: flex !important;
+	align-items: flex-start !important;
+	gap: 10px !important;
+	font-size: 0.8125rem !important;
+	line-height: 1.6 !important;
+}
+
+.fb-cm-label {
+	color: var(--fb-text-muted) !important;
+	font-weight: 700 !important;
+	white-space: nowrap !important;
+	min-width: 105px !important;
+}
+
+.fb-cm-val {
+	color: var(--fb-text-main) !important;
+	font-weight: 600 !important;
+}
+
+.fb-cm-note {
+	background: var(--fb-bg-card) !important;
+	padding: 10px 14px !important;
+	border-radius: var(--fb-radius-sm) !important;
+	border: 1px solid var(--fb-border-color) !important;
+	margin-top: 4px !important;
+}
+
+/* Financial Totals Breakdown */
+.fb-totals-rows {
+	display: flex !important;
+	flex-direction: column !important;
+	gap: 10px !important;
+}
+
+.fb-tot-row {
+	display: flex !important;
+	justify-content: space-between !important;
+	align-items: center !important;
+	font-size: 0.8125rem !important;
+	padding-bottom: 8px !important;
+	border-bottom: 1px dashed var(--fb-border-color) !important;
+}
+
+.fb-tot-label {
+	color: var(--fb-text-muted) !important;
+	font-weight: 600 !important;
+}
+
+.fb-tot-val {
+	color: var(--fb-text-main) !important;
+	font-weight: 700 !important;
+}
+
+.fb-tot-discount .fb-tot-val {
+	color: #e11d48 !important;
+}
+
+.fb-tot-grand {
+	border-top: 2px solid var(--fb-border-color) !important;
+	border-bottom: none !important;
+	padding-top: 14px !important;
+	margin-top: 6px !important;
+}
+
+.fb-tot-grand .fb-tot-label {
+	font-size: 0.9375rem !important;
+	font-weight: 900 !important;
+	color: var(--fb-text-accent) !important;
+}
+
+.fb-tot-grand .fb-tot-val {
+	font-size: 1.125rem !important;
+	font-weight: 900 !important;
+	color: var(--fb-text-accent) !important;
+}
+
+.fb-tot-val:has(del) {
+	display: inline-flex !important;
+	flex-direction: column !important;
+	align-items: flex-end !important;
+	gap: 2px !important;
+	text-align: end !important;
+	line-height: 1.2 !important;
+}
+
+.fb-tot-val del {
+	display: block !important;
+	font-size: 0.78125rem !important;
+	font-weight: 500 !important;
+	color: var(--fb-text-subtle, #94a3b8) !important;
+	text-decoration: line-through !important;
+	line-height: 1.2 !important;
+	letter-spacing: -0.2px !important;
+	opacity: 0.85 !important;
+}
+
+.fb-tot-val ins {
+	display: block !important;
+	text-decoration: none !important;
+	background: transparent !important;
+	color: var(--fb-text-main) !important;
+	line-height: 1.3 !important;
+}
+
+.fb-tot-grand .fb-tot-val ins {
+	font-size: 1.125rem !important;
+	font-weight: 900 !important;
+	color: var(--fb-text-accent) !important;
+}
+
+/* Official Invoice Stamp / Guarantee Note */
+.fb-invoice-footer-note {
+	display: flex !important;
+	justify-content: space-between !important;
+	align-items: center !important;
+	padding: 18px 30px !important;
+	background: var(--fb-bg-card) !important;
+	border-top: 1px solid var(--fb-border-color) !important;
+	gap: 20px !important;
+}
+
+.fb-footer-note-text {
+	display: flex !important;
+	align-items: center !important;
+	gap: 10px !important;
+	font-size: 0.78125rem !important;
+	color: var(--fb-text-muted) !important;
+	line-height: 1.6 !important;
+}
+
+.fb-footer-note-text svg {
+	color: var(--fb-success) !important;
+	flex-shrink: 0 !important;
+}
+
+.fb-stamp-badge {
+	display: inline-flex !important;
+	align-items: center !important;
+	padding: 6px 14px !important;
+	border: 2px dashed var(--fb-success) !important;
+	border-radius: var(--fb-radius-sm) !important;
+	color: var(--fb-success) !important;
+	font-size: 0.8125rem !important;
+	font-weight: 800 !important;
+	background: var(--fb-success-light) !important;
+	white-space: nowrap !important;
+	box-shadow: 0 2px 6px rgba(16, 185, 129, 0.1) !important;
+}
+
+.fb-stamp-badge.is-cod,
+.fb-stamp-badge.is-pending {
+	color: #d97706 !important;
+	border-color: #fde68a !important;
+	background: #fefce8 !important;
+	box-shadow: 0 2px 6px rgba(217, 119, 6, 0.08) !important;
+}
+
+/* Payment Instructions Box (e.g. COD / Bank Transfer / Gateway Notices) */
+.fb-invoice-instructions-wrap {
+	padding: 0 30px 24px !important;
+}
+
+.fb-invoice-instructions-box {
+	display: flex !important;
+	align-items: flex-start !important;
+	gap: 12px !important;
+	padding: 14px 18px !important;
+	background: var(--fb-bg-subtle, #f8fafc) !important;
+	border: 1px solid var(--fb-border-light, #e2e8f0) !important;
+	border-radius: var(--fb-radius-md, 8px) !important;
+	box-sizing: border-box !important;
+}
+
+.fb-instructions-icon {
+	color: var(--fb-primary, #6366f1) !important;
+	flex-shrink: 0 !important;
+	margin-top: 2px !important;
+	display: flex !important;
+	align-items: center !important;
+}
+
+.fb-instructions-body {
+	flex: 1 !important;
+	min-width: 0 !important;
+}
+
+.fb-instructions-title {
+	font-size: 0.8125rem !important;
+	font-weight: 700 !important;
+	color: var(--fb-text-main, #0f172a) !important;
+	margin: 0 0 4px 0 !important;
+	line-height: 1.4 !important;
+}
+
+.fb-instructions-content,
+.fb-instructions-content p {
+	font-size: 0.78125rem !important;
+	color: var(--fb-text-muted, #475569) !important;
+	line-height: 1.6 !important;
+	margin: 0 !important;
+}
+
+/* ==========================================================================
+   3. BOTTOM ACTION BUTTONS BAR (Figma Button Standard)
+   ========================================================================== */
+.fb-thankyou-actions {
+	display: flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	gap: 16px !important;
+	margin-top: 32px !important;
+}
+
+.fb-thankyou-btn-shop {
+	height: var(--fb-btn-height) !important;
+	border-radius: var(--fb-btn-radius) !important;
+	background: var(--fb-btn-bg) !important;
+	color: var(--fb-btn-text-color) !important;
+	box-shadow: var(--fb-btn-shadow) !important;
+	padding: 0 26px !important;
+	font-weight: 700 !important;
+	font-size: 0.875rem !important;
+	text-decoration: none !important;
+	display: inline-flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	gap: 10px !important;
+	border: none !important;
+	cursor: pointer !important;
+	transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.fb-thankyou-btn-shop:hover {
+	background: var(--fb-btn-bg-hover) !important;
+	color: #ffffff !important;
+	box-shadow: var(--fb-btn-shadow-hover) !important;
+}
+
+.fb-btn-secondary {
+	height: 48px !important;
+	border-radius: var(--fb-radius-box, 8px) !important;
+	border: 1.5px solid var(--fb-border-hover) !important;
+	background: #ffffff !important;
+	color: var(--fb-text-main) !important;
+	padding: 0 22px !important;
+	font-weight: 700 !important;
+	font-size: 0.875rem !important;
+	text-decoration: none !important;
+	display: inline-flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	gap: 8px !important;
+	cursor: pointer !important;
+	transition: all 0.2s ease !important;
+}
+
+.fb-btn-secondary:hover {
+	background: var(--fb-bg-subtle) !important;
+	border-color: var(--fb-text-subtle) !important;
+	color: var(--fb-text-main) !important;
+}
+
+/* Failed Order Card Styling */
+.fb-order-failed-card {
+	background: #ffffff !important;
+	border: 1px solid var(--fb-danger-border, #fecaca) !important;
+	border-radius: var(--fb-radius-box, 8px) !important;
+	padding: 44px 28px !important;
+	text-align: center !important;
+	box-shadow: 0 10px 30px -5px rgba(239, 68, 68, 0.08) !important;
+}
+
+.fb-failed-icon-wrap {
+	width: 72px !important;
+	height: 72px !important;
+	margin: 0 auto 16px !important;
+	border-radius: 50% !important;
+	background: var(--fb-danger-light) !important;
+	display: flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+}
+
+.fb-failed-title {
+	font-size: 1.5rem !important;
+	font-weight: 800 !important;
+	color: var(--fb-danger-hover) !important;
+	margin: 0 0 12px !important;
+}
+
+.fb-failed-desc {
+	font-size: 0.9375rem !important;
+	color: var(--fb-text-muted) !important;
+	max-width: 580px !important;
+	margin: 0 auto 28px !important;
+	line-height: 1.75 !important;
+}
+
+.fb-failed-actions {
+	display: flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	gap: 14px !important;
+}
+
+.fb-failed-btn-retry {
+	background: #dc2626 !important;
+	box-shadow: 0 8px 16px -2px rgba(220, 38, 38, 0.3) !important;
+}
+
+.fb-failed-btn-retry:hover {
+	background: #b91c1c !important;
+}
+
+/* ==========================================================================
+   4. RESPONSIVE DESIGN (Tablets & Mobile)
+   ========================================================================== */
+@media (max-width: 768px) {
+	.fb-thankyou-hero {
+		padding: 32px 18px 26px !important;
+	}
+
+	.fb-hero-title {
+		font-size: 1.3125rem !important;
+	}
+
+	.fb-hero-desc {
+		font-size: 0.875rem !important;
+		margin-bottom: 24px !important;
+	}
+
+	/* Compact Timeline on Mobile */
+	.fb-order-timeline {
+		width: 100% !important;
+	}
+
+	.fb-step-dot {
+		width: 30px !important;
+		height: 30px !important;
+		font-size: 0.75rem !important;
+	}
+
+	.fb-step-label {
+		font-size: 0.6875rem !important;
+	}
+
+	.fb-step-line {
+		margin: 0 6px 22px !important;
+	}
+
+	/* Invoice Header */
+	.fb-invoice-header {
+		padding: 18px 20px !important;
+		flex-direction: column !important;
+		align-items: flex-start !important;
+		gap: 14px !important;
+	}
+
+	.fb-invoice-header-actions {
+		width: 100% !important;
+	}
+
+	.fb-btn-print {
+		width: 100% !important;
+		justify-content: center !important;
+	}
+
+	/* Meta Grid (2 columns on mobile) */
+	.fb-invoice-meta-grid {
+		grid-template-columns: repeat(2, 1fr) !important;
+		gap: 12px !important;
+		padding: 18px 20px !important;
+	}
+
+	.fb-meta-item {
+		padding: 10px 12px !important;
+	}
+
+	/* Invoice Table Wrap */
+	.fb-invoice-table-wrap {
+		padding: 12px 16px 18px !important;
+		overflow-x: auto !important;
+	}
+
+	.fb-invoice-table thead {
+		display: none !important;
+	}
+
+	.fb-invoice-table tbody tr.fb-invoice-row {
+		display: grid !important;
+		grid-template-columns: 58px 1fr !important;
+		grid-template-areas:
+			"thumb info"
+			"thumb price"
+			"thumb subtotal" !important;
+		gap: 8px 14px !important;
+		padding: 16px 0 !important;
+		border-bottom: 1px solid var(--fb-border-light) !important;
+	}
+
+	.fb-td-thumb {
+		grid-area: thumb !important;
+		width: 58px !important;
+		padding: 0 !important;
+	}
+
+	.fb-td-info {
+		grid-area: info !important;
+		padding: 0 !important;
+	}
+
+	.fb-td-price {
+		grid-area: price !important;
+		padding: 0 !important;
+		font-size: 0.8125rem !important;
+		display: flex !important;
+		align-items: center !important;
+		gap: 8px !important;
+	}
+
+	.fb-td-price::before {
+		content: attr(data-label) !important;
+		color: var(--fb-text-muted) !important;
+		font-weight: 500 !important;
+	}
+
+	.fb-td-qty {
+		display: none !important;
+	}
+
+	.fb-td-subtotal {
+		grid-area: subtotal !important;
+		padding: 0 !important;
+		font-size: 0.875rem !important;
+		display: flex !important;
+		align-items: center !important;
+		gap: 8px !important;
+	}
+
+	.fb-td-subtotal::before {
+		content: attr(data-label) !important;
+		color: var(--fb-text-muted) !important;
+		font-weight: 500 !important;
+	}
+
+	/* Bottom Grid: 1 column */
+	.fb-invoice-bottom-grid {
+		grid-template-columns: 1fr !important;
+		gap: 24px !important;
+		padding: 20px !important;
+	}
+
+	.fb-invoice-footer-note {
+		flex-direction: column !important;
+		align-items: flex-start !important;
+		padding: 18px 20px !important;
+		gap: 14px !important;
+	}
+
+	.fb-stamp-badge {
+		align-self: flex-start !important;
+		transform: none !important;
+	}
+
+	/* Action Buttons */
+	.fb-thankyou-actions {
+		flex-direction: column !important;
+		width: 100% !important;
+	}
+
+	.fb-thankyou-btn-shop,
+	.fb-btn-secondary {
+		width: 100% !important;
+	}
+}
+
+/* ==========================================================================
+   5. CLEAN OFFICIAL INVOICE PRINT STYLES (@media print)
+   ========================================================================== */
+@media print {
+	/* Suppress URL printing after links (Overrides hello-elementor reset.css) */
+	a[href]:after,
+	a[href]::after,
+	a:after,
+	a::after,
+	abbr[title]:after,
+	abbr[title]::after {
+		content: "" !important;
+		display: none !important;
+	}
+
+	a,
+	a:visited,
+	a:hover {
+		text-decoration: none !important;
+		color: inherit !important;
+	}
+
+	/* Hide WordPress Header, Footer, Admin Bar, and non-printable elements */
+	#wpadminbar,
+	header,
+	footer,
+	.site-header,
+	.site-footer,
+	.elementor-location-header,
+	.elementor-location-footer,
+	.fb-thankyou-hero,
+	.fb-thankyou-actions,
+	.fb-invoice-header-actions {
+		display: none !important;
+	}
+
+	body {
+		background: #ffffff !important;
+		color: #000000 !important;
+		margin: 0 !important;
+		padding: 0 !important;
+	}
+
+	.fb-thankyou-wrapper {
+		max-width: 100% !important;
+		padding: 0 !important;
+		margin: 0 !important;
+	}
+
+	.fb-invoice-card {
+		border: 1px solid #000000 !important;
+		box-shadow: none !important;
+		border-radius: 0 !important;
+		margin: 0 !important;
+	}
+
+	.fb-invoice-header {
+		background: var(--fb-bg-subtle) !important;
+		border-bottom: 2px solid #000000 !important;
+	}
+
+	.fb-invoice-meta-grid {
+		grid-template-columns: repeat(4, 1fr) !important;
+		border-bottom: 1px solid #000000 !important;
+	}
+
+	.fb-meta-item {
+		border: 1px solid var(--fb-border-hover) !important;
+		background: #ffffff !important;
+	}
+
+	.fb-invoice-table thead {
+		display: table-header-group !important;
+	}
+
+	.fb-invoice-table tbody tr.fb-invoice-row {
+		display: table-row !important;
+	}
+
+	.fb-invoice-table thead th,
+	.fb-invoice-table tbody td {
+		border-bottom: 1px solid var(--fb-border-color) !important;
+		padding: 8px 10px !important;
+	}
+
+	.fb-invoice-bottom-grid {
+		grid-template-columns: 1.25fr 1fr !important;
+		background: #ffffff !important;
+		border-top: 1px solid #000000 !important;
+	}
+
+	.fb-stamp-badge {
+		border-color: #000000 !important;
+		color: #000000 !important;
+		background: transparent !important;
+	}
+}

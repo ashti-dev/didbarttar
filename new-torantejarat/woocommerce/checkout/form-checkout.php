@@ -1,93 +1,80 @@
 <?php
 /**
- * Checkout form — torantejarat layout.
- *
- * Theme override: torantejarat/woocommerce/checkout/form-checkout.php
- * Layout: main column (billing + notes) | sticky review column (summary + payment + trust).
- * All standard WooCommerce hooks are preserved so gateways, plugins and fragments keep working.
+ * Checkout Form Template
+ * Overridden for FrontBaz RTL Modern Combined Cart & Checkout
  *
  * @version 9.4.0
- * @package ToranTejarat
  */
 
-defined( 'ABSPATH' ) || exit;
-
-/* Fired before the guard, same as core: login/coupon/shipping-calculator output lives here. */
-do_action( 'woocommerce_before_checkout_form', $checkout );
-
-if ( ! $checkout->is_registration_enabled() && $checkout->is_registration_required() && ! is_user_logged_in() ) {
-	echo esc_html( apply_filters( 'woocommerce_checkout_must_be_logged_in_message', __( 'برای ادامه باید وارد حساب کاربری شوید.', 'torantejarat' ) ) );
-	return;
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
 }
 
-/**
- * Trust statements shown under the payment button.
- * Only add claims that match your real policy. Override via filter.
- */
-$torantejarat_trust_items = apply_filters(
-	'torantejarat_checkout_trust_items',
-	array(
-		__( 'پرداخت امن از طریق درگاه بانکی', 'torantejarat' ),
-		__( 'اطلاعات شما فقط برای پردازش سفارش استفاده می‌شود', 'torantejarat' ),
-	)
-);
+do_action( 'woocommerce_before_checkout_form', $checkout );
 
-/* Steps: cart (done) → checkout (current) → confirmation (next). */
+// If checkout registration is disabled and not logged in, user cannot checkout.
+if ( ! $checkout->is_registration_enabled() && $checkout->is_registration_required() && ! is_user_logged_in() ) {
+	echo esc_html( apply_filters( 'woocommerce_checkout_must_be_logged_in_message', __( 'You must be logged in to checkout.', 'woocommerce' ) ) );
+	return;
+}
 ?>
 
-<nav class="torantejarat-steps" aria-label="<?php esc_attr_e( 'مراحل خرید', 'torantejarat' ); ?>">
-	<ol class="torantejarat-steps__list">
-		<li class="torantejarat-steps__item is-done"><span class="torantejarat-steps__dot" aria-hidden="true"></span><?php esc_html_e( 'سبد خرید', 'torantejarat' ); ?></li>
-		<li class="torantejarat-steps__item is-current" aria-current="step"><span class="torantejarat-steps__dot" aria-hidden="true"></span><?php esc_html_e( 'تسویه‌حساب', 'torantejarat' ); ?></li>
-		<li class="torantejarat-steps__item"><span class="torantejarat-steps__dot" aria-hidden="true"></span><?php esc_html_e( 'تأیید سفارش', 'torantejarat' ); ?></li>
-	</ol>
-</nav>
+<form name="checkout" method="post" class="checkout woocommerce-checkout" action="<?php echo esc_url( wc_get_checkout_url() ); ?>" enctype="multipart/form-data" aria-label="<?php echo esc_attr__( 'Checkout', 'woocommerce' ); ?>">
 
-<form name="checkout" method="post" class="checkout woocommerce-checkout torantejarat-checkout" action="<?php echo esc_url( wc_get_checkout_url() ); ?>" enctype="multipart/form-data" aria-label="<?php echo esc_attr__( 'تسویه‌حساب', 'torantejarat' ); ?>">
+	<div class="fb-checkout-wrapper">
 
-	<div class="torantejarat-checkout__layout">
 
-		<div class="torantejarat-checkout__main">
+		<!-- Two-Column Grid -->
+		<div class="fb-checkout-grid">
 
-			<?php if ( $checkout->get_checkout_fields() ) : ?>
+			<!-- Column 1 (Right in RTL): Customer Details Only -->
+			<div class="fb-checkout-col-main">
 
-				<?php do_action( 'woocommerce_checkout_before_customer_details' ); ?>
+				<!-- Section: Customer Details -->
+				<div class="fb-customer-details-box">
+					<div class="fb-checkout-section-header">
+						<h2 class="fb-checkout-section-title"><?php esc_html_e( 'مشخصات و آدرس تحویل', 'torantejarat' ); ?></h2>
+						<p class="fb-checkout-section-desc"><?php esc_html_e( 'جهت ارسال دقیق و سریع سفارش، اطلاعات فردی و آدرس پستی خود را تکمیل نمایید.', 'torantejarat' ); ?></p>
+					</div>
 
-				<section class="torantejarat-card torantejarat-card--billing" id="customer_details" aria-label="<?php esc_attr_e( 'اطلاعات تحویل', 'torantejarat' ); ?>">
-					<?php do_action( 'woocommerce_checkout_billing' ); ?>
-				</section>
+					<?php if ( $checkout->get_checkout_fields() ) : ?>
+						<?php do_action( 'woocommerce_checkout_before_customer_details' ); ?>
 
-				<section class="torantejarat-card torantejarat-card--shipping">
-					<?php do_action( 'woocommerce_checkout_shipping' ); ?>
-				</section>
+						<div id="customer_details">
+							<div class="fb-billing-fields-wrap">
+								<?php do_action( 'woocommerce_checkout_billing' ); ?>
+							</div>
 
-				<?php do_action( 'woocommerce_checkout_after_customer_details' ); ?>
+							<div class="fb-shipping-fields-wrap">
+								<?php do_action( 'woocommerce_checkout_shipping' ); ?>
+							</div>
+						</div>
 
-			<?php endif; ?>
+						<?php do_action( 'woocommerce_checkout_after_customer_details' ); ?>
+					<?php endif; ?>
+				</div>
+
+			</div>
+
+			<!-- Column 2 (Left in RTL): Current Order, Payment Gateways & Pay Button -->
+			<div class="fb-checkout-col-sidebar">
+				<div id="order_review" class="woocommerce-checkout-review-order">
+					<?php do_action( 'woocommerce_checkout_order_review' ); ?>
+				</div>
+			</div>
 
 		</div>
 
-		<aside class="torantejarat-checkout__side" aria-label="<?php esc_attr_e( 'خلاصه سفارش و پرداخت', 'torantejarat' ); ?>">
-
-			<?php do_action( 'woocommerce_checkout_before_order_review_heading' ); ?>
-
-			<h3 id="order_review_heading" class="torantejarat-card__heading"><?php esc_html_e( 'خلاصه سفارش', 'torantejarat' ); ?></h3>
-
-			<?php do_action( 'woocommerce_checkout_before_order_review' ); ?>
-
-			<div id="order_review" class="woocommerce-checkout-review-order torantejarat-card torantejarat-card--review">
-				<?php do_action( 'woocommerce_checkout_order_review' ); ?>
-			</div>
-
-			<?php do_action( 'woocommerce_checkout_after_order_review' ); ?>
-
-			<ul class="torantejarat-trust" aria-label="<?php esc_attr_e( 'اطمینان خرید', 'torantejarat' ); ?>">
-				<?php foreach ( $torantejarat_trust_items as $torantejarat_trust_text ) : ?>
-					<li><?php echo esc_html( $torantejarat_trust_text ); ?></li>
-				<?php endforeach; ?>
-			</ul>
-
-		</aside>
+	<!-- Mobile Sticky Bottom Bar (Fixed to bottom on mobile) -->
+	<div class="fb-mobile-checkout-bar">
+		<div class="fb-mobile-bar-content">
+			<button type="button" class="fb-checkout-submit-btn fb-mobile-bar-btn" id="fb_mobile_place_order_btn">
+				<span class="fb-btn-text"><?php echo esc_html( apply_filters( 'fb_checkout_place_order_text', __( 'پرداخت', 'torantejarat' ) ) ); ?></span>
+				<span class="fb-btn-amount">(<span class="fb-checkout-submit-amount fb-mobile-place-order-amount"><?php wc_cart_totals_order_total_html(); ?></span>)</span>
+				<span class="fb-btn-loader" aria-hidden="true"></span>
+			</button>
+		</div>
+	</div>
 
 	</div>
 

@@ -1,0 +1,1700 @@
+/* ==========================================================================
+   FrontBaz WooCommerce Framework
+   Package     : FrontBaz Store Framework
+   Module      : Cart (صفحه سبد خرید)
+   File        : assets/css/fb-cart.css
+   Author      : Sina Samipour (FrontBaz)
+   Description : Native RTL styling for Cart. Inherits design tokens from fb-base.css.
+   Namespace   : All custom classes strictly adhere to .fb- prefix.
+   ========================================================================== */
+
+/* ==========================================================================
+   Elementor Pro & Native 2-Column Grid Layout Harmonization
+   Zero-spacing on root wrappers for full Elementor container control
+   ========================================================================== */
+.fb-cart-wrapper,
+.elementor-widget-woocommerce-cart .e-cart__container {
+	display: grid !important;
+	grid-template-columns: minmax(0, 1fr) 380px !important;
+	gap: 28px !important;
+	align-items: start !important;
+	width: 100% !important;
+	max-width: 100% !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	box-sizing: border-box !important;
+	font-family: var(--fb-font-family) !important;
+}
+
+/* Responsive 2-Column Grid Adjustments (992px - 1280px) */
+@media (min-width: 992px) and (max-width: 1280px) {
+	.fb-cart-wrapper,
+	.elementor-widget-woocommerce-cart .e-cart__container {
+		grid-template-columns: minmax(0, 1fr) 340px !important;
+		gap: 22px !important;
+	}
+}
+
+@media (max-width: 991px) {
+	.fb-cart-wrapper,
+	.elementor-widget-woocommerce-cart .e-cart__container {
+		display: flex !important;
+		flex-direction: column !important;
+		gap: 20px !important;
+	}
+	.elementor-widget-woocommerce-cart .e-cart__column-start,
+	.elementor-widget-woocommerce-cart .e-cart__column-end {
+		width: 100% !important;
+		max-width: 100% !important;
+	}
+	.elementor-widget-woocommerce-cart .e-cart__column-end {
+		position: static !important;
+	}
+}
+
+.elementor-widget-woocommerce-cart .e-cart__column-start {
+	width: 100% !important;
+	max-width: 100% !important;
+	padding: 0 !important;
+	margin: 0 !important;
+}
+
+.elementor-widget-woocommerce-cart .e-cart__column-end {
+	width: 100% !important;
+	max-width: 100% !important;
+	padding: 0 !important;
+	margin: 0 !important;
+	position: sticky !important;
+	top: 24px !important;
+}
+
+.elementor-widget-woocommerce-cart .e-cart__column-inner,
+.elementor-widget-woocommerce-cart .e-cart-totals,
+.elementor-widget-woocommerce-cart .e-shop-table {
+	padding: 0 !important;
+	margin: 0 !important;
+	border: none !important;
+	background: transparent !important;
+}
+
+/* Hide Default WooCommerce & Elementor Intrusive Redundancies */
+.fb-cart-wrapper .woocommerce-cart-form > h2,
+.fb-cart-wrapper .cart-collaterals > h2,
+.fb-cart-wrapper .cart_totals > h2,
+.fb-cart-wrapper .fb-hidden-submit,
+.elementor-widget-woocommerce-cart .e-cart-totals > h2,
+.elementor-widget-woocommerce-cart .coupon.e-cart-section,
+.elementor-widget-woocommerce-cart .e-clear {
+	display: none !important;
+}
+
+
+/* Base Wrapper */
+.fb-cart-wrapper {
+	width: 100% !important;
+	text-align: start !important;
+	box-sizing: border-box !important;
+	font-family: var(--fb-font-family) !important;
+	clear: both !important;
+}
+
+.fb-cart-wrapper *,
+.fb-cart-wrapper *::before,
+.fb-cart-wrapper *::after,
+.e-cart__container *,
+.e-cart__container *::before,
+.e-cart__container *::after {
+	box-sizing: border-box !important;
+}
+
+/* Main Column Card */
+.fb-cart-card {
+	background: #ffffff !important;
+	border: 2px solid var(--fb-border-color) !important;
+	border-radius: var(--fb-radius-card, 8px) !important;
+	box-shadow: var(--fb-shadow-card) !important;
+	overflow: hidden !important;
+}
+
+/* Cart Header */
+.fb-cart-header {
+	display: flex !important;
+	flex-wrap: wrap !important;
+	align-items: center !important;
+	justify-content: space-between !important;
+	padding: 24px !important;
+	border-bottom: 1px solid var(--fb-border-light) !important;
+	background: #ffffff !important;
+}
+
+
+.fb-cart-title {
+	font-size: 1.125rem !important;
+	font-weight: 700 !important;
+	color: var(--fb-text-main) !important;
+	margin: 0 !important;
+}
+
+.fb-cart-count-badge {
+	background: #e6f2f2 !important;
+	color: var(--fb-text-accent) !important;
+	font-size: 0.78125rem !important;
+	font-weight: 700 !important;
+	padding: 3px 10px !important;
+	border-radius: var(--fb-radius-pill, 20px) !important;
+}
+
+.fb-cart-continue-link {
+	display: inline-flex !important;
+	align-items: center !important;
+	gap: 6px !important;
+	font-size: 0.8125rem !important;
+	font-weight: 600 !important;
+	color: var(--fb-text-muted) !important;
+	text-decoration: none !important;
+	transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+	padding: 4px 6px !important;
+	border-radius: var(--fb-radius-sm) !important;
+}
+
+.fb-cart-continue-link:hover {
+	color: var(--fb-text-accent) !important;
+	background: var(--fb-primary-light) !important;
+}
+
+.fb-cart-continue-link .fb-arrow-icon,
+.fb-cart-continue-link svg {
+	transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.fb-cart-continue-link:hover .fb-arrow-icon,
+.fb-cart-continue-link:hover svg {
+	transform: translateX(-3px) !important;
+}
+
+/* Cart Table Styling */
+.fb-cart-table-wrapper {
+	width: 100% !important;
+	overflow-x: auto !important;
+}
+
+.fb-cart-table {
+	width: 100% !important;
+	border-collapse: collapse !important;
+	margin: 0 !important;
+	border: none !important;
+	table-layout: auto !important;
+}
+
+.fb-cart-table thead th {
+	background-color: var(--fb-bg-subtle) !important;
+	color: var(--fb-text-muted) !important;
+	font-size: 0.8125rem !important;
+	font-weight: 600 !important;
+	padding: 12px 14px !important;
+	border: none !important;
+	border-bottom: 1px solid var(--fb-border-light) !important;
+	text-align: start !important;
+}
+
+.fb-cart-table thead th.fb-th-remove {
+	width: 40px !important;
+	padding: 12px 8px !important;
+}
+
+.fb-cart-table thead th.fb-th-quantity {
+	text-align: center !important;
+	width: 116px !important;
+}
+
+.fb-cart-item {
+	border-bottom: 1px solid var(--fb-border-light) !important;
+	transition:
+		background-color 0.2s ease,
+		opacity 0.2s ease !important;
+}
+
+.fb-cart-item:last-of-type {
+	border-bottom: none !important;
+}
+
+.fb-cart-item.fb-loading {
+	opacity: 0.45 !important;
+	pointer-events: none !important;
+}
+
+.fb-cart-item td {
+	padding: 16px 14px !important;
+	vertical-align: middle !important;
+	border: none !important;
+}
+
+/* Thumbnail */
+.fb-td-thumbnail {
+	width: 68px !important;
+	padding-left: 0 !important;
+	padding-right: 14px !important;
+}
+
+.fb-cart-thumb {
+	width: 64px !important;
+	height: 64px !important;
+	max-width: 64px !important;
+	max-height: 64px !important;
+	border-radius: 10px !important;
+	border: 1px solid var(--fb-border-color) !important;
+	background: var(--fb-bg-subtle) !important;
+	display: flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	overflow: hidden !important;
+	transition: transform 0.2s ease !important;
+}
+
+.fb-cart-thumb img {
+	width: 100% !important;
+	height: 100% !important;
+	max-width: 64px !important;
+	max-height: 64px !important;
+	object-fit: contain !important;
+	display: block !important;
+}
+
+/* Product Info */
+.fb-td-name {
+	min-width: 160px !important;
+}
+
+.fb-cart-item-title {
+	font-size: 0.90625rem !important;
+	font-weight: 700 !important;
+	color: var(--fb-text-main) !important;
+	margin: 0 0 6px 0 !important;
+	line-height: 1.5 !important;
+	text-align: start !important;
+}
+
+.fb-cart-item-title a {
+	color: inherit !important;
+	text-decoration: none !important;
+	transition: color 0.2s ease !important;
+}
+
+.fb-cart-item-title a:hover {
+	color: var(--fb-primary) !important;
+}
+
+/* Product Variations / Meta (Modern Chips/Badges with Wrapper Items) */
+.fb-cart-item .variation {
+	display: flex !important;
+	flex-wrap: wrap !important;
+	align-items: center !important;
+	gap: 4px !important;
+	margin: 4px 0 0 0 !important;
+	padding: 0 !important;
+	background: transparent !important;
+	border: none !important;
+	border-radius: 0 !important;
+	list-style: none !important;
+	box-sizing: border-box !important;
+	max-width: 100% !important;
+	width: auto !important;
+}
+
+.fb-cart-item .variation .fb-variation-item {
+	display: inline-flex !important;
+	align-items: center !important;
+	gap: 4px !important;
+	padding: 2px 4px !important;
+	background: var(--fb-bg-subtle, #f8fafc) !important;
+	border: 1px solid var(--fb-border-light, #e2e8f0) !important;
+	border-radius: 6px !important;
+	font-size: 0.6875rem !important;
+	line-height: 1.4 !important;
+	color: var(--fb-text-main, #0f172a) !important;
+	box-sizing: border-box !important;
+	white-space: nowrap !important;
+	list-style: none !important;
+	margin: 0 !important;
+}
+
+.fb-cart-item .variation dt {
+	display: inline !important;
+	float: none !important;
+	clear: none !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	font-size: 0.6875rem !important;
+	font-weight: 500 !important;
+	color: var(--fb-text-muted, #64748b) !important;
+	line-height: inherit !important;
+	font-family: var(--fb-font-family) !important;
+}
+
+.fb-cart-item .variation dd {
+	display: inline !important;
+	float: none !important;
+	clear: none !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	font-size: 0.6875rem !important;
+	font-weight: 600 !important;
+	color: var(--fb-text-main, #0f172a) !important;
+	line-height: inherit !important;
+	font-family: var(--fb-font-family) !important;
+}
+
+.fb-cart-item .variation dd p {
+	display: inline !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	font-size: inherit !important;
+	font-weight: inherit !important;
+	color: inherit !important;
+	line-height: inherit !important;
+	font-family: inherit !important;
+}
+
+/* Fallback for legacy dl.variation without wrapper divs */
+.fb-cart-item .variation:not(:has(.fb-variation-item)) {
+	display: inline-flex !important;
+	flex-wrap: wrap !important;
+	align-items: center !important;
+	gap: 4px !important;
+	padding: 2px 4px !important;
+	background: var(--fb-bg-subtle, #f8fafc) !important;
+	border: 1px solid var(--fb-border-light, #e2e8f0) !important;
+	border-radius: 6px !important;
+	font-size: 0.6875rem !important;
+	line-height: 1.4 !important;
+}
+
+.fb-cart-item .variation:not(:has(.fb-variation-item)) dd:not(:last-of-type)::after {
+	content: " • " !important;
+	display: inline !important;
+	margin: 0 4px !important;
+	color: var(--fb-border-color, #cbd5e1) !important;
+	font-weight: 400 !important;
+}
+
+/* Unit Price (Unified Compact Price Style matching Summary) */
+.woocommerce .fb-cart-table .fb-td-price,
+.fb-td-price {
+	font-size: 0.84375rem !important;
+	font-weight: 600 !important;
+	color: var(--fb-text-main) !important;
+	white-space: nowrap !important;
+	font-family: var(--fb-font-family) !important;
+}
+
+.fb-cart-item-price-wrap {
+	display: inline-flex !important;
+	flex-direction: column !important;
+	align-items: flex-start !important;
+	gap: 2px !important;
+	white-space: nowrap !important;
+	line-height: 1.2 !important;
+}
+
+.fb-price-old {
+	font-size: 0.71875rem !important;
+	font-weight: 500 !important;
+	color: var(--fb-text-subtle) !important;
+	text-decoration: line-through !important;
+	line-height: 1.2 !important;
+	letter-spacing: -0.2px !important;
+	opacity: 0.85 !important;
+}
+
+.fb-price-old .woocommerce-Price-currencySymbol {
+	display: none !important;
+}
+
+.fb-price-old .woocommerce-Price-amount,
+.fb-price-old bdi {
+	color: var(--fb-text-subtle) !important;
+	text-decoration: line-through !important;
+	font-size: 0.71875rem !important;
+	font-weight: 500 !important;
+}
+
+.fb-price-current {
+	font-size: 0.84375rem !important;
+	font-weight: 700 !important;
+	color: var(--fb-text-main) !important;
+	text-decoration: none !important;
+	line-height: 1.3 !important;
+}
+
+.fb-price-current .woocommerce-Price-amount,
+.fb-price-current bdi {
+	font-size: 0.84375rem !important;
+	font-weight: 700 !important;
+	color: var(--fb-text-main) !important;
+}
+
+.fb-td-price .woocommerce-Price-amount,
+.fb-td-price bdi {
+	font-size: 0.84375rem !important;
+	font-weight: 600 !important;
+	color: var(--fb-text-main) !important;
+	font-family: var(--fb-font-family) !important;
+}
+
+.fb-td-price .woocommerce-Price-currencySymbol {
+	font-size: 0.75rem !important;
+	font-weight: 400 !important;
+	color: var(--fb-text-muted) !important;
+	margin-right: 3px !important;
+}
+
+/* Quantity Control Buttons */
+.fb-td-quantity {
+	text-align: center !important;
+	width: 130px !important;
+}
+
+.fb-qty-control {
+	display: inline-flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	border: 1.5px solid var(--fb-border-color) !important;
+	border-radius: var(--fb-input-radius, 8px) !important;
+	background: #ffffff !important;
+	height: 34px !important;
+	overflow: hidden !important;
+	user-select: none !important;
+	font-family: var(--fb-font-family) !important;
+}
+
+.fb-qty-btn {
+	width: 32px !important;
+	height: 34px !important;
+	display: flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	background: transparent !important;
+	border: none !important;
+	color: var(--fb-text-muted) !important;
+	cursor: pointer !important;
+	transition: all 0.15s ease !important;
+	padding: 0 !important;
+	font-family: var(--fb-font-family) !important;
+}
+
+@media (hover: hover) {
+	.fb-qty-btn:hover {
+		background: var(--fb-bg-subtle) !important;
+		color: var(--fb-primary) !important;
+	}
+
+	.fb-qty-btn.fb-qty-minus.is-trash:hover {
+		background: var(--fb-danger-light) !important;
+		color: var(--fb-danger) !important;
+		opacity: 0.85 !important;
+	}
+}
+
+.fb-qty-btn:active {
+	background: var(--fb-bg-subtle) !important;
+	color: var(--fb-primary) !important;
+}
+
+.fb-qty-btn:focus,
+.fb-qty-btn:focus-visible {
+	outline: none !important;
+}
+
+.fb-qty-btn:disabled,
+.fb-qty-btn.is-disabled {
+	opacity: 0.35 !important;
+	cursor: not-allowed !important;
+	pointer-events: none !important;
+	background: var(--fb-bg-subtle) !important;
+	color: var(--fb-text-subtle) !important;
+}
+
+.fb-qty-btn.fb-qty-minus.is-trash {
+	color: var(--fb-danger) !important;
+	background: var(--fb-danger-light) !important;
+}
+
+.fb-qty-btn.fb-qty-minus.is-trash:active {
+	background: var(--fb-danger-light) !important;
+	color: var(--fb-danger) !important;
+	opacity: 0.85 !important;
+}
+
+.fb-trash-icon {
+	display: inline-block !important;
+	vertical-align: middle !important;
+	stroke: currentColor !important;
+	transition: none !important;
+}
+
+.fb-qty-btn.fb-qty-minus.is-trash:hover .fb-trash-icon {
+	transform: none !important;
+}
+
+.fb-qty-input,
+.fb-qty-control input,
+.fb-qty-control input.qty,
+.woocommerce .quantity input.qty {
+	width: 36px !important;
+	min-width: 36px !important;
+	max-width: 36px !important;
+	height: 34px !important;
+	min-height: 34px !important;
+	max-height: 34px !important;
+	border: none !important;
+	border-radius: 0 !important;
+	background: transparent !important;
+	background-color: transparent !important;
+	text-align: center !important;
+	font-family: var(--fb-font-family) !important;
+	font-size: 0.875rem !important;
+	font-weight: var(--fb-qty-font-weight, 500) !important;
+	color: var(--fb-text-main) !important;
+	padding: 0 !important;
+	margin: 0 !important;
+	outline: none !important;
+	box-shadow: none !important;
+	-moz-appearance: textfield !important;
+	appearance: textfield !important;
+	pointer-events: none !important;
+	cursor: default !important;
+	user-select: none !important;
+}
+
+.fb-qty-input:focus,
+.fb-qty-control input:focus {
+	border: none !important;
+	box-shadow: none !important;
+	outline: none !important;
+	background: transparent !important;
+}
+
+.fb-qty-input::-webkit-outer-spin-button,
+.fb-qty-input::-webkit-inner-spin-button {
+	-webkit-appearance: none !important;
+	margin: 0 !important;
+}
+
+/* Line Subtotal (Unified Compact Price Style matching Summary) */
+.woocommerce .fb-cart-table .fb-td-subtotal,
+.fb-td-subtotal {
+	font-size: 0.84375rem !important;
+	font-weight: 600 !important;
+	color: var(--fb-text-main) !important;
+	white-space: nowrap !important;
+	font-family: var(--fb-font-family) !important;
+}
+
+.fb-td-subtotal .woocommerce-Price-amount,
+.fb-td-subtotal bdi {
+	font-size: 0.84375rem !important;
+	font-weight: 600 !important;
+	color: var(--fb-text-main) !important;
+	font-family: var(--fb-font-family) !important;
+}
+
+.fb-td-subtotal .woocommerce-Price-currencySymbol {
+	font-size: 0.75rem !important;
+	font-weight: 400 !important;
+	color: var(--fb-text-muted) !important;
+	margin-right: 3px !important;
+}
+
+.fb-td-subtotal .fb-cart-item-price-wrap {
+	display: inline-flex !important;
+	flex-direction: column !important;
+	align-items: flex-start !important;
+	gap: 2px !important;
+	white-space: nowrap !important;
+	line-height: 1.2 !important;
+}
+
+.fb-td-subtotal .fb-price-old {
+	font-size: 0.71875rem !important;
+	font-weight: 500 !important;
+	color: var(--fb-text-subtle) !important;
+	text-decoration: line-through !important;
+	line-height: 1.2 !important;
+	letter-spacing: -0.2px !important;
+	opacity: 0.85 !important;
+}
+
+.fb-td-subtotal .fb-price-old .woocommerce-Price-currencySymbol {
+	display: none !important;
+}
+
+.fb-td-subtotal .fb-price-old .woocommerce-Price-amount,
+.fb-td-subtotal .fb-price-old bdi {
+	color: var(--fb-text-subtle) !important;
+	text-decoration: line-through !important;
+	font-size: 0.71875rem !important;
+	font-weight: 500 !important;
+}
+
+.fb-td-subtotal .fb-price-current {
+	font-size: 0.84375rem !important;
+	font-weight: 700 !important;
+	color: var(--fb-text-main) !important;
+	text-decoration: none !important;
+	line-height: 1.3 !important;
+}
+
+.fb-td-subtotal .fb-price-current .woocommerce-Price-amount,
+.fb-td-subtotal .fb-price-current bdi {
+	font-size: 0.84375rem !important;
+	font-weight: 700 !important;
+	color: var(--fb-text-main) !important;
+}
+
+/* Fallback for native WooCommerce del / ins in subtotal */
+.fb-td-subtotal del {
+	font-size: 0.71875rem !important;
+	font-weight: 500 !important;
+	color: var(--fb-text-subtle) !important;
+	text-decoration: line-through !important;
+	line-height: 1.2 !important;
+	letter-spacing: -0.2px !important;
+	opacity: 0.85 !important;
+	display: block !important;
+}
+
+.fb-td-subtotal del .woocommerce-Price-currencySymbol {
+	display: none !important;
+}
+
+.fb-td-subtotal ins {
+	font-size: 0.84375rem !important;
+	font-weight: 700 !important;
+	color: var(--fb-text-main) !important;
+	text-decoration: none !important;
+	line-height: 1.3 !important;
+	display: block !important;
+}
+
+/* Remove Item Button */
+.fb-td-remove {
+	width: 44px !important;
+	padding-left: 20px !important;
+	padding-right: 0 !important;
+	text-align: center !important;
+}
+
+.fb-cart-remove-btn {
+	width: 32px !important;
+	height: 32px !important;
+	border-radius: var(--fb-radius-btn, 8px) !important;
+	border: 1px solid var(--fb-danger-border, #fecaca) !important;
+	background-color: var(--fb-danger-light) !important;
+	color: var(--fb-danger) !important;
+	display: inline-flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	cursor: pointer !important;
+	transition: none !important;
+	text-decoration: none !important;
+}
+
+.fb-cart-remove-btn svg {
+	color: var(--fb-danger) !important;
+	stroke: #ef4444 !important;
+	transition: none !important;
+}
+
+.fb-cart-remove-btn:hover {
+	background-color: var(--fb-danger-light) !important;
+	color: var(--fb-danger) !important;
+	border-color: var(--fb-danger-border, #fecaca) !important;
+	transform: none !important;
+	opacity: 0.8 !important;
+}
+
+/* Hidden elements row */
+.fb-cart-actions-row {
+	display: none !important;
+}
+
+/* Order Summary Box */
+.fb-order-summary-card {
+	background: #ffffff !important;
+	border: 2px solid var(--fb-border-color) !important;
+	border-radius: var(--fb-radius-card, 8px) !important;
+	padding: 24px !important;
+	box-shadow: var(--fb-shadow-card) !important;
+}
+
+.fb-summary-header {
+	display: flex !important;
+	align-items: center !important;
+	justify-content: space-between !important;
+	padding-bottom: 16px !important;
+	margin-bottom: 18px !important;
+	border-bottom: 1.5px dashed #e2e8f0 !important;
+}
+
+.fb-summary-title {
+	font-size: 1.09375rem !important;
+	font-weight: 700 !important;
+	color: var(--fb-text-main) !important;
+	margin: 0 !important;
+}
+
+.fb-summary-badge {
+	display: inline-flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	background: var(--fb-primary-light) !important;
+	color: var(--fb-text-accent) !important;
+	font-size: 0.78125rem !important;
+	font-weight: 700 !important;
+	padding: 3px 10px !important;
+	border-radius: var(--fb-radius-pill, 20px) !important;
+	line-height: 1.4 !important;
+}
+
+/* Summary Rows */
+.fb-summary-body {
+	display: flex !important;
+	flex-direction: column !important;
+	gap: 12px !important;
+}
+
+.fb-summary-row {
+	display: flex !important;
+	align-items: center !important;
+	justify-content: space-between !important;
+	font-size: 0.84375rem !important;
+	color: var(--fb-text-muted) !important;
+}
+
+.fb-row-label {
+	display: inline-flex !important;
+	align-items: center !important;
+	gap: 6px !important;
+}
+
+.fb-row-val {
+	font-weight: 600 !important;
+	color: var(--fb-text-main) !important;
+}
+
+.fb-row-val .woocommerce-Price-amount {
+	color: inherit !important;
+	font-weight: inherit !important;
+}
+
+/* Total Savings Row (Psychological Green Incentive) */
+.fb-summary-row.fb-savings-row {
+	color: #059669 !important;
+	background: var(--fb-success-light) !important;
+	padding: 8px 12px !important;
+	border-radius: var(--fb-radius-md, 8px) !important;
+	border: 1px dashed rgba(16, 185, 129, 0.4) !important;
+	margin: 2px 0 !important;
+	box-sizing: border-box !important;
+}
+
+.fb-savings-label {
+	display: inline-flex !important;
+	align-items: center !important;
+	gap: 6px !important;
+	color: #059669 !important;
+	font-weight: 700 !important;
+	font-size: 0.8125rem !important;
+}
+
+.fb-savings-label svg {
+	color: #059669 !important;
+	stroke-width: 2.2 !important;
+	flex-shrink: 0 !important;
+}
+
+.fb-savings-val,
+.fb-savings-val .woocommerce-Price-amount,
+.fb-savings-val bdi {
+	color: #059669 !important;
+	font-weight: 800 !important;
+	font-size: 0.875rem !important;
+	font-family: var(--fb-font-family) !important;
+}
+
+.fb-savings-val .woocommerce-Price-currencySymbol {
+	color: #059669 !important;
+	font-size: 0.75rem !important;
+	font-weight: 500 !important;
+}
+
+/* Discount Row */
+.fb-discount-row {
+	color: #059669 !important;
+}
+
+.fb-discount-val {
+	color: #059669 !important;
+	font-weight: 700 !important;
+}
+
+.fb-discount-val .woocommerce-remove-coupon {
+	display: none !important;
+}
+
+.fb-coupon-remove-link {
+	font-size: 0.71875rem !important;
+	color: var(--fb-text-main) !important;
+	text-decoration: none !important;
+	margin-right: 6px !important;
+	font-weight: 500 !important;
+	opacity: 0.75 !important;
+	transition: all 0.2s ease !important;
+}
+
+.fb-coupon-remove-link:hover {
+	opacity: 1 !important;
+	text-decoration: underline !important;
+	color: #000000 !important;
+}
+
+/* Shipping Notice Row & Free Shipping Progress */
+.fb-shipping-wrapper {
+	width: 100% !important;
+}
+
+.fb-shipping-notice-row {
+	padding: 4px 0 !important;
+}
+
+.fb-shipping-notice-val {
+	font-size: 0.78125rem !important;
+	color: var(--fb-text-muted) !important;
+	font-weight: 500 !important;
+	transition: color 0.3s ease !important;
+}
+
+.fb-shipping-notice-val.fb-is-free,
+.fb-row-val.fb-shipping-notice-val.fb-is-free {
+	color: var(--fb-text-main) !important;
+	font-weight: 700 !important;
+}
+
+/* Free Shipping Progress Box */
+.fb-free-shipping-box {
+	background: var(--fb-bg-subtle) !important;
+	border-radius: var(--fb-radius-md) !important;
+	padding: 10px 14px !important;
+	margin-top: 8px !important;
+	margin-bottom: 6px !important;
+	display: flex !important;
+	flex-direction: column !important;
+	gap: 8px !important;
+	border: 1px solid var(--fb-border-light, rgba(0, 0, 0, 0.04)) !important;
+	transition: all 0.3s ease !important;
+}
+
+.fb-free-shipping-box.is-hidden {
+	display: none !important;
+}
+
+.fb-free-shipping-text {
+	font-size: 0.75rem !important;
+	line-height: 1.6 !important;
+	color: var(--fb-text-body, #334155) !important;
+	display: block !important;
+}
+
+.fb-free-shipping-diff {
+	color: var(--fb-primary) !important;
+	font-weight: 700 !important;
+}
+
+.fb-free-shipping-bar-wrap {
+	width: 100% !important;
+	height: 7px !important;
+	background: rgba(0, 0, 0, 0.08) !important;
+	border-radius: 9999px !important;
+	overflow: hidden !important;
+	position: relative !important;
+}
+
+.fb-free-shipping-bar {
+	height: 100% !important;
+	border-radius: 9999px !important;
+	background-color: var(--fb-primary) !important;
+	background-image: linear-gradient(
+		45deg,
+		rgba(255, 255, 255, 0.22) 25%,
+		transparent 25%,
+		transparent 50%,
+		rgba(255, 255, 255, 0.22) 50%,
+		rgba(255, 255, 255, 0.22) 75%,
+		transparent 75%,
+		transparent
+	) !important;
+	background-size: 14px 14px !important;
+	transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+
+
+/* Total Row */
+.fb-total-row {
+	padding-top: 16px !important;
+	margin-top: 6px !important;
+	border-top: 1.5px dashed #e2e8f0 !important;
+}
+
+.fb-total-label {
+	font-size: 0.9375rem !important;
+	font-weight: 700 !important;
+	color: var(--fb-text-main) !important;
+}
+
+.fb-total-val {
+	font-size: 1.125rem !important;
+	font-weight: 800 !important;
+	color: var(--fb-text-accent) !important;
+}
+
+.fb-cart-total-wrap {
+	display: inline-flex !important;
+	flex-direction: column !important;
+	align-items: flex-start !important;
+	gap: 2px !important;
+	text-align: right !important;
+	line-height: 1.2 !important;
+}
+
+.fb-total-old {
+	font-size: 0.8125rem !important;
+	font-weight: 500 !important;
+	color: var(--fb-text-subtle) !important;
+	text-decoration: line-through !important;
+	line-height: 1.2 !important;
+	letter-spacing: -0.2px !important;
+	opacity: 0.85 !important;
+}
+
+.fb-total-current {
+	font-size: 1.125rem !important;
+	font-weight: 800 !important;
+	color: var(--fb-text-accent) !important;
+	line-height: 1.3 !important;
+}
+
+.fb-total-current strong,
+.fb-total-current .woocommerce-Price-amount,
+.fb-total-current bdi {
+	font-size: 1.125rem !important;
+	font-weight: 800 !important;
+	color: var(--fb-text-accent) !important;
+}
+
+/* Coupon Box */
+.fb-coupon-wrapper {
+	margin-top: 8px !important;
+	padding-top: 14px !important;
+	border-top: 1px dashed var(--fb-border-light, #f1f5f9) !important;
+}
+
+.fb-coupon-toggle-btn {
+	background: transparent !important;
+	border: none !important;
+	color: var(--fb-primary) !important;
+	font-family: var(--fb-font-family) !important;
+	font-size: 0.84375rem !important;
+	font-weight: 700 !important;
+	cursor: pointer !important;
+	display: inline-flex !important;
+	align-items: center !important;
+	gap: 7px !important;
+	padding: 4px 0 !important;
+	text-decoration: none !important;
+	outline: none !important;
+	transition: all 0.2s ease !important;
+}
+
+.fb-coupon-toggle-btn span {
+	font-family: var(--fb-font-family) !important;
+	font-size: 0.84375rem !important;
+	font-weight: 700 !important;
+	color: var(--fb-primary) !important;
+	text-decoration: none !important;
+}
+
+.fb-coupon-toggle-btn:hover,
+.fb-coupon-toggle-btn:hover span {
+	color: var(--fb-primary-hover) !important;
+	text-decoration: none !important;
+}
+
+.fb-coupon-toggle-btn svg {
+	color: var(--fb-primary) !important;
+	transition: transform 0.2s ease !important;
+	flex-shrink: 0 !important;
+}
+
+.fb-coupon-toggle-btn:hover svg {
+	transform: scale(1.1);
+}
+
+.fb-coupon-form {
+	display: none;
+	margin-top: 12px !important;
+}
+
+.fb-coupon-form.is-open {
+	display: block !important;
+}
+
+.fb-coupon-input-group {
+	display: flex !important;
+	gap: 8px !important;
+}
+
+.fb-coupon-input {
+	flex: 1 !important;
+	height: 42px !important;
+	padding: 0 14px !important;
+	border: 1.5px solid var(--fb-border-color) !important;
+	border-radius: var(--fb-input-radius, 8px) !important;
+	font-size: 0.8125rem !important;
+	outline: none !important;
+	transition: border-color 0.2s !important;
+	font-family: var(--fb-font-family) !important;
+	box-sizing: border-box !important;
+}
+
+.fb-coupon-input:focus {
+	border-color: var(--fb-primary) !important;
+	box-shadow: 0 0 0 2px var(--fb-primary-border) !important;
+}
+
+.fb-coupon-btn {
+	height: 42px !important;
+	padding: 0 18px !important;
+	background: var(--fb-primary) !important;
+	color: #ffffff !important;
+	border: none !important;
+	border-radius: var(--fb-input-radius, 8px) !important;
+	font-size: 0.8125rem !important;
+	font-weight: 700 !important;
+	cursor: pointer !important;
+	transition: all 0.2s ease !important;
+	white-space: nowrap !important;
+	font-family: var(--fb-font-family) !important;
+	box-sizing: border-box !important;
+}
+
+.fb-coupon-btn:hover {
+	background: var(--fb-primary-hover) !important;
+}
+
+.fb-coupon-message {
+	font-size: 0.75rem !important;
+	margin-top: 8px !important;
+	font-family: var(--fb-font-family) !important;
+}
+
+/* ==========================================================================
+   Proceed Button - Strictly matching Figma specs & Design Tokens
+   - Height: 48px
+   - Radius: 8px
+   - Background: rgba(2, 74, 76, 1) / #005b59
+   - Box shadow: 0 8px 16px -2px rgba(1, 35, 36, 0.32)
+   - Padding: 0 16px, Gap: 8px
+   - Static flat hover (no jump)
+   ========================================================================== */
+:is(.fb-order-summary-card, .elementor-widget-woocommerce-cart, .cart-collaterals) :is(.checkout-button, .fb-proceed-checkout-btn),
+.fb-proceed-checkout-btn {
+	width: 100% !important;
+	height: var(--fb-btn-height, 48px) !important;
+	border-radius: var(--fb-btn-radius, 8px) !important;
+	background: var(--fb-btn-bg) !important;
+	color: #ffffff !important;
+	border: none !important;
+	font-family: var(--fb-font-family) !important;
+	font-size: 0.90625rem !important;
+	font-weight: 700 !important;
+	cursor: pointer !important;
+	display: flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	gap: 4px !important;
+	padding: 0 16px !important;
+	box-shadow: var(--fb-btn-shadow) !important;
+	position: relative !important;
+	user-select: none !important;
+	transition: all 0.2s ease !important;
+	text-decoration: none !important;
+	margin-top: 20px !important;
+}
+
+:is(.fb-order-summary-card, .elementor-widget-woocommerce-cart, .cart-collaterals) :is(.checkout-button, .fb-proceed-checkout-btn):is(:hover, :focus, :active),
+.fb-proceed-checkout-btn:is(:hover, :focus, :active) {
+	background: var(--fb-btn-bg-hover) !important;
+	box-shadow: var(--fb-btn-shadow-hover) !important;
+	color: #ffffff !important;
+}
+
+.fb-btn-text {
+	color: #ffffff !important;
+	font-size: 0.90625rem !important;
+	font-weight: 700 !important;
+	line-height: 1 !important;
+}
+
+.fb-cart-submit-amount :is(bdi, .woocommerce-Price-amount) {
+	display: inline-flex !important;
+	align-items: center !important;
+	direction: rtl !important;
+	unicode-bidi: isolate !important;
+}
+
+/* Button Spinner / Loading Indicator (Modern Arc Spinner matching Design System) */
+.fb-btn-loader {
+	display: none;
+	width: 16px !important;
+	height: 16px !important;
+	vertical-align: middle !important;
+	border: 2px solid currentColor !important;
+	border-top-color: transparent !important;
+	border-radius: 50% !important;
+	box-sizing: border-box !important;
+	animation: fb-spin 0.75s linear infinite !important;
+	margin-right: 6px !important;
+	margin-left: 0 !important;
+	order: 99 !important;
+	flex-shrink: 0 !important;
+	background: transparent !important;
+}
+
+.fb-proceed-checkout-btn.fb-loading .fb-btn-loader,
+.checkout-button.fb-loading .fb-btn-loader,
+.fb-mobile-cart-btn.fb-loading .fb-btn-loader {
+	display: inline-block !important;
+}
+
+.fb-proceed-checkout-btn.fb-loading,
+.checkout-button.fb-loading,
+.fb-mobile-cart-btn.fb-loading {
+	opacity: 0.88 !important;
+	cursor: wait !important;
+	pointer-events: none !important;
+}
+
+@keyframes fb-spin {
+	0% {
+		transform: rotate(0deg);
+	}
+	100% {
+		transform: rotate(360deg);
+	}
+}
+
+/* Trust / Service Guarantees */
+.fb-cart-guarantees {
+	margin-top: 20px !important;
+	padding-top: 18px !important;
+	border-top: 1px solid var(--fb-border-light) !important;
+	display: flex !important;
+	flex-direction: column !important;
+	gap: 10px !important;
+}
+
+.fb-guarantee-item {
+	display: flex !important;
+	align-items: center !important;
+	gap: 8px !important;
+	font-size: 0.78125rem !important;
+	color: var(--fb-text-muted) !important;
+}
+
+.fb-guarantee-item svg {
+	color: var(--fb-primary) !important;
+	flex-shrink: 0 !important;
+}
+
+/* ==========================================================================
+   Empty Cart State
+   ========================================================================== */
+.fb-cart-wrapper.fb-cart-empty-wrapper,
+.fb-cart-empty-wrapper {
+	display: block !important;
+	grid-template-columns: none !important;
+	max-width: 680px !important;
+	margin: 50px auto 80px !important;
+	text-align: center !important;
+	width: 100% !important;
+}
+
+.fb-cart-empty-card {
+	background: #ffffff !important;
+	border: 1px solid var(--fb-border-color) !important;
+	border-radius: var(--fb-radius-lg) !important;
+	padding: 48px 32px !important;
+	box-shadow: var(--fb-shadow-card) !important;
+	display: flex !important;
+	flex-direction: column !important;
+	align-items: center !important;
+	width: 100% !important;
+	max-width: 640px !important;
+	margin: 0 auto !important;
+	box-sizing: border-box !important;
+}
+
+.fb-cart-empty-icon-wrap {
+	width: 110px !important;
+	height: 110px !important;
+	border-radius: 50% !important;
+	background: var(--fb-bg-subtle) !important;
+	display: flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	margin-bottom: 24px !important;
+	color: var(--fb-primary) !important;
+}
+
+.fb-cart-empty-title {
+	font-size: 1.3125rem !important;
+	font-weight: 800 !important;
+	color: var(--fb-text-main) !important;
+	margin: 0 0 10px 0 !important;
+}
+
+.fb-cart-empty-desc {
+	font-size: 0.90625rem !important;
+	color: var(--fb-text-muted) !important;
+	margin: 0 0 28px 0 !important;
+	max-width: 420px !important;
+	line-height: 1.6 !important;
+}
+
+.fb-cart-empty-card .cart-empty.woocommerce-info {
+	display: none !important;
+}
+
+.fb-cart-empty-action {
+	display: flex !important;
+	justify-content: center !important;
+	width: 100% !important;
+}
+
+.fb-empty-shop-btn {
+	display: inline-flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	gap: 8px !important;
+	height: var(--fb-btn-height, 48px) !important;
+	min-height: var(--fb-btn-height, 48px) !important;
+	padding: 0 24px !important;
+	border-radius: var(--fb-btn-radius, 8px) !important;
+	background: var(--fb-btn-bg, var(--fb-primary)) !important;
+	color: #ffffff !important;
+	border: none !important;
+	font-family: var(--fb-font-family) !important;
+	font-size: 0.90625rem !important;
+	font-weight: 700 !important;
+	line-height: 1 !important;
+	text-decoration: none !important;
+	box-shadow: var(--fb-btn-shadow) !important;
+	cursor: pointer !important;
+	transition: all 0.2s ease !important;
+	width: auto !important;
+	min-width: 240px !important;
+	margin-top: 0 !important;
+	box-sizing: border-box !important;
+}
+
+.fb-empty-shop-btn:is(:hover, :focus, :active) {
+	background: var(--fb-btn-bg-hover, var(--fb-primary-hover)) !important;
+	box-shadow: var(--fb-btn-shadow-hover) !important;
+	color: #ffffff !important;
+}
+
+.fb-empty-shop-btn svg {
+	color: #ffffff !important;
+	stroke: currentColor !important;
+	flex-shrink: 0 !important;
+}
+
+.fb-empty-shop-btn .fb-btn-text {
+	color: #ffffff !important;
+	font-size: 0.90625rem !important;
+	font-weight: 700 !important;
+	line-height: 1 !important;
+}
+
+/* ==========================================================================
+   Responsive Product Card Layout (<= 1280px)
+   Transforms Cart Table into Clean Product Cards on all screens <= 1280px
+   (Eliminates tight column squishing and horizontal scroll)
+   ========================================================================== */
+@media (max-width: 1280px) {
+	.fb-cart-table thead {
+		display: none !important;
+	}
+
+	.fb-cart-table,
+	.fb-cart-table tbody {
+		display: block !important;
+		width: 100% !important;
+	}
+
+	.fb-cart-table tbody tr:nth-child(even) {
+		background-color: #f9f9f9 !important;
+	}
+
+	/* Disable WooCommerce default mobile pseudo-labels and restore thumbnail */
+	.fb-cart-table td::before {
+		display: none !important;
+		content: none !important;
+	}
+
+	.fb-cart-item {
+		display: grid !important;
+		grid-template-columns: auto 1fr !important;
+		grid-template-rows: auto auto auto !important;
+		row-gap: 0 !important;
+		column-gap: 0 !important;
+		align-items: center !important;
+		position: relative !important;
+		padding: 16px 18px 14px !important;
+		border-bottom: 2px solid var(--fb-border-light) !important;
+		border-top: none !important;
+	}
+
+	.fb-cart-item:last-child {
+		border-bottom: none !important;
+	}
+
+	/* Row 1, Col 1: Thumbnail (Top-Right in RTL) */
+	.fb-cart-table .fb-td-thumbnail {
+		display: block !important;
+		grid-column: 1 / 2 !important;
+		grid-row: 1 / 2 !important;
+		align-self: center !important;
+		padding: 0 0 14px 14px !important;
+		width: auto !important;
+	}
+
+	.fb-cart-thumb {
+		width: 58px !important;
+		height: 58px !important;
+		border: 1px solid var(--fb-border-light, #f1f5f9) !important;
+		overflow: hidden !important;
+	}
+
+	/* Row 1, Col 2: Name & Variations (Top-Left in RTL) */
+	.fb-cart-table .fb-td-name {
+		display: flex !important;
+		flex-direction: column !important;
+		justify-content: center !important;
+		grid-column: 2 / 3 !important;
+		grid-row: 1 / 2 !important;
+		padding: 0 0 14px 34px !important; /* Space for absolute remove button on far left */
+		min-width: 0 !important;
+		text-align: start !important;
+	}
+
+	.fb-cart-item-title,
+	.fb-cart-item-title a {
+		font-size: 0.84375rem !important;
+		font-weight: 700 !important;
+		margin: 0 0 4px 0 !important;
+		line-height: 1.45 !important;
+		color: var(--fb-text-main) !important;
+		text-align: start !important;
+	}
+
+	/* Row 2, Col 1: Quantity Selector (Right side in RTL) */
+	.fb-cart-table .fb-td-quantity {
+		display: flex !important;
+		align-items: center !important;
+		justify-content: flex-start !important;
+		align-self: stretch !important;
+		height: 100% !important;
+		min-height: 52px !important;
+		box-sizing: border-box !important;
+		grid-column: 1 / 2 !important;
+		grid-row: 2 / 3 !important;
+		padding: 10px 0 !important;
+		margin: 0 !important;
+		border-top: 1px dashed var(--fb-border-color, #e2e8f0) !important;
+		border-bottom: 1px dashed var(--fb-border-color, #e2e8f0) !important;
+		border-left: none !important;
+		border-right: none !important;
+		width: auto !important;
+	}
+
+	.fb-qty-control {
+		height: 32px !important;
+		border-radius: var(--fb-input-radius, 8px) !important;
+	}
+
+	.fb-qty-btn {
+		width: 28px !important;
+		height: 32px !important;
+	}
+
+	.fb-qty-input {
+		width: 30px !important;
+		height: 32px !important;
+		font-size: 0.8125rem !important;
+	}
+
+	/* Row 2, Col 2: Unit Price (Left side in RTL) */
+	.fb-cart-table .fb-td-price {
+		display: flex !important;
+		align-items: center !important;
+		justify-content: flex-end !important;
+		align-self: stretch !important;
+		height: 100% !important;
+		min-height: 52px !important;
+		box-sizing: border-box !important;
+		flex-wrap: wrap !important;
+		gap: 6px !important;
+		grid-column: 2 / 3 !important;
+		grid-row: 2 / 3 !important;
+		padding: 10px 0 !important;
+		margin: 0 !important;
+		border-top: 1px dashed var(--fb-border-color, #e2e8f0) !important;
+		border-bottom: 1px dashed var(--fb-border-color, #e2e8f0) !important;
+		border-left: none !important;
+		border-right: none !important;
+		min-width: 0 !important;
+		text-align: left !important;
+	}
+
+	.fb-cart-table .fb-td-price::before {
+		display: none !important;
+		content: none !important;
+	}
+
+	.fb-cart-table .fb-td-price .fb-cart-item-price-wrap {
+		display: inline-flex !important;
+		flex-direction: column !important;
+		align-items: start !important;
+		gap: 6px !important;
+	}
+
+	.fb-cart-table .fb-td-price .woocommerce-Price-amount,
+	.fb-cart-table .fb-td-price bdi,
+	.fb-cart-table .fb-td-price .fb-price-current {
+		font-size: 0.8125rem !important;
+		font-weight: 600 !important;
+		color: var(--fb-text-main) !important;
+	}
+
+	.fb-cart-table .fb-td-price .fb-price-old {
+		font-size: 0.71875rem !important;
+		color: var(--fb-text-subtle) !important;
+		text-decoration: line-through !important;
+	}
+
+	.fb-cart-table .fb-td-price .woocommerce-Price-currencySymbol {
+		font-size: 0.71875rem !important;
+		color: var(--fb-text-muted) !important;
+	}
+
+	/* Row 3: Subtotal (Full Width: Label on Right, Total Amount on Left) */
+	.fb-cart-table .fb-td-subtotal {
+		display: flex !important;
+		align-items: center !important;
+		justify-content: space-between !important;
+		grid-column: 1 / -1 !important;
+		grid-row: 3 / 4 !important;
+		padding: 12px 0 2px 0 !important;
+		width: 100% !important;
+		box-sizing: border-box !important;
+	}
+
+	.fb-cart-table .fb-td-subtotal::before {
+		content: "مجموع:" !important;
+		display: inline-block !important;
+		font-size: 0.8125rem !important;
+		font-weight: 600 !important;
+		color: var(--fb-text-muted) !important;
+	}
+
+	.fb-subtotal-amount {
+		font-size: 0.9375rem !important;
+		font-weight: 800 !important;
+		color: var(--fb-text-main) !important;
+	}
+
+	.fb-cart-table .fb-td-subtotal .fb-cart-item-price-wrap {
+		display: inline-flex !important;
+		flex-direction: column !important;
+		gap: 3px !important;
+	}
+
+	.fb-cart-table .fb-td-subtotal .fb-price-current,
+	.fb-cart-table .fb-td-subtotal ins {
+		font-size: 0.9375rem !important;
+		font-weight: 800 !important;
+		color: var(--fb-text-main) !important;
+	}
+
+	.fb-cart-table .fb-td-subtotal .fb-price-old,
+	.fb-cart-table .fb-td-subtotal del {
+		font-size: 0.75rem !important;
+		color: var(--fb-text-subtle) !important;
+		text-decoration: line-through !important;
+	}
+
+	.fb-cart-table .fb-td-subtotal .woocommerce-Price-currencySymbol {
+		font-size: 0.75rem !important;
+	}
+
+	/* Remove Button: Absolute Top-Left */
+	.fb-cart-table .fb-td-remove {
+		display: flex !important;
+		position: absolute !important;
+		top: 14px !important;
+		left: 14px !important;
+		padding: 0 !important;
+		width: 28px !important;
+		height: 28px !important;
+		z-index: 2 !important;
+	}
+
+	.fb-cart-remove-btn {
+		width: 28px !important;
+		height: 28px !important;
+	}
+
+	.fb-order-summary-card {
+		padding: 18px !important;
+	}
+}
+
+/* ==========================================================================
+   Mobile Sticky Bottom Cart Bar (Fixed on Mobile Viewports)
+   ========================================================================== */
+.fb-mobile-cart-bar {
+	display: none !important;
+}
+
+@media (max-width: 767px) {
+	.fb-mobile-cart-bar {
+		display: block !important;
+		position: fixed !important;
+		bottom: 0 !important;
+		left: 0 !important;
+		right: 0 !important;
+		width: 100% !important;
+		background: #ffffff !important;
+		border-top: 1px solid var(--fb-border-color, #e5e7eb) !important;
+		box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08) !important;
+		padding: 12px 16px !important;
+		padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px)) !important;
+		z-index: 99 !important;
+		box-sizing: border-box !important;
+	}
+
+	.fb-mobile-cart-bar-content {
+		display: flex !important;
+		align-items: center !important;
+		justify-content: space-between !important;
+		gap: 16px !important;
+		max-width: 520px !important;
+		margin: 0 auto !important;
+		width: 100% !important;
+	}
+
+	/* Proceed Button: Right side in RTL */
+	.fb-mobile-cart-btn {
+		flex: 1 !important;
+		max-width: 180px !important;
+		height: var(--fb-btn-height, 48px) !important;
+		min-height: var(--fb-btn-height, 48px) !important;
+		border-radius: var(--fb-btn-radius, 8px) !important;
+		background: var(--fb-btn-bg) !important;
+		color: #ffffff !important;
+		border: none !important;
+		font-family: var(--fb-font-family) !important;
+		font-size: 0.875rem !important;
+		font-weight: 700 !important;
+		box-shadow: var(--fb-btn-shadow) !important;
+		display: inline-flex !important;
+		align-items: center !important;
+		justify-content: center !important;
+		text-decoration: none !important;
+		user-select: none !important;
+		transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+		margin: 0 !important;
+		line-height: 1 !important;
+	}
+
+	.fb-mobile-cart-btn:is(:hover, :focus, :active) {
+		background: var(--fb-btn-bg-hover) !important;
+		box-shadow: var(--fb-btn-shadow-hover) !important;
+		color: #ffffff !important;
+		text-decoration: none !important;
+	}
+
+	.fb-mobile-cart-btn .fb-btn-text {
+		color: #ffffff !important;
+		font-size: 0.875rem !important;
+		font-weight: 700 !important;
+		line-height: 1 !important;
+	}
+
+	/* Price info: Left side in RTL */
+	.fb-mobile-cart-price-wrap {
+		display: flex !important;
+		flex-direction: column !important;
+		align-items: flex-start !important;
+		gap: 2px !important;
+		flex-shrink: 0 !important;
+		text-align: right !important;
+	}
+
+	.fb-mobile-cart-price-label {
+		font-size: 0.6875rem !important;
+		color: var(--fb-text-muted, #6b7280) !important;
+		font-weight: 500 !important;
+		line-height: 1.3 !important;
+	}
+
+	.fb-mobile-cart-price-amount {
+		font-size: 1.125rem !important;
+		font-weight: 800 !important;
+		color: var(--fb-text-accent) !important;
+		white-space: nowrap !important;
+		line-height: 1.2 !important;
+	}
+
+	.fb-mobile-cart-price-amount .woocommerce-Price-amount {
+		color: inherit !important;
+		font-weight: inherit !important;
+		font-size: 1.125rem !important;
+	}
+
+	.fb-mobile-cart-price-amount .woocommerce-Price-currencySymbol {
+		font-size: 0.75rem !important;
+		font-weight: 500 !important;
+		margin-right: 3px !important;
+	}
+
+	.fb-mobile-cart-bar .fb-total-old,
+	.fb-mobile-cart-price-amount .fb-total-old {
+		display: none !important;
+	}
+
+	/* Hide in-card proceed button on mobile */
+	.fb-order-summary-card .wc-proceed-to-checkout,
+	.cart_totals .wc-proceed-to-checkout,
+	.elementor-widget-woocommerce-cart .e-cart__column-end .checkout-button,
+	.fb-proceed-wrapper {
+		display: none !important;
+	}
+
+	.fb-cart-header,
+	.fb-order-summary-card {
+		padding: 16px !important;
+	}
+}
