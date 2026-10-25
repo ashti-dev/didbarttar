@@ -294,6 +294,48 @@
 	white-space: nowrap;
 }
 
+.torantejarat-thx__item-main .wc-item-meta {
+	margin: 8px 0 0;
+	padding: 0;
+	list-style: none;
+	color: var(--thx-muted);
+	font-size: 12px;
+}
+
+.torantejarat-thx__item-main .wc-item-meta li {
+	margin: 4px 0;
+}
+
+.torantejarat-thx__item-main .wc-item-meta p {
+	display: inline;
+}
+
+.torantejarat-thx__purchase-note {
+	margin-top: 10px;
+	color: var(--thx-muted);
+	font-size: 13px;
+}
+
+.torantejarat-thx__purchase-note p {
+	margin: 4px 0 0;
+}
+
+.torantejarat-thx__customer-note {
+	margin-top: 16px;
+	padding: 12px 14px;
+	border-radius: 10px;
+	background: var(--thx-soft);
+	font-size: 13px;
+}
+
+.torantejarat-thx__customer-note p {
+	margin: 6px 0 0;
+}
+
+.torantejarat-thx__main .woocommerce-order-downloads {
+	margin: 0 0 20px;
+}
+
 .torantejarat-thx__totals {
 	margin-top: 12px;
 	padding-top: 12px;

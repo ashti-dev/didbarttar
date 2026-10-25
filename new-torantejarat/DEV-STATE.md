@@ -9,7 +9,15 @@
 | TT-001 | اصلاح شد | انجام شد | در انتظار Staging | بازگرداندن `billing_email` به Checkout |
 | TT-002 | اصلاح شد | DOM smoke + هر ۲۰ JS | در انتظار Staging | محدودسازی AJAX Cart به فرم داخلی سازگار |
 | TT-003 | اصلاح شد | Parse هر ۷۲ PHP | در انتظار Staging | جداسازی وضعیت پرداخت از ارسال در فاکتور و رسید |
+| TT-004 | اصلاح شد | Parse + source assertions | در انتظار Staging | بازیابی Item Meta/Totals/Refund/Download در رسید |
 | TT-029 | اصلاح شد | انجام شد؛ هر ۲۰ JS | در انتظار Staging | رفع خطای Parse اسکریپت ویدیوی محصول در ادمین |
+
+### TT-004 — جزئیات و جمع‌های کامل سفارش
+
+- **تغییر:** نمایش و چاپ `woocommerce/checkout/thankyou.php` اکنون از `get_order_item_totals()` استفاده می‌کنند؛ بنابراین Subtotal، Discount، Shipping، Fee، Tax، Refund، Total و فیلترهای افزونه‌ها حفظ می‌شوند. برچسب ثابت «تومان» نیز از ستون مبلغ حذف شد چون مبلغ قالب‌بندی‌شده واحد سفارش را دارد.
+- **بازیابی سازگاری:** Variation/Item Meta و Hookهای آن، Purchase Note، لینک فیلترشده، تعداد Refundشده، Download مجاز، Customer Note و فیلتر Visibility اقلام اضافه شدند. ارسال صفر فقط وقتی WooCommerce ردیف Shipping بسازد نمایش داده می‌شود؛ نبود روش ارسال دیگر «رایگان» خوانده نمی‌شود.
+- **تست انجام‌شده:** Parse هر ۷۲ PHP، Source assertion برای مصرف APIهای سفارش، حذف Totals دستی و `git diff --check`.
+- **تست باقی‌مانده:** سفارش Variable با Coupon/Fee/Tax/Shipping، Refund جزئی و کامل، محصول Downloadable، Purchase Note، یادداشت مشتری و چاپ در Staging؛ تطابق ریالی با Order Admin و ایمیل.
 
 ### TT-003 — وضعیت صادقانهٔ پرداخت و ارسال
 

@@ -122,6 +122,10 @@ $shop_url     = wc_get_page_permalink( 'shop' );
 $contact_page = get_page_by_path( 'contact' );
 $contact_url  = $contact_page ? get_permalink( $contact_page ) : home_url( '/' );
 
+$order_items        = $order->get_items( apply_filters( 'woocommerce_purchase_order_item_types', 'line_item' ) );
+$order_totals       = $order->get_order_item_totals();
+$show_purchase_note = $order->has_status( apply_filters( 'woocommerce_purchase_note_order_statuses', array( 'completed', 'processing' ) ) );
+
 $primary_url   = $is_logged_in ? $orders_url : $shop_url;
 $primary_label = $is_logged_in ? __( 'پیگیری در حساب کاربری', 'torantejarat' ) : __( 'ادامه خرید', 'torantejarat' );
 ?>
@@ -194,9 +198,15 @@ $primary_label = $is_logged_in ? __( 'پیگیری در حساب کاربری', 
 
 			<section class="torantejarat-thx__card" aria-labelledby="torantejarat-thx-items">
 				<h2 id="torantejarat-thx-items"><?php esc_html_e( 'دستگاه‌های سفارش', 'torantejarat' ); ?></h2>
-				<?php foreach ( $order->get_items() as $item ) :
-					$product = $item->get_product();
-					$link    = ( $product && $product->is_visible() ) ? $product->get_permalink() : '';
+				<?php foreach ( $order_items as $item_id => $item ) :
+					if ( ! apply_filters( 'woocommerce_order_item_visible', true, $item ) ) {
+						continue;
+					}
+					$product       = $item->get_product();
+					$is_visible    = $product && $product->is_visible();
+					$link          = apply_filters( 'woocommerce_order_item_permalink', $is_visible ? $product->get_permalink( $item ) : '', $item, $order );
+					$purchase_note = $product ? $product->get_purchase_note() : '';
+					$refunded_qty  = $order->get_qty_refunded_for_item( $item_id );
 					?>
 					<div class="torantejarat-thx__item">
 						<?php if ( $product ) : ?>
@@ -208,27 +218,56 @@ $primary_label = $is_logged_in ? __( 'پیگیری در حساب کاربری', 
 							<?php else : ?>
 								<strong><?php echo esc_html( $item->get_name() ); ?></strong>
 							<?php endif; ?>
-							<div class="torantejarat-thx__sub"><?php printf( esc_html__( 'تعداد: %s', 'torantejarat' ), esc_html( torantejarat_fa_number( $item->get_quantity() ) ) ); ?></div>
+							<div class="torantejarat-thx__sub">
+								<?php esc_html_e( 'تعداد:', 'torantejarat' ); ?>
+								<?php if ( $refunded_qty ) : ?>
+									<del><?php echo esc_html( torantejarat_fa_number( $item->get_quantity() ) ); ?></del>
+									<ins><?php echo esc_html( torantejarat_fa_number( $item->get_quantity() - ( $refunded_qty * -1 ) ) ); ?></ins>
+								<?php else : ?>
+									<?php echo esc_html( torantejarat_fa_number( $item->get_quantity() ) ); ?>
+								<?php endif; ?>
+							</div>
+							<?php
+							do_action( 'woocommerce_order_item_meta_start', $item_id, $item, $order, false );
+							wc_display_item_meta( $item );
+							do_action( 'woocommerce_order_item_meta_end', $item_id, $item, $order, false );
+							?>
+							<?php if ( $show_purchase_note && $purchase_note ) : ?>
+								<div class="torantejarat-thx__purchase-note"><?php echo wpautop( do_shortcode( wp_kses_post( $purchase_note ) ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Matches WooCommerce order item template. ?></div>
+							<?php endif; ?>
 						</div>
 						<div class="torantejarat-thx__item-price"><?php echo wp_kses_post( $order->get_formatted_line_subtotal( $item ) ); ?></div>
 					</div>
 				<?php endforeach; ?>
 
 				<div class="torantejarat-thx__totals">
-					<div class="torantejarat-thx__row">
-						<span><?php esc_html_e( 'جمع جزء', 'torantejarat' ); ?></span>
-						<span><?php echo wp_kses_post( wc_price( $order->get_subtotal(), array( 'currency' => $order->get_currency() ) ) ); ?></span>
-					</div>
-					<div class="torantejarat-thx__row">
-						<span><?php esc_html_e( 'ارسال', 'torantejarat' ); ?></span>
-						<span><?php echo (float) $order->get_shipping_total() > 0 ? wp_kses_post( wc_price( $order->get_shipping_total(), array( 'currency' => $order->get_currency() ) ) ) : esc_html__( 'رایگان', 'torantejarat' ); ?></span>
-					</div>
-					<div class="torantejarat-thx__row torantejarat-thx__row--total">
-						<span><?php esc_html_e( 'قابل پرداخت', 'torantejarat' ); ?></span>
-						<span><?php echo wp_kses_post( wc_price( $order->get_total(), array( 'currency' => $order->get_currency() ) ) ); ?></span>
-					</div>
+					<?php foreach ( $order_totals as $total ) : ?>
+						<div class="torantejarat-thx__row<?php echo isset( $total['type'] ) && 'total' === $total['type'] ? ' torantejarat-thx__row--total' : ''; ?>">
+							<span><?php echo esc_html( $total['label'] ); ?></span>
+							<span><?php echo wp_kses_post( $total['value'] ); ?></span>
+						</div>
+					<?php endforeach; ?>
 				</div>
+				<?php if ( $order->get_customer_note() ) : ?>
+					<div class="torantejarat-thx__customer-note">
+						<strong><?php esc_html_e( 'یادداشت سفارش', 'torantejarat' ); ?></strong>
+						<p><?php echo wp_kses( nl2br( wc_wptexturize_order_note( $order->get_customer_note() ) ), array( 'br' => array() ) ); ?></p>
+					</div>
+				<?php endif; ?>
 			</section>
+
+			<?php
+			$show_downloads = apply_filters( 'woocommerce_order_downloads_table_show_downloads', $order->has_downloadable_item() && $order->is_download_permitted(), $order );
+			if ( $show_downloads ) {
+				wc_get_template(
+					'order/order-downloads.php',
+					array(
+						'downloads'  => $order->get_downloadable_items(),
+						'show_title' => true,
+					)
+				);
+			}
+			?>
 
 			<div class="torantejarat-thx__actions">
 				<a class="torantejarat-btn torantejarat-btn-primary" href="<?php echo esc_url( $primary_url ); ?>"><?php echo esc_html( $primary_label ); ?></a>
@@ -313,37 +352,45 @@ $inv_row = 0;
 				<th><?php esc_html_e( 'ردیف', 'torantejarat' ); ?></th>
 				<th><?php esc_html_e( 'شرح کالا', 'torantejarat' ); ?></th>
 				<th><?php esc_html_e( 'تعداد', 'torantejarat' ); ?></th>
-				<th><?php esc_html_e( 'مبلغ (تومان)', 'torantejarat' ); ?></th>
+				<th><?php esc_html_e( 'مبلغ', 'torantejarat' ); ?></th>
 			</tr>
 		</thead>
 		<tbody>
-			<?php foreach ( $order->get_items() as $item ) : ?>
+			<?php foreach ( $order_items as $item_id => $item ) : ?>
 				<?php
+				if ( ! apply_filters( 'woocommerce_order_item_visible', true, $item ) ) {
+					continue;
+				}
 				++$inv_row;
-				$inv_product = $item->get_product();
-				$inv_sku     = ( $inv_product && $inv_product->get_sku() ) ? ' (' . $inv_product->get_sku() . ')' : '';
+				$inv_product      = $item->get_product();
+				$inv_sku          = ( $inv_product && $inv_product->get_sku() ) ? ' (' . $inv_product->get_sku() . ')' : '';
+				$inv_refunded_qty = $order->get_qty_refunded_for_item( $item_id );
 				?>
 				<tr>
 					<td><?php echo esc_html( torantejarat_fa_number( $inv_row ) ); ?></td>
-					<td><?php echo esc_html( $item->get_name() . $inv_sku ); ?></td>
-					<td><?php echo esc_html( torantejarat_fa_number( $item->get_quantity() ) ); ?></td>
+					<td>
+						<?php echo esc_html( $item->get_name() . $inv_sku ); ?>
+						<?php wc_display_item_meta( $item ); ?>
+					</td>
+					<td>
+						<?php if ( $inv_refunded_qty ) : ?>
+							<del><?php echo esc_html( torantejarat_fa_number( $item->get_quantity() ) ); ?></del>
+							<ins><?php echo esc_html( torantejarat_fa_number( $item->get_quantity() - ( $inv_refunded_qty * -1 ) ) ); ?></ins>
+						<?php else : ?>
+							<?php echo esc_html( torantejarat_fa_number( $item->get_quantity() ) ); ?>
+						<?php endif; ?>
+					</td>
 					<td><?php echo wp_kses_post( $order->get_formatted_line_subtotal( $item ) ); ?></td>
 				</tr>
 			<?php endforeach; ?>
 		</tbody>
 		<tfoot>
-			<tr>
-				<th colspan="3"><?php esc_html_e( 'جمع جزء', 'torantejarat' ); ?></th>
-				<td><?php echo wp_kses_post( wc_price( $order->get_subtotal(), array( 'currency' => $order->get_currency() ) ) ); ?></td>
-			</tr>
-			<tr>
-				<th colspan="3"><?php esc_html_e( 'ارسال', 'torantejarat' ); ?></th>
-				<td><?php echo (float) $order->get_shipping_total() > 0 ? wp_kses_post( wc_price( $order->get_shipping_total(), array( 'currency' => $order->get_currency() ) ) ) : esc_html__( 'رایگان', 'torantejarat' ); ?></td>
-			</tr>
-			<tr>
-				<th colspan="3"><?php esc_html_e( 'مبلغ نهایی', 'torantejarat' ); ?></th>
-				<td><?php echo wp_kses_post( wc_price( $order->get_total(), array( 'currency' => $order->get_currency() ) ) ); ?></td>
-			</tr>
+			<?php foreach ( $order_totals as $total ) : ?>
+				<tr>
+					<th colspan="3"><?php echo esc_html( $total['label'] ); ?></th>
+					<td><?php echo wp_kses_post( $total['value'] ); ?></td>
+				</tr>
+			<?php endforeach; ?>
 		</tfoot>
 	</table>
 	<div class="torantejarat-print-invoice__foot">
