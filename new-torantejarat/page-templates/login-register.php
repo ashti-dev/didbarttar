@@ -61,7 +61,7 @@ get_header();
 					<!-- Login -->
 					<div class="auth__pane is-active" id="auth-panel-login" role="tabpanel" aria-labelledby="auth-tab-login">
 						<h3 class="auth__heading"><?php esc_html_e( 'خوش برگشتید', 'torantejarat' ); ?></h3>
-						<p class="auth__sub"><?php esc_html_e( 'با شماره موبایل یا ایمیل خود وارد شوید.', 'torantejarat' ); ?></p>
+						<p class="auth__sub"><?php esc_html_e( 'با موبایل، ایمیل یا نام کاربری خود وارد شوید.', 'torantejarat' ); ?></p>
 
 						<form class="auth__form" id="auth-login-form" method="post" action="<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>" data-endpoint="<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>" novalidate>
 						<input type="hidden" name="action" value="torantejarat_login">
@@ -70,10 +70,10 @@ get_header();
 							<p class="auth__message is-error" role="alert"><?php echo esc_html( $auth_error ); ?></p>
 						<?php endif; ?>
 							<div class="auth__field">
-								<label for="login-user"><?php esc_html_e( 'موبایل یا ایمیل', 'torantejarat' ); ?></label>
+								<label for="login-user"><?php esc_html_e( 'موبایل، ایمیل یا نام کاربری', 'torantejarat' ); ?></label>
 								<div class="auth__control">
 									<span class="auth__icon" aria-hidden="true"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
-									<input type="text" id="login-user" name="log" autocomplete="username" inputmode="tel">
+									<input type="text" id="login-user" name="log" autocomplete="username" autocapitalize="off">
 								</div>
 								<p class="auth__error" aria-live="polite"></p>
 							</div>

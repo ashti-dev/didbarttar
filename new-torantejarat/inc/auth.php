@@ -104,6 +104,47 @@ function torantejarat_auth_normalize_mobile( $raw ) {
 	return preg_match( '/^09\d{9}$/', $value ) ? $value : '';
 }
 
+/**
+ * Find users by common stored representations of an Iranian mobile number.
+ * Login/recovery only proceed when exactly one identity matches.
+ *
+ * @return \WP_User[]
+ */
+function torantejarat_auth_users_by_mobile( $raw ) {
+	$mobile = torantejarat_auth_normalize_mobile( $raw );
+	if ( '' === $mobile ) {
+		return array();
+	}
+
+	$national   = substr( $mobile, 1 );
+	$candidates = array( $mobile, $national, '+98' . $national, '0098' . $national, '98' . $national );
+	$candidates[] = str_replace( array( '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' ), array( '۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹' ), $mobile );
+	$candidates[] = str_replace( array( '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' ), array( '٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩' ), $mobile );
+
+	$users = get_users(
+		array(
+			'blog_id'     => get_current_blog_id(),
+			'number'      => 2,
+			'count_total' => false,
+			'fields'      => 'all',
+			'meta_query'  => array(
+				array(
+					'key'     => 'billing_phone',
+					'value'   => array_unique( $candidates ),
+					'compare' => 'IN',
+				),
+			),
+		)
+	);
+
+	return is_array( $users ) ? $users : array();
+}
+
+function torantejarat_auth_user_by_mobile( $raw ) {
+	$users = torantejarat_auth_users_by_mobile( $raw );
+	return 1 === count( $users ) ? reset( $users ) : false;
+}
+
 function torantejarat_send_json( $success, $message, $redirect = '' ) {
 	$is_ajax = isset( $_POST['auth_via'] ) && 'ajax' === $_POST['auth_via']; // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce is verified by each handler before responding.
 
@@ -155,6 +196,10 @@ function torantejarat_auth_login() {
 	}
 
 	$login = torantejarat_normalize_digits( $login );
+	$user_by_mobile = torantejarat_auth_user_by_mobile( $login );
+	if ( $user_by_mobile ) {
+		$login = $user_by_mobile->user_login;
+	}
 
 	$creds = array(
 		'user_login'    => $login,
@@ -170,6 +215,26 @@ function torantejarat_auth_login() {
 
 	torantejarat_send_json( true, __( 'خوش آمدید.', 'torantejarat' ), torantejarat_auth_account_url() );
 }
+
+/**
+ * Let core password retrieval resolve a unique billing phone to the account.
+ * The reset link still travels through the account email; no SMS is implied.
+ */
+function torantejarat_auth_lostpassword_user_data( $user_data ) {
+	if ( $user_data || empty( $_POST['user_login'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Core retrieve_password handles this request.
+		return $user_data;
+	}
+
+	$login = sanitize_text_field( wp_unslash( $_POST['user_login'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
+	$user  = torantejarat_auth_user_by_mobile( $login );
+	return $user ? $user : $user_data;
+}
+add_filter( 'lostpassword_user_data', __NAMESPACE__ . '\\torantejarat_auth_lostpassword_user_data' );
+
+function torantejarat_auth_lostpassword_hint() {
+	echo '<p class="description">' . esc_html__( 'می‌توانید موبایل حساب را نیز وارد کنید. لینک بازیابی به ایمیل ثبت‌شده در حساب ارسال می‌شود.', 'torantejarat' ) . '</p>';
+}
+add_action( 'lostpassword_form', __NAMESPACE__ . '\\torantejarat_auth_lostpassword_hint' );
 
 /**
  * Register a customer through WooCommerce hooks when available.
@@ -213,8 +278,8 @@ function torantejarat_auth_register() {
 		torantejarat_send_json( false, __( 'پذیرش قوانین الزامی است.', 'torantejarat' ) );
 	}
 
-	if ( email_exists( $email ) ) {
-		torantejarat_send_json( false, __( 'حساب کاربری با این اطلاعات وجود دارد.', 'torantejarat' ) );
+	if ( email_exists( $email ) || torantejarat_auth_users_by_mobile( $mobile ) ) {
+		torantejarat_send_json( false, __( 'حساب کاربری با این ایمیل یا موبایل وجود دارد.', 'torantejarat' ) );
 	}
 
 	if ( function_exists( 'wc_create_new_customer' ) ) {
