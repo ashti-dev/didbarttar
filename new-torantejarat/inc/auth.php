@@ -2,8 +2,8 @@
 /**
  * Auth page: login/register AJAX endpoint + asset wiring.
  *
- * Handlers use WP core wp_signon / wp_create_user, nonce verification,
- * server-side re-validation (Persian digits normalized before checks).
+ * Handlers use wp_signon and WooCommerce customer registration when available,
+ * nonce verification and POST-only native/AJAX form fallbacks.
  *
  * @package ToranTejarat
  */
@@ -42,12 +42,19 @@ function torantejarat_auth_get_page_url() {
 	return $page ? get_permalink( $page->ID ) : wp_login_url();
 }
 
+function torantejarat_auth_account_url() {
+	if ( function_exists( 'wc_get_page_id' ) && wc_get_page_id( 'myaccount' ) > 0 ) {
+		return wc_get_page_permalink( 'myaccount' );
+	}
+	return home_url( '/' );
+}
+
 /**
  * Link guests to the auth page, logged-in users to their account.
  */
 function torantejarat_auth_url() {
-	if ( is_user_logged_in() && wc_get_page_id( 'myaccount' ) > 0 ) {
-		return wc_get_page_permalink( 'myaccount' );
+	if ( is_user_logged_in() ) {
+		return torantejarat_auth_account_url();
 	}
 	return torantejarat_auth_get_page_url();
 }
@@ -82,7 +89,42 @@ function torantejarat_normalize_digits( $value ) {
 	return str_replace( array( '۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹', '٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩' ), array( '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' ), $value );
 }
 
+function torantejarat_auth_normalize_mobile( $raw ) {
+	$value = torantejarat_normalize_digits( trim( (string) $raw ) );
+	$value = preg_replace( '/[\s\-()]+/', '', $value );
+
+	if ( str_starts_with( $value, '+98' ) ) {
+		$value = '0' . substr( $value, 3 );
+	} elseif ( str_starts_with( $value, '0098' ) ) {
+		$value = '0' . substr( $value, 4 );
+	} elseif ( str_starts_with( $value, '98' ) && 12 === strlen( $value ) ) {
+		$value = '0' . substr( $value, 2 );
+	}
+
+	return preg_match( '/^09\d{9}$/', $value ) ? $value : '';
+}
+
 function torantejarat_send_json( $success, $message, $redirect = '' ) {
+	$is_ajax = isset( $_POST['auth_via'] ) && 'ajax' === $_POST['auth_via']; // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce is verified by each handler before responding.
+
+	if ( ! $is_ajax ) {
+		if ( $success ) {
+			wp_safe_redirect( $redirect ? $redirect : torantejarat_auth_account_url() );
+			exit;
+		}
+
+		$form = isset( $_POST['action'] ) && 'torantejarat_register' === $_POST['action'] ? 'register' : 'login'; // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		$url  = add_query_arg(
+			array(
+				'auth_error' => $message,
+				'auth_form'  => $form,
+			),
+			torantejarat_auth_get_page_url()
+		);
+		wp_safe_redirect( $url . '#' . $form );
+		exit;
+	}
+
 	wp_send_json(
 		array(
 			'success'  => $success,
@@ -92,11 +134,18 @@ function torantejarat_send_json( $success, $message, $redirect = '' ) {
 	);
 }
 
+function torantejarat_auth_verify_nonce() {
+	$nonce = isset( $_POST['nonce'] ) ? sanitize_text_field( wp_unslash( $_POST['nonce'] ) ) : '';
+	if ( ! wp_verify_nonce( $nonce, 'torantejarat_auth' ) ) {
+		torantejarat_send_json( false, __( 'نشست فرم منقضی شده است. صفحه را تازه‌سازی و دوباره تلاش کنید.', 'torantejarat' ) );
+	}
+}
+
 /**
  * Login via wp_signon. Accepts mobile or email as login.
  */
 function torantejarat_auth_login() {
-	check_ajax_referer( 'torantejarat_auth', 'nonce' );
+	torantejarat_auth_verify_nonce();
 
 	$login = isset( $_POST['log'] ) ? sanitize_text_field( wp_unslash( $_POST['log'] ) ) : '';
 	$pass  = isset( $_POST['pwd'] ) ? (string) wp_unslash( $_POST['pwd'] ) : ''; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- wp_signon hashes it.
@@ -106,7 +155,6 @@ function torantejarat_auth_login() {
 	}
 
 	$login = torantejarat_normalize_digits( $login );
-	$login = str_replace( '.', '', $login );
 
 	$creds = array(
 		'user_login'    => $login,
@@ -120,35 +168,37 @@ function torantejarat_auth_login() {
 		torantejarat_send_json( false, __( 'نام کاربری یا رمز عبور اشتباه است.', 'torantejarat' ) );
 	}
 
-	torantejarat_send_json( true, __( 'خوش آمدید.', 'torantejarat' ), wc_get_page_permalink( 'myaccount' ) );
+	torantejarat_send_json( true, __( 'خوش آمدید.', 'torantejarat' ), torantejarat_auth_account_url() );
 }
 
 /**
- * Register via wp_create_user. Mobile or email required.
+ * Register a customer through WooCommerce hooks when available.
+ * Email is required for account recovery; mobile is stored as billing phone.
  */
 function torantejarat_auth_register() {
-	check_ajax_referer( 'torantejarat_auth', 'nonce' );
+	torantejarat_auth_verify_nonce();
 
-	$name    = isset( $_POST['display_name'] ) ? sanitize_text_field( wp_unslash( $_POST['display_name'] ) ) : '';
-	$mobile  = isset( $_POST['mobile'] ) ? torantejarat_normalize_digits( sanitize_text_field( wp_unslash( $_POST['mobile'] ) ) ) : '';
-	$email   = isset( $_POST['email'] ) ? sanitize_email( wp_unslash( $_POST['email'] ) ) : '';
-	$pass1   = isset( $_POST['pass1'] ) ? (string) wp_unslash( $_POST['pass1'] ) : ''; // phpcs:ignore -- wp_create_user hashes it.
-	$pass2   = isset( $_POST['pass2'] ) ? (string) wp_unslash( $_POST['pass2'] ) : ''; // phpcs:ignore -- checked against pass1 only.
-	$terms   = isset( $_POST['terms'] ) && 'yes' === $_POST['terms'];
+	if ( ! get_option( 'users_can_register' ) ) {
+		torantejarat_send_json( false, __( 'ثبت‌نام در این سایت غیرفعال است.', 'torantejarat' ) );
+	}
+
+	$name   = isset( $_POST['display_name'] ) ? sanitize_text_field( wp_unslash( $_POST['display_name'] ) ) : '';
+	$mobile = isset( $_POST['mobile'] ) ? torantejarat_auth_normalize_mobile( sanitize_text_field( wp_unslash( $_POST['mobile'] ) ) ) : '';
+	$email  = isset( $_POST['email'] ) ? sanitize_email( wp_unslash( $_POST['email'] ) ) : '';
+	$pass1  = isset( $_POST['pass1'] ) ? (string) wp_unslash( $_POST['pass1'] ) : ''; // phpcs:ignore -- The user-creation API hashes it.
+	$pass2  = isset( $_POST['pass2'] ) ? (string) wp_unslash( $_POST['pass2'] ) : ''; // phpcs:ignore -- Checked against pass1 only.
+	$terms  = isset( $_POST['terms'] ) && 'yes' === $_POST['terms'];
 
 	if ( '' === $name || mb_strlen( $name ) < 3 ) {
 		torantejarat_send_json( false, __( 'نام و نام خانوادگی را کامل وارد کنید.', 'torantejarat' ) );
 	}
 
-	$mobile = ltrim( $mobile, '0' );
-	$mobile = '0' . ltrim( $mobile, '0' );
-
-	if ( '' === $email && ! preg_match( '/^09\d{9}$/', $mobile ) ) {
+	if ( '' === $mobile ) {
 		torantejarat_send_json( false, __( 'شماره موبایل معتبر نیست (مثال: 09123456789).', 'torantejarat' ) );
 	}
 
-	if ( '' !== $email && ! is_email( $email ) ) {
-		torantejarat_send_json( false, __( 'ایمیل معتبر نیست.', 'torantejarat' ) );
+	if ( '' === $email || ! is_email( $email ) ) {
+		torantejarat_send_json( false, __( 'ایمیل معتبر برای ساخت حساب و بازیابی رمز لازم است.', 'torantejarat' ) );
 	}
 
 	if ( strlen( $pass1 ) < 8 ) {
@@ -163,33 +213,40 @@ function torantejarat_auth_register() {
 		torantejarat_send_json( false, __( 'پذیرش قوانین الزامی است.', 'torantejarat' ) );
 	}
 
-	if ( '' !== $email && email_exists( $email ) ) {
-		torantejarat_send_json( false, __( 'ایمیل قبلاً ثبت شده است.', 'torantejarat' ) );
-	}
-
-	$username = '' !== $email ? $email : 'user_' . wp_generate_password( 8, false );
-	if ( username_exists( $username ) ) {
+	if ( email_exists( $email ) ) {
 		torantejarat_send_json( false, __( 'حساب کاربری با این اطلاعات وجود دارد.', 'torantejarat' ) );
 	}
 
-	$user_id = wp_create_user( $username, $pass1, $email );
+	if ( function_exists( 'wc_create_new_customer' ) ) {
+		$user_id = wc_create_new_customer(
+			$email,
+			'',
+			$pass1,
+			array(
+				'display_name' => $name,
+				'source'       => 'auth-page',
+			)
+		);
+	} else {
+		$user_id = wp_insert_user(
+			array(
+				'user_login'   => $email,
+				'user_email'   => $email,
+				'user_pass'    => $pass1,
+				'display_name' => $name,
+				'role'         => 'subscriber',
+			)
+		);
+	}
+
 	if ( is_wp_error( $user_id ) ) {
 		torantejarat_send_json( false, __( 'خطا در ثبت‌نام. دوباره تلاش کنید.', 'torantejarat' ) );
 	}
 
-	wp_update_user(
-		array(
-			'ID'           => $user_id,
-			'display_name' => $name,
-		)
-	);
-
-	if ( preg_match( '/^09\d{9}$/', $mobile ) ) {
-		update_user_meta( $user_id, 'billing_phone', $mobile );
-	}
+	update_user_meta( $user_id, 'billing_phone', $mobile );
 
 	wp_set_current_user( $user_id );
 	wp_set_auth_cookie( $user_id, true );
 
-	torantejarat_send_json( true, __( 'ثبت‌نام انجام شد. خوش آمدید.', 'torantejarat' ), wc_get_page_permalink( 'myaccount' ) );
+	torantejarat_send_json( true, __( 'ثبت‌نام انجام شد. خوش آمدید.', 'torantejarat' ), torantejarat_auth_account_url() );
 }

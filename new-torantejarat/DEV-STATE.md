@@ -10,7 +10,16 @@
 | TT-002 | اصلاح شد | DOM smoke + هر ۲۰ JS | در انتظار Staging | محدودسازی AJAX Cart به فرم داخلی سازگار |
 | TT-003 | اصلاح شد | Parse هر ۷۲ PHP | در انتظار Staging | جداسازی وضعیت پرداخت از ارسال در فاکتور و رسید |
 | TT-004 | اصلاح شد | Parse + source assertions | در انتظار Staging | بازیابی Item Meta/Totals/Refund/Download در رسید |
+| TT-005-A | اصلاح شد | Parse + DOM smoke | در انتظار Staging | امنیت No-JS و Registration Policy/Customer API |
 | TT-029 | اصلاح شد | انجام شد؛ هر ۲۰ JS | در انتظار Staging | رفع خطای Parse اسکریپت ویدیوی محصول در ادمین |
+
+### TT-005-A — امنیت فرم و ثبت‌نام سازگار
+
+- **تغییر:** هر دو فرم در `page-templates/login-register.php` دارای `method=post`، Action و Nonce واقعی‌اند. `inc/auth.php` برای Submit بدون JS نیز همان اعتبارسنجی را اجرا و با Redirect پاسخ می‌دهد؛ رمز وارد URL نمی‌شود. خطاهای No-JS فقط به‌صورت متن Escape‌شده نمایش داده می‌شوند.
+- **Registration:** Endpoint و UI به `users_can_register` وابسته شدند. ایمیل برای Recovery الزامی است و ساخت حساب با `wc_create_new_customer()`، Username بومی Woo، نقش Customer و Hookهای ثبت‌نام انجام می‌شود؛ Fallback بدون Woo نقش Subscriber دارد. موبایل Normalize و در `billing_phone` ذخیره می‌شود.
+- **Fallback:** حذف نقطه از Login متوقف شد. JS با غایب‌بودن Register UI سازگار است و Nonce مخفی فرم را وقتی Localization غایب است حفظ می‌کند. برای No-JS، لینک ثبت‌نام بومی وردپرس ارائه می‌شود.
+- **تست انجام‌شده:** Parse هر ۷۲ PHP و ۲۰ JS؛ DOM smoke برای Login-only، POST/Nonce/`auth_via`، حفظ ایمیل نقطه‌دار، الزام ایمیل ثبت‌نام و ارسال فرم معتبر؛ `git diff --check`.
+- **تست باقی‌مانده:** Login/Register با JS روشن و خاموش، Nonce منقضی، Registration غیرفعال، Hookهای افزونه‌ها و ایمیل New Account در Staging. Login/Recovery با موبایل در TT-005-B جدا ثبت می‌شود.
 
 ### TT-004 — جزئیات و جمع‌های کامل سفارش
 

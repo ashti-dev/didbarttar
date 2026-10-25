@@ -3,7 +3,7 @@
  * Login / Register — بِلکوکم
  *
  * Tabs: login (mobile/email + password) | register (name, mobile, email, password).
- * Server-ready: add REST/admin-ajax endpoint in data-endpoint per form.
+ * Progressive enhancement: native POST fallback plus the same admin-ajax handlers.
  *
  * @package ToranTejarat
  */
@@ -15,6 +15,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /* Template Name: ورود و ثبت‌نام */
+$can_register    = (bool) get_option( 'users_can_register' ) && ! torantejarat_option( 'login', 'login_hide_register' );
+$auth_error      = isset( $_GET['auth_error'] ) ? sanitize_text_field( wp_unslash( $_GET['auth_error'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only server-generated form error.
+$auth_error_form = isset( $_GET['auth_form'] ) && 'register' === $_GET['auth_form'] ? 'register' : 'login'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+
 get_header();
 ?>
 <main id="torantejarat-main" class="torantejarat-main torantejarat-main--auth" tabindex="-1">
@@ -47,9 +51,11 @@ get_header();
 						<button type="button" class="auth__tab is-active" id="auth-tab-login" role="tab" aria-selected="true" aria-controls="auth-panel-login" data-tab="login">
 							<?php esc_html_e( 'ورود', 'torantejarat' ); ?>
 						</button>
-						<button type="button" class="auth__tab" id="auth-tab-register" role="tab" aria-selected="false" aria-controls="auth-panel-register" data-tab="register">
-							<?php esc_html_e( 'ثبت‌نام', 'torantejarat' ); ?>
-						</button>
+						<?php if ( $can_register ) : ?>
+							<button type="button" class="auth__tab" id="auth-tab-register" role="tab" aria-selected="false" aria-controls="auth-panel-register" data-tab="register">
+								<?php esc_html_e( 'ثبت‌نام', 'torantejarat' ); ?>
+							</button>
+						<?php endif; ?>
 					</div>
 
 					<!-- Login -->
@@ -57,7 +63,12 @@ get_header();
 						<h3 class="auth__heading"><?php esc_html_e( 'خوش برگشتید', 'torantejarat' ); ?></h3>
 						<p class="auth__sub"><?php esc_html_e( 'با شماره موبایل یا ایمیل خود وارد شوید.', 'torantejarat' ); ?></p>
 
-						<form class="auth__form" id="auth-login-form" data-endpoint="<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>" novalidate>
+						<form class="auth__form" id="auth-login-form" method="post" action="<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>" data-endpoint="<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>" novalidate>
+						<input type="hidden" name="action" value="torantejarat_login">
+						<input type="hidden" name="nonce" value="<?php echo esc_attr( wp_create_nonce( 'torantejarat_auth' ) ); ?>">
+						<?php if ( $auth_error && 'login' === $auth_error_form ) : ?>
+							<p class="auth__message is-error" role="alert"><?php echo esc_html( $auth_error ); ?></p>
+						<?php endif; ?>
 							<div class="auth__field">
 								<label for="login-user"><?php esc_html_e( 'موبایل یا ایمیل', 'torantejarat' ); ?></label>
 								<div class="auth__control">
@@ -88,19 +99,30 @@ get_header();
 							</button>
 							<p class="auth__message" aria-live="polite"></p>
 
+						<?php if ( $can_register ) : ?>
 							<p class="auth__switch">
 								<?php esc_html_e( 'حساب کاربری ندارید؟', 'torantejarat' ); ?>
 								<button type="button" class="auth__switch-btn" data-goto="register"><?php esc_html_e( 'ثبت‌نام کنید', 'torantejarat' ); ?></button>
 							</p>
+							<noscript>
+								<p class="auth__switch"><a href="<?php echo esc_url( wp_registration_url() ); ?>"><?php esc_html_e( 'ثبت‌نام در صفحهٔ امن وردپرس', 'torantejarat' ); ?></a></p>
+							</noscript>
+						<?php endif; ?>
 						</form>
 					</div>
 
 					<!-- Register -->
-					<div class="auth__pane" id="auth-panel-register" role="tabpanel" aria-labelledby="auth-tab-register" hidden>
+					<?php if ( $can_register ) : ?>
+						<div class="auth__pane" id="auth-panel-register" role="tabpanel" aria-labelledby="auth-tab-register" hidden>
 						<h3 class="auth__heading"><?php esc_html_e( 'حساب کاربری بسازید', 'torantejarat' ); ?></h3>
 						<p class="auth__sub"><?php esc_html_e( 'برای پیگیری سفارش و ذخیره مشخصات دستگاه‌ها.', 'torantejarat' ); ?></p>
 
-						<form class="auth__form" id="auth-register-form" data-endpoint="<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>" novalidate>
+						<form class="auth__form" id="auth-register-form" method="post" action="<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>" data-endpoint="<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>" novalidate>
+						<input type="hidden" name="action" value="torantejarat_register">
+						<input type="hidden" name="nonce" value="<?php echo esc_attr( wp_create_nonce( 'torantejarat_auth' ) ); ?>">
+						<?php if ( $auth_error && 'register' === $auth_error_form ) : ?>
+							<p class="auth__message is-error" role="alert"><?php echo esc_html( $auth_error ); ?></p>
+						<?php endif; ?>
 							<div class="auth__field">
 								<label for="reg-name"><?php esc_html_e( 'نام و نام خانوادگی', 'torantejarat' ); ?></label>
 								<div class="auth__control">
@@ -120,7 +142,7 @@ get_header();
 							</div>
 
 							<div class="auth__field">
-								<label for="reg-email"><?php esc_html_e( 'ایمیل (اختیاری)', 'torantejarat' ); ?></label>
+								<label for="reg-email"><?php esc_html_e( 'ایمیل', 'torantejarat' ); ?></label>
 								<div class="auth__control">
 									<span class="auth__icon" aria-hidden="true"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 5L2 7"/></svg></span>
 									<input type="email" id="reg-email" name="email" autocomplete="email" inputmode="email">
@@ -167,6 +189,7 @@ get_header();
 							</p>
 						</form>
 					</div>
+					<?php endif; ?>
 
 				</div>
 			</div>

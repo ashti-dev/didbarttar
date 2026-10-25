@@ -1,7 +1,7 @@
 /**
  * Login / Register — بلکوکم
  * Tabs, validation, password strength, Persian digit normalization,
- * show/hide password. Server-ready: set data-endpoint on each form.
+ * show/hide password. Native POST remains available without JavaScript.
  */
 ( function () {
 	'use strict';
@@ -50,12 +50,18 @@
 	};
 
 	function activateTab( name, updateHash ) {
+		if ( ! panes[ name ] ) {
+			return;
+		}
 		tabs.forEach( function ( tab ) {
 			var isActive = tab.dataset.tab === name;
 			tab.classList.toggle( 'is-active', isActive );
 			tab.setAttribute( 'aria-selected', isActive ? 'true' : 'false' );
 		} );
 		Object.keys( panes ).forEach( function ( key ) {
+			if ( ! panes[ key ] ) {
+				return;
+			}
 			var show = key === name;
 			panes[ key ].hidden = ! show;
 			panes[ key ].classList.toggle( 'is-active', show );
@@ -95,7 +101,9 @@
 			return;
 		}
 		e.preventDefault();
-		var names = [ 'login', 'register' ];
+		var names = Array.prototype.map.call( tabs, function ( tab ) {
+			return tab.dataset.tab;
+		} );
 		var current = names.indexOf( window.location.hash.replace( '#', '' ) );
 		if ( current === -1 ) {
 			current = 0;
@@ -226,8 +234,8 @@
 			ok = false;
 		}
 		var emailVal = String( email.value || '' ).trim();
-		if ( emailVal && ! isValidEmail( emailVal ) ) {
-			setFieldError( email, 'ایمیل معتبر نیست.' );
+		if ( ! emailVal || ! isValidEmail( emailVal ) ) {
+			setFieldError( email, 'ایمیل معتبر برای ساخت حساب و بازیابی رمز لازم است.' );
 			ok = false;
 		}
 		if ( pass1.value.length < 8 ) {
@@ -290,11 +298,12 @@
 
 		setLoading( true );
 		var body = new URLSearchParams();
-		body.append( 'action', type );
-		body.append( 'nonce', window.torantejaratAuth ? window.torantejaratAuth.nonce : '' );
 		new FormData( form ).forEach( function ( value, key ) {
 			body.append( key, value );
 		} );
+		body.set( 'action', type );
+		body.set( 'nonce', window.torantejaratAuth && window.torantejaratAuth.nonce ? window.torantejaratAuth.nonce : body.get( 'nonce' ) || '' );
+		body.set( 'auth_via', 'ajax' );
 		fetch( endpoint, {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
