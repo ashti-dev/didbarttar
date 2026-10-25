@@ -127,7 +127,12 @@
 	$(document).on('submit', 'form.cart', function (e) {
 		var $form = $(this);
 
-		if ($form.find('input[name^="quantity["]').length) {
+		// Keep WooCommerce's native flows for types that need their own form handling.
+		if (
+			$form.is('.variations_form') ||
+			$form.find('input[name="variation_id"], input[name^="quantity["]').length ||
+			'get' === ($form.attr('method') || 'post').toLowerCase()
+		) {
 			return;
 		}
 
@@ -137,16 +142,16 @@
 			return;
 		}
 
-		e.preventDefault();
-
 		var formData = new FormData(this);
+		var productId = formData.get('product_id') || formData.get('add-to-cart') || $btn.val();
 
-		if (!formData.get('product_id')) {
-			var addToCartVal = formData.get('add-to-cart') || $btn.val();
-			if (addToCartVal) {
-				formData.set('product_id', addToCartVal);
-			}
+		// External/custom forms without an internal product must submit natively.
+		if (!productId) {
+			return;
 		}
+
+		e.preventDefault();
+		formData.set('product_id', productId);
 
 		if (!formData.get('quantity')) {
 			formData.set('quantity', 1);

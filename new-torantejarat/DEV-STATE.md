@@ -7,7 +7,15 @@
 | شناسه | وضعیت کد | تست ایستا | تست Runtime | شرح |
 |---|---|---|---|---|
 | TT-001 | اصلاح شد | انجام شد | در انتظار Staging | بازگرداندن `billing_email` به Checkout |
+| TT-002 | اصلاح شد | DOM smoke + هر ۲۰ JS | در انتظار Staging | محدودسازی AJAX Cart به فرم داخلی سازگار |
 | TT-029 | اصلاح شد | انجام شد؛ هر ۲۰ JS | در انتظار Staging | رفع خطای Parse اسکریپت ویدیوی محصول در ادمین |
+
+### TT-002 — AJAX Cart با انواع محصول
+
+- **تغییر:** `assets/js/ajax-add-to-cart.js`؛ فرم‌های Variable (با class یا `variation_id`)، Grouped، External/GET و فرم فاقد شناسهٔ داخلی دیگر Intercept نمی‌شوند و Submit بومی WooCommerce را دنبال می‌کنند. فرم Simple سازگار، `product_id` و `quantity` را حفظ می‌کند.
+- **تصمیم:** AJAX سفارشی برای Variable اضافه نشد؛ تا اثبات سازگاری با Attributes، Stock و Hooks، مسیر بومی غیر-AJAX امن‌تر است.
+- **تست انجام‌شده:** `node --check` و DOM smoke با jsdom/jQuery برای Simple، Variable، Grouped، External و فرم ناقص؛ فقط Simple درخواست AJAX ساخت و `product_id=42`/`quantity=2` حفظ شد. سایر فرم‌ها Prevent نشدند.
+- **تست باقی‌مانده:** افزودن واقعی Simple/Variable/Grouped، خروج به مقصد External، Stock و Sold-individually روی Staging و در مرورگر.
 
 ### TT-029 — خطای نحوی پیش‌نمایش ویدیوی محصول
 
