@@ -12,7 +12,17 @@
 | TT-004 | اصلاح شد | Parse + source assertions | در انتظار Staging | بازیابی Item Meta/Totals/Refund/Download در رسید |
 | TT-005-A | اصلاح شد | Parse + DOM smoke | در انتظار Staging | امنیت No-JS و Registration Policy/Customer API |
 | TT-005-B | اصلاح شد | Parse + source assertions | در انتظار Staging | Login/Recovery با موبایلِ یکتا و حفظ ایمیل نقطه‌دار |
+| TT-006 | اصلاح شد | Parse هر ۷۲ PHP + ۲۱ JS + DOM smoke | در انتظار Staging | علاقه‌مندی واقعی با REST سازگار، Native fallback و کنترل‌های صادقانه |
 | TT-029 | اصلاح شد | انجام شد؛ هر ۲۰ JS | در انتظار Staging | رفع خطای Parse اسکریپت ویدیوی محصول در ادمین |
+
+### TT-006 — علاقه‌مندی‌ها و حذف کنترل نمایشی
+
+- **REST و خطا:** در `inc/account/account.php::rest_toggle` اعتبارسنجی Nonce سفارشیِ Body حذف شد؛ درخواست‌های Cookie Auth اکنون از قرارداد بومی `X-WP-Nonce` با Nonceِ `wp_rest` استفاده می‌کنند. `product_id` باید Integer مثبت باشد، خطاهای Insert/Delete با Status مناسب برمی‌گردند و Transient خلاصهٔ حساب پس از تغییر پاک می‌شود. مقادیر `restNonce` در `inc/assets.php` و هر دو مصرف‌کنندهٔ JS اصلاح شدند.
+- **Native fallback و PDP:** Handlerِ `admin_post_torantejarat_wishlist_toggle` با Nonce محصول‌محور، Redirect امن و Woo Notice اضافه شد. فرم واقعی Toggle برای کاربر واردشده در `woocommerce_single_product_summary` اولویت ۳۱ قرار گرفت؛ `assets/js/wishlist.js` همان فرم را Enhance می‌کند و در نبود JS/Localization، Submit بومی باقی می‌ماند. فرم حذف حساب نیز بدون JS کار می‌کند.
+- **Confirm و بازخورد:** در `assets/js/account.js` دکمهٔ تأیید برای Callback دیگر مخفی نمی‌شود و `href` قبلی پاک می‌شود. حذف فقط پس از تأیید اجرا می‌شود؛ Cancel وضعیت تأیید ساختگی نمی‌سازد و خطای HTTP/JSON/Response به Success ساکت تبدیل نمی‌شود.
+- **کنترل صادقانه:** در `woocommerce/myaccount/wishlist.php` دکمهٔ تقلبی Add-to-Cart با لینک واقعی `add_to_cart_url()`/`add_to_cart_text()` جایگزین شد. اعلان موجودیِ صرفاً Toast حذف و با «استعلام موجودی» به فرم تماس دارای `device` یا «مشاهده محصول» جایگزین شد. شنونده‌های عمومی `data-toast` و `data-add-cart` حذف شدند؛ متن Empty state با دکمهٔ واقعی PDP هماهنگ است.
+- **تست انجام‌شده:** Parse هر ۷۲ PHP با `php-parser` و `node --check` هر ۲۱ JS؛ DOM smoke برای Toggle دوطرفه، Header/Body/Credentials، خطای HTTP، Native fallback، Cancel/Confirm، حذف و Empty state؛ Source assertions و `git diff --check`.
+- **تست باقی‌مانده:** Toggle واقعی روی DB، Cookie/REST و Nonce معتبر/منقضی، Redirect و Notice در No-JS، به‌روزشدن شمارنده/Cache، لینک خرید Simple/Variable/External و Prefill فرم استعلام روی Staging و در مرورگر. هیچ Runtime وردپرس/Woo در این محیط اجرا نشده است.
 
 ### TT-005-B — ورود و بازیابی با موبایل
 

@@ -113,13 +113,21 @@ function toggle_wishlist( $user_id, $product_id ) {
 	$product_id = absint( $product_id );
 	$product    = wc_get_product( $product_id );
 	if ( ! $product || ! $product->is_visible() ) {
-		return new \WP_Error( 'invalid_product', __( 'محصول معتبر نیست.', 'torantejarat' ) );
+		return new \WP_Error( 'invalid_product', __( 'محصول معتبر نیست.', 'torantejarat' ), array( 'status' => 400 ) );
 	}
 	if ( is_wishlisted( $user_id, $product_id ) ) {
-		$wpdb->delete( table_name(), array( 'user_id' => $user_id, 'product_id' => $product_id ), array( '%d', '%d' ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+		$result = $wpdb->delete( table_name(), array( 'user_id' => $user_id, 'product_id' => $product_id ), array( '%d', '%d' ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+		if ( false === $result ) {
+			return new \WP_Error( 'wishlist_delete_failed', __( 'حذف از علاقه‌مندی‌ها انجام نشد. دوباره تلاش کنید.', 'torantejarat' ), array( 'status' => 500 ) );
+		}
+		delete_transient( summary_cache_key( $user_id ) );
 		return false;
 	}
-	$wpdb->insert( table_name(), array( 'user_id' => $user_id, 'product_id' => $product_id ), array( '%d', '%d' ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+	$result = $wpdb->insert( table_name(), array( 'user_id' => $user_id, 'product_id' => $product_id ), array( '%d', '%d' ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+	if ( false === $result ) {
+		return new \WP_Error( 'wishlist_insert_failed', __( 'افزودن به علاقه‌مندی‌ها انجام نشد. دوباره تلاش کنید.', 'torantejarat' ), array( 'status' => 500 ) );
+	}
+	delete_transient( summary_cache_key( $user_id ) );
 	return true;
 }
 
@@ -134,8 +142,7 @@ function register_rest_routes() {
 			'callback'            => __NAMESPACE__ . '\\rest_toggle',
 			'permission_callback' => 'is_user_logged_in',
 			'args'                => array(
-				'product_id' => array( 'required' => true, 'type' => 'integer' ),
-				'nonce'      => array( 'required' => true, 'type' => 'string' ),
+				'product_id' => array( 'required' => true, 'type' => 'integer', 'minimum' => 1 ),
 			),
 		)
 	);
@@ -143,9 +150,7 @@ function register_rest_routes() {
 add_action( 'rest_api_init', __NAMESPACE__ . '\\register_rest_routes' );
 
 function rest_toggle( \WP_REST_Request $request ) {
-	if ( ! wp_verify_nonce( $request->get_param( 'nonce' ), 'torantejarat_wishlist' ) ) {
-		return new \WP_Error( 'bad_nonce', __( 'درخواست نامعتبر است.', 'torantejarat' ), array( 'status' => 403 ) );
-	}
+	// Cookie authentication is authorized by WordPress with X-WP-Nonce (wp_rest).
 	$result = toggle_wishlist( get_current_user_id(), $request->get_param( 'product_id' ) );
 	if ( is_wp_error( $result ) ) {
 		return $result;
@@ -155,6 +160,59 @@ function rest_toggle( \WP_REST_Request $request ) {
 		'count'      => count( get_wishlist_ids( get_current_user_id() ) ),
 	);
 }
+
+/* ---------- Native + PDP wishlist toggle ---------- */
+
+function wishlist_native_toggle() {
+	$product_id = isset( $_POST['product_id'] ) ? absint( $_POST['product_id'] ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Verified below.
+	if ( ! is_user_logged_in() ) {
+		$auth_url = function_exists( 'ToranTejarat\\Theme\\torantejarat_auth_get_page_url' ) ? \ToranTejarat\Theme\torantejarat_auth_get_page_url() : wp_login_url();
+		wp_safe_redirect( $auth_url );
+		exit;
+	}
+
+	$redirect = wp_validate_redirect( wp_get_referer() ?: '', wc_get_account_endpoint_url( 'wishlist' ) );
+	$nonce = isset( $_POST['torantejarat_wishlist_nonce'] ) ? sanitize_text_field( wp_unslash( $_POST['torantejarat_wishlist_nonce'] ) ) : '';
+	if ( ! wp_verify_nonce( $nonce, 'torantejarat_wishlist_toggle_' . $product_id ) ) {
+		wc_add_notice( __( 'نشست فرم منقضی شده است. دوباره تلاش کنید.', 'torantejarat' ), 'error' );
+		wp_safe_redirect( $redirect );
+		exit;
+	}
+
+	$result = toggle_wishlist( get_current_user_id(), $product_id );
+	if ( is_wp_error( $result ) ) {
+		wc_add_notice( $result->get_error_message(), 'error' );
+	} else {
+		wc_add_notice( $result ? __( 'به علاقه‌مندی‌ها اضافه شد.', 'torantejarat' ) : __( 'از علاقه‌مندی‌ها حذف شد.', 'torantejarat' ), 'success' );
+	}
+	wp_safe_redirect( $redirect );
+	exit;
+}
+add_action( 'admin_post_torantejarat_wishlist_toggle', __NAMESPACE__ . '\\wishlist_native_toggle' );
+add_action( 'admin_post_nopriv_torantejarat_wishlist_toggle', __NAMESPACE__ . '\\wishlist_native_toggle' );
+
+function wishlist_button() {
+	global $product;
+	if ( ! is_user_logged_in() || ! $product instanceof \WC_Product || ! $product->is_visible() ) {
+		return;
+	}
+
+	$product_id = $product->get_id();
+	$active     = is_wishlisted( get_current_user_id(), $product_id );
+	$label      = $active ? __( 'حذف از علاقه‌مندی‌ها', 'torantejarat' ) : __( 'افزودن به علاقه‌مندی‌ها', 'torantejarat' );
+	?>
+	<form class="torantejarat-wishlist" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" data-wishlist-form data-wishlisted="<?php echo esc_attr( $active ? 'true' : 'false' ); ?>">
+		<input type="hidden" name="action" value="torantejarat_wishlist_toggle">
+		<input type="hidden" name="product_id" value="<?php echo esc_attr( $product_id ); ?>">
+		<input type="hidden" name="torantejarat_wishlist_nonce" value="<?php echo esc_attr( wp_create_nonce( 'torantejarat_wishlist_toggle_' . $product_id ) ); ?>">
+		<button type="submit" class="torantejarat-btn torantejarat-btn-outline torantejarat-btn-block<?php echo $active ? ' is-active' : ''; ?>" data-wishlist-toggle="<?php echo esc_attr( $product_id ); ?>" aria-pressed="<?php echo esc_attr( $active ? 'true' : 'false' ); ?>">
+			<span data-wishlist-label><?php echo esc_html( $label ); ?></span>
+		</button>
+		<span class="torantejarat-wishlist__message" data-wishlist-message aria-live="polite"></span>
+	</form>
+	<?php
+}
+add_action( 'woocommerce_single_product_summary', __NAMESPACE__ . '\\wishlist_button', 31 );
 
 /* ---------- Reorder ---------- */
 
