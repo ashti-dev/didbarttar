@@ -156,6 +156,14 @@ export async function runAdminSettingsSmoke({ browser, fixture, resultsDir, resu
     await goto(settingsUrl('general'), 'General settings');
     assert.equal(await page.locator('.tt-nav .tt-nav-link').count(), 7, 'The settings panel must expose all seven sections.');
     assert.equal(await page.evaluate(() => window.ttPanelSearch?.index?.length), 61, 'The search index must contain all 61 fields.');
+    const currentSection = page.locator('.tt-nav-link[aria-current="page"]');
+    assert.equal(await currentSection.count(), 1, 'The flat section must expose one current page to assistive technology.');
+    assert.equal(await currentSection.getAttribute('href'), settingsUrl('general'));
+    assert.equal(
+      (await page.locator('.tt-saved-hint').innerText()).trim(),
+      'ذخیره این فرم فقط فیلدهای همین صفحه را تغییر می‌دهد.',
+      'The save hint must describe scope rather than claiming every blank field has a text default.',
+    );
     await page.locator('form[action="options.php"]').waitFor({ state: 'visible' });
     await page.screenshot({ path: path.join(resultsDir, 'admin-settings-desktop.png'), fullPage: true, animations: 'disabled' });
     passed('Admin login exposes seven settings sections and the 61-field schema index');
@@ -212,12 +220,25 @@ export async function runAdminSettingsSmoke({ browser, fixture, resultsDir, resu
 
     await goto(settingsUrl('general'), 'Settings search');
     const search = page.locator('#tt-search-input');
+    await search.fill('متن');
+    const options = page.locator('#tt-search-results .tt-search-item');
+    await options.first().waitFor({ state: 'visible' });
+    assert.ok(await options.count() > 1, 'A broad query is required to verify option selection state.');
+    await search.press('ArrowDown');
+    assert.equal(await options.nth(0).getAttribute('aria-selected'), 'true');
+    assert.equal(await search.getAttribute('aria-activedescendant'), await options.nth(0).getAttribute('id'));
+    await search.press('ArrowDown');
+    assert.equal(await options.nth(0).getAttribute('aria-selected'), 'false');
+    assert.equal(await options.nth(1).getAttribute('aria-selected'), 'true');
+    assert.equal(await search.getAttribute('aria-activedescendant'), await options.nth(1).getAttribute('id'));
+
     await search.fill('متن توضیح');
     const result = page.locator('#tt-search-results .tt-search-item');
     await result.waitFor({ state: 'visible' });
     assert.equal(await result.count(), 1, 'Expected one hero_lead search result.');
     assert.ok((await result.innerText()).includes('صفحه اصلی'));
     await search.press('ArrowDown');
+    assert.equal(await result.getAttribute('aria-selected'), 'true');
     await Promise.all([
       page.waitForNavigation({ waitUntil: 'domcontentloaded' }),
       search.press('Enter'),
@@ -226,6 +247,11 @@ export async function runAdminSettingsSmoke({ browser, fixture, resultsDir, resu
     await page.locator('#ttf-home-hero_lead').waitFor({ state: 'visible' });
     assert.ok(page.url().includes('section=home&sub=hero'));
     assert.ok(page.url().endsWith('#ttf-home-hero_lead'));
+    assert.equal(await page.locator('.tt-nav-item.is-active > .tt-nav-link').getAttribute('aria-current'), null);
+    assert.equal(await page.locator('.tt-sidebar [aria-current="page"]').count(), 1, 'Only the actual subpage may be current.');
+    const currentSubpage = page.locator('.tt-subnav-link[aria-current="page"]');
+    assert.equal(await currentSubpage.count(), 1, 'The home subsection must expose one current page.');
+    assert.ok((await currentSubpage.innerText()).includes('هیرو'));
     passed('Settings combobox navigates to the correct home/hero field and fragment');
 
     setScalar('admin_email', 'admin@example.com');

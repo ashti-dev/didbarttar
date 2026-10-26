@@ -839,7 +839,7 @@ final class TT_Settings {
 							$base_url   = 'admin.php?page=torantejarat-settings&section=' . $key;
 							?>
 							<li class="tt-nav-item <?php echo $is_open ? 'is-active' : ''; ?>">
-								<a class="tt-nav-link" href="<?php echo esc_url( admin_url( $base_url ) ); ?>">
+								<a class="tt-nav-link" href="<?php echo esc_url( admin_url( $base_url ) ); ?>"<?php if ( $is_open && ! $active_group ) : ?> aria-current="page"<?php endif; ?>>
 									<span class="dashicons <?php echo esc_attr( $tab['icon'] ); ?>"></span>
 									<span class="tt-nav-text"><?php echo esc_html( $tab['label'] ); ?></span>
 								</a>
@@ -848,7 +848,7 @@ final class TT_Settings {
 										<?php foreach ( $tab_groups as $group ) : ?>
 											<li>
 												<a class="tt-subnav-link <?php echo $group['id'] === $sub ? 'is-active' : ''; ?>"
-													href="<?php echo esc_url( admin_url( $base_url . '&sub=' . $group['id'] ) ); ?>">
+																	href="<?php echo esc_url( admin_url( $base_url . '&sub=' . $group['id'] ) ); ?>"<?php if ( $group['id'] === $sub ) : ?> aria-current="page"<?php endif; ?>>
 													<span class="dashicons <?php echo esc_attr( $group['icon'] ); ?>"></span>
 													<span class="tt-subnav-text"><?php echo esc_html( $group['label'] ); ?></span>
 												</a>
@@ -872,7 +872,7 @@ final class TT_Settings {
 							<div class="tt-footer">
 								<?php submit_button( __( 'ذخیره تنظیمات', 'torantejarat' ), 'primary', 'submit', false ); ?>
 								<span class="tt-saved-hint description">
-									<?php esc_html_e( 'خالی گذاشتن هر فیلد یعنی برگشت به متن پیش‌فرض قالب.', 'torantejarat' ); ?>
+									<?php esc_html_e( 'ذخیره این فرم فقط فیلدهای همین صفحه را تغییر می‌دهد.', 'torantejarat' ); ?>
 								</span>
 							</div>
 						</form>
