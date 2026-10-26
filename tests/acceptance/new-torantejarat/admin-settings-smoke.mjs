@@ -17,7 +17,7 @@ export async function runAdminSettingsSmoke({ browser, fixture, resultsDir, resu
   assert.ok(wpRoot && fs.existsSync(path.join(wpRoot, 'wp-load.php')), 'WP_ROOT is required for admin settings acceptance.');
   assert.ok(['127.0.0.1', 'localhost'].includes(new URL(fixture.baseUrl).hostname), 'Admin settings acceptance only runs against localhost.');
 
-  const wp = (args) => execFileSync('wp', [...args, '--path', wpRoot], {
+  const wp = (args) => execFileSync('wp', [...args, `--path=${wpRoot}`], {
     encoding: 'utf8',
     stdio: ['ignore', 'pipe', 'pipe'],
   }).trim();
