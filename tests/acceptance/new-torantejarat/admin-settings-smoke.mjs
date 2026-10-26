@@ -88,7 +88,9 @@ export async function runAdminSettingsSmoke({ browser, fixture, resultsDir, resu
       form.locator('input[type="submit"]').click(),
     ]);
     await healthyPage();
-    assert.ok(page.url().includes('settings-updated=true'), `Settings redirect did not confirm the save: ${page.url()}`);
+    // Core's wp_admin_canonical_url() removes the single-use
+    // settings-updated query argument with history.replaceState(). The raw
+    // option comparisons in saveCase/FAQ checks prove the actual write.
   };
   const saveCase = async ({ tab, sub = '', field, value }) => {
     const before = getThemeOption(tab);
