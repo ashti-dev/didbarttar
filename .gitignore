@@ -1,6 +1,9 @@
 # Build / export artifacts — never commit.
 *.zip
 
+# JavaScript test dependencies — installed with npm ci.
+node_modules/
+
 # Personal reference uploads (screenshots, client assets).
 /تصاویر/
 
