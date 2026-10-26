@@ -186,7 +186,7 @@
 
 .tt-field {
 	display: grid;
-	grid-template-columns: 180px 1fr;
+	grid-template-columns: 180px minmax(0, 1fr);
 	gap: 16px;
 	align-items: start;
 	padding: 18px 0;
@@ -202,6 +202,10 @@
 	font-size: 0.875rem;
 	padding-top: 6px;
 	color: #1d2327;
+}
+
+.tt-control {
+	min-width: 0;
 }
 
 .tt-control input,
@@ -267,8 +271,14 @@
 	gap: 2px;
 }
 
+.tt-repeater-scroll {
+	max-width: 100%;
+	overflow-x: auto;
+}
+
 .tt-repeater-table {
 	border-collapse: collapse;
+	min-width: 520px;
 }
 
 .tt-repeater-table th {
@@ -310,6 +320,7 @@
 .tt-footer {
 	display: flex;
 	align-items: center;
+	flex-wrap: wrap;
 	gap: 12px;
 	margin-top: 20px;
 	padding: 14px 0 0;
@@ -411,6 +422,7 @@
 .tt-ready-list a {
 	color: #b34700;
 	text-decoration: underline;
+	overflow-wrap: anywhere;
 }
 
 /* --------------------------------------------------- jump highlight ----- */
@@ -503,4 +515,96 @@
 	margin-inline-start: auto;
 	font-size: 0.75rem;
 	color: #646970;
+}
+
+/* ---------------------------------------------------------- responsive --- */
+@media screen and (max-width: 960px) {
+	.tt-header {
+		align-items: flex-end;
+		flex-wrap: wrap;
+	}
+
+	.tt-header h1 {
+		flex: 1 1 280px;
+		flex-wrap: wrap;
+		min-width: 0;
+	}
+
+	.tt-search {
+		flex: 1 1 240px;
+	}
+
+	.tt-search-input {
+		width: 100%;
+	}
+
+	.tt-layout {
+		flex-direction: column;
+		direction: rtl;
+		gap: 16px;
+	}
+
+	.tt-sidebar {
+		flex: 0 0 auto;
+		width: 100%;
+	}
+
+	.tt-main {
+		width: 100%;
+	}
+
+	.tt-nav,
+	.tt-subnav {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 2px 8px;
+	}
+
+	.tt-nav-item {
+		margin: 0;
+	}
+
+	.tt-nav-item.is-active {
+		grid-column: 1 / -1;
+	}
+
+	.tt-subnav-link {
+		margin: 0;
+	}
+
+	.tt-form {
+		padding: 20px;
+	}
+}
+
+@media screen and (max-width: 600px) {
+	.tt-search {
+		flex-basis: 100%;
+	}
+
+	.tt-form,
+	.tt-overview {
+		padding: 16px;
+	}
+
+	.tt-field {
+		grid-template-columns: minmax(0, 1fr);
+		gap: 8px;
+	}
+
+	.tt-label {
+		padding-top: 0;
+	}
+
+	.tt-readiness {
+		align-items: flex-start;
+	}
+
+	.tt-ready-list {
+		flex: 1 1 100%;
+	}
+
+	.tt-cards {
+		grid-template-columns: minmax(0, 1fr);
+	}
 }

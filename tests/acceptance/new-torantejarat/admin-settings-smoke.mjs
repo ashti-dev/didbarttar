@@ -106,6 +106,35 @@ export async function runAdminSettingsSmoke({ browser, fixture, resultsDir, resu
       assert.deepEqual(after[key], previousValue, `${tab}/${key} changed unexpectedly while saving ${field}`);
     }
   };
+  const assertMobilePanel = async (label) => {
+    const metrics = await page.evaluate(() => {
+      const root = document.documentElement;
+      const header = document.querySelector('.tt-header');
+      const layout = document.querySelector('.tt-layout');
+      const sidebar = document.querySelector('.tt-sidebar');
+      const main = document.querySelector('.tt-main');
+      const field = document.querySelector('.tt-fields .tt-field:not(.tt-field-repeater)');
+      const label = field?.querySelector('.tt-label');
+      const control = field?.querySelector('.tt-control');
+      const labelRect = label?.getBoundingClientRect();
+      const controlRect = control?.getBoundingClientRect();
+      return {
+        viewport: root.clientWidth,
+        documentWidth: root.scrollWidth,
+        headerWrap: header ? getComputedStyle(header).flexWrap : null,
+        layoutDirection: layout ? getComputedStyle(layout).flexDirection : null,
+        sidebarWidth: sidebar?.getBoundingClientRect().width || 0,
+        mainWidth: main?.getBoundingClientRect().width || 0,
+        stacked: labelRect && controlRect ? controlRect.top >= labelRect.bottom - 1 : null,
+      };
+    });
+    const detail = JSON.stringify(metrics);
+    assert.ok(metrics.documentWidth <= metrics.viewport + 1, `${label}: document overflows horizontally: ${detail}`);
+    assert.equal(metrics.headerWrap, 'wrap', `${label}: header did not wrap: ${detail}`);
+    assert.equal(metrics.layoutDirection, 'column', `${label}: panel did not stack: ${detail}`);
+    assert.ok(Math.abs(metrics.sidebarWidth - metrics.mainWidth) <= 2, `${label}: sidebar/main widths diverge: ${detail}`);
+    assert.equal(metrics.stacked, true, `${label}: field label/control did not stack: ${detail}`);
+  };
 
   try {
     // Deterministic fixture values cover every tab without using production data.
@@ -302,10 +331,29 @@ export async function runAdminSettingsSmoke({ browser, fixture, resultsDir, resu
     passed('Publish mode writes preview/public native options with nonce and explicit confirmation');
 
     await page.setViewportSize({ width: 390, height: 844 });
+    await goto(settingsUrl('general'), 'General settings at 390px');
     await page.locator('#tt-search-input').waitFor({ state: 'visible' });
     await page.locator('form[action="options.php"] input[type="submit"]').waitFor({ state: 'visible' });
+    await assertMobilePanel('General settings at 390px');
     await page.screenshot({ path: path.join(resultsDir, 'admin-settings-mobile-390.png'), fullPage: true, animations: 'disabled' });
-    passed('Admin settings search and save controls remain available at 390px with mobile evidence');
+
+    await goto(settingsUrl('home', 'faq'), 'FAQ settings at 390px');
+    assert.equal(await rows.count(), 12, 'The mobile FAQ fixture must retain all twelve rows.');
+    await assertMobilePanel('FAQ settings at 390px');
+    const repeaterOverflow = await page.locator('.tt-repeater-scroll').evaluate((container) => {
+      const table = container.querySelector('table');
+      return {
+        overflowX: getComputedStyle(container).overflowX,
+        clientWidth: container.clientWidth,
+        scrollWidth: container.scrollWidth,
+        tableWidth: table?.getBoundingClientRect().width || 0,
+      };
+    });
+    assert.equal(repeaterOverflow.overflowX, 'auto');
+    assert.ok(repeaterOverflow.tableWidth > repeaterOverflow.clientWidth, `FAQ table should overflow only its own container: ${JSON.stringify(repeaterOverflow)}`);
+    assert.ok(repeaterOverflow.scrollWidth >= repeaterOverflow.tableWidth, `FAQ table is not reachable by horizontal scrolling: ${JSON.stringify(repeaterOverflow)}`);
+    await page.screenshot({ path: path.join(resultsDir, 'admin-settings-mobile-faq-390.png'), fullPage: true, animations: 'disabled' });
+    passed('Admin settings responsive layout, accessible controls and contained FAQ scrolling work at 390px');
   } catch (error) {
     await page.screenshot({ path: path.join(resultsDir, 'admin-settings-failure.png'), fullPage: true, animations: 'disabled' }).catch(() => {});
     throw error;

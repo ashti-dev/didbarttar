@@ -1158,21 +1158,23 @@ final class TT_Settings {
 				<?php endif; ?>
 			</div>
 			<div class="tt-control">
-				<table class="widefat striped tt-repeater-table">
-					<thead>
-						<tr>
-							<?php foreach ( $subfields as $sub ) : ?>
-								<th scope="col"><?php echo esc_html( isset( $sub['label'] ) ? $sub['label'] : '' ); ?></th>
+				<div class="tt-repeater-scroll">
+					<table class="widefat striped tt-repeater-table">
+						<thead>
+							<tr>
+								<?php foreach ( $subfields as $sub ) : ?>
+									<th scope="col"><?php echo esc_html( isset( $sub['label'] ) ? $sub['label'] : '' ); ?></th>
+								<?php endforeach; ?>
+								<th scope="col" class="tt-repeater-act"><span class="screen-reader-text"><?php esc_html_e( 'حذف ردیف', 'torantejarat' ); ?></span></th>
+							</tr>
+						</thead>
+						<tbody>
+							<?php foreach ( $rows as $index => $row ) : ?>
+								<?php $this->render_repeater_row( $base, (int) $index, $subfields, is_array( $row ) ? $row : array() ); ?>
 							<?php endforeach; ?>
-							<th scope="col" class="tt-repeater-act"><span class="screen-reader-text"><?php esc_html_e( 'حذف ردیف', 'torantejarat' ); ?></span></th>
-						</tr>
-					</thead>
-					<tbody>
-						<?php foreach ( $rows as $index => $row ) : ?>
-							<?php $this->render_repeater_row( $base, (int) $index, $subfields, is_array( $row ) ? $row : array() ); ?>
-						<?php endforeach; ?>
-					</tbody>
-				</table>
+						</tbody>
+					</table>
+				</div>
 				<p class="tt-repeater-actions">
 					<button type="button" class="button" data-tt-repeater-add><?php esc_html_e( 'افزودن ردیف', 'torantejarat' ); ?></button>
 				</p>
