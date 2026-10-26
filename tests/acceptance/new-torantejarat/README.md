@@ -16,6 +16,7 @@ Workflow `.github/workflows/woocommerce-acceptance.yml` روی PHP 8.3، WordPre
 پوشش فعلی:
 
 - Lint واقعی PHP و Syntax تمام JS قالب؛
+- پنج Settings Check با WP-CLI برای حذف Fallback فرضی Schema، سقف Sanitizer/Renderer پرسش‌های متداول و مقصد لینک‌های Readiness؛ Optionها با `pre_option` موقت تزریق می‌شوند و این Checkها هیچ نوشتن DBای انجام نمی‌دهند؛
 - ساخت Simple/Variable product و مشتری آزمایشی؛
 - Shop و PDP، افزودن Simple با AJAX و Variable با Submit بومی؛
 - Cart و Checkout با نشانی ایرانی، ارسال Flat Rate و COD؛

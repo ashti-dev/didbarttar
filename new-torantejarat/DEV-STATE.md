@@ -621,7 +621,7 @@
 
 ### صف ادامه
 - `SET-FIX-002`: اعمال واقعی سقف Repeater در Server و جلوگیری از ردیف خالی اضافه در سقف — **DONE؛ شاهد در بخش بعد**.
-- `SET-FIX-003`: هدایت موارد ایمیل Readiness به صفحهٔ واقعی اصلاح — **PENDING**.
+- `SET-FIX-003`: هدایت موارد ایمیل Readiness به صفحهٔ واقعی اصلاح — **DONE؛ شاهد در بخش پایانی**.
 
 ## SET-FIX-002 — اعمال سقف FAQ در Server و Renderer — 2026-10-26 — DONE
 
@@ -640,4 +640,24 @@
 - Artifact جدید دانلود و Visual Review نشده است. این نتیجه تست Staging/Production یا مجوز انتشار نیست.
 
 ### صف ادامه
-- `SET-FIX-003`: هدایت موارد ایمیل Readiness به صفحهٔ واقعی اصلاح — **PENDING**.
+- `SET-FIX-003`: هدایت موارد ایمیل Readiness به صفحهٔ واقعی اصلاح — **DONE؛ شاهد در بخش بعد**.
+
+## SET-FIX-003 — مقصد صحیح لینکهای ایمیل Readiness — 2026-10-26 — DONE
+
+### وضعیت و قلمرو
+- **انجام شد؛ اجرای بعدی نباید این مورد را دوباره اصلاح کند.** Commit `67e834f41122a85d7c27bf3227d82dc2d3847e95` (`fix(settings): link readiness email fixes`) روی همین برنچ Push شد.
+- مورد `admin_email` اکنون به `wp-admin/options-general.php` و مورد `woocommerce_email_from_address` به `wp-admin/admin.php?page=wc-settings&tab=email` لینک می‌شود؛ دیگر کاربر برای اصلاح این دو Option به تب عمومی قالب هدایت نمی‌شود.
+- مقصدها با سورس WordPress 7.1.3 (`new_admin_email` در `options-general.php`) و WooCommerce 11.2.1 (`woocommerce_email_from_address` در Settings Page با id `email`) تطبیق داده شد.
+- Resolver جدید `torantejarat_panel_readiness_url()` URL مستثنا و مسیر فعلی `section/sub` را یکجا پشتیبانی می‌کند. سایر لینکهای داخل پنل و Nonce/Capability تغییر نکرده‌اند و هیچ مقداری در DB نوشته نشده است.
+
+### تست واقعی و شاهد
+- Run [`40285845948`](https://github.com/ashti-dev/didbarttar/actions/runs/40285845948) روی `67e834f41122a85d7c27bf3227d82dc2d3847e95` و Job `121449177614`: **SUCCESS**؛ PHP Lint و Fatal-check سبز، هر ۱۲ Browser Check سبز و **۵/۵ Settings Check** سبز.
+- Assertion پنجم با تزریق موقت هر دو ایمیل نمونه و ایزوله‌کردن سایر Optionها: دقیقاً دو مورد ایمیل ساخته شد، Resolver هر کدام را به صفحهٔ بومی صحیح فرستاد و لینک داخلی `home/faq` نیز همان مقصد قبلی را حفظ کرد.
+- هر چهار Assertion مربوط به `SET-FIX-001` و `SET-FIX-002` نیز دوباره سبز شدند. اجرای نهایی صراحتاً `Settings smoke: 5 checks passed; no database writes.` را ثبت کرد.
+- نصب Chromium در این Run چند دقیقه طول کشید ولی همان Run بدون Restart یا تکرار به SUCCESS رسید. Artifact دانلود و Visual Review نشده است؛ Production همچنان NO-GO است.
+
+## SET-FIX-ALL — وضعیت صف اصلاحات Settings — 2026-10-26 — COMPLETE
+
+- `SET-FIX-001`، `SET-FIX-002` و `SET-FIX-003` هر سه **DONE / PUSHED / CI-GREEN** هستند و نباید در اجرای بعدی دوباره انجام شوند.
+- تست ماندگار در `tests/acceptance/new-torantejarat/settings-smoke.php` و شواهد هر مورد در همین فایل ثبت است. Workflow فعلی این ۵ Check را در هر اجرای بعدی دوباره ارزیابی می‌کند.
+- پیشنهادهای ساختاری غیرقطعی مثل یکسان‌سازی Defaults یا تغییر عنوان نوار آمادگی **جزء این سه اصلاح نبوده‌اند و انجام نشده‌اند**. تغییر نحوهٔ تنظیمات فقط با درخواست بعدی و پس از تعیین قلمرو انجام شود.
