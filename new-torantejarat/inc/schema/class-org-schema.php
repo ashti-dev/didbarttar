@@ -50,8 +50,8 @@ final class TT_Org_Schema {
 			$name = get_bloginfo( 'name' );
 		}
 		$type  = torantejarat_option( 'business', 'business_type', 'Store' );
-		$city  = torantejarat_option( 'business', 'city', 'تهران' );
-		$range = torantejarat_option( 'business', 'price_range', '$$' );
+		$city  = torantejarat_option( 'business', 'city' );
+		$range = torantejarat_option( 'business', 'price_range' );
 
 		$allowed_types = array( 'Store', 'OnlineStore', 'LocalBusiness', 'ProfessionalService' );
 		if ( ! in_array( $type, $allowed_types, true ) ) {

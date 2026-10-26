@@ -196,3 +196,6 @@ global $wp_version;
 WP_CLI::log( 'PHP=' . PHP_VERSION . ' WP=' . $wp_version . ' Woo=' . WC()->version );
 WP_CLI::log( 'Simple product=' . $torantejarat_ci_simple_id . ' Variable product=' . $torantejarat_ci_variable_id . ' Customer=' . $torantejarat_ci_customer_id );
 WP_CLI::success( 'Isolated classic WooCommerce fixture is ready.' );
+
+/* Settings checks share the same disposable fixture and safety boundary. */
+require __DIR__ . '/settings-smoke.php';

@@ -494,16 +494,17 @@ final class TT_Settings {
 				'city'          => array(
 					'label'    => 'شهر',
 					'type'     => 'text',
-					'default'  => 'تهران',
-					'desc'     => 'در addressLocality اسکیما استفاده می‌شود.',
+					'default'  => '',
+					'desc'     => 'اختیاری — فقط شهر واقعی را وارد کنید؛ خالی = بدون addressLocality در Schema.',
 					'sanitize' => 'sanitize_text_field',
 				),
 				'price_range'   => array(
 					'label'    => 'محدوده قیمت',
 					'type'     => 'select',
-					'default'  => '$$',
-					'desc'     => 'اختیاری — در rich result گوگل نمایش داده می‌شود.',
+					'default'  => '',
+					'desc'     => 'اختیاری — فقط مقدار تأییدشده را انتخاب کنید؛ نامشخص = بدون priceRange در Schema.',
 					'options'  => array(
+						''     => 'نامشخص — در Schema نمایش داده نشود',
 						'$'    => '$ — اقتصادی',
 						'$$'   => '$$ — متوسط',
 						'$$$'  => '$$$ — گران',
