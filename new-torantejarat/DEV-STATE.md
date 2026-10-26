@@ -17,6 +17,7 @@
 | TT-029 | اصلاح شد | انجام شد؛ هر ۲۰ JS | در انتظار Staging | رفع خطای Parse اسکریپت ویدیوی محصول در ادمین |
 | AUTH-GATE-001 | پیاده شد | Parse ۷۲/۷۲ PHP و ۲۱/۲۱ JS + DOM smoke | در انتظار Staging | ورود/ثبت‌نام اختصاصی، Guard پیشخوان و حفظ مقصد امن |
 | AUTH-UI-001 | پیاده شد | Parse PHP/JS/CSS + Source و DOM smoke | در انتظار Staging | صفحهٔ ورود/ثبت‌نام مجله‌ای، Responsive و یکپارچه با Login Options |
+| AUTH-UI-002 | اصلاح شد | PostCSS + Source assertions + Diff check | در انتظار تأیید بصری هاست | مرکز/تک‌خطی تیتر، متن زیر لوگو و ثابت‌ماندن تصویر هنگام Register |
 
 ### AUTH-GATE-001 — مسیر اختصاصی مشتری و دسترسی پیشخوان (2026-10-27)
 
@@ -37,6 +38,14 @@
 - **No-JS و صفحه‌کلید:** انتخاب `auth_form=register` سمت Server انجام می‌شود و لینک‌های No-JS هر دو مسیر را حفظ می‌کنند. در JS، Load هیچ Focusی نمی‌دزدد؛ Click و Arrow key روی تب می‌مانند و دکمهٔ سوییچ به اولین فیلد غیرمخفی می‌رود. Roving `tabindex` نیز به‌روز می‌شود. Padding رمز به Wrapper وابسته شد تا پس از تغییر Input به Text، متن زیر دکمهٔ نمایش رمز نرود.
 - **تست انجام‌شده:** Parse هر ۷۲ PHP با `php-parser`، Parse هر ۲۱ JS با `node --check`، Parse `auth.css` با PostCSS (۱۳۷ Rule)، Source assertions برای Hookهای سند، دو POST/Nonce/`redirect_to`/`reauth`، مصرف Login Options، Recovery و تصویر؛ DOM smoke برای انتخاب Server بدون Hash، عدم سرقت Focus، Click، دو Arrow پیوسته، Focus سوییچ و ارسال Action/Nonce/`redirect_to` در AJAX؛ `git diff --check`.
 - **تست باقی‌مانده / محدودیت:** Render واقعی PHP، WordPress/WooCommerce و Browser Runtime در این محیط اجرا نشده‌اند؛ بنابراین این لاگ تأیید بصری یا Accessibility کامل نیست. روی Staging باید عرض‌های ۳۲۰/۳۹۰/۶۰۰/۷۶۸/۹۶۰/۱۰۲۴/۱۴۴۰، RTL و Zoom، Keyboard/Focus، Reduced Motion، Autofill، لوگوی واقعی، متن طولانی Options، Register غیرفعال، Recovery مخفی، خطاهای Server، Login/Register با JS روشن/خاموش و Console بررسی شوند. Production همچنان **NO-GO** است.
+
+### AUTH-UI-002 — اصلاح چیدمان گزارش‌شده روی هاست (2026-10-27)
+
+- **گزارش کاربر:** تیتر «به بلکوکم خوش آمدید» باید وسط و در یک خط باشد؛ «پرتال مشتریان / فروشگاه تجهیزات بازرسی» باید زیر لوگو قرار بگیرد؛ با انتخاب Register تصویر ستون راست به پایین می‌پرد.
+- **علت مشخص در کد:** در `assets/css/auth.css` محدودیت `max-width:13ch` تیتر را به خط بعد می‌برد و Brand Row افقی بود. فرم Register بلندتر است و ارتفاع Grid Row را زیاد می‌کند؛ ستون Editorial نیز با Grid Stretch بلند می‌شد و `margin-top:auto` تصویر را در فضای اضافه به پایین هل می‌داد. این استنباط از CSS است، نه ادعای Reproduce در مرورگر محلی.
+- **اصلاح:** تیتر با عرض کامل، `text-align:center`، `white-space:nowrap` و Font Size واکنش‌گرا تنظیم شد. Brand Row عمودی شد و متن آن در Breakpointهای موبایل نیز حذف نمی‌شود. ستون Editorial با `position:sticky`، `align-self:start` و `min-height:100vh` از کشیده‌شدن با فرم جدا شد؛ در حالت تک‌ستونهٔ حداکثر ۹۶۰px این رفتار Reset می‌شود. سمت فرم حداقل ارتفاع Viewport را حفظ می‌کند.
+- **تست انجام‌شده:** Parse فایل با PostCSS (۱۳۴ Rule)، Source assertions برای Center/Nowrap، عرض کامل تیتر، Brand Row عمودی و نمایش متن در موبایل، Sticky/Reset و حداقل ارتفاع فرم؛ `git diff --check`.
+- **تست باقی‌مانده:** تأیید بصری روی هاست در Login و Register، اسکرول فرم بلند ثبت‌نام و عرض‌های موبایل/دسکتاپ. Runtime مرورگر در این محیط اجرا نشده و نتیجهٔ بصری نهایی باید با Cache بروزشده بررسی شود.
 
 ### UX-001 — تطبیق `sample woo` و بازطراحی صفحهٔ تشکر
 

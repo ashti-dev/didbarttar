@@ -45,12 +45,15 @@
 
 /* ---------- Editorial panel ---------- */
 .auth__panel {
-	position: relative;
+	position: sticky;
+	top: 0;
+	align-self: start;
 	isolation: isolate;
 	display: flex;
 	flex-direction: column;
 	gap: 30px;
 	min-width: 0;
+	min-height: 100vh;
 	padding: clamp(34px, 4.2vw, 68px);
 	background: var(--auth-bg);
 	color: #fff;
@@ -85,8 +88,9 @@
 
 .auth__brand-row {
 	display: flex;
-	align-items: center;
-	gap: 16px;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 12px;
 }
 
 .auth__brand-card {
@@ -130,7 +134,8 @@
 }
 
 .auth__editorial {
-	max-width: 600px;
+	width: 100%;
+	max-width: none;
 }
 
 .auth__eyebrow {
@@ -153,13 +158,15 @@
 }
 
 .auth__headline {
-	max-width: 13ch;
+	max-width: none;
 	margin: 0;
 	color: #fff;
-	font-size: clamp(34px, 4.1vw, 58px);
+	font-size: clamp(20px, 3vw, 46px);
 	font-weight: 900;
 	line-height: 1.4;
 	letter-spacing: -0.045em;
+	text-align: center;
+	white-space: nowrap;
 }
 
 .auth__intro {
@@ -268,6 +275,7 @@
 	flex-direction: column;
 	justify-content: center;
 	min-width: 0;
+	min-height: 100vh;
 	padding: clamp(30px, 4.2vw, 68px);
 	background: radial-gradient(circle at 8% 4%, rgba(255, 255, 255, 0.95), transparent 32%), #f4f3ef;
 }
@@ -758,13 +766,17 @@
 	}
 
 	.auth__panel {
+		position: relative;
+		top: auto;
+		align-self: stretch;
 		gap: 24px;
+		min-height: 0;
 		padding: 30px 32px;
 	}
 
 	.auth__headline {
-		max-width: 20ch;
-		font-size: 34px;
+		max-width: none;
+		font-size: clamp(22px, 5vw, 34px);
 	}
 
 	.auth__intro {
@@ -778,6 +790,7 @@
 	}
 
 	.auth__forms {
+		min-height: 0;
 		padding: 34px 24px 38px;
 	}
 
@@ -813,17 +826,13 @@
 		font-size: 12px;
 	}
 
-	.auth__brand-copy span {
-		display: none;
-	}
-
 	.auth__eyebrow {
 		margin-bottom: 9px;
 		font-size: 10px;
 	}
 
 	.auth__headline {
-		font-size: 29px;
+		font-size: clamp(19px, 6vw, 28px);
 		line-height: 1.45;
 	}
 
@@ -881,14 +890,6 @@
 }
 
 @media (max-width: 380px) {
-	.auth__brand-copy {
-		display: none;
-	}
-
-	.auth__headline {
-		font-size: 27px;
-	}
-
 	.auth__form-card {
 		padding-inline: 15px;
 	}
