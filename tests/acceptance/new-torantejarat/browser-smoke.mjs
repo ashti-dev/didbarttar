@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import assert from 'node:assert/strict';
 import { chromium } from 'playwright';
+import { runAdminSettingsSmoke } from './admin-settings-smoke.mjs';
 
 const fixtureFile = process.env.FIXTURE_FILE || '/tmp/torantejarat-fixture.json';
 const resultsDir = process.env.TEST_RESULTS_DIR || '/tmp/torantejarat-test-results';
@@ -212,6 +213,8 @@ try {
   assert.equal((await removed.json()).wishlisted, false);
   await visible('#wish-empty', 'Wishlist empty state');
   passed('Wishlist confirmation removes the real database row and reveals the empty state');
+
+  await runAdminSettingsSmoke({ browser, fixture, resultsDir, results, passed });
 
   assert.deepEqual(results.pageErrors, [], `Browser page errors: ${results.pageErrors.join('\n')}`);
   assert.deepEqual(results.consoleErrors, [], `Browser console errors: ${results.consoleErrors.join('\n')}`);
