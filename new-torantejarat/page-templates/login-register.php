@@ -18,6 +18,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 $can_register    = (bool) get_option( 'users_can_register' ) && ! torantejarat_option( 'login', 'login_hide_register' );
 $auth_error      = isset( $_GET['auth_error'] ) ? sanitize_text_field( wp_unslash( $_GET['auth_error'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only server-generated form error.
 $auth_error_form = isset( $_GET['auth_form'] ) && 'register' === $_GET['auth_form'] ? 'register' : 'login'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+$initial_form    = $can_register && 'register' === $auth_error_form ? 'register' : 'login';
+$redirect_to     = torantejarat_auth_requested_redirect( '' );
+$reauth          = ! empty( $_GET['reauth'] ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Core reauthentication flag only.
 
 get_header();
 ?>
@@ -48,24 +51,30 @@ get_header();
 				<div class="auth__forms">
 
 					<div class="auth__tabs" role="tablist" aria-label="<?php esc_attr_e( 'ورود یا ثبت‌نام', 'torantejarat' ); ?>">
-						<button type="button" class="auth__tab is-active" id="auth-tab-login" role="tab" aria-selected="true" aria-controls="auth-panel-login" data-tab="login">
+						<button type="button" class="auth__tab<?php echo 'login' === $initial_form ? ' is-active' : ''; ?>" id="auth-tab-login" role="tab" aria-selected="<?php echo 'login' === $initial_form ? 'true' : 'false'; ?>" aria-controls="auth-panel-login" data-tab="login">
 							<?php esc_html_e( 'ورود', 'torantejarat' ); ?>
 						</button>
 						<?php if ( $can_register ) : ?>
-							<button type="button" class="auth__tab" id="auth-tab-register" role="tab" aria-selected="false" aria-controls="auth-panel-register" data-tab="register">
+							<button type="button" class="auth__tab<?php echo 'register' === $initial_form ? ' is-active' : ''; ?>" id="auth-tab-register" role="tab" aria-selected="<?php echo 'register' === $initial_form ? 'true' : 'false'; ?>" aria-controls="auth-panel-register" data-tab="register">
 								<?php esc_html_e( 'ثبت‌نام', 'torantejarat' ); ?>
 							</button>
 						<?php endif; ?>
 					</div>
 
 					<!-- Login -->
-					<div class="auth__pane is-active" id="auth-panel-login" role="tabpanel" aria-labelledby="auth-tab-login">
+					<div class="auth__pane<?php echo 'login' === $initial_form ? ' is-active' : ''; ?>" id="auth-panel-login" role="tabpanel" aria-labelledby="auth-tab-login"<?php echo 'login' !== $initial_form ? ' hidden' : ''; ?>>
 						<h3 class="auth__heading"><?php esc_html_e( 'خوش برگشتید', 'torantejarat' ); ?></h3>
 						<p class="auth__sub"><?php esc_html_e( 'با موبایل، ایمیل یا نام کاربری خود وارد شوید.', 'torantejarat' ); ?></p>
 
 						<form class="auth__form" id="auth-login-form" method="post" action="<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>" data-endpoint="<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>" novalidate>
 						<input type="hidden" name="action" value="torantejarat_login">
 						<input type="hidden" name="nonce" value="<?php echo esc_attr( wp_create_nonce( 'torantejarat_auth' ) ); ?>">
+						<?php if ( '' !== $redirect_to ) : ?>
+							<input type="hidden" name="redirect_to" value="<?php echo esc_attr( $redirect_to ); ?>">
+						<?php endif; ?>
+						<?php if ( $reauth ) : ?>
+							<input type="hidden" name="reauth" value="1">
+						<?php endif; ?>
 						<?php if ( $auth_error && 'login' === $auth_error_form ) : ?>
 							<p class="auth__message is-error" role="alert"><?php echo esc_html( $auth_error ); ?></p>
 						<?php endif; ?>
@@ -105,7 +114,7 @@ get_header();
 								<button type="button" class="auth__switch-btn" data-goto="register"><?php esc_html_e( 'ثبت‌نام کنید', 'torantejarat' ); ?></button>
 							</p>
 							<noscript>
-								<p class="auth__switch"><a href="<?php echo esc_url( wp_registration_url() ); ?>"><?php esc_html_e( 'ثبت‌نام در صفحهٔ امن وردپرس', 'torantejarat' ); ?></a></p>
+								<p class="auth__switch"><a href="<?php echo esc_url( torantejarat_auth_register_page_url( $redirect_to ) ); ?>"><?php esc_html_e( 'ثبت‌نام در همین صفحه', 'torantejarat' ); ?></a></p>
 							</noscript>
 						<?php endif; ?>
 						</form>
@@ -113,13 +122,19 @@ get_header();
 
 					<!-- Register -->
 					<?php if ( $can_register ) : ?>
-						<div class="auth__pane" id="auth-panel-register" role="tabpanel" aria-labelledby="auth-tab-register" hidden>
+						<div class="auth__pane<?php echo 'register' === $initial_form ? ' is-active' : ''; ?>" id="auth-panel-register" role="tabpanel" aria-labelledby="auth-tab-register"<?php echo 'register' !== $initial_form ? ' hidden' : ''; ?>>
 						<h3 class="auth__heading"><?php esc_html_e( 'حساب کاربری بسازید', 'torantejarat' ); ?></h3>
 						<p class="auth__sub"><?php esc_html_e( 'برای پیگیری سفارش و ذخیره مشخصات دستگاه‌ها.', 'torantejarat' ); ?></p>
 
 						<form class="auth__form" id="auth-register-form" method="post" action="<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>" data-endpoint="<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>" novalidate>
 						<input type="hidden" name="action" value="torantejarat_register">
 						<input type="hidden" name="nonce" value="<?php echo esc_attr( wp_create_nonce( 'torantejarat_auth' ) ); ?>">
+						<?php if ( '' !== $redirect_to ) : ?>
+							<input type="hidden" name="redirect_to" value="<?php echo esc_attr( $redirect_to ); ?>">
+						<?php endif; ?>
+						<?php if ( $reauth ) : ?>
+							<input type="hidden" name="reauth" value="1">
+						<?php endif; ?>
 						<?php if ( $auth_error && 'register' === $auth_error_form ) : ?>
 							<p class="auth__message is-error" role="alert"><?php echo esc_html( $auth_error ); ?></p>
 						<?php endif; ?>
@@ -187,6 +202,9 @@ get_header();
 								<?php esc_html_e( 'قبلاً ثبت‌نام کرده‌اید؟', 'torantejarat' ); ?>
 								<button type="button" class="auth__switch-btn" data-goto="login"><?php esc_html_e( 'وارد شوید', 'torantejarat' ); ?></button>
 							</p>
+							<noscript>
+								<p class="auth__switch"><a href="<?php echo esc_url( torantejarat_auth_login_page_url( $redirect_to, $reauth ) ); ?>"><?php esc_html_e( 'بازگشت به فرم ورود', 'torantejarat' ); ?></a></p>
+							</noscript>
 						</form>
 					</div>
 					<?php endif; ?>

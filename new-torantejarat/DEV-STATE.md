@@ -15,6 +15,17 @@
 | TT-006 | اصلاح شد | Parse هر ۷۲ PHP + ۲۱ JS + DOM smoke | در انتظار Staging | علاقه‌مندی واقعی با REST سازگار، Native fallback و کنترل‌های صادقانه |
 | UX-001 | اصلاح شد | PHP/JS/CSS Parse + source/print assertions | در انتظار Staging | تطبیق ایده‌های `sample woo` و بازطراحی صفحهٔ تشکر/بعد از خرید |
 | TT-029 | اصلاح شد | انجام شد؛ هر ۲۰ JS | در انتظار Staging | رفع خطای Parse اسکریپت ویدیوی محصول در ادمین |
+| AUTH-GATE-001 | پیاده شد | Parse ۷۲/۷۲ PHP و ۲۱/۲۱ JS + DOM smoke | در انتظار Staging | ورود/ثبت‌نام اختصاصی، Guard پیشخوان و حفظ مقصد امن |
+
+### AUTH-GATE-001 — مسیر اختصاصی مشتری و دسترسی پیشخوان (2026-10-27)
+
+- **دامنهٔ تغییر:** `inc/auth.php` لینک‌های `login_url` و `register_url` را به برگهٔ موجود `login-register` (یا Fallback قدیمی `auth`) می‌برد و نمای بومیِ فقط دو Actionِ `login` و `register` را در `login_init` به همان برگه هدایت می‌کند. اگر برگه وجود نداشته باشد، Redirect سراسری فعال نمی‌شود و مسیر بومی به‌عنوان Fail-open برای جلوگیری از Lockout/Loop باقی می‌ماند.
+- **Actions حساس:** `lostpassword`، `rp`/`resetpass`، `logout`، Recovery Mode، Privacy و Actionهای افزونه‌ها وارد Redirect سراسری نشده‌اند؛ Branding بومی `inc/login.php` برای این صفحات حفظ شده است.
+- **پیشخوان:** در `admin_init`، کاربر واردشدهٔ فاقد Capability مدیریتی به حساب خودش می‌رود. دسترسی با `edit_posts`، `manage_woocommerce` یا `edit_others_shop_orders` حفظ می‌شود؛ بنابراین تصمیم بر اساس Capability است، نه نام نقش. `admin-ajax.php` و `admin-post.php` صریحاً مستثنی‌اند تا فرم‌ها و AJAX مهمان/کاربر قطع نشوند. مهمانِ `wp-admin` نیز از `auth_redirect()` بومی با URL فیلترشده عبور می‌کند.
+- **مقصد امن:** `redirect_to` با `wp_validate_redirect()` و Fallback حساب مصرف می‌شود و در هر دو فرم، خطای No-JS و Success ورود/ثبت‌نام حفظ می‌شود. `reauth` نیز به صفحهٔ اختصاصی و فرم می‌رسد. ریدایرکت مهمان تیکت در `inc/requests.php` به Helper اختصاصی تغییر کرد.
+- **No-JS و صفحه‌بندی فرم:** `auth_form=register` سمت Server تب/پنل درست را رندر می‌کند و لینک‌های No-JS دیگر به ثبت‌نام بومی وابسته نیستند. JS انتخاب Server را بدون Hash حفظ می‌کند، Focus را به اولین فیلد غیرمخفی می‌برد و Roving `tabindex` تب‌ها را به‌روز می‌کند.
+- **تست انجام‌شده:** Parse هر ۷۲ PHP با `php-parser`، Parse هر ۲۱ JS با `node --check`، Source assertions برای محدودهٔ Actionها، استثنای AJAX/Admin Post، وجود `redirect_to`/`reauth` در هر دو فرم و مصرف آن در دو Success Handler؛ DOM smoke برای حفظ تب Register بدون Hash، Focus، Click، Arrow key و `tabindex`؛ `git diff --check`. در اجرای اول، یک Assertion اشتباهِ تست، مصرف Helper در Redirect کاربرِ واردشده را هم شمرد؛ Assertion اصلاح و فقط دو Success Handler بررسی شد، کد در آن مرحله تغییر نکرد.
+- **تست باقی‌مانده / محدودیت:** Runtime وردپرس/WooCommerce و مرورگر در این محیط اجرا نشده است. روی Staging باید مهمان و Customer برای `/wp-admin/` و `/wp-login.php`، مدیر/Shop Manager، AJAX و Admin Post، Login/Register با JS روشن/خاموش، Logout، Lost Password/Reset، `reauth=1`، مقصد داخلی و External Open Redirect تست شوند. این کد Redirect/Authorization در سطح قالب است، نه جایگزین WAF یا Rule وب‌سرور؛ تا این ماتریس Production **NO-GO** است.
 
 ### UX-001 — تطبیق `sample woo` و بازطراحی صفحهٔ تشکر
 

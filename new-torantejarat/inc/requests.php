@@ -363,7 +363,7 @@ function torantejarat_create_ticket( $user_id, $subject, $order_id, $message ) {
 
 function torantejarat_handle_ticket() {
 	if ( ! is_user_logged_in() ) {
-		wp_safe_redirect( wp_login_url() );
+		wp_safe_redirect( torantejarat_auth_get_page_url() );
 		exit;
 	}
 	/*
