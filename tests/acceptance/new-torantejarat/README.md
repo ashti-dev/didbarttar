@@ -11,7 +11,7 @@
 
 ## نسخه‌ها و اجرا
 
-Workflow `.github/workflows/woocommerce-acceptance.yml` روی PHP 8.3، WordPress 7.1.3 و WooCommerce 11.2.1 اجرا می‌شود. مرورگر با Playwright 1.64.1 و Chromium نصب‌شده در Runner اجرا می‌شود.
+Workflow `.github/workflows/woocommerce-acceptance.yml` روی PHP 8.3، WordPress 7.1.3 و WooCommerce 11.2.1 اجرا می‌شود. مرورگر با Playwright 1.64.1 و Chromium نصب‌شده در Runner اجرا می‌شود. آزمون دسترس‌پذیری با DevDependency ثابت `@axe-core/playwright` و `axe-core` نسخهٔ 4.14.0 انجام می‌شود؛ هیچ‌کدام Dependencyای به Runtime قالب نیستند.
 
 پوشش فعلی:
 
@@ -23,9 +23,10 @@ Workflow `.github/workflows/woocommerce-acceptance.yml` روی PHP 8.3، WordPre
 - صفحهٔ تشکر با دو قلم، Variation Meta، Totals و دستورالعمل درگاه؛
 - حالت Desktop/Mobile، Overflow و CSS چاپ فاکتور؛
 - Login مشتری و Add/Remove واقعی Wishlist با REST و Confirm/Cancel؛
-- نه Admin Browser Check در `admin-settings-smoke.mjs`: ورود ادمین و هر ۷ بخش/۶۱ فیلد با `aria-current` صفحهٔ واقعی و راهنمای Scope ذخیره، ذخیرهٔ ۶ تب مسطح و هر ۶ زیرصفحهٔ Home از مسیر واقعی `options.php` با مقایسهٔ Option خام، حفظ مقادیر خارج از Scope، Add/Remove و سقف UI پرسش‌های متداول، جست‌وجوی Combobox با `aria-selected` و Keyboard Navigation، مقصد واقعی لینک‌های Readiness، Preview/Public با `admin-post.php` و در 390px بررسی هندسی Header/Sidebar/Fields، نبود Overflow سند و ScrollContainer جدول FAQ؛
-- ثبت Console/Page errors و اسکرین‌شات‌های فروشگاه و پنل Desktop/Mobile، از جمله `admin-settings-mobile-faq-390.png`، به‌عنوان Artifact. در مجموع ۲۱ Browser Check اجرا می‌شود: ۱۱ سناریوی فروشگاه، ۹ سناریوی Admin و یک بررسی مشترک خطاها.
+- نه Admin Browser Check نخست در `admin-settings-smoke.mjs`: ورود ادمین و هر ۷ بخش/۶۱ فیلد با `aria-current` صفحهٔ واقعی و راهنمای Scope ذخیره، ذخیرهٔ ۶ تب مسطح و هر ۶ زیرصفحهٔ Home از مسیر واقعی `options.php` با مقایسهٔ Option خام، حفظ مقادیر خارج از Scope، Add/Remove و سقف UI پرسش‌های متداول، جست‌وجوی Combobox با `aria-selected` و Keyboard Navigation، مقصد واقعی لینک‌های Readiness، Preview/Public با `admin-post.php` و در 390px بررسی هندسی Header/Sidebar/Fields، نبود Overflow سند و ScrollContainer جدول FAQ؛
+- سه Admin Check دیگر در `admin-accessibility-smoke.mjs`: پیمایش Keyboard و Focus Visible برای Search/Sidebar/Cards/Repeater/Publish با بازیابی Focus منطقی پس از حذف و بدون Submit فرم؛ ماتریس هندسی 320/390/768/1440 برای General، Publish Mode و FAQ با کنترل Search/Save و Scroll جدول؛ و اجرای واقعی axe روی هفت View نماینده در Scope `.tt-wrap` با Tagهای `wcag2a/wcag2aa/wcag21a/wcag21aa` و بدون Disable کردن Rule؛
+- ثبت Console/Page errors و اسکرین‌شات‌های فروشگاه و پنل Desktop/Mobile، از جمله `admin-settings-mobile-faq-390.png` و هشت Screenshot ماتریس `admin-ui-{general,faq}-{width}.png`، به‌عنوان Artifact. هندسهٔ ماتریس در `admin-responsive-matrix.json` و نتیجهٔ کامل Violation/Incomplete/Passها در `admin-axe-report.json` ثبت می‌شود. در مجموع ۲۴ Browser Check اجرا می‌شود: ۱۱ سناریوی فروشگاه، ۱۲ سناریوی Admin و یک بررسی مشترک خطاها.
 
 نوشتن Optionها و تغییر Publish Mode فقط در همین وردپرس موقت انجام می‌شود. Optionهای بومی دست‌کاری‌شده در پایان سناریوی Admin بازیابی می‌شوند و هیچ ارتباطی با سایت عملیاتی برقرار نمی‌شود.
 
-این تست هنوز جای ماتریس کامل Gateway Sandbox، همهٔ وضعیت‌ها، axe و CWV را نمی‌گیرد. ساخت Screenshot نیز به‌تنهایی Visual Review دستی محسوب نمی‌شود.
+نتیجهٔ axe فقط دربارهٔ همان هفت View و Ruleهای انتخاب‌شده است؛ موارد `incomplete` برای بازبینی دستی باقی می‌مانند و هیچ PASS خودکاری گواهی کامل WCAG نیست. این تست همچنین جای ماتریس کامل Gateway Sandbox، همهٔ وضعیت‌ها، سایر مرورگرها و CWV را نمی‌گیرد. ساخت Screenshot نیز به‌تنهایی Visual Review دستی محسوب نمی‌شود.

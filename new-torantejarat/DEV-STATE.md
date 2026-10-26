@@ -745,3 +745,30 @@
 ### مرز نتیجه
 - **Visual Review دستی انجام نشده است.** دانلود Artifact قبلی در این Sandbox با EOF شکست خورد و وجود Screenshot یا Assertion هندسی جای بازبینی تصویری را نمی‌گیرد. عرض 320/768، سایر مرورگرها و axe نیز در این مرحله اجرا نشده‌اند؛ این نتیجه گواهی کامل Accessibility نیست.
 - Gateway Sandbox/واقعی، CWV و Staging/Production همچنان Gateهای جدا هستند و **Production NO-GO** است.
+
+## SET-UI-003 — Keyboard/Focus، ماتریس Responsive و axe پنل Settings — 2026-10-26 — DONE
+
+### قلمرو و پیاده‌سازی
+- سه Commit کد روی همین برنچ Push شدند: `c5e782a453f4a05c03a47e83301b19833add6647` برای Keyboard/Focus، `eb188b70404d0d8ebb4cb8ae927df46e94b6e435` برای ماتریس و Harness واقعی axe، و `667e0177beb2ac762a3407588d7edfe4317b555b` برای رفع دو نقض تأییدشدهٔ axe.
+- یافتهٔ قطعی کد این بود که Remove، ردیفِ دارای Focus را حذف می‌کرد اما مقصد Focus بعدی تعیین نمی‌شد. Helper مشترک `focusRow()` اکنون Add را به اولین Control ردیف تازه می‌برد و Remove پس از Renumber، Focus را به ردیف همان Index یا ردیف قبلیِ آخر می‌رساند؛ پاک‌کردن تنها ردیف نیز Focus را در همان ردیف نگه می‌دارد.
+- ماژول `tests/acceptance/new-torantejarat/admin-accessibility-smoke.mjs` با Playwright واقعی، Search و Escape، Sidebar و کارت Home با Enter، Add/Remove با Enter، Radio/Checkbox حالت Publish با Space و Outline/Box-shadow قابل مشاهده را بررسی می‌کند. تغییرات Repeater در این Check فقط DOM هستند و هیچ فرمی Submit نمی‌شود.
+- ماتریس `320/390/768/1440` برای General، Publish Mode و Home/FAQ هندسهٔ واقعی Header، Sidebar/Main، Label/Control، Search و Save و نبود Document/Body Overflow را می‌سنجد. FAQ در Container خودش `overflow-x:auto` دارد و در 320/390 جدول عریض‌تر از Container است تا مسیر اسکرول واقعاً تمرین شود.
+- `@axe-core/playwright=4.14.0` و `axe-core=4.14.0` فقط DevDependency فیکسچر هستند و Lockfile ثابت شد. Scanها روی `.tt-wrap` و با Tagهای `wcag2a/wcag2aa/wcag21a/wcag21aa` اجرا می‌شوند؛ هیچ Rule یا Selector مشکوکی Exclude/Disable نشده است. `node_modules/` نیز Ignore شد و هیچ Dependencyای به Runtime قالب اضافه نشد.
+- Optionها، Schema، Storage، `_tt_scope`، DOM Nameها و منطق Save تغییر نکردند؛ نوشتن Option فقط در همان WordPress موقت CI و در سناریوهای قبلی انجام شد.
+
+### نقض‌های تأییدشده و اصلاح محدود
+- Run [`40295367574`](https://github.com/ashti-dev/didbarttar/actions/runs/40295367574) روی `eb188b70404d0d8ebb4cb8ae927df46e94b6e435` و Job `121480015378` پس از 2m28s فقط به‌خاطر Assertion نقض‌های axe Fail شد. پیش از آن، Keyboard و ماتریس هر چهار عرض PASS شده بودند؛ این Run را نتیجهٔ نهایی یا Regression ذخیره نمی‌دانیم.
+- `color-contrast`: متن سفید روی `#f77b3e` در دکمهٔ Save و دکمهٔ Publish حالت General نسبت **2.67:1** داشت. در `assets/admin/panel.css` و فقط در Scope `.tt-wrap` متن به `#1d2327` تغییر کرد؛ نسبت محاسبه‌شده روی نارنجی عادی **5.94:1** و روی Hover **4.96:1** است. Background حالت Focus/Active نیز صریح شد تا متن تیره روی آبی Core قرار نگیرد؛ Global Admin خارج از پنل تغییر نکرد.
+- `label`: هر ۱۲ Textarea پاسخ FAQ در Desktop و Mobile نام دسترس‌پذیر نداشتند. Renderer مشترک Repeater اکنون `aria-label` را از Label واقعی همان Subfield می‌سازد؛ Placeholder، Name و Template تغییر نام دست‌نخورده‌اند. برای نوع‌های دیگر یا Ruleهای بدون نقض، اصلاح حدسی انجام نشد.
+
+### شاهد Runtime نهایی
+- Run مرحلهٔ Keyboard [`40293722116`](https://github.com/ashti-dev/didbarttar/actions/runs/40293722116) روی `c5e782a453f4a05c03a47e83301b19833add6647` و Job `121474596756`: **SUCCESS در 13m24s**؛ Log واقعی **۲۲ Browser Check** و Check جدید Focus را ثبت کرد.
+- Run نهایی [`40295922846`](https://github.com/ashti-dev/didbarttar/actions/runs/40295922846) روی `667e0177beb2ac762a3407588d7edfe4317b555b` و Job `121481830914`: **SUCCESS در 14m18s**؛ PHP/JS Lint، Fatal-check و Artifact Upload سبز است. بیشتر زمان در نصب Dependencyهای سیستم/Chromium مصرف شد و همان Run بدون Restart کامل شد.
+- Log نهایی `Success: Settings smoke: 7 checks passed; no database writes.` را دارد؛ **۷/۷ Settings Check** و **۲۴/۲۴ Browser Check** سبز است: ۱۱ سناریوی فروشگاه، ۱۲ سناریوی Admin و یک بررسی مشترک خطاها. شمارش از PASSهای واقعی Log است، نه حفظ عدد قبلی ۲۱.
+- هر هفت View اسکن‌شده (`general-desktop`، `faq-desktop`، `contact-desktop`، `business-desktop`، `login-desktop`، `general-mobile` و `faq-mobile`) مقدار **`violations=0`** دارند. بنابراین دو نقض تأییدشدهٔ بالا پس از اصلاح دیگر در همان Scanها ظاهر نشدند.
+- چهار Rule Result با وضعیت `incomplete` باقی است و Violation یا PASS نشمرده شده‌اند: Background Image روی `#tt-general-preview_note` و دو Select در Business، و موارد موبایل روی Save Hint/بخش Publish که axe به‌علت Background Image یا Obscured بودن نتوانست Contrast را تعیین کند. Targetها و خلاصه‌ها در Log و `admin-axe-report.json` برای بازبینی دستی ثبت شده‌اند.
+- Artifact [`12638433457`](https://github.com/ashti-dev/didbarttar/actions/runs/40295922846/artifacts/12638433457) با **۲۰ فایل و 2025336 بایت** ثبت شد؛ SHA256 بسته `90962ebf833e6e24eab49e5293a5f10acc7c4db73799b7ca929f6b38d8161aa7` است. `admin-responsive-matrix.json`، `admin-axe-report.json` و هشت Screenshot جدید `admin-ui-general-{320,390,768,1440}.png` و `admin-ui-faq-{320,390,768,1440}.png` در آن قرار دارند.
+
+### مرز نتیجه
+- **Visual Review دستی و بازبینی Contrast موارد Incomplete هنوز انجام نشده است.** Screenshot و `violations=0` جای این بازبینی را نمی‌گیرند؛ نتیجهٔ axe گواهی سازگاری کامل WCAG نیست و هفت View نماینده نیز تمام وضعیت‌های پنل یا سایر مرورگرها را پوشش نمی‌دهد.
+- Gateway Sandbox/واقعی، ایمیل واقعی، CWV و Staging/Production Gateهای جدا هستند؛ **Production همچنان NO-GO است**.
