@@ -141,8 +141,10 @@ try {
   const thankyouText = await page.locator('.torantejarat-thx').innerText();
   assert.ok(thankyouText.includes(fixture.simpleName));
   assert.ok(thankyouText.includes(fixture.variableName));
-  assert.ok(thankyouText.includes('cable_length'));
-  assert.ok(thankyouText.includes('10 m'));
+  const itemMeta = page.locator('.torantejarat-thx__item .wc-item-meta');
+  await itemMeta.first().waitFor({ state: 'visible' });
+  const itemMetaText = (await itemMeta.allInnerTexts()).join('\n');
+  assert.ok(itemMetaText.includes('10 m'), `Selected variation meta is missing: ${itemMetaText}`);
   assert.ok(thankyouText.includes('ci-buyer@example.test'));
   assert.ok(thankyouText.includes('این سفارش فقط در محیط آزمایشی GitHub Actions ثبت شده است.'));
   assert.ok((await page.locator('.torantejarat-thx__row').count()) >= 3);
