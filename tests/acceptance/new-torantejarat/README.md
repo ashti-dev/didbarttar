@@ -23,6 +23,9 @@ Workflow `.github/workflows/woocommerce-acceptance.yml` روی PHP 8.3، WordPre
 - صفحهٔ تشکر با دو قلم، Variation Meta، Totals و دستورالعمل درگاه؛
 - حالت Desktop/Mobile، Overflow و CSS چاپ فاکتور؛
 - Login مشتری و Add/Remove واقعی Wishlist با REST و Confirm/Cancel؛
-- ثبت Console/Page errors و اسکرین‌شات‌ها به‌عنوان Artifact.
+- نه Admin Browser Check در `admin-settings-smoke.mjs`: ورود ادمین و هر ۷ بخش/۶۱ فیلد، ذخیرهٔ ۶ تب مسطح و هر ۶ زیرصفحهٔ Home از مسیر واقعی `options.php` با مقایسهٔ Option خام، حفظ مقادیر خارج از Scope، Add/Remove و سقف UI پرسش‌های متداول، جست‌وجوی Combobox، مقصد واقعی لینک‌های Readiness، Preview/Public با `admin-post.php` و کنترل‌های موبایل 390px؛
+- ثبت Console/Page errors و اسکرین‌شات‌های فروشگاه و پنل Desktop/Mobile به‌عنوان Artifact. در مجموع ۲۱ Browser Check اجرا می‌شود: ۱۱ سناریوی فروشگاه، ۹ سناریوی Admin و یک بررسی مشترک خطاها.
 
-این تست هنوز جای ماتریس کامل Gateway Sandbox، همهٔ وضعیت‌ها، axe و CWV را نمی‌گیرد. هیچ ارتباطی با سایت عملیاتی برقرار نمی‌شود.
+نوشتن Optionها و تغییر Publish Mode فقط در همین وردپرس موقت انجام می‌شود. Optionهای بومی دست‌کاری‌شده در پایان سناریوی Admin بازیابی می‌شوند و هیچ ارتباطی با سایت عملیاتی برقرار نمی‌شود.
+
+این تست هنوز جای ماتریس کامل Gateway Sandbox، همهٔ وضعیت‌ها، axe و CWV را نمی‌گیرد. ساخت Screenshot نیز به‌تنهایی Visual Review دستی محسوب نمی‌شود.

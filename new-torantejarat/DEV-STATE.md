@@ -661,3 +661,39 @@
 - `SET-FIX-001`، `SET-FIX-002` و `SET-FIX-003` هر سه **DONE / PUSHED / CI-GREEN** هستند و نباید در اجرای بعدی دوباره انجام شوند.
 - تست ماندگار در `tests/acceptance/new-torantejarat/settings-smoke.php` و شواهد هر مورد در همین فایل ثبت است. Workflow فعلی این ۵ Check را در هر اجرای بعدی دوباره ارزیابی می‌کند.
 - پیشنهادهای ساختاری غیرقطعی مثل یکسان‌سازی Defaults یا تغییر عنوان نوار آمادگی **جزء این سه اصلاح نبوده‌اند و انجام نشده‌اند**. تغییر نحوهٔ تنظیمات فقط با درخواست بعدی و پس از تعیین قلمرو انجام شود.
+
+## SET-UI-000 — تست مرورگری واقعی پنل تنظیمات — 2026-10-26 — DONE
+
+### قلمرو و پیاده‌سازی
+- **انجام شد؛ پیش از `SET-UI-001` لازم نبوده و نباید دوباره ساخته شود.** ماژول ماندگار `tests/acceptance/new-torantejarat/admin-settings-smoke.mjs` به `browser-smoke.mjs` متصل شد؛ Workflow تغییر نکرد.
+- Commit نهایی تست: `fe8ba80abc7d5c36a51271a0b76f07c475558817` (`test(settings): verify saves beyond canonical URL`). Commit اولیه `0d7260e18edfded45c530033f4c4cdac71cf082c` و دو اصلاح Harness میانی `9fb9b8de44942b6543e55b05807f4be80e311098` و `3b28a4a65120621d5267d7d2660e8a4bc0ec923d` نیز روی همین برنچ Push شده‌اند.
+- هیچ فایل Runtime قالب، نام Option، Schema، `_tt_scope` یا Storage تغییر نکرد. Seed، Save و تغییر Publish Mode فقط در WordPress ایزولهٔ CI انجام شد؛ Optionهای بومی دست‌کاری‌شده در `finally` بازیابی شدند و هیچ نوشتن روی Production وجود نداشت.
+
+### ۹ Admin Browser Check سبز
+1. ورود واقعی `ci_admin`، وجود هر ۷ بخش و Search Index شامل هر ۶۱ فیلد؛ Screenshot دسکتاپ.
+2. ذخیرهٔ هر ۶ تب مسطح (`general/contact/social/footer/login/business`) با Submit واقعی `options.php` و مقایسهٔ Option خام پیش/بعد؛ مقدار هدف نوشته و مقادیر قبلی دیگر تغییر نکرد.
+3. ذخیرهٔ هر ۶ زیرصفحهٔ Home (`hero/trust/category/field/blog/faq`) و اثبات حفظ مقادیر خارج از Scope، از جمله FAQ و Sentinelهای سایر زیرصفحه‌ها.
+4. Add واقعی FAQ، Save، Remove ردیف میانی، Renumbering و بازخوانی Option خام با ترتیب مورد انتظار.
+5. در ۱۲ ردیف: دقیقاً ۱۲ ردیف قابل ویرایش، بدون ردیف خالی سیزدهم، دکمهٔ Add غیرفعال و نشان سقف فعال.
+6. جست‌وجوی «متن توضیح» و Keyboard Navigation به `home/hero` و Fragment واقعی `#ttf-home-hero_lead`.
+7. لینک `admin_email` به فیلد واقعی `#new_admin_email` در WordPress و لینک فرستنده به `woocommerce_email_from_address` در WooCommerce رسید؛ هر دو مقصد در مرورگر باز و بررسی شدند.
+8. Publish Mode با فرم واقعی `admin-post.php`: Preview به `woocommerce_coming_soon=yes` و `blog_public=0`، سپس Public با Checkbox تأیید به `no/1` رسید؛ Optionهای بومی بعد از تست بازیابی شدند.
+9. در Viewport موبایل 390px کنترل‌های Search و Save در دسترس ماندند و Screenshot موبایل ثبت شد.
+
+- بررسی مشترک پایانی نیز هیچ Browser Exception، Console Error، Failed Request یا HTTP 5xx محلی در سناریوهای فروشگاه و Admin ثبت نکرد.
+
+### شاهد Runtime نهایی
+- Run [`40289432502`](https://github.com/ashti-dev/didbarttar/actions/runs/40289432502) روی Commit `fe8ba80abc7d5c36a51271a0b76f07c475558817` و Job `121460732466`: **SUCCESS در 2m26s**؛ PHP Lint، Fatal-check و Artifact Upload سبز.
+- همان Run **۵/۵ Settings Check** بدون نوشتن DB را دوباره سبز کرد و خلاصهٔ `Settings smoke: 5 checks passed; no database writes.` ثبت شد.
+- مجموع مرورگر **۲۱/۲۱ PASS** است: ۱۱ سناریوی قبلی فروشگاه + ۹ سناریوی Admin + یک Assertion مشترک خطاها.
+- Artifact [`12635164992`](https://github.com/ashti-dev/didbarttar/actions/runs/40289432502/artifacts/12635164992) با ۹ فایل و 1127610 بایت ثبت شد؛ SHA256 بسته `ebd532e8ec7d90ac2500629e5d14f24920b2711d977e5ae3ff958dd70e660c1c`. Screenshotهای `admin-settings-desktop.png` و `admin-settings-mobile-390.png` در مسیر نتایج ساخته شده‌اند.
+
+### شکست‌های Harness؛ نه باگ قالب
+- Run `40287534956`: WP-CLI شکل `--path <value>` را نپذیرفت و پیش از ورود Admin متوقف شد؛ به `--path=<value>` اصلاح شد.
+- Run `40287780365`: Router فیکسچر مسیر پوشه‌ای `/wp-admin/` را به صفحهٔ اصلی فرستاد؛ تست به فایل واقعی `/wp-admin/index.php` تغییر کرد.
+- Run `40289066602`: ورود و ۷ بخش Pass شد، اما Assertion انتظار `settings-updated=true` شکست خورد. Source رسمی WordPress 7.1.3 در `wp-admin/includes/misc.php` و `wp_admin_canonical_url()` این پارامتر یک‌بارمصرف را با `history.replaceState` حذف می‌کند؛ Assertion حذف و اثبات نوشتن به مقایسهٔ Option خام واگذار شد.
+- در هیچ‌کدام از این Runها باگ Runtime قالب اثبات نشد و کد قالب برای سبزکردن Harness تغییر نکرد.
+
+### مرز نتیجه و ادامه
+- Artifact جدید دانلود و **Visual Review دستی انجام نشده است**؛ وجود Screenshot و PASSهای DOM/Option جای بازبینی بصری را نمی‌گیرد. سایر مرورگرها، axe، CWV و Staging/Production تست نشده‌اند و **Production همچنان NO-GO است**.
+- `SET-UI-001` (یکسان‌سازی Schema/Defaults و شناسه‌های `tab/field`) و `SET-UI-002` (تغییر UI) هنوز شروع نشده‌اند.
