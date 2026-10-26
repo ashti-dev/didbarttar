@@ -572,3 +572,34 @@
 
 ### یادداشت مالک — مقادیر هیرو (۲۰۲۶-۱۰-۲۰)
 - مقادیر `hero_kicker`، `hero_lead` و `hero_foot_1` در `torantejarat_home` **وارد شده توسط مالک** هستند و بدون دستور صریح تغییر نمی‌کنند.
+
+## QA-CI-001 — پذیرش واقعی WooCommerce روی Runner ایزوله — 2026-10-26
+
+### اجرا و محیط
+- **نتیجه: PASS.** GitHub Actions Run شمارهٔ [`40282881621`](https://github.com/ashti-dev/didbarttar/actions/runs/40282881621) روی Commit `76ca01070d9916f99c0d19085ee7de8b5caa3e21` و برنچ `arena/c5f65381-didbarttar` کامل و بدون Fatal-check شکست اجرا شد.
+- محیط موقت GitHub-hosted، نه Production: Ubuntu 24.04، PHP 8.3، MySQL 8.0، Node 22، WordPress 7.1.3، WooCommerce 11.2.1، Playwright 1.64.1 و Chromium 156.
+- Fixture فقط روی `127.0.0.1` و Environment نوع `development` اجرا شد؛ Cart/Checkout/My-account با Shortcode کلاسیک، دو محصول آزمایشی Simple/Variable، مشتری مصنوعی، Flat Rate و COD. هیچ داده، مشتری، قیمت یا پرداخت واقعی استفاده نشد.
+- Lint واقعی PHP قالب/Fixture و Syntax تمام JavaScript قالب پیش از اجرای مرورگر موفق بود.
+
+### ۱۲ Browser Check اجراشده و سبز
+1. نمایش هر دو محصول واقعی Fixture در Shop.
+2. افزودن Simple با مسیر AJAX قالب.
+3. انتخاب Variation و Submit بومی محصول Variable.
+4. حضور Simple و Variation انتخاب‌شده در Cart.
+5. ثبت سفارش Guest با نشانی ایرانی، ایمیل، ارسال و COD و رسیدن به `order-received`.
+6. نمایش اقلام، Variation انتخاب‌شده، Totals، دستورالعمل Gateway و وضعیت صادقانهٔ COD در Thank-you؛ COD «پرداخت‌شده» اعلام نشد.
+7. نبود Overflow افقی در Viewport موبایل 390px.
+8. مخفی‌شدن رسید Screen و تولید PDF فاکتور رسمی در Media چاپ.
+9. افزودن Wishlist کاربر واردشده با Cookie/Nonce واقعی REST.
+10. Cancel در Confirm حذف Wishlist؛ قلم حفظ و Dialog بسته شد.
+11. Confirm حذف Wishlist؛ حذف واقعی و نمایش Empty State.
+12. صفر Browser Exception، Console Error، Failed Request و HTTP 5xx محلی در مسیر اجراشده؛ جست‌وجوی Fatal/Parse/Uncaught در Debug Log نیز شکستی ثبت نکرد.
+
+### شواهد و شکست‌های Harness
+- Artifact [`woocommerce-acceptance-40282881621`](https://github.com/ashti-dev/didbarttar/actions/runs/40282881621/artifacts/12632373652) با ۷ فایل و 908419 بایت ثبت شد؛ شامل JSON نتایج، Screenshotهای Checkout/Thank-you، موبایل، PDF چاپ و Logها. مهلت نگه‌داری ۷ روز و SHA256 بسته: `41f5c521c0ba28f1ec40ccddcf531b5405d97fef839b86d0f60a0a98cab88055`.
+- دانلود Artifact در Sandbox با EOF محدود شد؛ بنابراین وجود و متادیتای آن تأیید شده، اما **Visual Review دستی تصاویر/PDF در این نشست انجام نشده است**.
+- شکست‌های پیش از Run سبز در Harness رفع شدند: ناسازگاری WordPress 6.8.11 با حداقل WordPress 7.0 ووکامرس، انتظار Visibility برای Radio استایل‌شدهٔ COD، و تفاوت Woo 11 در قرار دادن Variation داخل نام قلم به‌جای Meta تکراری. این سه مورد به‌عنوان باگ قالب ثبت نشدند.
+
+### مرز نتیجه
+- این PASS فقط سناریوی Chromium و Classic در بالاست؛ ماتریس کامل وضعیت‌ها، سایر مرورگرها، Gateway Sandbox/واقعی، کوپن/مالیات، دانلود/Refund، ارسال ایمیل، axe، CWV و تست Staging/Production انجام نشده است.
+- Artifactها ساخته شده‌اند اما بازبینی دستی بصری هنوز باز است. **Production همچنان NO-GO است** و این Run به‌تنهایی مجوز انتشار نیست.
