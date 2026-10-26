@@ -612,7 +612,7 @@ final class TT_Settings {
 			}
 			$raw            = isset( $input[ $key ] ) ? $input[ $key ] : '';
 			$output[ $key ] = ( 'repeater' === $field['type'] )
-				? $this->sanitize_repeater( $raw, $field )
+				? $this->sanitize_repeater( $raw, $field, array_key_exists( $key, $stored ) ? $stored[ $key ] : array() )
 				: $this->sanitize_value( $raw, $field );
 		}
 		return $output;
@@ -679,18 +679,25 @@ final class TT_Settings {
 	 *
 	 * Every row is filtered sub-field by sub-field with the same rules as a
 	 * flat field, rows that end up completely empty are dropped, and the list
-	 * is re-indexed so the stored option is always a clean 0..n array.
+	 * is re-indexed so the stored option is always a clean 0..n array. A
+	 * declared "max" is enforced here too, not only in the browser. Existing
+	 * legacy overflow is allowed to shrink or stay unchanged, but cannot grow;
+	 * this avoids silently deleting old rows merely by saving the form.
 	 *
-	 * @param mixed $raw   Submitted rows.
-	 * @param array $field Repeater definition; needs "subfields".
+	 * @param mixed $raw    Submitted rows.
+	 * @param array $field  Repeater definition; needs "subfields".
+	 * @param mixed $stored Currently stored rows, used only for legacy overflow.
 	 * @return array
 	 */
-	private function sanitize_repeater( $raw, array $field ) {
+	private function sanitize_repeater( $raw, array $field, $stored = array() ) {
 		$subfields = isset( $field['subfields'] ) && is_array( $field['subfields'] ) ? $field['subfields'] : array();
 		if ( ! $subfields || ! is_array( $raw ) ) {
 			return array();
 		}
-		$rows = array();
+		$max          = isset( $field['max'] ) ? (int) $field['max'] : 0;
+		$stored_count = is_array( $stored ) ? count( $stored ) : 0;
+		$limit        = $max > 0 ? max( $max, $stored_count ) : 0;
+		$rows         = array();
 		foreach ( array_values( $raw ) as $row ) {
 			if ( ! is_array( $row ) ) {
 				continue;
@@ -707,6 +714,9 @@ final class TT_Settings {
 			}
 			if ( $not_empty ) {
 				$rows[] = $clean;
+				if ( $limit > 0 && count( $rows ) >= $limit ) {
+					break;
+				}
 			}
 		}
 		return $rows;
@@ -1134,10 +1144,12 @@ final class TT_Settings {
 		if ( ! $subfields ) {
 			return;
 		}
-		$rows   = is_array( $value ) ? array_values( $value ) : array();
-		$rows[] = array(); // Trailing blank row = the no-JavaScript way to add a row.
-		$base   = 'torantejarat_' . $tab_key . '[' . $key . ']';
-		$max    = isset( $field['max'] ) ? (int) $field['max'] : 0;
+		$rows = is_array( $value ) ? array_values( $value ) : array();
+		$max  = isset( $field['max'] ) ? (int) $field['max'] : 0;
+		if ( $max < 1 || count( $rows ) < $max ) {
+			$rows[] = array(); // Trailing blank row = the no-JavaScript way to add a row.
+		}
+		$base = 'torantejarat_' . $tab_key . '[' . $key . ']';
 		?>
 		<div class="tt-field tt-field-repeater" id="ttf-<?php echo esc_attr( $tab_key . '-' . $key ); ?>" data-tt-repeater data-tt-max="<?php echo esc_attr( (string) $max ); ?>">
 			<div class="tt-repeater-head">

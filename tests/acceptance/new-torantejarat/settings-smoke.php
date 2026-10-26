@@ -52,6 +52,24 @@ function torantejarat_ci_settings_assert( $condition, $message ) {
 }
 
 /**
+ * Build deterministic, non-empty FAQ rows for boundary checks.
+ *
+ * @param int    $count  Number of rows.
+ * @param string $prefix Value prefix.
+ * @return array<int,array{q:string,a:string}>
+ */
+function torantejarat_ci_settings_faq_rows( $count, $prefix = 'CI' ) {
+	$rows = array();
+	for ( $index = 0; $index < $count; ++$index ) {
+		$rows[] = array(
+			'q' => $prefix . '-Q-' . $index,
+			'a' => $prefix . '-A-' . $index,
+		);
+	}
+	return $rows;
+}
+
+/**
  * Run one named check and keep executing the remaining independent checks.
  *
  * @param string   $name     Check name.
@@ -118,11 +136,88 @@ torantejarat_ci_settings_run(
 	}
 );
 
+torantejarat_ci_settings_run(
+	'FAQ sanitizer caps new rows at twelve without deleting legacy overflow',
+	static function () {
+		torantejarat_ci_settings_register();
+		$empty_home_filter = static function () {
+			return array();
+		};
+		add_filter( 'pre_option_torantejarat_home', $empty_home_filter );
+		try {
+			$clean = sanitize_option(
+				'torantejarat_home',
+				array(
+					'_tt_scope' => array( 'faq' ),
+					'faq'       => torantejarat_ci_settings_faq_rows( 13 ),
+				)
+			);
+		} finally {
+			remove_filter( 'pre_option_torantejarat_home', $empty_home_filter );
+		}
+		torantejarat_ci_settings_assert( isset( $clean['faq'] ) && is_array( $clean['faq'] ), 'Sanitized FAQ value is missing.' );
+		torantejarat_ci_settings_assert( 12 === count( $clean['faq'] ), 'A new thirteen-row submission was not capped at twelve.' );
+		torantejarat_ci_settings_assert( range( 0, 11 ) === array_keys( $clean['faq'] ), 'FAQ rows were not re-indexed cleanly.' );
+		torantejarat_ci_settings_assert( 'CI-Q-11' === $clean['faq'][11]['q'], 'The twelfth row was not preserved.' );
+
+		$legacy_rows   = torantejarat_ci_settings_faq_rows( 13, 'LEGACY' );
+		$legacy_filter = static function () use ( $legacy_rows ) {
+			return array( 'faq' => $legacy_rows );
+		};
+		add_filter( 'pre_option_torantejarat_home', $legacy_filter );
+		try {
+			$legacy_input   = $legacy_rows;
+			$legacy_input[] = array( 'q' => 'EXTRA-Q', 'a' => 'EXTRA-A' );
+			$legacy_clean   = sanitize_option(
+				'torantejarat_home',
+				array(
+					'_tt_scope' => array( 'faq' ),
+					'faq'       => $legacy_input,
+				)
+			);
+		} finally {
+			remove_filter( 'pre_option_torantejarat_home', $legacy_filter );
+		}
+		torantejarat_ci_settings_assert( 13 === count( $legacy_clean['faq'] ), 'Saving legacy overflow silently deleted an existing row.' );
+		torantejarat_ci_settings_assert( 'LEGACY-Q-12' === $legacy_clean['faq'][12]['q'], 'The existing legacy row was not preserved.' );
+	}
+);
+
+torantejarat_ci_settings_run(
+	'FAQ renderer adds a trailing blank row only below the cap',
+	static function () {
+		torantejarat_ci_settings_register();
+		$settings = ToranTejarat\Theme\TT_Settings::get_instance();
+		$property = new ReflectionProperty( 'ToranTejarat\\Theme\\TT_Settings', 'schema' );
+		$property->setAccessible( true );
+		$schema = $property->getValue( $settings );
+		$field  = $schema['home']['fields']['faq'];
+		$method = new ReflectionMethod( 'ToranTejarat\\Theme\\TT_Settings', 'render_repeater_field' );
+		$method->setAccessible( true );
+		$render = static function ( array $rows ) use ( $method, $settings, $field ) {
+			ob_start();
+			try {
+				$method->invoke( $settings, 'home', 'faq', $field, $rows );
+				return ob_get_clean();
+			} catch ( Throwable $error ) {
+				ob_end_clean();
+				throw $error;
+			}
+		};
+		$below = $render( torantejarat_ci_settings_faq_rows( 11 ) );
+		$at_cap = $render( torantejarat_ci_settings_faq_rows( 12 ) );
+		$legacy = $render( torantejarat_ci_settings_faq_rows( 13, 'LEGACY' ) );
+		torantejarat_ci_settings_assert( 12 === substr_count( $below, 'class="tt-repeater-row"' ), 'Below-cap form lost its no-JavaScript blank row.' );
+		torantejarat_ci_settings_assert( 12 === substr_count( $at_cap, 'class="tt-repeater-row"' ), 'At-cap form rendered an editable thirteenth row.' );
+		torantejarat_ci_settings_assert( 13 === substr_count( $legacy, 'class="tt-repeater-row"' ), 'Legacy rows were hidden or a fourteenth blank row was added.' );
+	}
+);
+
 $torantejarat_ci_settings_state = $GLOBALS['torantejarat_ci_settings_state'];
 if ( $torantejarat_ci_settings_state['failed'] ) {
 	WP_CLI::error( 'Settings smoke failed: ' . implode( ' | ', $torantejarat_ci_settings_state['failed'] ) );
 }
-if ( 2 !== $torantejarat_ci_settings_state['passed'] ) {
-	WP_CLI::error( 'Settings smoke expected 2 passing checks, got ' . $torantejarat_ci_settings_state['passed'] . '.' );
+if ( 4 !== $torantejarat_ci_settings_state['passed'] ) {
+	WP_CLI::error( 'Settings smoke expected 4 passing checks, got ' . $torantejarat_ci_settings_state['passed'] . '.' );
 }
 WP_CLI::success( 'Settings smoke: ' . $torantejarat_ci_settings_state['passed'] . ' checks passed; no database writes.' );
