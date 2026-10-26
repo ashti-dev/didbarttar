@@ -779,3 +779,28 @@
 - حذف شامل `theme/` قدیمی، `tests/`, `.github/workflows/`, `wp-theme-agent-kit/`, CSVها و سایر فایل‌های ریشه است. هر ۱۲۷ فایل tracked داخل `new-torantejarat/`، از جمله همین لاگ، باقی مانده‌اند.
 - **نتیجهٔ جانبی تأییدشده:** Harness و Workflow Acceptance دیگر روی این برنچ موجود نیستند و Runهای قبلی، از جمله `40295922846`، شاهد تاریخی Commit خودشان محسوب می‌شوند؛ هیچ CI تازه‌ای پس از Cleanup ادعا نمی‌شود. برای اجرای دوبارهٔ تست باید فایل‌های لازم از تاریخچه بازیابی شوند.
 - محتوای Runtime قالب در این Cleanup تغییر نکرده است؛ تنها تغییر داخل پوشهٔ قالب، ثبت همین رویداد در `DEV-STATE.md` است. هیچ تغییری روی Production یا دادهٔ سایت انجام نشده و Production همچنان **NO-GO** است.
+
+## ADMIN-UX-001 — معماری و Wireframe بازطراحی پنل — 2026-10-26 — DESIGN DONE
+
+### قلمرو و خروجی
+- سند `ADMIN-REDESIGN.md` بر مبنای Commit `9862b90483818fbe132c767135effcdfdde33b82` تهیه شد. این مرحله فقط Audit و طراحی است؛ `ADMIN-UI-001` هنوز شروع نشده و هیچ PHP/CSS/JS یا Optionای تغییر نکرده است.
+- هر ۷ Tab و ۶۱ Field نگاشت شدند: `general=3`، `home=34`، `contact=7`، `social=4`، `footer=2`، `login=7` و `business=4`. برای Home نیز ۳۳ Scalar و یک FAQ Repeater جدا ثبت شد.
+- معماری پیشنهادی فاز ۱ شامل Dashboard نمایشی، همان هفت Option با Label روشن‌تر، ۱۷ Group دارای فیلد و Utility Route مستقل `general/publish` است. Dashboard و Publish عمداً Group خالی Schema نیستند تا Fallback رندر فعلی نتواند همهٔ فیلدها را ناخواسته در آن صفحه‌ها نشان دهد.
+- قرارداد `_tt_scope`، Settings API/`options.php`، Optionها، Defaults، Sanitizerها، Input Nameها و DOM IDها در طرح حفظ شده‌اند. Auto-save، AJAX Save، `localStorage`، Reset All و Import/Export در فاز اول نیستند.
+- نقشهٔ مصرف صفحهٔ اصلی، بخش‌های Copy را از دادهٔ بومی محصول/دسته/نوشته و فروش واقعی جدا می‌کند. کنترل‌های Typography، Range، Layout و Icon بدون مصرف Frontend صرفاً به‌خاطر شباهت به تصاویر اضافه نمی‌شوند.
+- مرز `login` و Account روشن شد: شش فیلد فقط `wp-login.php` را کنترل می‌کنند و `login_hide_register` علاوه بر آن، صفحهٔ سفارشی ثبت‌نام را نیز در بر می‌گیرد؛ این فیلدها کنترل Endpointهای حساب WooCommerce نیستند. گزارش بی‌استایل بودن Account در این مرحله علت‌یابی یا اصلاح نشده است.
+
+### تصمیم‌های کنترل و مسیر
+- طرح فاز ۱ Media + URL را فقط برای `login_logo` با ذخیرهٔ همان URL پیشنهاد می‌کند؛ حذف انتخاب، Attachment را حذف نمی‌کند و Fallback دستی/No-JS باقی می‌ماند. پیش از کدنویسی، API و Capability رسمی بررسی می‌شود.
+- Switchها نوع ذخیره را تغییر نمی‌دهند: `preview_note=yes/no` و Checkboxهای Login همان `0/1` باقی می‌مانند. FAQ به Card Repeater می‌رود، ولی ترتیب سه Slot و Fallback موقعیتی و سقف ۱۲ حفظ می‌شود و Drag/Drop فاز اول نیست.
+- مقصدهای جدید Readiness و Redirect حالت انتشار در سند نگاشت شده‌اند؛ لینک بومی ایمیلها دست‌نخورده می‌ماند. مسیر سفارش Woo/HPOS هنگام پیاده‌سازی بررسی می‌شود و URL حدسی ثبت نخواهد شد.
+- Design Tokenهای برند، Wireframe RTL، Drawer موبایل، Focus/Keyboard، Save Scope، Dirty-state و Acceptance مرحلهٔ بعد در همان سند مشخص شده‌اند. نسبت‌های جفت‌رنگ ثبت‌شده فقط محاسبهٔ ایستا هستند، نه گواهی WCAG یا نتیجهٔ Runtime.
+
+### اعتبارسنجی واقعی همین مرحله
+- یک اسکریپت Python موقت، سطرهای نگاشت سند را مستقیماً با Schema خوانده‌شده از `class-theme-settings.php` مقایسه کرد: **۶۱/۶۱ سطر، Missing=۰، Extra=۰، Duplicate=۰ و Type Mismatch=۰**. شمارش هر Tab نیز با Schema برابر بود.
+- نسبت Contrast جفت‌رنگ‌های پیشنهادی با محاسبهٔ Python بررسی شد؛ از جمله متن تیره روی نارنجی `5.94:1` و متن `#50575e` روی سفید `7.33:1`. این محاسبه جای axe، Visual Review یا تست مرورگر را نمی‌گیرد.
+- هیچ Runtime/WordPress/Browser Test یا CI تازه‌ای اجرا نشده است. Harness و Workflow پس از `REPO-CLEANUP-001` در Tree فعلی نیستند و نتایج Runهای قبلی فقط تاریخی‌اند؛ Production همچنان **NO-GO** است.
+
+### ادامه
+- مرحلهٔ بعد `ADMIN-UI-001` است: Shell و کنترل‌های نگاشت‌شده در Commitهای کوچک، با حفظ قرارداد ذخیره و برنامهٔ تست ثبت‌شده در `ADMIN-REDESIGN.md`.
+- بررسی Account روی هاست به مسیر مستقل و URL/Screenshot بخش آسیب‌دیده نیاز دارد و نباید با بازطراحی پنل ترکیب شود.
