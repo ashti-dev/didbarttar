@@ -603,3 +603,22 @@
 ### مرز نتیجه
 - این PASS فقط سناریوی Chromium و Classic در بالاست؛ ماتریس کامل وضعیت‌ها، سایر مرورگرها، Gateway Sandbox/واقعی، کوپن/مالیات، دانلود/Refund، ارسال ایمیل، axe، CWV و تست Staging/Production انجام نشده است.
 - Artifactها ساخته شده‌اند اما بازبینی دستی بصری هنوز باز است. **Production همچنان NO-GO است** و این Run به‌تنهایی مجوز انتشار نیست.
+
+## SET-FIX-001 — حذف دادهٔ فرضی از Schema سازمان — 2026-10-26 — DONE
+
+### وضعیت و قلمرو
+- **انجام شد؛ اجرای بعدی نباید این مورد را دوباره اصلاح کند.** مقدار پیش‌فرض `business.city` و `business.price_range` خالی شد و گزینهٔ «نامشخص — در Schema نمایش داده نشود» به محدودهٔ قیمت اضافه شد.
+- `inc/schema/class-org-schema.php` دیگر برای شهر و محدودهٔ قیمت Fallback فرضی `تهران` / `$$` ندارد. با نبود دادهٔ واقعی، `addressLocality` و `priceRange` در JSON-LD ساخته نمی‌شوند؛ اگر هیچ شهر یا نشانی واقعی وجود نداشته باشد، بلوک `address` نیز حذف می‌شود.
+- هیچ Option یا دادهٔ ذخیره‌شده‌ای Migrate، حذف یا بازنویسی نشد. مقدار واقعیِ قبلاً ذخیره‌شده حفظ می‌شود و فقط Default/Fallback و انتخاب مقدار خالی تغییر کرده است.
+- Commit اصلی: `c7d0eca400aa8323597249e804f6cab7ca9d2216` (`fix(schema): omit unknown business metadata`). Commit اصلاح گزارش‌دهی تست: `d0faa1c33808d341eee2905dcbce336ce777a391` (`test(settings): preserve smoke result state`). هر دو روی همین برنچ Push شده‌اند.
+
+### تست واقعی و شاهد
+- تست ماندگار `tests/acceptance/new-torantejarat/settings-smoke.php` به Fixture ایزوله متصل شد؛ فقط WP-CLI روی `localhost/127.0.0.1` و `local/development` اجرا می‌شود و برای Schema از `pre_option` موقت استفاده می‌کند، نه نوشتن DB.
+- Run نهایی [`40285191452`](https://github.com/ashti-dev/didbarttar/actions/runs/40285191452) روی `d0faa1c33808d341eee2905dcbce336ce777a391` و Job `121447059691`: **SUCCESS**؛ PHP Lint و Fatal-check سبز، هر ۱۲ Browser Check قبلی سبز و **۲/۲ Settings Check** سبز.
+- دو Assertion: (۱) مقدار خالی `city` و `price_range` پس از Sanitization حفظ می‌شود؛ (۲) با Option تزریقی حاوی نام واقعی تست ولی شهر/قیمت خالی، `build()` هیچ `address` و `priceRange` نمی‌سازد.
+- Run قبلی `40284949590` نیز Assertionها را سبز کرد، اما شمارندهٔ Harness به‌علت Scope در `wp eval-file` صفر گزارش کرد؛ در `d0faa1c` وضعیت به `$GLOBALS` منتقل شد و Run نهایی صراحتاً `Settings smoke: 2 checks passed; no database writes.` را ثبت کرد. Run قبلی به‌تنهایی شاهد نهایی نیست.
+- Artifact جدید دانلود و Visual Review نشده است. این نتیجه تست Staging/Production، SEO خارجی یا مجوز انتشار نیست.
+
+### صف ادامه
+- `SET-FIX-002`: اعمال واقعی سقف Repeater در Server و جلوگیری از ردیف خالی اضافه در سقف — **PENDING**.
+- `SET-FIX-003`: هدایت موارد ایمیل Readiness به صفحهٔ واقعی اصلاح — **PENDING**.
