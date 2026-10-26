@@ -141,10 +141,10 @@ try {
   const thankyouText = await page.locator('.torantejarat-thx').innerText();
   assert.ok(thankyouText.includes(fixture.simpleName));
   assert.ok(thankyouText.includes(fixture.variableName));
-  const itemMeta = page.locator('.torantejarat-thx__item .wc-item-meta');
-  await itemMeta.first().waitFor({ state: 'visible' });
-  const itemMetaText = (await itemMeta.allInnerTexts()).join('\n');
-  assert.ok(itemMetaText.includes('10 m'), `Selected variation meta is missing: ${itemMetaText}`);
+  const variableItem = page.locator('.torantejarat-thx__item').filter({ hasText: fixture.variableName });
+  assert.equal(await variableItem.count(), 1, 'Variable order item is missing');
+  const variableItemText = await variableItem.innerText();
+  assert.ok(variableItemText.includes('10 m'), `Selected variation is missing from its name/meta: ${variableItemText}`);
   assert.ok(thankyouText.includes('ci-buyer@example.test'));
   assert.ok(thankyouText.includes('این سفارش فقط در محیط آزمایشی GitHub Actions ثبت شده است.'));
   assert.ok((await page.locator('.torantejarat-thx__row').count()) >= 3);
@@ -154,7 +154,7 @@ try {
   assert.equal(await page.locator('.torantejarat-print-invoice').count(), 1);
   assert.equal(await page.locator('.torantejarat-print-invoice').isHidden(), true);
   await page.screenshot({ path: path.join(resultsDir, 'thankyou-desktop.png'), fullPage: true, animations: 'disabled' });
-  passed('Thank-you renders items, variation meta, totals, gateway instructions and honest COD status');
+  passed('Thank-you renders items, selected variation, totals, gateway instructions and honest COD status');
 
   await page.setViewportSize({ width: 390, height: 844 });
   const dimensions = await page.evaluate(() => ({
