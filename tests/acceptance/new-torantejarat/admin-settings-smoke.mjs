@@ -139,7 +139,9 @@ export async function runAdminSettingsSmoke({ browser, fixture, resultsDir, resu
     setThemeOption('login', { login_title: 'CI-SEED-LOGIN', login_hide_register: 0, login_hide_lostpassword: 0 });
     setThemeOption('business', { business_name: 'CI-SEED-BUSINESS', business_type: 'Store', city: 'CI-SEED-CITY', price_range: '' });
 
-    await goto(new URL('wp-admin/', fixture.baseUrl).href, 'Admin dashboard');
+    // The fixture router maps directory-only /wp-admin/ to the front page;
+    // request the real PHP file so core can authenticate and redirect normally.
+    await goto(new URL('wp-admin/index.php', fixture.baseUrl).href, 'Admin dashboard');
     if (page.url().includes('wp-login.php')) {
       await page.locator('#user_login').fill('ci_admin');
       await page.locator('#user_pass').fill(adminPassword);
