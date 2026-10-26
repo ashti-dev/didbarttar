@@ -223,7 +223,7 @@ function torantejarat_panel_search_index( array $schema ) {
  * changes no sanitize, nonce or $schema rule. An empty list means
  * «آماده انتشار».
  *
- * @return array<int,array{label:string,section:string,sub:string}>
+ * @return array<int,array{label:string,section:string,sub:string,url?:string}>
  */
 function torantejarat_panel_readiness() {
 	$items   = array();
@@ -270,10 +270,20 @@ function torantejarat_panel_readiness() {
 
 	// Placeholder sender addresses (read-only — never changed here).
 	if ( 'admin@example.com' === (string) get_option( 'admin_email', '' ) ) {
-		$items[] = array( 'label' => 'ایمیل مدیر سایت (admin_email) روی مقدار نمونه است', 'section' => 'general', 'sub' => '' );
+		$items[] = array(
+			'label'   => 'ایمیل مدیر سایت (admin_email) روی مقدار نمونه است',
+			'section' => 'general',
+			'sub'     => '',
+			'url'     => admin_url( 'options-general.php' ),
+		);
 	}
 	if ( 'admin@example.com' === (string) get_option( 'woocommerce_email_from_address', '' ) ) {
-		$items[] = array( 'label' => 'ایمیل فرستندهٔ ووکامرس روی مقدار نمونه است', 'section' => 'general', 'sub' => '' );
+		$items[] = array(
+			'label'   => 'ایمیل فرستندهٔ ووکامرس روی مقدار نمونه است',
+			'section' => 'general',
+			'sub'     => '',
+			'url'     => admin_url( 'admin.php?page=wc-settings&tab=email' ),
+		);
 	}
 
 	// Publish mode: either half of preview means the site is not fully public.
@@ -302,4 +312,23 @@ function torantejarat_panel_readiness() {
 	}
 
 	return $items;
+}
+
+/**
+ * Resolve the corrective destination for one readiness item.
+ *
+ * Most items open a field group inside the theme panel. Items backed by a
+ * native WordPress/WooCommerce option can provide an explicit URL instead, so
+ * the user is not sent to an unrelated theme section.
+ *
+ * @param array $item Readiness item from torantejarat_panel_readiness().
+ * @return string
+ */
+function torantejarat_panel_readiness_url( array $item ) {
+	if ( ! empty( $item['url'] ) ) {
+		return (string) $item['url'];
+	}
+	$section = isset( $item['section'] ) ? (string) $item['section'] : 'general';
+	$sub     = isset( $item['sub'] ) ? (string) $item['sub'] : '';
+	return admin_url( 'admin.php?page=torantejarat-settings&section=' . $section . ( $sub ? '&sub=' . $sub : '' ) );
 }

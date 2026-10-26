@@ -824,7 +824,7 @@ final class TT_Settings {
 					<ul class="tt-ready-list">
 						<?php foreach ( $ready as $item ) : ?>
 							<li>
-								<a href="<?php echo esc_url( admin_url( 'admin.php?page=torantejarat-settings&section=' . $item['section'] . ( $item['sub'] ? '&sub=' . $item['sub'] : '' ) ) ); ?>">
+								<a href="<?php echo esc_url( torantejarat_panel_readiness_url( $item ) ); ?>">
 									<?php echo esc_html( $item['label'] ); ?>
 								</a>
 							</li>

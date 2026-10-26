@@ -213,11 +213,58 @@ torantejarat_ci_settings_run(
 	}
 );
 
+torantejarat_ci_settings_run(
+	'readiness email items resolve to their native corrective pages',
+	static function () {
+		$values = array(
+			'admin_email'                    => 'admin@example.com',
+			'woocommerce_email_from_address' => 'admin@example.com',
+			'torantejarat_contact'           => array(),
+			'torantejarat_general'           => array(),
+			'torantejarat_social'            => array(),
+			'woocommerce_coming_soon'        => 'no',
+			'blog_public'                    => '1',
+		);
+		$filters = array();
+		foreach ( $values as $option => $value ) {
+			$filters[ $option ] = static function () use ( $value ) {
+				return $value;
+			};
+			add_filter( 'pre_option_' . $option, $filters[ $option ] );
+		}
+		try {
+			torantejarat_ci_settings_assert( function_exists( 'ToranTejarat\\Theme\\torantejarat_panel_readiness' ), 'Readiness source is not loaded.' );
+			$items = ToranTejarat\Theme\torantejarat_panel_readiness();
+		} finally {
+			foreach ( $filters as $option => $filter ) {
+				remove_filter( 'pre_option_' . $option, $filter );
+			}
+		}
+		torantejarat_ci_settings_assert( 2 === count( $items ), 'The isolated readiness fixture should contain only two email items.' );
+		$admin_item = null;
+		$woo_item   = null;
+		foreach ( $items as $item ) {
+			if ( false !== strpos( $item['label'], 'admin_email' ) ) {
+				$admin_item = $item;
+			}
+			if ( false !== strpos( $item['label'], 'فرستنده' ) ) {
+				$woo_item = $item;
+			}
+		}
+		torantejarat_ci_settings_assert( is_array( $admin_item ) && is_array( $woo_item ), 'Email readiness items were not identified.' );
+		torantejarat_ci_settings_assert( function_exists( 'ToranTejarat\\Theme\\torantejarat_panel_readiness_url' ), 'Readiness URL resolver is missing.' );
+		torantejarat_ci_settings_assert( admin_url( 'options-general.php' ) === ToranTejarat\Theme\torantejarat_panel_readiness_url( $admin_item ), 'Admin email item does not lead to WordPress general settings.' );
+		torantejarat_ci_settings_assert( admin_url( 'admin.php?page=wc-settings&tab=email' ) === ToranTejarat\Theme\torantejarat_panel_readiness_url( $woo_item ), 'WooCommerce sender item does not lead to WooCommerce email settings.' );
+		$internal = array( 'section' => 'home', 'sub' => 'faq' );
+		torantejarat_ci_settings_assert( admin_url( 'admin.php?page=torantejarat-settings&section=home&sub=faq' ) === ToranTejarat\Theme\torantejarat_panel_readiness_url( $internal ), 'Internal readiness links lost their existing destination.' );
+	}
+);
+
 $torantejarat_ci_settings_state = $GLOBALS['torantejarat_ci_settings_state'];
 if ( $torantejarat_ci_settings_state['failed'] ) {
 	WP_CLI::error( 'Settings smoke failed: ' . implode( ' | ', $torantejarat_ci_settings_state['failed'] ) );
 }
-if ( 4 !== $torantejarat_ci_settings_state['passed'] ) {
-	WP_CLI::error( 'Settings smoke expected 4 passing checks, got ' . $torantejarat_ci_settings_state['passed'] . '.' );
+if ( 5 !== $torantejarat_ci_settings_state['passed'] ) {
+	WP_CLI::error( 'Settings smoke expected 5 passing checks, got ' . $torantejarat_ci_settings_state['passed'] . '.' );
 }
 WP_CLI::success( 'Settings smoke: ' . $torantejarat_ci_settings_state['passed'] . ' checks passed; no database writes.' );
