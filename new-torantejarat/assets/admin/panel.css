@@ -1,628 +1,1008 @@
-/**
- * Settings panel styling — BellcoCam (بلکوکم) theme.
- *
- * Scope: ONLY the theme settings screen, body class
- * `toplevel_page_torantejarat-settings`. All selectors are prefixed `tt-` so
- * nothing here can leak into the rest of wp-admin.
- *
- * This file replaced the inline stylesheet that used to be printed by
- * TT_Settings::get_admin_css(); the rules were moved here unchanged and the
- * layout was extended with the sidebar tree.
- *
- * State accent: #b34700 (dark orange) for anything that carries meaning —
- * active tab/sub text and icons, the active bar and the jump bar. Contrast on
- * white 5.5:1, on #fff5ef 5.12:1.
- * Brand: #f77b3e (2.67:1 on white) is not used for text on white — it remains
- * on section/card icons and hover flourishes. Brand-filled buttons use dark
- * text (#1d2327, 5.94:1) instead of white.
+/*
+ * Toran Tejarat settings shell.
+ * Scoped to this screen; option values and front-end styles are independent.
  */
-
-/* ---------------------------------------------------------------- layout -- */
-.tt-wrap {
-	max-width: 1180px;
-	margin-inline-end: 20px;
+.tt-panel {
+	--tt-ink: #182237;
+	--tt-muted: #5c667a;
+	--tt-line: #dfe4ec;
+	--tt-soft: #f4f6fa;
+	--tt-paper: #fff;
+	--tt-sidebar: #121b31;
+	--tt-sidebar-soft: #1d2944;
+	--tt-sidebar-text: #dbe2ef;
+	--tt-accent: #b84e20;
+	--tt-accent-bright: #ed8147;
+	--tt-accent-soft: #fff1e9;
+	--tt-focus: #175cd3;
+	background: var(--tt-soft);
+	border: 1px solid var(--tt-line);
+	border-radius: 18px;
+	box-shadow: 0 12px 34px rgba(18, 27, 49, 0.07);
+	color: var(--tt-ink);
+	direction: rtl;
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Tahoma, sans-serif;
+	margin: 16px auto;
+	max-width: 1600px;
+	min-width: 0;
+	overflow: clip;
 }
 
+.tt-panel *,
+.tt-panel *::before,
+.tt-panel *::after {
+	box-sizing: border-box;
+}
+
+.tt-panel a {
+	text-decoration: none;
+}
+
+.tt-panel button,
+.tt-panel input,
+.tt-panel select,
+.tt-panel textarea {
+	font: inherit;
+}
+
+.tt-panel :focus-visible {
+	outline: 3px solid var(--tt-focus);
+	outline-offset: 3px;
+}
+
+.tt-panel .dashicons {
+	flex: 0 0 auto;
+}
+
+/* Header, global search and page context */
 .tt-header {
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	gap: 16px;
-	padding: 20px 0 0;
-	border-bottom: 1px solid #dcdcde;
+	background: var(--tt-paper);
 }
 
-.tt-header h1 {
-	display: flex;
+.tt-header-main {
 	align-items: center;
-	gap: 8px;
-	font-size: 1.35rem;
-	margin: 0 0 16px;
+	display: grid;
+	gap: 20px;
+	grid-template-areas: "brand search actions";
+	grid-template-columns: auto minmax(220px, 1fr) auto;
+	padding: 18px 24px;
+}
+
+.tt-brand {
+	align-items: center;
+	display: flex;
+	gap: 12px;
+	grid-area: brand;
+	min-width: 210px;
+}
+
+.tt-brand-mark {
+	align-items: center;
+	background: var(--tt-sidebar);
+	border-radius: 12px;
+	color: #fff;
+	display: inline-flex;
+	font-size: 23px;
+	height: 44px;
+	justify-content: center;
+	padding: 10px;
+	width: 44px;
+}
+
+.tt-brand h1 {
+	color: var(--tt-ink);
+	font-size: 19px;
+	font-weight: 750;
+	line-height: 1.4;
+	margin: 0;
+	padding: 0;
 }
 
 .tt-version {
-	font-size: 0.75rem;
-	font-weight: 400;
-	color: #646970;
-	background: #f0f0f1;
-	border-radius: 10px;
-	padding: 2px 8px;
-	line-height: 1.6;
+	color: var(--tt-muted);
+	font-size: 10px;
+	font-weight: 500;
+	margin-inline-start: 5px;
+	vertical-align: middle;
 }
 
-/*
- * Sidebar on the physical RIGHT, independent of the admin locale: the flex
- * container is forced LTR so `row-reverse` is deterministic, while the two
- * children re-declare rtl for their own text.
- */
-.tt-layout {
-	display: flex;
-	flex-direction: row-reverse;
-	align-items: flex-start;
-	gap: 20px;
-	direction: ltr;
-	padding-top: 16px;
+.tt-brand p {
+	color: var(--tt-muted);
+	font-size: 12px;
+	margin: 2px 0 0;
 }
 
-.tt-sidebar {
-	flex: 0 0 250px;
-	width: 250px;
-	direction: rtl;
-}
-
-.tt-main {
-	flex: 1 1 auto;
+.tt-search {
+	grid-area: search;
+	margin-inline: auto;
+	max-width: 620px;
 	min-width: 0;
-	direction: rtl;
+	position: relative;
+	width: 100%;
 }
 
-/* ------------------------------------------------------------- nav tree -- */
-.tt-nav {
+.tt-search > .dashicons {
+	color: var(--tt-muted);
+	inset-inline-start: 13px;
+	pointer-events: none;
+	position: absolute;
+	top: 50%;
+	transform: translateY(-50%);
+	z-index: 1;
+}
+
+.tt-panel .tt-search-input {
+	background: var(--tt-soft);
+	border: 1px solid transparent;
+	border-radius: 10px;
+	box-shadow: none;
+	color: var(--tt-ink);
+	height: 44px;
+	margin: 0;
+	padding: 8px 40px 8px 14px;
+	width: 100%;
+}
+
+.tt-panel .tt-search-input:focus {
+	background: var(--tt-paper);
+	border-color: var(--tt-focus);
+	box-shadow: none;
+}
+
+.tt-search-results {
+	background: var(--tt-paper);
+	border: 1px solid var(--tt-line);
+	border-radius: 12px;
+	box-shadow: 0 18px 40px rgba(18, 27, 49, 0.18);
+	inset-inline: 0;
+	list-style: none;
+	margin: 8px 0 0;
+	max-height: min(420px, 65vh);
+	overflow-y: auto;
+	padding: 6px;
+	position: absolute;
+	top: 100%;
+	z-index: 10001;
+}
+
+.tt-search-item {
+	border-radius: 8px;
+	cursor: pointer;
+	line-height: 1.8;
+	margin: 0;
+	padding: 10px 12px;
+}
+
+.tt-search-item:hover,
+.tt-search-item.is-active {
+	background: var(--tt-accent-soft);
+	color: #7d3212;
+}
+
+.tt-search-empty {
+	color: var(--tt-muted);
+	margin: 0;
+	padding: 12px;
+}
+
+.tt-header-actions {
+	align-items: center;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	grid-area: actions;
+	justify-content: flex-end;
+}
+
+.tt-panel .button,
+.tt-panel .button-primary,
+.tt-panel .button-secondary {
+	align-items: center;
+	border-radius: 8px;
+	display: inline-flex;
+	font-weight: 600;
+	gap: 6px;
+	justify-content: center;
+	line-height: 1.4;
+	min-height: 36px;
+	padding: 7px 14px;
+}
+
+.tt-panel .button-primary {
+	background: var(--tt-accent);
+	border-color: var(--tt-accent);
+	box-shadow: none;
+	color: #fff;
+	text-shadow: none;
+}
+
+.tt-panel .button-primary:hover,
+.tt-panel .button-primary:focus {
+	background: #963b14;
+	border-color: #963b14;
+	color: #fff;
+}
+
+.tt-view-site,
+.tt-save-top {
+	white-space: nowrap;
+}
+
+.tt-nav-toggle {
+	display: none;
+}
+
+.tt-contextbar {
+	align-items: center;
+	background: #fbfcfe;
+	border-bottom: 1px solid var(--tt-line);
+	border-top: 1px solid var(--tt-line);
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px 20px;
+	justify-content: space-between;
+	min-height: 43px;
+	padding: 9px 24px;
+}
+
+.tt-context-path {
+	align-items: center;
+	color: var(--tt-muted);
+	display: flex;
+	flex-wrap: wrap;
+	font-size: 12px;
+	gap: 7px;
+}
+
+.tt-context-path span:last-child {
+	color: #344054;
+	font-weight: 600;
+}
+
+.tt-dirty-status {
+	color: var(--tt-muted);
+	font-size: 12px;
+	line-height: 1.7;
+}
+
+.tt-panel.tt-has-dirty .tt-dirty-status {
+	color: #8a3512;
+	font-weight: 650;
+}
+
+/* Existing readiness data; no synthetic status is introduced. */
+.tt-readiness {
+	align-items: flex-start;
+	background: #fff;
+	border-bottom: 1px solid var(--tt-line);
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px 18px;
+	padding: 11px 24px;
+}
+
+.tt-ready-ok,
+.tt-ready-title {
+	align-items: center;
+	display: inline-flex;
+	font-size: 12px;
+	font-weight: 650;
+	gap: 6px;
+	line-height: 1.8;
+}
+
+.tt-ready-ok {
+	color: #176b37;
+}
+
+.tt-ready-title {
+	color: #8a3512;
+}
+
+.tt-ready-list {
+	display: flex;
+	flex: 1 1 420px;
+	flex-wrap: wrap;
+	gap: 5px 14px;
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+.tt-ready-list li {
+	margin: 0;
+}
+
+.tt-ready-list a {
+	color: #8a3512;
+	font-size: 11px;
+	text-decoration: underline;
+	text-underline-offset: 3px;
+}
+
+/* Navigation */
+.tt-layout {
+	align-items: start;
+	display: grid;
+	grid-template-columns: 252px minmax(0, 1fr);
+	min-width: 0;
+}
+
+.tt-sidebar-shell {
+	align-self: stretch;
+	background: var(--tt-sidebar);
+	color: var(--tt-sidebar-text);
+	min-width: 0;
+	padding: 20px 14px;
+}
+
+.tt-sidebar-head {
+	align-items: center;
+	display: flex;
+	justify-content: space-between;
+	margin: 0 8px 12px;
+	min-height: 28px;
+}
+
+.tt-sidebar-head > span {
+	color: #f7f9fc;
+	font-size: 13px;
+	font-weight: 700;
+}
+
+.tt-sidebar-close {
+	color: #fff;
+}
+
+.tt-nav,
+.tt-subnav {
 	list-style: none;
 	margin: 0;
 	padding: 0;
 }
 
 .tt-nav-item {
-	margin: 0 0 2px;
+	margin: 3px 0;
 }
 
-.tt-nav-link {
-	display: flex;
+.tt-nav a {
 	align-items: center;
-	gap: 8px;
+	border-radius: 9px;
+	color: var(--tt-sidebar-text);
+	display: flex;
+	font-size: 13px;
+	gap: 11px;
+	line-height: 1.6;
+	min-height: 43px;
 	padding: 10px 12px;
-	border: 1px solid transparent;
-	border-radius: 6px;
-	color: #1d2327;
-	text-decoration: none;
-	font-size: 0.9rem;
-	font-weight: 600;
-	line-height: 1.4;
+	position: relative;
+	transition: background-color 140ms ease, color 140ms ease;
 }
 
-.tt-nav-link:hover,
-.tt-nav-link:focus {
-	background: #f0f0f1;
-	color: #1d2327;
-}
-
-.tt-nav-link .dashicons {
+.tt-nav a .dashicons {
+	color: #9eabc1;
 	font-size: 18px;
-	width: 18px;
 	height: 18px;
-	color: #646970;
+	width: 18px;
 }
 
-.tt-nav-item.is-active > .tt-nav-link {
-	color: #b34700;
-	background: #fff;
-	border-color: #dcdcde;
-	box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+.tt-nav a:hover {
+	background: var(--tt-sidebar-soft);
+	color: #fff;
 }
 
-/* State indicators use the darker #b34700 (5.5:1 / 5.12:1). The brand orange
-   #f77b3e is 2.67:1 on white, so it is kept for decoration only (section and
-   card icons, hover flourishes) where the adjacent text carries the meaning. */
-.tt-nav-item.is-active > .tt-nav-link .dashicons {
-	color: #b34700;
+.tt-nav a[aria-current="page"] {
+	background: #2a3041;
+	color: #fff;
+	font-weight: 700;
 }
 
-/* One level deep only: sub-sections exist solely under their own parent. */
-.tt-subnav {
-	list-style: none;
-	margin: 4px 0 10px;
-	padding: 0;
-	border-inline-end: 2px solid #f0f0f1;
-}
-
-.tt-subnav-link {
-	display: flex;
-	align-items: center;
-	gap: 6px;
-	padding: 7px 10px;
-	margin: 0 6px 2px 0;
+.tt-nav > .tt-nav-item > a[aria-current="page"]::before {
+	background: var(--tt-accent-bright);
 	border-radius: 4px;
-	color: #50575e;
-	text-decoration: none;
-	font-size: 0.82rem;
-	line-height: 1.4;
+	content: "";
+	height: 24px;
+	inset-inline-start: 0;
+	position: absolute;
+	width: 3px;
 }
 
-.tt-subnav-link:hover,
-.tt-subnav-link:focus {
-	background: #f6f7f7;
-	color: #b34700;
+.tt-nav a[aria-current="page"] .dashicons {
+	color: #ffaf80;
 }
 
-.tt-subnav-link.is-active {
-	color: #b34700;
-	font-weight: 600;
-	background: #fff5ef;
-	box-shadow: inset 3px 0 0 #b34700;
+.tt-sidebar-shell :focus-visible {
+	outline-color: #ffc49f;
 }
 
-.tt-subnav-link.is-active .dashicons {
-	color: #b34700;
+.tt-subnav {
+	border-inline-start: 1px solid #3a455d;
+	margin: 4px 16px 10px;
+	padding-inline-start: 9px;
 }
 
-.tt-subnav-link .dashicons {
-	font-size: 16px;
-	width: 16px;
-	height: 16px;
+.tt-subnav > li {
+	margin: 2px 0;
 }
 
-/* ---------------------------------------------------------------- form --- */
-.tt-form {
-	background: #fff;
-	border: 1px solid #dcdcde;
-	border-radius: 3px;
-	padding: 24px;
+.tt-nav .tt-subnav a {
+	color: #b9c4d6;
+	font-size: 12px;
+	min-height: 35px;
+	padding: 7px 10px;
 }
 
-.tt-fields {
+.tt-nav .tt-subnav a[aria-current="page"] {
+	background: #222c43;
+	color: #ffd7bf;
+}
+
+.tt-nav-overlay {
+	background: rgba(10, 16, 29, 0.62);
+	border: 0;
+	border-radius: 0;
+	inset: 0;
+	margin: 0;
+	padding: 0;
+	position: fixed;
+	z-index: 9998;
+}
+
+/* Main pages, cards and native-content links */
+.tt-main {
+	min-width: 0;
+	padding: 28px;
+}
+
+.tt-page-heading {
+	margin-bottom: 24px;
+}
+
+.tt-page-heading h2,
+.tt-publish-mode > h2 {
+	align-items: center;
+	color: var(--tt-ink);
+	display: flex;
+	font-size: 22px;
+	font-weight: 750;
+	gap: 10px;
+	line-height: 1.5;
+	margin: 0;
+	padding: 0;
+}
+
+.tt-page-heading h2 .dashicons,
+.tt-publish-mode > h2 .dashicons {
+	color: var(--tt-accent);
+}
+
+.tt-page-heading p,
+.tt-overview-lead {
+	color: var(--tt-muted);
+	font-size: 13px;
+	line-height: 1.9;
+	margin: 7px 0 0;
+	max-width: 850px;
+}
+
+.tt-panel-section + .tt-panel-section {
+	margin-top: 30px;
+}
+
+.tt-section-heading {
+	margin-bottom: 13px;
+}
+
+.tt-section-heading h3 {
+	color: var(--tt-ink);
+	font-size: 15px;
+	margin: 0;
+}
+
+.tt-section-heading p {
+	color: var(--tt-muted);
+	font-size: 12px;
+	line-height: 1.8;
+	margin: 4px 0 0;
+}
+
+.tt-cards {
 	display: grid;
-	gap: 0;
+	gap: 14px;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	list-style: none;
+	margin: 0;
+	padding: 0;
 }
 
-.tt-field {
-	display: grid;
-	grid-template-columns: 180px minmax(0, 1fr);
-	gap: 16px;
-	align-items: start;
-	padding: 18px 0;
-	border-bottom: 1px solid #f0f0f1;
-}
-
-.tt-field:last-child {
-	border-bottom: none;
-}
-
-.tt-label {
-	font-weight: 600;
-	font-size: 0.875rem;
-	padding-top: 6px;
-	color: #1d2327;
-}
-
-.tt-control {
+.tt-cards > li {
+	display: flex;
+	margin: 0;
 	min-width: 0;
 }
 
-.tt-control input,
-.tt-control textarea {
-	width: 100% !important;
-}
-
-/* Machine-readable values stay LTR inside the rtl panel. */
-.tt-control input.code,
-.tt-control input[type="url"],
-.tt-control input[type="email"],
-.tt-control input[type="tel"],
-.tt-control input[type="number"],
-#tt-contact-whatsapp {
-	direction: ltr;
-	text-align: left;
-}
-
-/* Free text stays RTL, including the map embed snippet. */
-#tt-contact-map_embed {
-	direction: rtl;
-	text-align: start;
-}
-
-/* ------------------------------------------------------------ group head -- */
-.tt-group {
-	scroll-margin-top: 40px;
-}
-
-.tt-group + .tt-group {
-	margin-top: 10px;
-	padding-top: 10px;
-	border-top: 1px solid #dcdcde;
-}
-
-.tt-group-title {
+.tt-card-link {
+	align-items: flex-start;
+	background: var(--tt-paper);
+	border: 1px solid var(--tt-line);
+	border-radius: 12px;
+	color: var(--tt-ink);
 	display: flex;
-	align-items: center;
-	gap: 8px;
-	margin: 0;
-	padding: 6px 0 0;
-	font-size: 1rem;
-	font-weight: 600;
-	color: #1d2327;
+	flex: 1;
+	gap: 13px;
+	min-height: 112px;
+	padding: 18px;
+	transition: border-color 140ms ease, box-shadow 140ms ease;
 }
 
-.tt-group-title .dashicons {
-	color: #f77b3e;
-	font-size: 20px;
-	width: 20px;
-	height: 20px;
+.tt-card-link:hover {
+	border-color: #d89a79;
+	box-shadow: 0 8px 20px rgba(18, 27, 49, 0.06);
+	color: var(--tt-ink);
 }
 
-/* ------------------------------------------------------------- repeater -- */
-.tt-field-repeater {
-	grid-template-columns: 1fr;
-	gap: 8px;
+.tt-card-link > .dashicons {
+	background: var(--tt-accent-soft);
+	border-radius: 9px;
+	color: var(--tt-accent);
+	height: 36px;
+	padding: 9px;
+	width: 36px;
 }
 
-.tt-repeater-head {
+.tt-card-body {
 	display: flex;
 	flex-direction: column;
-	gap: 2px;
+	gap: 5px;
+	min-width: 0;
 }
 
-.tt-repeater-scroll {
-	max-width: 100%;
-	overflow-x: auto;
+.tt-card-title {
+	font-size: 14px;
+	font-weight: 700;
+	line-height: 1.7;
 }
 
-.tt-repeater-table {
-	border-collapse: collapse;
-	min-width: 520px;
+.tt-card-desc {
+	color: var(--tt-muted);
+	font-size: 12px;
+	line-height: 1.8;
 }
 
-.tt-repeater-table th {
-	font-weight: 600;
-	font-size: 0.8125rem;
+.tt-card-meta {
+	color: #8a3512;
+	font-size: 11px;
+	font-weight: 650;
+	margin-top: 2px;
 }
 
-.tt-repeater-table td {
-	vertical-align: middle;
+.tt-native-guide {
+	border-top: 1px solid var(--tt-line);
+	margin-top: 30px;
+	padding-top: 26px;
 }
 
-.tt-repeater-table input[type="text"],
-.tt-repeater-table input[type="url"],
-.tt-repeater-table input[type="email"],
-.tt-repeater-table input[type="tel"],
-.tt-repeater-table textarea,
-.tt-repeater-table select {
-	width: 100% !important;
+/* Option forms */
+.tt-form {
+	background: var(--tt-paper);
+	border: 1px solid var(--tt-line);
+	border-radius: 13px;
+	min-width: 0;
+	padding: 0 24px;
 }
 
-.tt-repeater-act {
-	width: 64px;
-	text-align: center;
-}
-
-.tt-repeater-remove {
-	color: #b32d2e;
-}
-
-.tt-repeater-remove:hover {
-	color: #8a2424;
-}
-
-.tt-repeater-actions {
-	margin: 12px 0 0;
-}
-
-/* ------------------------------------------------------------ save bar --- */
 .tt-footer {
-	display: flex;
 	align-items: center;
+	background: #fbfcfe;
+	border-radius: 0 0 12px 12px;
+	border-top: 1px solid var(--tt-line);
+	display: flex;
 	flex-wrap: wrap;
-	gap: 12px;
-	margin-top: 20px;
-	padding: 14px 0 0;
-	border-top: 1px solid #f0f0f1;
-	position: sticky;
-	bottom: 0;
-	background: #fff;
-	z-index: 5;
-}
-
-/* The global admin skin fills primary buttons with brand orange. Keep that
-   identity here, but use dark text: white on #f77b3e is only 2.67:1. Explicit
-   state backgrounds prevent dark text from landing on core's blue states. */
-.wp-core-ui .tt-wrap .button-primary,
-.wp-core-ui .tt-wrap .button-primary:focus {
-	color: #1d2327;
-	background: #f77b3e;
-	border-color: #f77b3e;
-}
-
-.wp-core-ui .tt-wrap .button-primary:hover,
-.wp-core-ui .tt-wrap .button-primary:active {
-	color: #1d2327;
-	background: #e96a2b;
-	border-color: #e96a2b;
+	gap: 12px 18px;
+	margin: 8px -24px 0;
+	padding: 16px 24px;
 }
 
 .tt-saved-hint {
 	margin: 0;
 }
 
-/* ------------------------------------------------------------ search ----- */
-.tt-search {
-	position: relative;
-	margin-bottom: 16px;
+.tt-field {
+	border-bottom: 1px solid #edf0f5;
+	display: grid;
+	gap: 12px 26px;
+	grid-template-columns: minmax(180px, 230px) minmax(0, 1fr);
+	padding: 24px 0;
+	scroll-margin-top: 86px;
 }
 
-.tt-search-input {
-	width: 240px;
-	max-width: 100%;
+.tt-field:last-child {
+	border-bottom: 0;
 }
 
-.tt-search-results {
-	position: absolute;
-	inset-inline-end: 0;
-	z-index: 20;
+.tt-field:target {
+	background: #fff9f5;
+	border-radius: 10px;
+	box-shadow: 0 0 0 10px #fff9f5;
+}
+
+.tt-label {
+	color: #26334a;
+	display: block;
+	font-size: 13px;
+	font-weight: 700;
+	line-height: 1.8;
+	padding-top: 5px;
+}
+
+.tt-control {
+	max-width: 800px;
+	min-width: 0;
 	width: 100%;
-	max-height: 260px;
-	overflow-y: auto;
-	margin: 2px 0 0;
-	padding: 4px;
-	list-style: none;
+}
+
+.tt-panel .tt-control input[type="text"],
+.tt-panel .tt-control input[type="url"],
+.tt-panel .tt-control input[type="email"],
+.tt-panel .tt-control input[type="tel"],
+.tt-panel .tt-control input[type="password"],
+.tt-panel .tt-control select,
+.tt-panel .tt-control textarea {
 	background: #fff;
-	border: 1px solid #dcdcde;
-	border-radius: 4px;
-	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+	border: 1px solid #cbd3df;
+	border-radius: 8px;
+	box-shadow: none;
+	color: var(--tt-ink);
+	line-height: 1.7;
+	margin: 0;
+	max-width: 100%;
+	min-height: 40px;
+	padding: 8px 11px;
+	width: min(100%, 620px);
 }
 
-.tt-search-item {
-	padding: 7px 10px;
-	border-radius: 3px;
-	font-size: 0.82rem;
-	color: #1d2327;
-	cursor: pointer;
+.tt-panel .tt-control select {
+	width: min(100%, 360px);
 }
 
-.tt-search-item.is-active,
-.tt-search-item:hover {
-	background: #fff5ef;
-	color: #b34700;
+.tt-panel .tt-control textarea {
+	min-height: 106px;
+	resize: vertical;
 }
 
-.tt-search-empty {
-	padding: 8px 10px;
-	font-size: 0.82rem;
-	color: #646970;
+.tt-panel .tt-control input:focus,
+.tt-panel .tt-control select:focus,
+.tt-panel .tt-control textarea:focus {
+	border-color: var(--tt-focus);
+	box-shadow: none;
 }
 
-/* --------------------------------------------------------- readiness ---- */
-.tt-readiness {
+.tt-panel .tt-control input[type="url"],
+.tt-panel .tt-control input[type="email"],
+.tt-panel .tt-control input[type="tel"],
+.tt-panel .tt-control input.code,
+.tt-panel .tt-control textarea.code {
+	direction: ltr;
+	text-align: left;
+}
+
+.tt-panel .description,
+.tt-repeater-note {
+	color: var(--tt-muted);
+	font-size: 12px;
+	font-style: normal;
+	line-height: 1.85;
+	margin: 8px 0 0;
+	max-width: 720px;
+}
+
+.tt-check {
+	align-items: flex-start;
+	color: #26334a;
 	display: flex;
-	align-items: center;
-	flex-wrap: wrap;
-	gap: 6px 14px;
-	margin: 12px 0 0;
-	padding: 10px 14px;
-	border: 1px solid #dcdcde;
-	border-inline-start: 3px solid #dba617;
-	border-radius: 3px;
-	background: #fff;
-	font-size: 0.82rem;
+	font-size: 13px;
+	gap: 9px;
+	line-height: 1.8;
 }
 
-.tt-ready-title,
-.tt-ready-ok {
-	display: inline-flex;
-	align-items: center;
-	gap: 6px;
-	font-weight: 600;
-	color: #1d2327;
+.tt-check input {
+	flex: 0 0 auto;
+	margin-top: 5px;
 }
 
-.tt-ready-ok {
-	color: #007017;
+/* The publish utility has its own form and never enters the Settings API. */
+.tt-publish-mode {
+	background: var(--tt-paper);
+	border: 1px solid var(--tt-line);
+	border-radius: 13px;
+	padding: 24px;
 }
 
-.tt-ready-list {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 4px 16px;
+.tt-publish-mode > .description {
+	margin: 8px 0 18px;
+}
+
+.tt-publish-mode .tt-form {
+	border: 0;
+	border-radius: 0;
+	padding: 0;
+}
+
+.tt-publish-mode .tt-footer {
+	background: transparent;
+	border-radius: 0;
+	margin: 20px 0 0;
+	padding: 18px 0 0;
+}
+
+.tt-publish-mode .notice {
+	margin: 16px 0;
+}
+
+.tt-publish-mode fieldset {
+	border: 0;
 	margin: 0;
 	padding: 0;
-	list-style: none;
 }
 
-.tt-ready-list a {
-	color: #b34700;
-	text-decoration: underline;
-	overflow-wrap: anywhere;
+.tt-publish-mode fieldset label,
+.tt-publish-mode p label {
+	line-height: 2;
 }
 
-/* --------------------------------------------------- jump highlight ----- */
-.tt-field:target {
-	background: #fff5ef;
+/* Repeater keeps a local scroll area, never document-level overflow. */
+.tt-field-repeater {
+	display: block;
 }
 
-.tt-field:target {
-	box-shadow: inset 3px 0 0 #b34700;
+.tt-repeater-head {
+	margin-bottom: 12px;
 }
 
-/* ---------------------------------------------------- repeater note ----- */
-.tt-repeater-note {
-	margin: 8px 0 0;
-	font-size: 0.8rem;
-	color: #646970;
+.tt-repeater-scroll {
+	border: 1px solid var(--tt-line);
+	border-radius: 9px;
+	max-width: 100%;
+	overflow-x: auto;
+}
+
+.tt-repeater-table {
+	border: 0;
+	box-shadow: none;
+	margin: 0;
+	min-width: 560px;
+}
+
+.tt-repeater-table th {
+	color: #344054;
+	font-size: 12px;
+	font-weight: 700;
+	padding: 10px 12px;
+}
+
+.tt-repeater-table td {
+	padding: 10px;
+	vertical-align: top;
+}
+
+.tt-repeater-table input,
+.tt-repeater-table textarea,
+.tt-repeater-table select {
+	margin: 0;
+	max-width: 100%;
+	min-width: 0;
+	width: 100%;
+}
+
+.tt-repeater-act {
+	text-align: center;
+	width: 58px;
+}
+
+.tt-repeater-remove {
+	color: #b42318;
+}
+
+.tt-repeater-actions {
+	margin: 12px 0 0;
 }
 
 .tt-repeater-note.is-limit {
-	color: #b32d2e;
-	font-weight: 600;
+	color: #8a3512;
 }
 
-/* ------------------------------------------------------- section index --- */
-.tt-overview {
-	background: #fff;
-	border: 1px solid #dcdcde;
-	border-radius: 3px;
-	padding: 20px 24px 24px;
+.tt-main > .notice {
+	border-radius: 8px;
+	margin: 0 0 20px;
 }
 
-.tt-overview-title {
-	display: flex;
-	align-items: center;
-	gap: 8px;
-	margin: 0 0 4px;
-	font-size: 1.05rem;
-	color: #1d2327;
-}
-
-.tt-overview-title .dashicons {
-	color: #f77b3e;
-}
-
-.tt-overview-lead {
-	margin: 0 0 18px;
-	font-size: 0.82rem;
-	color: #646970;
-}
-
-.tt-cards {
-	display: grid;
-	grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
-	gap: 10px;
-	margin: 0;
-	padding: 0;
-	list-style: none;
-}
-
-.tt-card-link {
-	display: flex;
-	align-items: center;
-	gap: 10px;
-	padding: 12px 14px;
-	border: 1px solid #dcdcde;
-	border-radius: 4px;
-	text-decoration: none;
-	color: #1d2327;
-	background: #fff;
-	transition: border-color 0.15s, box-shadow 0.15s;
-}
-
-.tt-card-link:hover,
-.tt-card-link:focus {
-	border-color: #f77b3e;
-	box-shadow: 0 0 0 1px #f77b3e inset;
-	color: #b34700;
-}
-
-.tt-card-link .dashicons {
-	color: #f77b3e;
-}
-
-.tt-card-title {
-	font-weight: 600;
-	font-size: 0.88rem;
-}
-
-.tt-card-meta {
-	margin-inline-start: auto;
-	font-size: 0.75rem;
-	color: #646970;
-}
-
-/* ---------------------------------------------------------- responsive --- */
-@media screen and (max-width: 960px) {
-	.tt-header {
-		align-items: flex-end;
-		flex-wrap: wrap;
+@media (min-width: 1280px) {
+	.tt-sidebar-shell {
+		align-self: start;
+		height: calc(100vh - 32px);
+		overflow-y: auto;
+		position: sticky;
+		top: 32px;
 	}
+}
 
-	.tt-header h1 {
-		flex: 1 1 280px;
-		flex-wrap: wrap;
-		min-width: 0;
-	}
-
-	.tt-search {
-		flex: 1 1 240px;
-	}
-
-	.tt-search-input {
-		width: 100%;
-	}
-
+@media (max-width: 1279px) {
 	.tt-layout {
-		flex-direction: column;
-		direction: rtl;
-		gap: 16px;
-	}
-
-	.tt-sidebar {
-		flex: 0 0 auto;
-		width: 100%;
+		grid-template-columns: 222px minmax(0, 1fr);
 	}
 
 	.tt-main {
-		width: 100%;
-	}
-
-	.tt-nav,
-	.tt-subnav {
-		display: grid;
-		grid-template-columns: repeat(2, minmax(0, 1fr));
-		gap: 2px 8px;
-	}
-
-	.tt-nav-item {
-		margin: 0;
-	}
-
-	.tt-nav-item.is-active {
-		grid-column: 1 / -1;
-	}
-
-	.tt-subnav-link {
-		margin: 0;
-	}
-
-	.tt-form {
-		padding: 20px;
-	}
-}
-
-@media screen and (max-width: 600px) {
-	.tt-search {
-		flex-basis: 100%;
-	}
-
-	.tt-form,
-	.tt-overview {
-		padding: 16px;
-	}
-
-	.tt-field {
-		grid-template-columns: minmax(0, 1fr);
-		gap: 8px;
-	}
-
-	.tt-label {
-		padding-top: 0;
-	}
-
-	.tt-readiness {
-		align-items: flex-start;
-	}
-
-	.tt-ready-list {
-		flex: 1 1 100%;
+		padding: 24px;
 	}
 
 	.tt-cards {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+
+	.tt-header-main {
+		gap: 14px;
+		padding-inline: 18px;
+	}
+
+	.tt-brand {
+		min-width: 190px;
+	}
+}
+
+@media (max-width: 1100px) {
+	.tt-header-main {
+		grid-template-areas:
+			"brand actions"
+			"search search";
+		grid-template-columns: minmax(0, 1fr) auto;
+	}
+
+	.tt-search {
+		max-width: none;
+	}
+}
+
+@media (max-width: 1023px) {
+	body.tt-panel-drawer-open {
+		overflow: hidden;
+	}
+
+	.tt-drawer-enhanced .tt-nav-toggle {
+		display: inline-flex;
+	}
+
+	.tt-layout {
+		display: block;
+	}
+
+	/* Without JS this rule does not apply and the full nav remains visible. */
+	.tt-drawer-enhanced .tt-sidebar-shell {
+		bottom: 0;
+		inset-inline-start: 0;
+		max-width: calc(100vw - 42px);
+		overflow-y: auto;
+		padding-top: 18px;
+		position: fixed;
+		top: 32px;
+		transform: translateX(105%);
+		transition: transform 180ms ease, visibility 180ms ease;
+		visibility: hidden;
+		width: 310px;
+		z-index: 9999;
+	}
+
+	.tt-drawer-enhanced .tt-sidebar-shell[aria-hidden="false"] {
+		transform: translateX(0);
+		visibility: visible;
+	}
+}
+
+@media (max-width: 782px) {
+	.tt-panel {
+		margin: 10px 8px;
+	}
+
+	.tt-header-main,
+	.tt-contextbar,
+	.tt-readiness {
+		padding-inline: 15px;
+	}
+
+	.tt-brand {
+		min-width: 0;
+	}
+
+	.tt-brand p {
+		display: none;
+	}
+
+	.tt-view-site .tt-view-label {
+		display: none;
+	}
+
+	.tt-contextbar {
+		align-items: flex-start;
+	}
+
+	.tt-main {
+		padding: 20px 15px;
+	}
+
+	.tt-drawer-enhanced .tt-sidebar-shell {
+		top: 46px;
+	}
+
+	.tt-form {
+		padding-inline: 16px;
+	}
+
+	.tt-footer {
+		margin-inline: -16px;
+		padding-inline: 16px;
+	}
+
+	.tt-field {
+		display: block;
+		padding: 20px 0;
+		scroll-margin-top: 104px;
+	}
+
+	.tt-label {
+		margin-bottom: 8px;
+		padding-top: 0;
+	}
+
+	.tt-control {
+		max-width: none;
+	}
+
+	.tt-panel .tt-control input[type="text"],
+	.tt-panel .tt-control input[type="url"],
+	.tt-panel .tt-control input[type="email"],
+	.tt-panel .tt-control input[type="tel"],
+	.tt-panel .tt-control select,
+	.tt-panel .tt-control textarea {
+		width: 100%;
+	}
+
+	.tt-publish-mode {
+		padding: 18px 16px;
+	}
+}
+
+@media (max-width: 560px) {
+	.tt-cards {
 		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.tt-brand-mark {
+		height: 38px;
+		width: 38px;
+	}
+
+	.tt-brand h1 {
+		font-size: 16px;
+	}
+
+	.tt-header-actions {
+		gap: 6px;
+	}
+
+	.tt-header-actions .button {
+		padding-inline: 10px;
+	}
+
+	.tt-page-heading h2,
+	.tt-publish-mode > h2 {
+		font-size: 19px;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.tt-panel *,
+	.tt-panel *::before,
+	.tt-panel *::after {
+		scroll-behavior: auto !important;
+		transition: none !important;
 	}
 }

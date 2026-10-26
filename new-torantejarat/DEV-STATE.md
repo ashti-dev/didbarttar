@@ -804,3 +804,13 @@
 ### ادامه
 - مرحلهٔ بعد `ADMIN-UI-001` است: Shell و کنترل‌های نگاشت‌شده در Commitهای کوچک، با حفظ قرارداد ذخیره و برنامهٔ تست ثبت‌شده در `ADMIN-REDESIGN.md`.
 - بررسی Account روی هاست به مسیر مستقل و URL/Screenshot بخش آسیب‌دیده نیاز دارد و نباید با بازطراحی پنل ترکیب شود.
+
+## ADMIN-UI-001A — Shell، Dashboard و Routing پنل — 2026-10-26 — CODE DONE / RUNTIME PENDING
+
+- پوستهٔ پنل در `class-theme-settings.php` و `assets/admin/panel.css` بازطراحی شد: Header و Search، Breadcrumb، Sidebar تو در تو، Dashboard، کارت‌های Section، فرم‌های دوستونه، Save بالای صفحه، Dirty Status و Drawer موبایل. این تغییر صرفاً رابط مدیریت است و Frontend یا دادهٔ سایت تغییر نکرده است.
+- هر ۶۱ فیلد در ۱۷ Group واقعی قرار گرفت و Utility Route جداگانهٔ `general/publish` اضافه شد. Dashboard و Publish به Schema اضافه نشده‌اند؛ بنابراین تعداد Optionها همان ۷ و تعداد Fieldها همان ۶۱ است. بررسی Python روی Schema و Map نتیجهٔ `Missing=0 / Unknown=0 / Duplicate=0` داد.
+- Dashboard فقط لینک به صفحات بومی محصول، سفارش، درخواست، نوشته، برگه، منو و هویت سایت می‌دهد و هیچ Metric یا وضعیت ساختگی نمی‌سازد. مسیر سفارش با `PageController::get_orders_url()` برای HPOS/Legacy و Fallback بومی ساخته می‌شود. راهنمای Home نیز دادهٔ محصول/Term/نوشته را به منبع واقعی لینک می‌کند.
+- Redirect حالت انتشار و لینک‌های Readiness به Subpage درست متصل شدند. `_tt_scope`، Settings API/`options.php`، Input Name/DOM ID، Defaults، Sanitizerها و انواع ذخیره تغییر نکرده‌اند؛ تفاوت Schema در Diff فقط چهار Label نمایشی Tab است.
+- Drawer Progressive Enhancement است: بدون JS، Toggle مخفی و Navigation در جریان عادی صفحه باقی می‌ماند. با JS، Escape، Focus Trap، بازگشت Focus و Inert پشتیبانی‌شده کنترل می‌شود. Dirty-state مبتنی بر Snapshot کنترل‌های Submit‌شونده است و Repeater Add/Remove را نیز پوشش می‌دهد؛ AJAX Save یا Auto-save اضافه نشده است.
+- **تست واقعی این بخش:** `php-parser` برای ۳ PHP تغییرکرده، `node --check` برای ۲ JS پنل، PostCSS Parse برای CSS و `git diff --check` موفق بود. ۱۲ Assertion در JSDOM برای Drawer/Open/Close/Focus، Dirty/Clean/Beforeunload/Submit، سقف و Renumbering ردیف و بازگشت Desktop موفق شد. این تست DOM شبیه‌سازی‌شده است، نه Browser Runtime.
+- **باقی‌مانده:** Media + URL، Color + HEX، Switch و Card Repeater در Commitهای بعدی همین شناسه؛ سپس تست وردپرس/ووکامرس، Save Scope، No-JS واقعی، Keyboard/axe و Overflow در مرورگر و CI لازم است. PHP CLI و Runtime محلی موجود نیست و هیچ ادعای اجرای وردپرس/مرورگر/CI برای این تغییر وجود ندارد. Production همچنان **NO-GO** است.
