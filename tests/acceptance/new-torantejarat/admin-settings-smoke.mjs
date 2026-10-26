@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
+import { runAdminSettingsAccessibility } from './admin-accessibility-smoke.mjs';
 
 /**
  * Real administrator/browser checks for the theme settings panel.
@@ -354,6 +355,8 @@ export async function runAdminSettingsSmoke({ browser, fixture, resultsDir, resu
     assert.ok(repeaterOverflow.scrollWidth >= repeaterOverflow.tableWidth, `FAQ table is not reachable by horizontal scrolling: ${JSON.stringify(repeaterOverflow)}`);
     await page.screenshot({ path: path.join(resultsDir, 'admin-settings-mobile-faq-390.png'), fullPage: true, animations: 'disabled' });
     passed('Admin settings responsive layout, accessible controls and contained FAQ scrolling work at 390px');
+
+    await runAdminSettingsAccessibility({ page, settingsUrl, goto, passed, resultsDir });
   } catch (error) {
     await page.screenshot({ path: path.join(resultsDir, 'admin-settings-failure.png'), fullPage: true, animations: 'disabled' }).catch(() => {});
     throw error;

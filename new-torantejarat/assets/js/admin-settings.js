@@ -35,6 +35,18 @@
 	}
 
 	/**
+	 * Move focus to the first editable control of a row.
+	 *
+	 * @param {HTMLElement|null} row Row receiving focus.
+	 */
+	function focusRow( row ) {
+		var first = row ? row.querySelector( 'input, textarea, select' ) : null;
+		if ( first ) {
+			first.focus();
+		}
+	}
+
+	/**
 	 * Rebuild every name attribute from its "%i%" template, so submitted rows
 	 * are always a clean, gap-free 0..n list.
 	 *
@@ -98,10 +110,7 @@
 				body.appendChild( row );
 				renumber( wrap );
 				updateLimit( wrap );
-				var first = row.querySelector( 'input, textarea, select' );
-				if ( first ) {
-					first.focus();
-				}
+				focusRow( row );
 			} );
 		}
 
@@ -114,6 +123,7 @@
 			if ( ! row ) {
 				return;
 			}
+			var rowIndex = Array.prototype.indexOf.call( body.children, row );
 			// Keep at least one row: the last one is emptied instead of removed,
 			// otherwise there would be nothing left to clone.
 			if ( body.children.length > 1 ) {
@@ -123,6 +133,11 @@
 			}
 			renumber( wrap );
 			updateLimit( wrap );
+			// Removing the focused button must not drop keyboard users on body.
+			// Stay at the same row position, or the previous row when the last
+			// row was removed; clearing the only row keeps that row in place.
+			var targetIndex = Math.min( Math.max( rowIndex, 0 ), body.children.length - 1 );
+			focusRow( body.children[ targetIndex ] );
 		} );
 
 		updateLimit( wrap );
