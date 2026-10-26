@@ -659,8 +659,8 @@
 ## SET-FIX-ALL — وضعیت صف اصلاحات Settings — 2026-10-26 — COMPLETE
 
 - `SET-FIX-001`، `SET-FIX-002` و `SET-FIX-003` هر سه **DONE / PUSHED / CI-GREEN** هستند و نباید در اجرای بعدی دوباره انجام شوند.
-- تست ماندگار در `tests/acceptance/new-torantejarat/settings-smoke.php` و شواهد هر مورد در همین فایل ثبت است. Workflow فعلی این ۵ Check را در هر اجرای بعدی دوباره ارزیابی می‌کند.
-- پیشنهادهای ساختاری غیرقطعی مثل یکسان‌سازی Defaults یا تغییر عنوان نوار آمادگی **جزء این سه اصلاح نبوده‌اند و انجام نشده‌اند**. تغییر نحوهٔ تنظیمات فقط با درخواست بعدی و پس از تعیین قلمرو انجام شود.
+- تست ماندگار در `tests/acceptance/new-torantejarat/settings-smoke.php` و شواهد هر مورد در همین فایل ثبت است. در پایان `SET-FIX-ALL` تعداد ۵ Check بود؛ `SET-UI-001` بعداً دو قرارداد ماندگار دیگر اضافه کرده و تعداد فعلی به ۷ رسیده است.
+- یکسان‌سازی Defaults **جزء این سه اصلاح نبود** و در آن مرحله انجام نشده بود؛ قلمرو مستقل آن بعداً در `SET-UI-001` تکمیل شده است. تغییر عنوان نوار آمادگی انجام نشده است.
 
 ## SET-UI-000 — تست مرورگری واقعی پنل تنظیمات — 2026-10-26 — DONE
 
@@ -696,4 +696,29 @@
 
 ### مرز نتیجه و ادامه
 - Artifact جدید دانلود و **Visual Review دستی انجام نشده است**؛ وجود Screenshot و PASSهای DOM/Option جای بازبینی بصری را نمی‌گیرد. سایر مرورگرها، axe، CWV و Staging/Production تست نشده‌اند و **Production همچنان NO-GO است**.
-- `SET-UI-001` (یکسان‌سازی Schema/Defaults و شناسه‌های `tab/field`) و `SET-UI-002` (تغییر UI) هنوز شروع نشده‌اند.
+- `SET-UI-001` (یکسان‌سازی Schema/Defaults و شناسه‌های `tab/field`) در بخش بعد **DONE / PUSHED / CI-GREEN** است. `SET-UI-002` (تغییر UI) هنوز شروع نشده است.
+
+## SET-UI-001 — یکسان‌سازی قرارداد Defaults و شناسه‌های Settings — 2026-10-26 — DONE
+
+### قلمرو و پیاده‌سازی
+- **انجام شد؛ این مرحله نباید دوباره اجرا شود.** دو Commit مستقل روی همین برنچ Push شدند: `d6c0bf382d2dc4fd0470bfe4ac0f1a70bd9a0fa3` (`refactor(settings): share canonical home defaults`) و `60652af36a7d8c2f3f75bf54e8a75912476e1278` (`refactor(settings): unify field identity contract`).
+- این کار رفع اختلاف فعلی متنها نبود: Baseline مستقل پیش از تغییر، برابری دقیق هر **۳۳/۳۳** Scalar Default میان Schema و Frontend را نشان داد. ناسازگاری ساختاریِ داشتن دو منبع و ردیابی Self-check با Bare Field Key اصلاح شد؛ ادعای باگ Save یا دادهٔ خراب فعلی ثبت نشد.
+- در `inc/presentation.php::torantejarat_home_defaults()` منبع واحد ۳۳ متن باقی ماند و مقادیر Literal تکراری از `inc/settings/class-theme-settings.php` حذف شدند. `hydrate_home_defaults()` همان مقادیر را یک‌بار به Schema تزریق می‌کند.
+- Hydration عمداً در Constructor و پیش از `init` اجرا نمی‌شود؛ از مسیرهای `register_settings/render_page/enqueue_styles` پس از Init انجام می‌شود تا Textdomain زودبارگذاری نشود. `inc/bootstrap.php` تغییر نکرد و Frontend به کلاس Admin وابسته نشد.
+- FAQ با ۳۴ فیلد Home اشتباه گرفته نشد: مقدار ذخیره‌شدهٔ پیش‌فرض همچنان `array()` و Fallback نمایشی فقط از `torantejarat_home_faq_defaults()` با همان ۳ ردیف است.
+- در `inc/settings/panel-nav.php` دو Helper مشترک برای `tab/field` و DOM ID اضافه شد. Self-check اکنون `unplaced/duplicated/unknown` را با شناسهٔ مرکب برمی‌گرداند و Search نیز `field_ref` صریح دارد.
+- Renderer فیلدهای معمولی و Repeater و Search Index همه از `torantejarat_panel_field_dom_id()` استفاده می‌کنند. الگوهای قبلی `tt-<tab>-<field>` و `ttf-<tab>-<field>` و URLهای `section/sub` حفظ شدند.
+- نام Optionها، Storage، `_tt_scope`، Sanitizer، فایل JS و UI تغییر نکرد؛ Migration، Rename، نوشتن DB روی سایت واقعی یا تغییر بصری انجام نشد.
+
+### تست ماندگار و شاهد Runtime
+- Run مرحلهٔ Defaults [`40290529645`](https://github.com/ashti-dev/didbarttar/actions/runs/40290529645) روی `d6c0bf382d2dc4fd0470bfe4ac0f1a70bd9a0fa3` و Job `121464259110`: **SUCCESS در 2m38s**؛ Lint، Settings، Browser و Fatal-check همان Commit سبز شدند.
+- Run نهایی [`40291102527`](https://github.com/ashti-dev/didbarttar/actions/runs/40291102527) روی `60652af36a7d8c2f3f75bf54e8a75912476e1278` و Job `121466099737`: **SUCCESS در 2m34s**؛ PHP/JS Lint و Fatal-check سبز.
+- Log نهایی دقیقاً `Success: Settings smoke: 7 checks passed; no database writes.` ثبت کرد: هر **۷/۷ Settings Check** سبز و هر ۵ Check قبلی حفظ شدند.
+- Check ششم ۳۴ فیلد Home، ۳۳ Scalar Default، ترتیب/کلیدها و تطابق Strict مقدار Panel/Frontend را می‌سنجد؛ خالی‌بودن Default ذخیرهٔ FAQ و برابری Callback با سه ردیف Frontend جداگانه Assert شده است.
+- Check هفتم حضور هر **۶۱ فیلد دقیقاً یک‌بار**، اعتبار و یکتایی `tab/field`، ثبات ۶۱ Wrapper ID و ۶۰ Input ID غیر Repeater، و وجود Target در HTML همان `section/sub` را با Renderer واقعی می‌سنجد. سناریوی مصنوعی یک Field Key مشترک در `home/contact` دیگر Duplicate کاذب ندارد و Unknown Map دقیقاً `home/hero_kicker` را گزارش می‌کند.
+- مجموع مرورگر همچنان **۲۱/۲۱ PASS** است: ۱۱ سناریوی فروشگاه، ۹ سناریوی Admin و یک بررسی مشترک خطاها. Search مرورگری نیز همچنان به `home/hero` و `#ttf-home-hero_lead` رسید.
+- Artifact [`12636128100`](https://github.com/ashti-dev/didbarttar/actions/runs/40291102527/artifacts/12636128100) با ۹ فایل و 1127440 بایت ثبت شد؛ SHA256 بسته `d6ae2cf1d60cc4f6aeb323b67f2d1d3d1e8a355c6cb20f7372d86427d12abbec` است.
+
+### مرز نتیجه و ادامه
+- Artifact دانلود و **Visual Review دستی انجام نشده است**. PASSهای DOM/Option و وجود Screenshot جای بازبینی بصری، سایر مرورگرها، axe، CWV، Gateway Sandbox/واقعی یا تست Staging/Production را نمی‌گیرند؛ **Production همچنان NO-GO است**.
+- `SET-UI-002` هنوز شروع نشده است و این بخش مجوز تغییر UI یا انتشار نیست.
