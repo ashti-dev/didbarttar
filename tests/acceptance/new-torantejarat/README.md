@@ -23,8 +23,8 @@ Workflow `.github/workflows/woocommerce-acceptance.yml` روی PHP 8.3، WordPre
 - صفحهٔ تشکر با دو قلم، Variation Meta، Totals و دستورالعمل درگاه؛
 - حالت Desktop/Mobile، Overflow و CSS چاپ فاکتور؛
 - Login مشتری و Add/Remove واقعی Wishlist با REST و Confirm/Cancel؛
-- نه Admin Browser Check در `admin-settings-smoke.mjs`: ورود ادمین و هر ۷ بخش/۶۱ فیلد، ذخیرهٔ ۶ تب مسطح و هر ۶ زیرصفحهٔ Home از مسیر واقعی `options.php` با مقایسهٔ Option خام، حفظ مقادیر خارج از Scope، Add/Remove و سقف UI پرسش‌های متداول، جست‌وجوی Combobox، مقصد واقعی لینک‌های Readiness، Preview/Public با `admin-post.php` و کنترل‌های موبایل 390px؛
-- ثبت Console/Page errors و اسکرین‌شات‌های فروشگاه و پنل Desktop/Mobile به‌عنوان Artifact. در مجموع ۲۱ Browser Check اجرا می‌شود: ۱۱ سناریوی فروشگاه، ۹ سناریوی Admin و یک بررسی مشترک خطاها.
+- نه Admin Browser Check در `admin-settings-smoke.mjs`: ورود ادمین و هر ۷ بخش/۶۱ فیلد با `aria-current` صفحهٔ واقعی و راهنمای Scope ذخیره، ذخیرهٔ ۶ تب مسطح و هر ۶ زیرصفحهٔ Home از مسیر واقعی `options.php` با مقایسهٔ Option خام، حفظ مقادیر خارج از Scope، Add/Remove و سقف UI پرسش‌های متداول، جست‌وجوی Combobox با `aria-selected` و Keyboard Navigation، مقصد واقعی لینک‌های Readiness، Preview/Public با `admin-post.php` و در 390px بررسی هندسی Header/Sidebar/Fields، نبود Overflow سند و ScrollContainer جدول FAQ؛
+- ثبت Console/Page errors و اسکرین‌شات‌های فروشگاه و پنل Desktop/Mobile، از جمله `admin-settings-mobile-faq-390.png`، به‌عنوان Artifact. در مجموع ۲۱ Browser Check اجرا می‌شود: ۱۱ سناریوی فروشگاه، ۹ سناریوی Admin و یک بررسی مشترک خطاها.
 
 نوشتن Optionها و تغییر Publish Mode فقط در همین وردپرس موقت انجام می‌شود. Optionهای بومی دست‌کاری‌شده در پایان سناریوی Admin بازیابی می‌شوند و هیچ ارتباطی با سایت عملیاتی برقرار نمی‌شود.
 

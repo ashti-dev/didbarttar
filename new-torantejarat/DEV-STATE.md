@@ -696,7 +696,7 @@
 
 ### مرز نتیجه و ادامه
 - Artifact جدید دانلود و **Visual Review دستی انجام نشده است**؛ وجود Screenshot و PASSهای DOM/Option جای بازبینی بصری را نمی‌گیرد. سایر مرورگرها، axe، CWV و Staging/Production تست نشده‌اند و **Production همچنان NO-GO است**.
-- `SET-UI-001` (یکسان‌سازی Schema/Defaults و شناسه‌های `tab/field`) در بخش بعد **DONE / PUSHED / CI-GREEN** است. `SET-UI-002` (تغییر UI) هنوز شروع نشده است.
+- `SET-UI-001` (یکسان‌سازی Schema/Defaults و شناسه‌های `tab/field`) و `SET-UI-002` (Responsive و وضعیت دسترس‌پذیر پنل) در بخش‌های بعد **DONE / PUSHED / CI-GREEN** هستند.
 
 ## SET-UI-001 — یکسان‌سازی قرارداد Defaults و شناسه‌های Settings — 2026-10-26 — DONE
 
@@ -721,4 +721,27 @@
 
 ### مرز نتیجه و ادامه
 - Artifact دانلود و **Visual Review دستی انجام نشده است**. PASSهای DOM/Option و وجود Screenshot جای بازبینی بصری، سایر مرورگرها، axe، CWV، Gateway Sandbox/واقعی یا تست Staging/Production را نمی‌گیرند؛ **Production همچنان NO-GO است**.
-- `SET-UI-002` هنوز شروع نشده است و این بخش مجوز تغییر UI یا انتشار نیست.
+- `SET-UI-002` در بخش بعد با قلمرو محدود Responsive/ARIA تکمیل شده است؛ Visual Review و Gateهای انتشار همچنان جدا هستند.
+
+## SET-UI-002 — Responsive و وضعیت دسترس‌پذیر پنل Settings — 2026-10-26 — DONE
+
+### قلمرو و پیاده‌سازی
+- **انجام شد؛ این قلمرو نباید دوباره اجرا شود.** در لاگ قبلی فقط عنوان کلی «تغییر UI» وجود داشت؛ قلمرو بر اساس یافتهٔ قطعی کد انتخاب شد: نبود Media Query، Sidebar ثابت 250px، ستون Label ثابت 180px و نبود State معنایی Current/Selected. بازطراحی برند یا حدس دربارهٔ ظاهر انجام نشد.
+- دو Commit مستقل Push شدند: `57e8f68eb7b4572a137b9d4ffc7e278a4a39b23e` (`fix(settings): clarify panel state and save scope`) و `0e2d0010b99a99a787d06611756c7f91feaaea4c` (`fix(settings): make admin panel responsive on small screens`).
+- در Sidebar فقط لینک صفحهٔ واقعی `aria-current="page"` دارد؛ روی زیرصفحهٔ Home، والد فعالِ بصری Current دوم نمی‌سازد. Search هنگام Arrow علاوه بر کلاس و `aria-activedescendant`، مقدار `aria-selected` گزینهٔ قبلی/جاری را درست به‌روز می‌کند.
+- راهنمای نادرست و سراسری «خالی = متن پیش‌فرض» به `ذخیره این فرم فقط فیلدهای همین صفحه را تغییر می‌دهد.` تغییر کرد؛ این متن با قرارداد واقعی `_tt_scope` سازگار است و برای Checkbox/Select/URL ادعای متن پیش‌فرض نمی‌کند.
+- `assets/admin/panel.css` در 960px و 600px قواعد Responsive گرفت: Wrap هدر/Search، تک‌ستونه‌شدن Sidebar/Main، Navigation دوستونه، Stack شدن Label/Control در موبایل، Wrap نوار ذخیره و شکستن متن لینک‌های Readiness. `minmax(0,1fr)` و `min-width:0` از Min-content Overflow کنترل‌ها جلوگیری می‌کند.
+- جدول Repeater داخل `.tt-repeater-scroll` قرار گرفت؛ جدول حداقل 520px دارد و در صفحهٔ کوچک فقط Container خودش افقی اسکرول می‌شود. HTML جدول، ردیف‌ها، Add/Remove و دکمه‌های اقدام تغییر منطقی نکرده‌اند.
+- رنگ برند، Optionها، Schema، Defaults، `_tt_scope`، URLها، DOM IDها، Sanitizer و رفتار Save تغییر نکرد؛ Migration یا نوشتن DB روی سایت واقعی انجام نشد.
+
+### تست واقعی و شاهد
+- Run مرحلهٔ ARIA/راهنما [`40292461649`](https://github.com/ashti-dev/didbarttar/actions/runs/40292461649) روی `57e8f68eb7b4572a137b9d4ffc7e278a4a39b23e` و Job `121470502928`: **SUCCESS در 2m28s**.
+- Run نهایی [`40292782462`](https://github.com/ashti-dev/didbarttar/actions/runs/40292782462) روی `0e2d0010b99a99a787d06611756c7f91feaaea4c` و Job `121471542037`: **SUCCESS در 2m36s**؛ PHP/JS Lint و Fatal-check سبز.
+- Log نهایی `Success: Settings smoke: 7 checks passed; no database writes.` را ثبت کرد؛ **۷/۷ Settings Check** و **۲۱/۲۱ Browser Check** سبز است. تعداد سناریوها تغییر نکرد، Assertionهای همان ۹ Admin Check قوی‌تر شدند.
+- Browser با دو نتیجهٔ Search، انتقال `aria-selected=true/false` و هماهنگی `aria-activedescendant` را سنجید. در General فقط تب فعال و در `home/hero` فقط زیرلینک هیرو Current است؛ متن Scope ذخیره نیز Assert شد.
+- در Viewport واقعی 390px و در هر دو صفحهٔ General و FAQ با ۱۲ ردیف: پهنای سند از Viewport بزرگ‌تر نیست، Header مقدار `flex-wrap:wrap` دارد، Layout مقدار `flex-direction:column`، Sidebar/Main هم‌عرض‌اند و Control زیر Label قرار دارد. در FAQ نیز `overflow-x:auto`، پهنای جدول بیشتر از Container و دسترسی به کل پهنا از `scrollWidth` اثبات شد؛ بنابراین Overflow جدول در سند باقی نمی‌ماند.
+- Artifact [`12636916103`](https://github.com/ashti-dev/didbarttar/actions/runs/40292782462/artifacts/12636916103) با ۱۰ فایل و 1235152 بایت ثبت شد؛ SHA256 بسته `7c4566ca1f224284864ae5a5bfc7ef270f12d4f79cfc2ed281b657ac4a588391`. Screenshot جدید `admin-settings-mobile-faq-390.png` نیز ساخته شده است.
+
+### مرز نتیجه
+- **Visual Review دستی انجام نشده است.** دانلود Artifact قبلی در این Sandbox با EOF شکست خورد و وجود Screenshot یا Assertion هندسی جای بازبینی تصویری را نمی‌گیرد. عرض 320/768، سایر مرورگرها و axe نیز در این مرحله اجرا نشده‌اند؛ این نتیجه گواهی کامل Accessibility نیست.
+- Gateway Sandbox/واقعی، CWV و Staging/Production همچنان Gateهای جدا هستند و **Production NO-GO** است.
