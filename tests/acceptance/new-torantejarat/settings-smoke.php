@@ -16,8 +16,10 @@ if ( ! in_array( $torantejarat_ci_settings_host, array( '127.0.0.1', 'localhost'
 	WP_CLI::error( 'Settings smoke refused: only an isolated local/development WordPress is allowed.' );
 }
 
-$torantejarat_ci_settings_passed  = 0;
-$torantejarat_ci_settings_failed  = array();
+$GLOBALS['torantejarat_ci_settings_state'] = array(
+	'passed' => 0,
+	'failed' => array(),
+);
 
 /**
  * Register the real Settings API callbacks once for this WP-CLI process.
@@ -56,14 +58,14 @@ function torantejarat_ci_settings_assert( $condition, $message ) {
  * @param callable $callback Test callback.
  */
 function torantejarat_ci_settings_run( $name, $callback ) {
-	global $torantejarat_ci_settings_passed, $torantejarat_ci_settings_failed;
+	$state =& $GLOBALS['torantejarat_ci_settings_state'];
 	try {
 		$callback();
-		++$torantejarat_ci_settings_passed;
+		++$state['passed'];
 		WP_CLI::log( 'SETTINGS PASS: ' . $name );
 	} catch ( Throwable $error ) {
-		$torantejarat_ci_settings_failed[] = $name . ': ' . $error->getMessage();
-		WP_CLI::log( 'SETTINGS FAIL: ' . end( $torantejarat_ci_settings_failed ) );
+		$state['failed'][] = $name . ': ' . $error->getMessage();
+		WP_CLI::log( 'SETTINGS FAIL: ' . end( $state['failed'] ) );
 	}
 }
 
@@ -116,7 +118,11 @@ torantejarat_ci_settings_run(
 	}
 );
 
-if ( $torantejarat_ci_settings_failed ) {
-	WP_CLI::error( 'Settings smoke failed: ' . implode( ' | ', $torantejarat_ci_settings_failed ) );
+$torantejarat_ci_settings_state = $GLOBALS['torantejarat_ci_settings_state'];
+if ( $torantejarat_ci_settings_state['failed'] ) {
+	WP_CLI::error( 'Settings smoke failed: ' . implode( ' | ', $torantejarat_ci_settings_state['failed'] ) );
 }
-WP_CLI::success( 'Settings smoke: ' . $torantejarat_ci_settings_passed . ' checks passed; no database writes.' );
+if ( 2 !== $torantejarat_ci_settings_state['passed'] ) {
+	WP_CLI::error( 'Settings smoke expected 2 passing checks, got ' . $torantejarat_ci_settings_state['passed'] . '.' );
+}
+WP_CLI::success( 'Settings smoke: ' . $torantejarat_ci_settings_state['passed'] . ' checks passed; no database writes.' );
