@@ -120,8 +120,12 @@ try {
   await page.locator('#billing_email').fill('ci-buyer@example.test');
   await page.locator('#billing_email').press('Tab');
   await page.waitForLoadState('networkidle');
-  const cod = await visible('#payment_method_cod', 'COD payment method');
-  if (!(await cod.isChecked())) await cod.check();
+  const cod = page.locator('#payment_method_cod');
+  await cod.waitFor({ state: 'attached' });
+  if (!(await cod.isChecked())) {
+    await page.locator('label[for="payment_method_cod"]').click();
+  }
+  assert.ok(await cod.isChecked(), 'COD payment method is not selected');
   await page.screenshot({ path: path.join(resultsDir, 'checkout-desktop.png'), fullPage: true, animations: 'disabled' });
   await Promise.all([
     page.waitForURL(/order-received/, { timeout: 45_000 }),

@@ -11,7 +11,7 @@
 
 ## نسخه‌ها و اجرا
 
-Workflow `.github/workflows/woocommerce-acceptance.yml` روی PHP 8.3، WordPress 6.8.11 و WooCommerce 11.2.1 اجرا می‌شود. مرورگر با Playwright 1.64.1 و Chromium نصب‌شده در Runner اجرا می‌شود.
+Workflow `.github/workflows/woocommerce-acceptance.yml` روی PHP 8.3، WordPress 7.1.3 و WooCommerce 11.2.1 اجرا می‌شود. مرورگر با Playwright 1.64.1 و Chromium نصب‌شده در Runner اجرا می‌شود.
 
 پوشش فعلی:
 
