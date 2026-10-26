@@ -276,6 +276,13 @@ async function runAxeAcceptance({ page, settingsUrl, goto, resultsDir }) {
   if (failures.length) {
     console.error(`AXE VIOLATIONS:\n${JSON.stringify(failures, null, 2)}`);
   }
+  const manualReview = report.views.flatMap((view) => view.incomplete.map((rule) => ({
+    view: view.name,
+    id: rule.id,
+    impact: rule.impact,
+    nodes: rule.nodes.map((node) => ({ target: node.target, failureSummary: node.failureSummary })),
+  })));
+  console.log(`AXE INCOMPLETE (manual review, not violations):\n${JSON.stringify(manualReview, null, 2)}`);
   assert.equal(failures.length, 0, 'Confirmed axe violations require remediation; see admin-axe-report.json.');
   return report;
 }

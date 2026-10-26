@@ -1250,10 +1250,11 @@ final class TT_Settings {
 
 		if ( 'textarea' === $type || 'embed' === $type ) {
 			printf(
-				'<textarea rows="3" name="%1$s" data-tt-name="%2$s">%3$s</textarea>',
+				'<textarea rows="3" name="%1$s" data-tt-name="%2$s" aria-label="%4$s">%3$s</textarea>',
 				esc_attr( $name ),
 				esc_attr( $tmpl ),
-				esc_textarea( (string) $value )
+				esc_textarea( (string) $value ),
+				esc_attr( isset( $sub['label'] ) ? $sub['label'] : $sub_key )
 			);
 			return;
 		}

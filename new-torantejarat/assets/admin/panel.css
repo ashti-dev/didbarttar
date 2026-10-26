@@ -12,8 +12,9 @@
  * State accent: #b34700 (dark orange) for anything that carries meaning —
  * active tab/sub text and icons, the active bar and the jump bar. Contrast on
  * white 5.5:1, on #fff5ef 5.12:1.
- * Brand: #f77b3e (2.67:1 on white) is decorative only — section/card icons and
- * hover flourishes, where the neighbouring text carries the meaning.
+ * Brand: #f77b3e (2.67:1 on white) is not used for text on white — it remains
+ * on section/card icons and hover flourishes. Brand-filled buttons use dark
+ * text (#1d2327, 5.94:1) instead of white.
  */
 
 /* ---------------------------------------------------------------- layout -- */
@@ -329,6 +330,23 @@
 	bottom: 0;
 	background: #fff;
 	z-index: 5;
+}
+
+/* The global admin skin fills primary buttons with brand orange. Keep that
+   identity here, but use dark text: white on #f77b3e is only 2.67:1. Explicit
+   state backgrounds prevent dark text from landing on core's blue states. */
+.wp-core-ui .tt-wrap .button-primary,
+.wp-core-ui .tt-wrap .button-primary:focus {
+	color: #1d2327;
+	background: #f77b3e;
+	border-color: #f77b3e;
+}
+
+.wp-core-ui .tt-wrap .button-primary:hover,
+.wp-core-ui .tt-wrap .button-primary:active {
+	color: #1d2327;
+	background: #e96a2b;
+	border-color: #e96a2b;
 }
 
 .tt-saved-hint {
