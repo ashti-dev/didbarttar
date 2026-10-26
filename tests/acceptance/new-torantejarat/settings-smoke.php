@@ -137,6 +137,34 @@ torantejarat_ci_settings_run(
 );
 
 torantejarat_ci_settings_run(
+	'home scalar defaults have one canonical source for panel and frontend',
+	static function () {
+		torantejarat_ci_settings_register();
+		$settings = ToranTejarat\Theme\TT_Settings::get_instance();
+		$property = new ReflectionProperty( 'ToranTejarat\\Theme\\TT_Settings', 'schema' );
+		$property->setAccessible( true );
+		$schema   = $property->getValue( $settings );
+		$defaults = ToranTejarat\Theme\torantejarat_home_defaults();
+		torantejarat_ci_settings_assert( 34 === count( $schema['home']['fields'] ), 'The home schema must contain 34 fields.' );
+		torantejarat_ci_settings_assert( 33 === count( $defaults ), 'The canonical home copy source must contain 33 scalar defaults.' );
+		$scalar_keys = array();
+		foreach ( $schema['home']['fields'] as $key => $field ) {
+			if ( 'repeater' === $field['type'] ) {
+				continue;
+			}
+			$scalar_keys[] = $key;
+			torantejarat_ci_settings_assert( array_key_exists( $key, $defaults ), 'Canonical home default missing: ' . $key );
+			torantejarat_ci_settings_assert( array_key_exists( 'default', $field ), 'Hydrated schema default missing: ' . $key );
+			torantejarat_ci_settings_assert( $defaults[ $key ] === $field['default'], 'Panel/frontend default mismatch: ' . $key );
+		}
+		torantejarat_ci_settings_assert( array_keys( $defaults ) === $scalar_keys, 'Home default keys or their schema order changed unexpectedly.' );
+		$faq = $schema['home']['fields']['faq'];
+		torantejarat_ci_settings_assert( array() === $faq['default'], 'FAQ must retain its empty stored default.' );
+		torantejarat_ci_settings_assert( ToranTejarat\Theme\torantejarat_home_faq_defaults() === call_user_func( $faq['default_callback'] ), 'FAQ callback is not the canonical frontend fallback.' );
+	}
+);
+
+torantejarat_ci_settings_run(
 	'FAQ sanitizer caps new rows at twelve without deleting legacy overflow',
 	static function () {
 		torantejarat_ci_settings_register();
@@ -264,7 +292,7 @@ $torantejarat_ci_settings_state = $GLOBALS['torantejarat_ci_settings_state'];
 if ( $torantejarat_ci_settings_state['failed'] ) {
 	WP_CLI::error( 'Settings smoke failed: ' . implode( ' | ', $torantejarat_ci_settings_state['failed'] ) );
 }
-if ( 5 !== $torantejarat_ci_settings_state['passed'] ) {
-	WP_CLI::error( 'Settings smoke expected 5 passing checks, got ' . $torantejarat_ci_settings_state['passed'] . '.' );
+if ( 6 !== $torantejarat_ci_settings_state['passed'] ) {
+	WP_CLI::error( 'Settings smoke expected 6 passing checks, got ' . $torantejarat_ci_settings_state['passed'] . '.' );
 }
 WP_CLI::success( 'Settings smoke: ' . $torantejarat_ci_settings_state['passed'] . ' checks passed; no database writes.' );

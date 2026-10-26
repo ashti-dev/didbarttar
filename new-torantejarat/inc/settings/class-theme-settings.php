@@ -3,7 +3,9 @@
  * Theme Settings Panel — بلکوکم
  * Native WordPress Settings API — No dependencies.
  *
- * To add a tab or field, edit the $schema array only.
+ * To add a tab or field, edit the $schema array only. Scalar home defaults
+ * are supplied by torantejarat_home_defaults() so panel and frontend copy
+ * cannot diverge.
  *
  * @package ToranTejarat
  */
@@ -62,231 +64,198 @@ final class TT_Settings {
 				'hero_kicker'        => array(
 					'label'    => 'کیکر بالای تیتر',
 					'type'     => 'text',
-					'default'  => 'نگاه دقیق‌تر. انتخاب مطمئن‌تر.',
 					'desc'     => 'خالی = متن پیش‌فرض قالب.',
 					'sanitize' => 'sanitize_text_field',
 				),
 				'hero_title_1'       => array(
 					'label'    => 'تیتر، خط اول',
 					'type'     => 'text',
-					'default'  => 'قبل از باز کردن،',
 					'desc'     => '',
 					'sanitize' => 'sanitize_text_field',
 				),
 				'hero_title_2'       => array(
 					'label'    => 'تیتر، خط دوم (رنگی)',
 					'type'     => 'text',
-					'default'  => 'داخلش را ببین.',
 					'desc'     => '',
 					'sanitize' => 'sanitize_text_field',
 				),
 				'hero_lead'          => array(
 					'label'    => 'متن توضیح',
 					'type'     => 'textarea',
-					'default'  => 'برای هر مسیر پنهان، ابزار مناسبی وجود دارد. دوربین بازرسی را بر اساس کارتان انتخاب کنید؛ با مشخصات روشن و مقایسه‌ای ساده.',
 					'desc'     => '',
 					'sanitize' => 'sanitize_textarea_field',
 				),
 				'hero_cta_primary'   => array(
 					'label'    => 'دکمه اصلی',
 					'type'     => 'text',
-					'default'  => 'پیدا کردن دوربین مناسب',
 					'desc'     => 'مقصد این دکمه صفحهٔ فروشگاه است؛ فقط متن تغییر می‌کند.',
 					'sanitize' => 'sanitize_text_field',
 				),
 				'hero_cta_secondary' => array(
 					'label'    => 'دکمه دوم',
 					'type'     => 'text',
-					'default'  => 'راهنمای انتخاب',
 					'desc'     => 'مقصد این دکمه صفحهٔ راهنما (quiz) است.',
 					'sanitize' => 'sanitize_text_field',
 				),
 				'hero_foot_1'        => array(
 					'label'    => 'نشانه پایین ۱',
 					'type'     => 'text',
-					'default'  => 'مقایسه فنی دستگاه‌ها',
 					'desc'     => '',
 					'sanitize' => 'sanitize_text_field',
 				),
 				'hero_foot_2'        => array(
 					'label'    => 'نشانه پایین ۲',
 					'type'     => 'text',
-					'default'  => 'مسیر مشاوره تخصصی',
 					'desc'     => '',
 					'sanitize' => 'sanitize_text_field',
 				),
 				'benefit_1'          => array(
 					'label'    => 'مورد ۱',
 					'type'     => 'text',
-					'default'  => 'انتخاب بر اساس کاربرد',
 					'desc'     => '',
 					'sanitize' => 'sanitize_text_field',
 				),
 				'benefit_2'          => array(
 					'label'    => 'مورد ۲',
 					'type'     => 'text',
-					'default'  => 'مشخصات قابل مقایسه',
 					'desc'     => '',
 					'sanitize' => 'sanitize_text_field',
 				),
 				'benefit_3'          => array(
 					'label'    => 'مورد ۳',
 					'type'     => 'text',
-					'default'  => 'مسیر تعمیر و نگهداری',
 					'desc'     => '',
 					'sanitize' => 'sanitize_text_field',
 				),
 				'benefit_4'          => array(
 					'label'    => 'مورد ۴',
 					'type'     => 'text',
-					'default'  => 'راهنمای استفاده و انتخاب',
 					'desc'     => '',
 					'sanitize' => 'sanitize_text_field',
 				),
 				'cat_eyebrow'        => array(
 					'label'    => 'پیش‌تیتر',
 					'type'     => 'text',
-					'default'  => 'از کارتان شروع کنید',
 					'desc'     => '',
 					'sanitize' => 'sanitize_text_field',
 				),
 				'cat_title'          => array(
 					'label'    => 'تیتر',
 					'type'     => 'text',
-					'default'  => 'کجا را می‌خواهید ببینید؟',
 					'desc'     => 'کارت‌های دسته‌بندی از خود ووکامرس می‌آیند و اینجا نیستند.',
 					'sanitize' => 'sanitize_text_field',
 				),
 				'cat_text'           => array(
 					'label'    => 'متن',
 					'type'     => 'textarea',
-					'default'  => 'مسیر انتخاب دستگاه مناسب، از شناخت کاربرد شروع می‌شود.',
 					'desc'     => '',
 					'sanitize' => 'sanitize_textarea_field',
 				),
 				'field_eyebrow'      => array(
 					'label'    => 'پیش‌تیتر',
 					'type'     => 'text',
-					'default'  => 'پیش از تصمیم، دقیق‌تر ببینید',
 					'desc'     => '',
 					'sanitize' => 'sanitize_text_field',
 				),
 				'field_title'        => array(
 					'label'    => 'تیتر',
 					'type'     => 'text',
-					'default'  => 'فقط تصویر دستگاه کافی نیست؛ خروجی آن را هم ببینید.',
 					'desc'     => '',
 					'sanitize' => 'sanitize_text_field',
 				),
 				'field_text'         => array(
 					'label'    => 'متن',
 					'type'     => 'textarea',
-					'default'  => 'برای ارزیابی هر مدل، نمونه تصویر همان دستگاه در شرایط مشابه کارتان را درخواست کنید.',
 					'desc'     => '',
 					'sanitize' => 'sanitize_textarea_field',
 				),
 				'field_check_1'      => array(
 					'label'    => 'چک‌لیست ۱',
 					'type'     => 'text',
-					'default'  => 'وضوح جزئیات در فاصله کاری',
 					'desc'     => '',
 					'sanitize' => 'sanitize_text_field',
 				),
 				'field_check_2'      => array(
 					'label'    => 'چک‌لیست ۲',
 					'type'     => 'text',
-					'default'  => 'نور و میدان دید در محیط مورد نظر',
 					'desc'     => '',
 					'sanitize' => 'sanitize_text_field',
 				),
 				'field_check_3'      => array(
 					'label'    => 'چک‌لیست ۳',
 					'type'     => 'text',
-					'default'  => 'مشخص بودن مدل و شرایط تصویربرداری',
 					'desc'     => '',
 					'sanitize' => 'sanitize_text_field',
 				),
 				'field_link_label'   => array(
 					'label'    => 'متن لینک',
 					'type'     => 'text',
-					'default'  => 'آماده‌سازی درخواست نمونه تصویر',
 					'desc'     => 'مقصد این لینک صفحهٔ تماس است.',
 					'sanitize' => 'sanitize_text_field',
 				),
 				'video_label_1'      => array(
 					'label'    => 'برچسب چپ (انگلیسی)',
 					'type'     => 'text',
-					'default'  => 'INSIDE THE FIELD',
 					'desc'     => '',
 					'sanitize' => 'sanitize_text_field',
 				),
 				'video_label_2'      => array(
 					'label'    => 'برچسب راست (انگلیسی)',
 					'type'     => 'text',
-					'default'  => 'DEMO / 01',
 					'desc'     => '',
 					'sanitize' => 'sanitize_text_field',
 				),
 				'video_aria'         => array(
 					'label'    => 'برچسب دسترس‌پذیری',
 					'type'     => 'text',
-					'default'  => 'ویدیوی نمایشی بازرسی مسیر',
 					'desc'     => 'در aria-label ویدیو استفاده می‌شود؛ متن جایگزین ویدیو برای صفحه‌خوان است.',
 					'sanitize' => 'sanitize_text_field',
 				),
 				'video_caption'      => array(
 					'label'    => 'زیرنویس',
 					'type'     => 'text',
-					'default'  => 'ویدیوی نمایشی قالب؛ خروجی تأییدشده هیچ‌یک از مدل‌های فروشگاه نیست.',
 					'desc'     => '',
 					'sanitize' => 'sanitize_text_field',
 				),
 				'blog_eyebrow'       => array(
 					'label'    => 'پیش‌تیتر',
 					'type'     => 'text',
-					'default'  => 'مجله بلکوکم',
 					'desc'     => '',
 					'sanitize' => 'sanitize_text_field',
 				),
 				'blog_title'         => array(
 					'label'    => 'تیتر',
 					'type'     => 'text',
-					'default'  => 'قبل از خرید، بیشتر بدانید',
 					'desc'     => 'کارت‌های مقاله از نوشته‌های واقعی می‌آیند و اینجا نیستند.',
 					'sanitize' => 'sanitize_text_field',
 				),
 				'blog_text'          => array(
 					'label'    => 'متن',
 					'type'     => 'textarea',
-					'default'  => 'یادداشت‌های کوتاه برای سؤال‌های مهم.',
 					'desc'     => '',
 					'sanitize' => 'sanitize_textarea_field',
 				),
 				'blog_link'          => array(
 					'label'    => 'متن لینک',
 					'type'     => 'text',
-					'default'  => 'همه راهنماها',
 					'desc'     => 'مقصد این لینک صفحهٔ مجله است.',
 					'sanitize' => 'sanitize_text_field',
 				),
 				'faq_eyebrow'        => array(
 					'label'    => 'پیش‌تیتر',
 					'type'     => 'text',
-					'default'  => 'پرسش‌های متداول',
 					'desc'     => '',
 					'sanitize' => 'sanitize_text_field',
 				),
 				'faq_title'          => array(
 					'label'    => 'تیتر',
 					'type'     => 'text',
-					'default'  => 'از همین‌جا ابهام‌ها را برطرف کنید.',
 					'desc'     => '',
 					'sanitize' => 'sanitize_text_field',
 				),
 				'faq_link'           => array(
 					'label'    => 'متن لینک',
 					'type'     => 'text',
-					'default'  => 'پرسش دیگری دارید؟',
 					'desc'     => 'مقصد این لینک صفحهٔ تماس است.',
 					'sanitize' => 'sanitize_text_field',
 				),
@@ -516,6 +485,13 @@ final class TT_Settings {
 		),
 	);
 
+	/**
+	 * Whether the shared frontend defaults have been injected into home fields.
+	 *
+	 * @var bool
+	 */
+	private $home_defaults_hydrated = false;
+
 	public static function get_instance() {
 		if ( null === self::$instance ) {
 			self::$instance = new self();
@@ -541,7 +517,27 @@ final class TT_Settings {
 		);
 	}
 
+	/**
+	 * Inject the canonical frontend copy into the admin schema once.
+	 *
+	 * This runs from admin_init/render paths, not the constructor: the defaults
+	 * are translation-ready and must not force textdomain loading before init.
+	 */
+	private function hydrate_home_defaults() {
+		if ( $this->home_defaults_hydrated ) {
+			return;
+		}
+		$defaults = torantejarat_home_defaults();
+		foreach ( $defaults as $key => $default ) {
+			if ( isset( $this->schema['home']['fields'][ $key ] ) ) {
+				$this->schema['home']['fields'][ $key ]['default'] = $default;
+			}
+		}
+		$this->home_defaults_hydrated = true;
+	}
+
 	public function register_settings() {
+		$this->hydrate_home_defaults();
 		foreach ( $this->schema as $tab_key => $tab ) {
 			register_setting(
 				'torantejarat_' . $tab_key,
@@ -739,6 +735,7 @@ final class TT_Settings {
 		if ( ! current_user_can( 'manage_options' ) ) {
 			return;
 		}
+		$this->hydrate_home_defaults();
 		$requested = '';
 		if ( isset( $_GET['tab'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Tab navigation only.
 			$requested = sanitize_key( $_GET['tab'] );
@@ -1295,6 +1292,7 @@ final class TT_Settings {
 		if ( 'toplevel_page_torantejarat-settings' !== $hook ) {
 			return;
 		}
+		$this->hydrate_home_defaults();
 		// Styling lives in a real stylesheet (assets/admin/panel.css), scoped to
 		// this screen only. filemtime() busts the browser cache while the file
 		// is still being iterated on.
