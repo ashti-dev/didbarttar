@@ -49,7 +49,7 @@
 		register: document.getElementById( 'auth-panel-register' )
 	};
 
-	function activateTab( name, updateHash ) {
+	function activateTab( name, updateHash, focusTarget ) {
 		if ( ! panes[ name ] ) {
 			return;
 		}
@@ -73,15 +73,22 @@
 				history.replaceState( null, '', hash );
 			}
 		}
-		var first = panes[ name ].querySelector( 'input:not([type="hidden"])' );
-		if ( first ) {
-			first.focus( { preventScroll: true } );
+		if ( 'field' === focusTarget ) {
+			var first = panes[ name ].querySelector( 'input:not([type="hidden"])' );
+			if ( first ) {
+				first.focus( { preventScroll: true } );
+			}
+		} else if ( 'tab' === focusTarget ) {
+			var activeTab = document.querySelector( '.auth__tab[data-tab="' + name + '"]' );
+			if ( activeTab ) {
+				activeTab.focus( { preventScroll: true } );
+			}
 		}
 	}
 
 	tabs.forEach( function ( tab ) {
 		tab.addEventListener( 'click', function () {
-			activateTab( tab.dataset.tab, true );
+			activateTab( tab.dataset.tab, true, 'tab' );
 		} );
 	} );
 
@@ -91,12 +98,12 @@
 		var activePane = document.querySelector( '.auth__pane.is-active' );
 		initial = activePane && 'auth-panel-register' === activePane.id ? 'register' : 'login';
 	}
-	activateTab( panes[ initial ] ? initial : 'login', false );
+	activateTab( panes[ initial ] ? initial : 'login', false, 'none' );
 
 	/* switch links inside forms */
 	document.querySelectorAll( '.auth__switch-btn' ).forEach( function ( btn ) {
 		btn.addEventListener( 'click', function () {
-			activateTab( btn.dataset.goto, true );
+			activateTab( btn.dataset.goto, true, 'field' );
 		} );
 	} );
 
@@ -122,7 +129,7 @@
 		} else if ( e.key === 'End' ) {
 			next = names.length - 1;
 		}
-		activateTab( names[ next ], true );
+		activateTab( names[ next ], true, 'tab' );
 	} );
 
 	/* ---------- Password visibility ---------- */

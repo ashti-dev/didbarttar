@@ -159,14 +159,14 @@ function torantejarat_panel_nav_map() {
 				'id'     => 'content',
 				'label'  => 'محتوای ورود وردپرس',
 				'icon'   => 'dashicons-id',
-				'desc'   => 'لوگو و متن صفحهٔ بومی wp-login.php؛ این موارد ظاهر حساب WooCommerce را تغییر نمی‌دهند.',
+				'desc'    => 'لوگو و متن صفحهٔ ورود مشتری و صفحات بومی حساب؛ ظاهر داشبورد حساب WooCommerce را تغییر نمی‌دهند.',
 				'fields' => array( 'login_logo', 'login_title', 'login_text' ),
 			),
 			array(
 				'id'     => 'appearance',
 				'label'  => 'ظاهر ورود وردپرس',
 				'icon'   => 'dashicons-art',
-				'desc'   => 'رنگ پس‌زمینه و Accent صفحهٔ بومی ورود وردپرس.',
+				'desc'    => 'رنگ پس‌زمینه و Accent صفحهٔ ورود مشتری و صفحات بومی حساب.',
 				'fields' => array( 'login_bg', 'login_accent' ),
 			),
 			array(

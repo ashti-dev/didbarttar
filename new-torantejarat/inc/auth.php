@@ -35,17 +35,19 @@ function torantejarat_auth_enqueue() {
 add_action( 'wp_enqueue_scripts', __NAMESPACE__ . '\\torantejarat_auth_enqueue', 20 );
 
 function torantejarat_auth_get_page_id() {
-	$page = get_page_by_path( 'login-register' );
-	if ( ! $page ) {
-		$page = get_page_by_path( 'auth' );
+	foreach ( array( 'login-register', 'auth' ) as $slug ) {
+		$page = get_page_by_path( $slug );
+		if ( $page instanceof \WP_Post && 'publish' === $page->post_status ) {
+			return (int) $page->ID;
+		}
 	}
-	return $page instanceof \WP_Post ? (int) $page->ID : 0;
+	return 0;
 }
 
 /**
  * Canonical customer login URL. Native login remains the fail-open fallback
- * when the auth page has not been created yet, so a misconfiguration cannot
- * create a redirect loop or lock the site owner out.
+ * when the auth page is not published, so a misconfiguration cannot create
+ * a redirect loop or lock the site owner out.
  */
 function torantejarat_auth_login_page_url( $redirect = '', $reauth = false ) {
 	$page_id = torantejarat_auth_get_page_id();
