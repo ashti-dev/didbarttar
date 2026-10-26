@@ -1,0 +1,2 @@
+The GitHub App used by Arena Agent Mode needs repository workflows: write permission. Pushing .github/workflows/woocommerce-acceptance.yml is rejected with: “refusing to allow a GitHub App to create or update workflow without workflows permission”. Repository: ashti-dev/didbarttar.
+
