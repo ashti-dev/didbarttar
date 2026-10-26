@@ -21,7 +21,7 @@
 	box-shadow: 0 12px 34px rgba(18, 27, 49, 0.07);
 	color: var(--tt-ink);
 	direction: rtl;
-	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Tahoma, sans-serif;
+	font-family: Vazirmatn, Tahoma, Arial, sans-serif;
 	margin: 16px auto;
 	max-width: 1600px;
 	min-width: 0;
@@ -690,6 +690,11 @@
 	text-align: left;
 }
 
+.tt-panel .tt-control input.code,
+.tt-panel .tt-control textarea.code {
+	font-family: inherit;
+}
+
 .tt-panel .description,
 .tt-repeater-note {
 	color: var(--tt-muted);
@@ -912,7 +917,7 @@
 }
 
 .tt-panel .tt-control .tt-color-value {
-	font-family: SFMono-Regular, Consolas, "Liberation Mono", monospace;
+	font-family: inherit;
 	max-width: 150px;
 }
 

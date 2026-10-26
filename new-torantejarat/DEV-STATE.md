@@ -838,3 +838,9 @@
 - بررسی Diff از `878721f` هیچ تغییری در `register_setting`، Option Keyها، `type/default/sanitize/options` و منطق Sanitizer نشان نمی‌دهد. Metadata نمایشی `control`، Label/Description و Rendererها تغییر کرده‌اند؛ `_tt_scope` و Save بومی حفظ شده‌اند.
 - **وضعیت تست:** در جمع‌بندی نیز Parse هر ۳ PHP تغییرکردهٔ Shell، `node --check` هر ۲ JS، PostCSS، Coverage دقیق ۶۱/۶۱، Diff قرارداد Option و `git diff --check` موفق بود. ۴ Assertion جدید Drawer برای Open، Escape/Focus، Desktop و Focus هنگام Resize نیز PASS شد. نتیجهٔ نهایی فقط Static/DOM Simulated است؛ هیچ WordPress/PHP CLI، Browser Runtime، axe یا CI تازه‌ای در این محیط وجود ندارد.
 - **مرحلهٔ لازم بعد:** ماتریس Runtime روی وردپرس/WooCommerce ایزوله شامل Option خام و Sentinel برای هر Subpage، انتخاب واقعی Media، Publish Redirect، No-JS، Search Deep Link، Keyboard/axe و Responsive ۳۲۰/۳۹۰/۷۶۸/۱۴۴۰. تا انجام این موارد، Production **NO-GO** است و PASS تاریخی Runهای قبل به این نسخه منتسب نمی‌شود.
+
+## HOST-QA-001 — نخستین گزارش هاست تست و یکدست‌سازی فونت — 2026-10-27 — USER CHECK / RETEST PENDING
+
+- کاربر پس از اجرای داشبورد روی هاست تست، نتیجه را «اوکیه» گزارش کرد. این یک شاهد کاربر دربارهٔ همان Dashboard است و جای ماتریس کامل Save/No-JS/Responsive/axe را نمی‌گیرد.
+- مورد فونت نیز از گزارش کاربر تأیید شد. علت در `assets/admin/panel.css` مشخص بود: System Font، مقدار `Vazirmatn` بارگذاری‌شده در `inc/admin.php` را Override می‌کرد. Stack پنل به `Vazirmatn,Tahoma,Arial,sans-serif` تغییر کرد و Override فونت Inputهای Code/HEX نیز به `inherit` تغییر یافت. فونت آیکون‌های Dashicons دست‌نخورده است.
+- تست Agent در این تغییر به PostCSS Parse و `git diff --check` محدود است؛ یکدستی بصری باید روی همان هاست تست با Cache Refresh بررسی شود. هیچ تست جدید وردپرس/مرورگر توسط Agent اجرا نشده است.
