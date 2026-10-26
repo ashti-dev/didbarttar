@@ -165,6 +165,96 @@ torantejarat_ci_settings_run(
 );
 
 torantejarat_ci_settings_run(
+	'compound tab/field identity covers every field and search destination',
+	static function () {
+		torantejarat_ci_settings_register();
+		$settings = ToranTejarat\Theme\TT_Settings::get_instance();
+		$property = new ReflectionProperty( 'ToranTejarat\\Theme\\TT_Settings', 'schema' );
+		$property->setAccessible( true );
+		$schema = $property->getValue( $settings );
+		$check  = ToranTejarat\Theme\torantejarat_panel_nav_check( $schema );
+		torantejarat_ci_settings_assert( array() === $check['unplaced'], 'Navigation has unplaced fields: ' . implode( ', ', $check['unplaced'] ) );
+		torantejarat_ci_settings_assert( array() === $check['duplicated'], 'Navigation has duplicated fields: ' . implode( ', ', $check['duplicated'] ) );
+		torantejarat_ci_settings_assert( array() === $check['unknown'], 'Navigation has unknown fields: ' . implode( ', ', $check['unknown'] ) );
+
+		$nav   = ToranTejarat\Theme\torantejarat_panel_nav( $schema );
+		$index = ToranTejarat\Theme\torantejarat_panel_search_index( $schema );
+		torantejarat_ci_settings_assert( 61 === count( $index ), 'Search must contain exactly 61 field entries.' );
+		$method = new ReflectionMethod( 'ToranTejarat\\Theme\\TT_Settings', 'render_fields' );
+		$method->setAccessible( true );
+		$destinations = array();
+		foreach ( $nav as $section => $tab ) {
+			$split = count( $tab['groups'] ) > 1;
+			foreach ( $tab['groups'] as $group ) {
+				ob_start();
+				try {
+					$method->invoke( $settings, $section, $group['fields'], $split ? $group : null );
+					$html = ob_get_clean();
+				} catch ( Throwable $error ) {
+					ob_end_clean();
+					throw $error;
+				}
+				$destinations[ $section . '/' . $group['id'] ] = $html;
+			}
+		}
+
+		$expected_refs = array();
+		foreach ( $schema as $section => $tab ) {
+			foreach ( $tab['fields'] as $field_key => $field ) {
+				$expected_refs[] = $section . '/' . $field_key;
+			}
+		}
+		$seen_refs     = array();
+		$seen_wrappers = array();
+		$seen_inputs   = array();
+		foreach ( $index as $entry ) {
+			$section    = $entry['section'];
+			$field_key  = $entry['field'];
+			$ref        = $section . '/' . $field_key;
+			$wrapper_id = 'ttf-' . $section . '-' . $field_key;
+			$input_id   = 'tt-' . $section . '-' . $field_key;
+			torantejarat_ci_settings_assert( 1 === preg_match( '/^[a-z0-9_]+\/[a-z0-9_]+$/', $ref ), 'Invalid compound field reference: ' . $ref );
+			torantejarat_ci_settings_assert( isset( $entry['field_ref'] ) && $ref === $entry['field_ref'], 'Search field_ref mismatch: ' . $ref );
+			torantejarat_ci_settings_assert( $ref === ToranTejarat\Theme\torantejarat_panel_field_ref( $section, $field_key ), 'Compound reference helper mismatch: ' . $ref );
+			torantejarat_ci_settings_assert( $wrapper_id === $entry['field_id'], 'Search target changed or mismatches its field: ' . $ref );
+			torantejarat_ci_settings_assert( $wrapper_id === ToranTejarat\Theme\torantejarat_panel_field_dom_id( $section, $field_key, true ), 'Wrapper id helper mismatch: ' . $ref );
+			torantejarat_ci_settings_assert( $input_id === ToranTejarat\Theme\torantejarat_panel_field_dom_id( $section, $field_key ), 'Input id helper mismatch: ' . $ref );
+			torantejarat_ci_settings_assert( ! isset( $seen_refs[ $ref ] ), 'Duplicate search field reference: ' . $ref );
+			torantejarat_ci_settings_assert( ! isset( $seen_wrappers[ $wrapper_id ] ), 'Duplicate wrapper id: ' . $wrapper_id );
+			torantejarat_ci_settings_assert( ! isset( $seen_inputs[ $input_id ] ), 'Duplicate input id: ' . $input_id );
+			$seen_refs[ $ref ]            = true;
+			$seen_wrappers[ $wrapper_id ] = true;
+			$seen_inputs[ $input_id ]     = true;
+
+			$destination = $section . '/' . $entry['sub'];
+			torantejarat_ci_settings_assert( isset( $destinations[ $destination ] ), 'Search destination was not rendered: ' . $destination );
+			$html = $destinations[ $destination ];
+			torantejarat_ci_settings_assert( 1 === substr_count( $html, 'id="' . $wrapper_id . '"' ), 'Search wrapper missing or duplicated at destination: ' . $ref );
+			$field = $schema[ $section ]['fields'][ $field_key ];
+			if ( 'repeater' === $field['type'] ) {
+				torantejarat_ci_settings_assert( 0 === substr_count( $html, 'id="' . $input_id . '"' ), 'Repeater unexpectedly rendered a scalar input id: ' . $ref );
+			} else {
+				torantejarat_ci_settings_assert( 1 === substr_count( $html, 'id="' . $input_id . '"' ), 'Input id missing or duplicated at destination: ' . $ref );
+			}
+		}
+		$actual_refs = array_keys( $seen_refs );
+		sort( $expected_refs );
+		sort( $actual_refs );
+		torantejarat_ci_settings_assert( $expected_refs === $actual_refs, 'Search does not cover every schema field exactly once.' );
+
+		$synthetic = $schema;
+		$synthetic['contact']['fields']['hero_kicker'] = $schema['home']['fields']['hero_kicker'];
+		$synthetic_check = ToranTejarat\Theme\torantejarat_panel_nav_check( $synthetic );
+		torantejarat_ci_settings_assert( array() === $synthetic_check['duplicated'], 'The same field key in two tabs was treated as a duplicate.' );
+		torantejarat_ci_settings_assert( array() === $synthetic_check['unplaced'], 'Compound identity caused a synthetic cross-tab field to be unplaced.' );
+		$broken = $schema;
+		unset( $broken['home']['fields']['hero_kicker'] );
+		$broken_check = ToranTejarat\Theme\torantejarat_panel_nav_check( $broken );
+		torantejarat_ci_settings_assert( array( 'home/hero_kicker' ) === $broken_check['unknown'], 'Unknown map entries do not use compound tab/field identity.' );
+	}
+);
+
+torantejarat_ci_settings_run(
 	'FAQ sanitizer caps new rows at twelve without deleting legacy overflow',
 	static function () {
 		torantejarat_ci_settings_register();
@@ -292,7 +382,7 @@ $torantejarat_ci_settings_state = $GLOBALS['torantejarat_ci_settings_state'];
 if ( $torantejarat_ci_settings_state['failed'] ) {
 	WP_CLI::error( 'Settings smoke failed: ' . implode( ' | ', $torantejarat_ci_settings_state['failed'] ) );
 }
-if ( 6 !== $torantejarat_ci_settings_state['passed'] ) {
-	WP_CLI::error( 'Settings smoke expected 6 passing checks, got ' . $torantejarat_ci_settings_state['passed'] . '.' );
+if ( 7 !== $torantejarat_ci_settings_state['passed'] ) {
+	WP_CLI::error( 'Settings smoke expected 7 passing checks, got ' . $torantejarat_ci_settings_state['passed'] . '.' );
 }
 WP_CLI::success( 'Settings smoke: ' . $torantejarat_ci_settings_state['passed'] . ' checks passed; no database writes.' );

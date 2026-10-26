@@ -1056,15 +1056,16 @@ final class TT_Settings {
 			if ( ! empty( $field['default_callback'] ) && is_callable( $field['default_callback'] ) && self::value_is_blank( $value ) ) {
 				$value = call_user_func( $field['default_callback'] );
 			}
-			$id    = 'tt-' . $tab_key . '-' . $key;
-			$name  = 'torantejarat_' . $tab_key . '[' . $key . ']';
-			$type  = $field['type'];
+			$id         = torantejarat_panel_field_dom_id( $tab_key, $key );
+			$wrapper_id = torantejarat_panel_field_dom_id( $tab_key, $key, true );
+			$name       = 'torantejarat_' . $tab_key . '[' . $key . ']';
+			$type       = $field['type'];
 			if ( 'repeater' === $type ) {
 				$this->render_repeater_field( $tab_key, $key, $field, $value );
 				continue;
 			}
 			?>
-			<div class="tt-field" id="ttf-<?php echo esc_attr( $tab_key . '-' . $key ); ?>">
+			<div class="tt-field" id="<?php echo esc_attr( $wrapper_id ); ?>">
 				<?php if ( 'checkbox' !== $type ) : ?>
 				<label class="tt-label" for="<?php echo esc_attr( $id ); ?>">
 					<?php echo esc_html( $field['label'] ); ?>
@@ -1146,9 +1147,10 @@ final class TT_Settings {
 		if ( $max < 1 || count( $rows ) < $max ) {
 			$rows[] = array(); // Trailing blank row = the no-JavaScript way to add a row.
 		}
-		$base = 'torantejarat_' . $tab_key . '[' . $key . ']';
+		$base       = 'torantejarat_' . $tab_key . '[' . $key . ']';
+		$wrapper_id = torantejarat_panel_field_dom_id( $tab_key, $key, true );
 		?>
-		<div class="tt-field tt-field-repeater" id="ttf-<?php echo esc_attr( $tab_key . '-' . $key ); ?>" data-tt-repeater data-tt-max="<?php echo esc_attr( (string) $max ); ?>">
+		<div class="tt-field tt-field-repeater" id="<?php echo esc_attr( $wrapper_id ); ?>" data-tt-repeater data-tt-max="<?php echo esc_attr( (string) $max ); ?>">
 			<div class="tt-repeater-head">
 				<span class="tt-label"><?php echo esc_html( $field['label'] ); ?></span>
 				<?php if ( ! empty( $field['desc'] ) ) : ?>

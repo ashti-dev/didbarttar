@@ -24,6 +24,35 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
+ * Canonical compound identity for one schema field.
+ *
+ * Field keys are unique inside a tab, not across tabs. Keep the tab in every
+ * self-check/search identity instead of comparing bare field keys.
+ *
+ * @param string $tab_key   Tab key.
+ * @param string $field_key Field key.
+ * @return string
+ */
+function torantejarat_panel_field_ref( $tab_key, $field_key ) {
+	return (string) $tab_key . '/' . (string) $field_key;
+}
+
+/**
+ * Build the stable DOM id used by labels, inputs and search targets.
+ *
+ * The boolean selects the existing input (`tt-`) or wrapper (`ttf-`) prefix;
+ * no key is renamed or sanitized here. Escaping remains the renderer's job.
+ *
+ * @param string $tab_key   Tab key.
+ * @param string $field_key Field key.
+ * @param bool   $wrapper   Whether to return the searchable wrapper id.
+ * @return string
+ */
+function torantejarat_panel_field_dom_id( $tab_key, $field_key, $wrapper = false ) {
+	return ( $wrapper ? 'ttf-' : 'tt-' ) . (string) $tab_key . '-' . (string) $field_key;
+}
+
+/**
  * Sub-section definition per tab: id, label, dashicon, and the field keys that
  * belong to it (in schema order, so rendering order is unchanged).
  *
@@ -142,22 +171,24 @@ function torantejarat_panel_nav_check( array $schema ) {
 	$seen      = array();
 	$duplicate = array();
 
-	foreach ( $tree as $tab ) {
+	foreach ( $tree as $tab_key => $tab ) {
 		foreach ( $tab['groups'] as $group ) {
 			foreach ( $group['fields'] as $field_key ) {
-				if ( isset( $seen[ $field_key ] ) ) {
-					$duplicate[] = $field_key;
+				$ref = torantejarat_panel_field_ref( $tab_key, $field_key );
+				if ( isset( $seen[ $ref ] ) ) {
+					$duplicate[] = $ref;
 				}
-				$seen[ $field_key ] = true;
+				$seen[ $ref ] = true;
 			}
 		}
 	}
 
 	$unplaced = array();
-	foreach ( $schema as $tab ) {
+	foreach ( $schema as $tab_key => $tab ) {
 		foreach ( $tab['fields'] as $field_key => $field ) {
-			if ( ! isset( $seen[ $field_key ] ) ) {
-				$unplaced[] = $field_key;
+			$ref = torantejarat_panel_field_ref( $tab_key, $field_key );
+			if ( ! isset( $seen[ $ref ] ) ) {
+				$unplaced[] = $ref;
 			}
 		}
 	}
@@ -167,7 +198,7 @@ function torantejarat_panel_nav_check( array $schema ) {
 		foreach ( $groups as $group ) {
 			foreach ( $group['fields'] as $field_key ) {
 				if ( ! isset( $schema[ $tab_key ]['fields'][ $field_key ] ) ) {
-					$unknown[] = $tab_key . '/' . $field_key;
+					$unknown[] = torantejarat_panel_field_ref( $tab_key, $field_key );
 				}
 			}
 		}
@@ -204,8 +235,9 @@ function torantejarat_panel_search_index( array $schema ) {
 					'sub'           => (string) $group['id'],
 					'sub_label'     => (string) $group['label'],
 					'field'         => (string) $field_key,
+					'field_ref'     => torantejarat_panel_field_ref( $section, $field_key ),
 					'field_label'   => (string) $field['label'],
-					'field_id'      => 'ttf-' . $section . '-' . $field_key,
+					'field_id'      => torantejarat_panel_field_dom_id( $section, $field_key, true ),
 					'text'          => $tab['label'] . ' › ' . $group['label'] . ' › ' . $field['label'],
 				);
 			}
