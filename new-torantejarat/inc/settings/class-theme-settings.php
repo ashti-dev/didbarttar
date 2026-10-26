@@ -1568,9 +1568,10 @@ final class TT_Settings {
 	}
 
 	/**
-	 * Render a repeater field: a table of saved rows plus one trailing blank
-	 * row, so a row can still be added with JavaScript disabled. The JS
-	 * counterpart is assets/js/admin-settings.js (settings screen only).
+	 * Render a repeater field as cards, with one trailing blank row so a row
+	 * can still be added with JavaScript disabled. Collapse and row buttons
+	 * are JS enhancements; no-JS content stays open and uses the blank row.
+	 * The JS counterpart is assets/js/admin-settings.js (settings screen only).
 	 *
 	 * @param string $tab_key Tab the field belongs to.
 	 * @param string $key     Field key.
@@ -1590,33 +1591,33 @@ final class TT_Settings {
 		$base       = 'torantejarat_' . $tab_key . '[' . $key . ']';
 		$wrapper_id = torantejarat_panel_field_dom_id( $tab_key, $key, true );
 		?>
-		<div class="tt-field tt-field-repeater" id="<?php echo esc_attr( $wrapper_id ); ?>" data-tt-repeater data-tt-max="<?php echo esc_attr( (string) $max ); ?>">
+		<div
+			class="tt-field tt-field-repeater"
+			id="<?php echo esc_attr( $wrapper_id ); ?>"
+			data-tt-repeater
+			data-tt-max="<?php echo esc_attr( (string) $max ); ?>"
+			data-tt-row-label="<?php esc_attr_e( 'پرسش', 'torantejarat' ); ?>"
+			role="group"
+			aria-labelledby="<?php echo esc_attr( $wrapper_id . '-label' ); ?>"
+			<?php if ( ! empty( $field['desc'] ) ) : ?>aria-describedby="<?php echo esc_attr( $wrapper_id . '-description' ); ?>"<?php endif; ?>
+		>
 			<div class="tt-repeater-head">
-				<span class="tt-label"><?php echo esc_html( $field['label'] ); ?></span>
+				<span class="tt-label" id="<?php echo esc_attr( $wrapper_id . '-label' ); ?>"><?php echo esc_html( $field['label'] ); ?></span>
 				<?php if ( ! empty( $field['desc'] ) ) : ?>
-					<p class="description"><?php echo esc_html( $field['desc'] ); ?></p>
+					<p class="description" id="<?php echo esc_attr( $wrapper_id . '-description' ); ?>"><?php echo esc_html( $field['desc'] ); ?></p>
 				<?php endif; ?>
 			</div>
 			<div class="tt-control">
-				<div class="tt-repeater-scroll">
-					<table class="widefat striped tt-repeater-table">
-						<thead>
-							<tr>
-								<?php foreach ( $subfields as $sub ) : ?>
-									<th scope="col"><?php echo esc_html( isset( $sub['label'] ) ? $sub['label'] : '' ); ?></th>
-								<?php endforeach; ?>
-								<th scope="col" class="tt-repeater-act"><span class="screen-reader-text"><?php esc_html_e( 'حذف ردیف', 'torantejarat' ); ?></span></th>
-							</tr>
-						</thead>
-						<tbody>
-							<?php foreach ( $rows as $index => $row ) : ?>
-								<?php $this->render_repeater_row( $base, (int) $index, $subfields, is_array( $row ) ? $row : array() ); ?>
-							<?php endforeach; ?>
-						</tbody>
-					</table>
+				<div class="tt-repeater-list" data-tt-repeater-list>
+					<?php foreach ( $rows as $index => $row ) : ?>
+						<?php $this->render_repeater_row( $base, (int) $index, $subfields, is_array( $row ) ? $row : array() ); ?>
+					<?php endforeach; ?>
 				</div>
+				<noscript>
+					<p class="description"><?php esc_html_e( 'برای افزودن، ردیف خالی آخر را پر کنید. برای حذف، محتوای ردیف را پاک کنید؛ تغییر پس از ذخیره اعمال می‌شود.', 'torantejarat' ); ?></p>
+				</noscript>
 				<p class="tt-repeater-actions">
-					<button type="button" class="button" data-tt-repeater-add><?php esc_html_e( 'افزودن ردیف', 'torantejarat' ); ?></button>
+					<button type="button" class="button" data-tt-repeater-add hidden><?php esc_html_e( 'افزودن ردیف', 'torantejarat' ); ?></button>
 				</p>
 				<?php if ( $max > 0 ) : ?>
 					<?php
@@ -1648,28 +1649,52 @@ final class TT_Settings {
 	 * @param array  $row       Stored row values.
 	 */
 	private function render_repeater_row( $base, $index, array $subfields, array $row ) {
+		$row_label = sprintf(
+			/* translators: %s: repeater row number. */
+			__( 'پرسش %s', 'torantejarat' ),
+			number_format_i18n( $index + 1 )
+		);
 		?>
-		<tr class="tt-repeater-row">
-			<?php foreach ( $subfields as $sub_key => $sub ) : ?>
-				<td>
-					<?php
-					$this->render_subfield_input(
-						$base,
-						$index,
-						(string) $sub_key,
-						$sub,
-						isset( $row[ $sub_key ] ) ? $row[ $sub_key ] : ''
-					);
-					?>
-				</td>
-			<?php endforeach; ?>
-			<td class="tt-repeater-act">
-				<button type="button" class="button-link tt-repeater-remove" data-tt-repeater-remove>
-					<?php esc_html_e( 'حذف', 'torantejarat' ); ?>
-					<span class="screen-reader-text"><?php esc_html_e( 'حذف این ردیف', 'torantejarat' ); ?></span>
-				</button>
-			</td>
-		</tr>
+		<div class="tt-repeater-row" data-tt-repeater-row role="group" aria-label="<?php echo esc_attr( $row_label ); ?>">
+			<div class="tt-repeater-card-head">
+				<span class="tt-repeater-number" data-tt-repeater-number><?php echo esc_html( $row_label ); ?></span>
+				<span class="tt-repeater-summary" data-tt-repeater-summary></span>
+				<div class="tt-repeater-card-actions">
+					<button
+						type="button"
+						class="button tt-repeater-toggle"
+						data-tt-repeater-toggle
+						data-tt-collapse-label="<?php esc_attr_e( 'جمع‌کردن', 'torantejarat' ); ?>"
+						data-tt-expand-label="<?php esc_attr_e( 'بازکردن', 'torantejarat' ); ?>"
+						aria-expanded="true"
+						hidden
+					>
+						<span data-tt-repeater-toggle-text><?php esc_html_e( 'جمع‌کردن', 'torantejarat' ); ?></span>
+						<span class="dashicons dashicons-arrow-up-alt2" aria-hidden="true"></span>
+					</button>
+					<button type="button" class="button-link tt-repeater-remove" data-tt-repeater-remove hidden>
+						<span aria-hidden="true"><?php esc_html_e( 'حذف', 'torantejarat' ); ?></span>
+						<span class="screen-reader-text"><?php esc_html_e( 'حذف این ردیف', 'torantejarat' ); ?></span>
+					</button>
+				</div>
+			</div>
+			<div class="tt-repeater-card-body" data-tt-repeater-body>
+				<?php foreach ( $subfields as $sub_key => $sub ) : ?>
+					<label class="tt-repeater-subfield">
+						<span class="tt-repeater-subfield-label"><?php echo esc_html( isset( $sub['label'] ) ? $sub['label'] : $sub_key ); ?></span>
+						<?php
+						$this->render_subfield_input(
+							$base,
+							$index,
+							(string) $sub_key,
+							$sub,
+							isset( $row[ $sub_key ] ) ? $row[ $sub_key ] : ''
+						);
+						?>
+					</label>
+				<?php endforeach; ?>
+			</div>
+		</div>
 		<?php
 	}
 

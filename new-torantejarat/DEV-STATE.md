@@ -822,3 +822,11 @@
 - URLهای HTTP(S) معتبر دکمهٔ «بازکردن» در Tab جدید دارند؛ مقدار نامعتبر یا خالی دکمه‌ای ندارد. راهنماهای فیلدها با `aria-describedby` به کنترل‌ها متصل شدند. تفاوت Schema از مبنای `878721f` هیچ تغییری در `type/default/sanitize/options` ندارد و فقط Metadata نمایشی `control` و توضیح Media اضافه شده است.
 - **تست واقعی این بخش:** `php-parser`، PostCSS Parse، `node --check` و `git diff --check` موفق بودند. ۱۶ Assertion در JSDOM برای Media Frame تصویری، انتخاب URL، Dirty-state، Preview، Clear بدون Attachment ID/Delete، لینک معتبر/نامعتبر، Color دوطرفه و مقدار `yes/no` و `0/1` موفق شد. یک Assertion مستقل نیز Fallback غیرفعال‌بودن Media و Save مقدار URL دستی را تأیید کرد. این‌ها Runtime وردپرس یا مرورگر واقعی نیستند.
 - **باقی‌مانده:** Card Repeater و سپس تست واقعی Save Scope، Media Library روی وردپرس، No-JS/Keyboard/axe و Responsive در مرورگر/CI. Production همچنان **NO-GO** است.
+
+## ADMIN-UI-001C — Card Repeater برای FAQ — 2026-10-26 — CODE DONE / RUNTIME PENDING
+
+- جدول FAQ در `class-theme-settings.php` به کارت‌های RTL تبدیل شد؛ همان `data-tt-name`، Nameهای `torantejarat_home[faq][i][q/a]`، ترتیب Submit و Sanitizer حفظ شده‌اند. هیچ Drag/Drop یا تغییر ترتیب خودکار اضافه نشده و سه Slot موقعیتی دست‌نخورده‌اند.
+- Add/Remove، شمارهٔ ردیف، Summary از متن پرسش و Collapse با JS فعال می‌شوند. Collapse فقط Body بصری را مخفی می‌کند و Inputها را Disable یا Rename نمی‌کند. هر ردیف `role=group` و Label شماره‌دار دارد و Renumbering علاوه بر Nameها، Label ردیف را به‌روز می‌کند.
+- بدون JS همهٔ Bodyها باز و دکمه‌های Add/Remove/Collapse مخفی‌اند؛ `<noscript>` توضیح می‌دهد برای افزودن باید ردیف خالی آخر پر شود و برای حذف باید محتوای ردیف پاک شود. سقف ۱۲ و رفتار Legacy Overflow در PHP تغییر نکرده است.
+- **تست واقعی این بخش:** `php-parser`، PostCSS Parse، `node --check` و `git diff --check` موفق بودند. ۱۷ Assertion در JSDOM برای Collapse/Expand، حفظ Name، Add تا سقف، Renumbering، Summary، Dirty-state و Focus پس از Add/Remove موفق شد. ۳ Assertion جدا نیز Legacy Overflow را در حالت رشدناپذیر و کوچک‌شدن تا آستانه تأیید کرد. Source Contract برای Trailing Blank، سقف ۱۲ و No-JS Controls بررسی شد.
+- **باقی‌مانده:** تست واقعی Save روی Option خام، خروجی سه Slot در Frontend، No-JS/Keyboard/axe، عرض‌های ۳۲۰/۳۹۰/۷۶۸/۱۴۴۰ و اجرای CI/Runtime وردپرس. این JSDOMها Browser Runtime نیستند و Production همچنان **NO-GO** است.

@@ -32,6 +32,8 @@
 				control.value = '';
 			}
 		} );
+		setCollapsed( row, false );
+		updateSummary( row );
 	}
 
 	/**
@@ -47,19 +49,76 @@
 	}
 
 	/**
+	 * Collapse is visual only and never disables or renames submitted inputs.
+	 *
+	 * @param {HTMLElement} row       Repeater row.
+	 * @param {boolean}     collapsed Target state.
+	 */
+	function setCollapsed( row, collapsed ) {
+		if ( ! row ) {
+			return;
+		}
+		var body   = row.querySelector( '[data-tt-repeater-body]' );
+		var toggle = row.querySelector( '[data-tt-repeater-toggle]' );
+		if ( body ) {
+			body.hidden = collapsed;
+		}
+		row.classList.toggle( 'is-collapsed', collapsed );
+		if ( toggle ) {
+			toggle.setAttribute( 'aria-expanded', collapsed ? 'false' : 'true' );
+			var text = toggle.querySelector( '[data-tt-repeater-toggle-text]' );
+			if ( text ) {
+				text.textContent = toggle.getAttribute( collapsed ? 'data-tt-expand-label' : 'data-tt-collapse-label' );
+			}
+			var icon = toggle.querySelector( '.dashicons' );
+			if ( icon ) {
+				icon.classList.toggle( 'dashicons-arrow-up-alt2', ! collapsed );
+				icon.classList.toggle( 'dashicons-arrow-down-alt2', collapsed );
+			}
+		}
+	}
+
+	function updateSummary( row ) {
+		var summary = row ? row.querySelector( '[data-tt-repeater-summary]' ) : null;
+		if ( ! summary ) {
+			return;
+		}
+		var first = row.querySelector( 'input, textarea, select' );
+		var value = first ? String( first.value || '' ).replace( /\s+/g, ' ' ).trim() : '';
+		summary.textContent = value.length > 70 ? value.substring( 0, 70 ) + '…' : value;
+	}
+
+	/**
 	 * Rebuild every name attribute from its "%i%" template, so submitted rows
-	 * are always a clean, gap-free 0..n list.
+	 * are always a clean, gap-free 0..n list. Card numbers are visual only.
 	 *
 	 * @param {HTMLElement} wrap Repeater wrapper.
 	 */
 	function renumber( wrap ) {
-		wrap.querySelectorAll( 'tbody > tr' ).forEach( function ( row, index ) {
+		var list = wrap.querySelector( '[data-tt-repeater-list]' );
+		if ( ! list ) {
+			return;
+		}
+		Array.prototype.forEach.call( list.children, function ( row, index ) {
 			controls( row ).forEach( function ( control ) {
 				var template = control.getAttribute( 'data-tt-name' );
 				if ( template ) {
 					control.name = template.replace( '%i%', index );
 				}
 			} );
+			var value = index + 1;
+			try {
+				value = value.toLocaleString( document.documentElement.lang || 'fa-IR' );
+			} catch ( error ) {
+				value = String( value );
+			}
+			var label = ( wrap.getAttribute( 'data-tt-row-label' ) || 'Row' ) + ' ' + value;
+			var number = row.querySelector( '[data-tt-repeater-number]' );
+			if ( number ) {
+				number.textContent = label;
+			}
+			row.setAttribute( 'aria-label', label );
+			updateSummary( row );
 		} );
 	}
 
@@ -75,10 +134,10 @@
 		if ( limit < 1 ) {
 			return;
 		}
-		var body = wrap.querySelector( 'tbody' );
+		var list = wrap.querySelector( '[data-tt-repeater-list]' );
 		var add  = wrap.querySelector( '[data-tt-repeater-add]' );
 		var note = wrap.querySelector( '[data-tt-repeater-note]' );
-		var full = body ? body.children.length >= limit : false;
+		var full = list ? list.children.length >= limit : false;
 
 		if ( add ) {
 			add.disabled = full;
@@ -94,39 +153,67 @@
 	}
 
 	document.querySelectorAll( '[data-tt-repeater]' ).forEach( function ( wrap ) {
-		var body = wrap.querySelector( 'tbody' );
+		var list = wrap.querySelector( '[data-tt-repeater-list]' );
 		var add  = wrap.querySelector( '[data-tt-repeater-add]' );
-		var last = body ? body.querySelector( 'tr:last-child' ) : null;
+		if ( ! list ) {
+			return;
+		}
 
-		if ( add && body && last ) {
+		if ( add ) {
+			add.hidden = false;
+		}
+		wrap.querySelectorAll( '[data-tt-repeater-toggle], [data-tt-repeater-remove]' ).forEach( function ( button ) {
+			button.hidden = false;
+		} );
+		Array.prototype.forEach.call( list.children, updateSummary );
+
+		if ( add ) {
 			add.addEventListener( 'click', function () {
 				var limit = parseInt( wrap.getAttribute( 'data-tt-max' ), 10 ) || 0;
-				if ( limit > 0 && body.children.length >= limit ) {
+				if ( limit > 0 && list.children.length >= limit ) {
 					updateLimit( wrap );
 					return;
 				}
-				var row = last.cloneNode( true );
+				var template = list.querySelector( '[data-tt-repeater-row]:last-child' );
+				if ( ! template ) {
+					return;
+				}
+				var row = template.cloneNode( true );
 				clearRow( row );
-				body.appendChild( row );
+				list.appendChild( row );
 				renumber( wrap );
 				updateLimit( wrap );
 				focusRow( row );
 			} );
 		}
 
+		wrap.addEventListener( 'input', function ( event ) {
+			var row = event.target.closest( '[data-tt-repeater-row]' );
+			if ( row ) {
+				updateSummary( row );
+			}
+		} );
+
 		wrap.addEventListener( 'click', function ( event ) {
-			var button = event.target.closest( '[data-tt-repeater-remove]' );
-			if ( ! button || ! body ) {
+			var toggle = event.target.closest( '[data-tt-repeater-toggle]' );
+			if ( toggle ) {
+				var toggleRow = toggle.closest( '[data-tt-repeater-row]' );
+				setCollapsed( toggleRow, 'true' === toggle.getAttribute( 'aria-expanded' ) );
 				return;
 			}
-			var row = button.closest( 'tr' );
+
+			var button = event.target.closest( '[data-tt-repeater-remove]' );
+			if ( ! button ) {
+				return;
+			}
+			var row = button.closest( '[data-tt-repeater-row]' );
 			if ( ! row ) {
 				return;
 			}
-			var rowIndex = Array.prototype.indexOf.call( body.children, row );
+			var rowIndex = Array.prototype.indexOf.call( list.children, row );
 			// Keep at least one row: the last one is emptied instead of removed,
 			// otherwise there would be nothing left to clone.
-			if ( body.children.length > 1 ) {
+			if ( list.children.length > 1 ) {
 				row.remove();
 			} else {
 				clearRow( row );
@@ -136,8 +223,10 @@
 			// Removing the focused button must not drop keyboard users on body.
 			// Stay at the same row position, or the previous row when the last
 			// row was removed; clearing the only row keeps that row in place.
-			var targetIndex = Math.min( Math.max( rowIndex, 0 ), body.children.length - 1 );
-			focusRow( body.children[ targetIndex ] );
+			var targetIndex = Math.min( Math.max( rowIndex, 0 ), list.children.length - 1 );
+			var targetRow = list.children[ targetIndex ];
+			setCollapsed( targetRow, false );
+			focusRow( targetRow );
 		} );
 
 		updateLimit( wrap );

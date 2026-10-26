@@ -966,61 +966,122 @@
 	line-height: 2;
 }
 
-/* Repeater keeps a local scroll area, never document-level overflow. */
+/* Card repeater: no table minimum width and no document-level overflow. */
 .tt-field-repeater {
 	display: block;
 }
 
 .tt-repeater-head {
-	margin-bottom: 12px;
+	margin-bottom: 14px;
 }
 
-.tt-repeater-scroll {
-	border: 1px solid var(--tt-line);
-	border-radius: 9px;
+.tt-repeater-list {
+	display: grid;
+	gap: 12px;
 	max-width: 100%;
-	overflow-x: auto;
 }
 
-.tt-repeater-table {
-	border: 0;
-	box-shadow: none;
-	margin: 0;
-	min-width: 560px;
+.tt-repeater-row {
+	background: #fbfcfe;
+	border: 1px solid var(--tt-line);
+	border-radius: 11px;
+	max-width: 100%;
+	min-width: 0;
+	overflow: hidden;
 }
 
-.tt-repeater-table th {
-	color: #344054;
+.tt-repeater-card-head {
+	align-items: center;
+	background: #f7f9fc;
+	border-bottom: 1px solid var(--tt-line);
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px 12px;
+	min-height: 54px;
+	padding: 9px 12px;
+}
+
+.tt-repeater-row.is-collapsed .tt-repeater-card-head {
+	border-bottom: 0;
+}
+
+.tt-repeater-number {
+	color: #26334a;
+	flex: 0 0 auto;
 	font-size: 12px;
-	font-weight: 700;
-	padding: 10px 12px;
+	font-weight: 750;
 }
 
-.tt-repeater-table td {
-	padding: 10px;
-	vertical-align: top;
+.tt-repeater-summary {
+	color: var(--tt-muted);
+	display: none;
+	flex: 1 1 140px;
+	font-size: 12px;
+	max-width: 100%;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 }
 
-.tt-repeater-table input,
-.tt-repeater-table textarea,
-.tt-repeater-table select {
+.tt-repeater-row.is-collapsed .tt-repeater-summary:not(:empty) {
+	display: block;
+}
+
+.tt-repeater-card-actions {
+	align-items: center;
+	display: flex;
+	flex: 0 0 auto;
+	gap: 10px;
+	margin-inline-start: auto;
+}
+
+.tt-repeater-toggle .dashicons {
+	font-size: 15px;
+	height: 15px;
+	width: 15px;
+}
+
+.tt-repeater-card-body {
+	display: grid;
+	gap: 16px;
+	padding: 16px;
+}
+
+.tt-repeater-subfield {
+	display: block;
+	min-width: 0;
+}
+
+.tt-repeater-subfield-label {
+	color: #344054;
+	display: block;
+	font-size: 12px;
+	font-weight: 650;
+	line-height: 1.8;
+	margin-bottom: 6px;
+}
+
+.tt-repeater-subfield input,
+.tt-repeater-subfield textarea,
+.tt-repeater-subfield select {
 	margin: 0;
 	max-width: 100%;
 	min-width: 0;
 	width: 100%;
 }
 
-.tt-repeater-act {
-	text-align: center;
-	width: 58px;
+.tt-repeater-subfield textarea {
+	min-height: 92px;
+	resize: vertical;
 }
 
 .tt-repeater-remove {
 	color: #b42318;
+	white-space: nowrap;
 }
 
 .tt-repeater-actions {
-	margin: 12px 0 0;
+	margin: 14px 0 0;
 }
 
 .tt-repeater-note.is-limit {
