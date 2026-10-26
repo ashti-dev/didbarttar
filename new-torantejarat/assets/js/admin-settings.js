@@ -428,8 +428,8 @@
 		}
 
 		function closeDrawer( restoreFocus ) {
-			if ( restoreFocus ) {
-				var target = lastFocus && document.contains( lastFocus ) ? lastFocus : toggle;
+			if ( restoreFocus || ( query.matches && shell.contains( document.activeElement ) ) ) {
+				var target = restoreFocus && lastFocus && document.contains( lastFocus ) ? lastFocus : toggle;
 				target.focus();
 			}
 			panel.classList.remove( 'tt-drawer-open' );

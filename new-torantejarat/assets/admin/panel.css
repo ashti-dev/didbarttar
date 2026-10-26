@@ -449,7 +449,7 @@
 	margin: 0;
 	padding: 0;
 	position: fixed;
-	z-index: 9998;
+	z-index: 10002;
 }
 
 /* Main pages, cards and native-content links */
@@ -1165,7 +1165,7 @@
 		transition: transform 180ms ease, visibility 180ms ease;
 		visibility: hidden;
 		width: 310px;
-		z-index: 9999;
+		z-index: 10003;
 	}
 
 	.tt-drawer-enhanced .tt-sidebar-shell[aria-hidden="false"] {
@@ -1248,6 +1248,18 @@
 }
 
 @media (max-width: 560px) {
+	.tt-header-main {
+		grid-template-areas:
+			"brand"
+			"actions"
+			"search";
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.tt-header-actions {
+		justify-content: flex-start;
+	}
+
 	.tt-cards {
 		grid-template-columns: minmax(0, 1fr);
 	}

@@ -1392,7 +1392,7 @@ final class TT_Settings {
 			$desc_id    = ! empty( $field['desc'] ) ? $id . '-description' : '';
 			$desc_attr  = $desc_id ? ' aria-describedby="' . esc_attr( $desc_id ) . '"' : '';
 			$open_url   = '';
-			if ( 'url' === $type && preg_match( '#^https?://#i', (string) $value ) ) {
+			if ( 'url' === $type && filter_var( (string) $value, FILTER_VALIDATE_URL ) && preg_match( '#^https?://#i', (string) $value ) ) {
 				$open_url = esc_url( (string) $value );
 			}
 			if ( 'repeater' === $type ) {
@@ -1489,7 +1489,7 @@ final class TT_Settings {
 						<?php if ( 'media-url' === $control ) : ?>
 							<div class="tt-media-control" data-tt-media>
 								<div class="tt-media-preview" data-tt-media-preview <?php if ( ! $open_url ) : ?>hidden<?php endif; ?>>
-									<img src="<?php echo esc_url( $open_url ); ?>" alt="" data-tt-media-image loading="lazy">
+									<img <?php if ( $open_url ) : ?>src="<?php echo esc_url( $open_url ); ?>"<?php endif; ?> alt="" data-tt-media-image loading="lazy">
 								</div>
 								<div class="tt-media-main">
 						<?php endif; ?>
