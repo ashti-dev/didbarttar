@@ -1,9 +1,9 @@
 /**
- * Theme settings — repeater rows (add / remove / re-number).
+ * Theme settings — field controls, repeater, drawer and dirty state.
  *
  * Loaded only on the theme settings screen (see TT_Settings::enqueue_styles).
- * Without JavaScript the markup still works: every repeater renders one extra
- * blank row, so filling it and saving adds a row.
+ * Without JavaScript the named inputs and native submit still work; repeaters
+ * also render one extra blank row so filling it and saving adds a row.
  */
 ( function () {
 	'use strict';
@@ -141,6 +141,177 @@
 		} );
 
 		updateLimit( wrap );
+	} );
+
+	/**
+	 * URL actions are progressively enhanced and only expose absolute HTTP(S)
+	 * values. The input name/value and native submit never change.
+	 */
+	document.querySelectorAll( 'input[data-tt-url-input]' ).forEach( function ( input ) {
+		var wrap = input.closest( '.tt-url-control' );
+		var link = wrap ? wrap.querySelector( '[data-tt-url-open]' ) : null;
+		if ( ! link ) {
+			return;
+		}
+
+		function updateLink() {
+			var href = '';
+			var value = input.value.trim();
+			if ( /^https?:\/\//i.test( value ) && window.URL ) {
+				try {
+					var parsed = new window.URL( value );
+					if ( 'http:' === parsed.protocol || 'https:' === parsed.protocol ) {
+						href = parsed.href;
+					}
+				} catch ( error ) {
+					href = '';
+				}
+			}
+			link.hidden = ! href;
+			if ( href ) {
+				link.href = href;
+			} else {
+				link.removeAttribute( 'href' );
+			}
+		}
+
+		input.addEventListener( 'input', updateLink );
+		updateLink();
+	} );
+
+	/**
+	 * Media + URL for the login logo. Selection writes only attachment.url;
+	 * clearing the input never requests or implies attachment deletion.
+	 */
+	( function () {
+		var config = window.ttSettingsControls && window.ttSettingsControls.media;
+		if ( ! config || ! config.enabled || ! window.wp || 'function' !== typeof window.wp.media ) {
+			return;
+		}
+
+		document.querySelectorAll( '[data-tt-media]' ).forEach( function ( wrap ) {
+			var input   = wrap.querySelector( '[data-tt-media-url]' );
+			var select  = wrap.querySelector( '[data-tt-media-select]' );
+			var clear   = wrap.querySelector( '[data-tt-media-clear]' );
+			var preview = wrap.querySelector( '[data-tt-media-preview]' );
+			var image   = wrap.querySelector( '[data-tt-media-image]' );
+			if ( ! input || ! select || ! clear ) {
+				return;
+			}
+			var frame = null;
+
+			function updateClear() {
+				clear.hidden = ! input.value.trim();
+			}
+
+			function updatePreview() {
+				if ( ! preview || ! image ) {
+					return;
+				}
+				var value = input.value.trim();
+				if ( ! /^https?:\/\//i.test( value ) ) {
+					preview.hidden = true;
+					image.removeAttribute( 'src' );
+					return;
+				}
+				preview.hidden = true;
+				image.src = value;
+			}
+
+			function notify() {
+				input.dispatchEvent( new Event( 'input', { bubbles: true } ) );
+				input.dispatchEvent( new Event( 'change', { bubbles: true } ) );
+			}
+
+			if ( image && preview ) {
+				image.addEventListener( 'load', function () {
+					if ( image.getAttribute( 'src' ) ) {
+						preview.hidden = false;
+					}
+				} );
+				image.addEventListener( 'error', function () {
+					preview.hidden = true;
+				} );
+			}
+
+			select.hidden = false;
+			updateClear();
+			input.addEventListener( 'input', updateClear );
+			input.addEventListener( 'change', updatePreview );
+
+			clear.addEventListener( 'click', function () {
+				input.value = '';
+				notify();
+				updateClear();
+				select.focus();
+			} );
+
+			select.addEventListener( 'click', function () {
+				if ( ! frame ) {
+					frame = window.wp.media( {
+						title: config.title,
+						button: { text: config.button },
+						library: { type: 'image' },
+						multiple: false
+					} );
+					frame.on( 'select', function () {
+						var selection = frame.state().get( 'selection' ).first();
+						if ( ! selection ) {
+							return;
+						}
+						var attachment = 'function' === typeof selection.toJSON ? selection.toJSON() : selection.attributes;
+						if ( ! attachment || ! attachment.url ) {
+							return;
+						}
+						input.value = attachment.url;
+						notify();
+						updateClear();
+						input.focus();
+					} );
+				}
+				frame.open();
+			} );
+		} );
+	}() );
+
+	/**
+	 * Colour + editable HEX. The server renders only the named HEX input, so
+	 * no-JS submit is unchanged; the unnamed native swatch is an enhancement.
+	 */
+	document.querySelectorAll( 'input[data-tt-color]' ).forEach( function ( text ) {
+		var swatch = document.createElement( 'input' );
+		swatch.type = 'color';
+		swatch.id = text.id + '-swatch';
+		swatch.className = 'tt-color-swatch';
+		swatch.setAttribute( 'aria-label', text.getAttribute( 'data-tt-color-label' ) || 'Select colour' );
+
+		function hex( value ) {
+			var match = String( value ).trim().match( /^#([0-9a-f]{3}|[0-9a-f]{6})$/i );
+			if ( ! match ) {
+				return '';
+			}
+			if ( 3 === match[ 1 ].length ) {
+				return '#' + match[ 1 ].split( '' ).map( function ( part ) { return part + part; } ).join( '' );
+			}
+			return '#' + match[ 1 ];
+		}
+
+		swatch.value = hex( text.value ) || hex( text.defaultValue ) || '#000000';
+		text.parentNode.insertBefore( swatch, text );
+
+		text.addEventListener( 'input', function () {
+			var value = hex( text.value );
+			if ( value ) {
+				swatch.value = value;
+			}
+		} );
+		swatch.addEventListener( 'input', function () {
+			text.value = swatch.value;
+			text.dispatchEvent( new Event( 'input', { bubbles: true } ) );
+		} );
+		swatch.addEventListener( 'change', function () {
+			text.dispatchEvent( new Event( 'change', { bubbles: true } ) );
+		} );
 	} );
 
 	/**

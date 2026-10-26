@@ -49,6 +49,7 @@ final class TT_Settings {
 					'type'     => 'select',
 					'default'  => 'no',
 					'desc'     => 'با روشن شدن، متن‌های «نسخه پیش‌نمایش» در فوتر، پرسش‌های صفحهٔ اصلی و صفحهٔ محصول نمایش داده می‌شوند.',
+					'control'  => 'segments',
 					'options'  => array(
 						'no'  => 'خاموش — متن برند',
 						'yes' => 'روشن — متن پیش‌نمایش',
@@ -389,7 +390,8 @@ final class TT_Settings {
 					'label'    => 'لوگوی صفحه ورود (URL)',
 					'type'     => 'url',
 					'default'  => '',
-					'desc'     => 'خالی = لوگوی سفارشی‌ساز، بعد آیکون قالب.',
+					'desc'     => 'انتخاب از کتابخانه یا URL دستی؛ پاک‌کردن انتخاب فایل رسانه را حذف نمی‌کند. خالی = لوگوی سفارشی‌ساز، بعد آیکون قالب.',
+					'control'  => 'media-url',
 					'sanitize' => 'esc_url_raw',
 				),
 				'login_title'           => array(
@@ -411,6 +413,7 @@ final class TT_Settings {
 					'type'     => 'color',
 					'default'  => '#172325',
 					'desc'     => '',
+					'control'  => 'color-hex',
 					'sanitize' => 'sanitize_hex_color',
 				),
 				'login_accent'          => array(
@@ -418,6 +421,7 @@ final class TT_Settings {
 					'type'     => 'color',
 					'default'  => '#f77b3e',
 					'desc'     => '',
+					'control'  => 'color-hex',
 					'sanitize' => 'sanitize_hex_color',
 				),
 				'login_hide_register'   => array(
@@ -425,6 +429,7 @@ final class TT_Settings {
 					'type'     => 'checkbox',
 					'default'  => 0,
 					'desc'     => '',
+					'control'  => 'switch',
 					'sanitize' => 'absint',
 				),
 				'login_hide_lostpassword' => array(
@@ -432,6 +437,7 @@ final class TT_Settings {
 					'type'     => 'checkbox',
 					'default'  => 0,
 					'desc'     => 'توصیه نمی‌شود — فقط اگر ورود فقط با پیامک است.',
+					'control'  => 'switch',
 					'sanitize' => 'absint',
 				),
 			),
@@ -1382,16 +1388,25 @@ final class TT_Settings {
 			$wrapper_id = torantejarat_panel_field_dom_id( $tab_key, $key, true );
 			$name       = 'torantejarat_' . $tab_key . '[' . $key . ']';
 			$type       = $field['type'];
+			$control    = isset( $field['control'] ) ? (string) $field['control'] : '';
+			$desc_id    = ! empty( $field['desc'] ) ? $id . '-description' : '';
+			$desc_attr  = $desc_id ? ' aria-describedby="' . esc_attr( $desc_id ) . '"' : '';
+			$open_url   = '';
+			if ( 'url' === $type && preg_match( '#^https?://#i', (string) $value ) ) {
+				$open_url = esc_url( (string) $value );
+			}
 			if ( 'repeater' === $type ) {
 				$this->render_repeater_field( $tab_key, $key, $field, $value );
 				continue;
 			}
 			?>
 			<div class="tt-field" id="<?php echo esc_attr( $wrapper_id ); ?>">
-				<?php if ( 'checkbox' !== $type ) : ?>
-				<label class="tt-label" for="<?php echo esc_attr( $id ); ?>">
-					<?php echo esc_html( $field['label'] ); ?>
-				</label>
+				<?php if ( 'segments' === $control ) : ?>
+					<span class="tt-label" id="<?php echo esc_attr( $id . '-label' ); ?>"><?php echo esc_html( $field['label'] ); ?></span>
+				<?php elseif ( 'checkbox' !== $type ) : ?>
+					<label class="tt-label" for="<?php echo esc_attr( $id ); ?>">
+						<?php echo esc_html( $field['label'] ); ?>
+					</label>
 				<?php endif; ?>
 				<div class="tt-control">
 					<?php if ( 'textarea' === $type || 'embed' === $type ) : ?>
@@ -1400,7 +1415,49 @@ final class TT_Settings {
 							name="<?php echo esc_attr( $name ); ?>"
 							rows="4"
 							class="large-text"
+							<?php echo $desc_attr; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped attribute built above. ?>
 						><?php echo esc_textarea( $value ); ?></textarea>
+					<?php elseif ( 'segments' === $control && 'select' === $type && ! empty( $field['options'] ) && is_array( $field['options'] ) ) : ?>
+						<div
+							class="tt-segmented"
+							id="<?php echo esc_attr( $id ); ?>"
+							role="radiogroup"
+							aria-labelledby="<?php echo esc_attr( $id . '-label' ); ?>"
+							<?php echo $desc_attr; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped attribute built above. ?>
+						>
+							<?php foreach ( $field['options'] as $opt_val => $opt_label ) : ?>
+								<label class="tt-segment">
+									<input
+										type="radio"
+										id="<?php echo esc_attr( $id . '-' . sanitize_key( $opt_val ) ); ?>"
+										name="<?php echo esc_attr( $name ); ?>"
+										value="<?php echo esc_attr( $opt_val ); ?>"
+										<?php checked( $value, $opt_val ); ?>
+									>
+									<span><?php echo esc_html( $opt_label ); ?></span>
+								</label>
+							<?php endforeach; ?>
+						</div>
+					<?php elseif ( 'checkbox' === $type && 'switch' === $control ) : ?>
+						<label class="tt-switch">
+							<input
+								class="tt-switch-input"
+								type="checkbox"
+								id="<?php echo esc_attr( $id ); ?>"
+								name="<?php echo esc_attr( $name ); ?>"
+								value="1"
+								<?php checked( $value, 1 ); ?>
+								<?php echo $desc_attr; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped attribute built above. ?>
+							>
+							<span class="tt-switch-track" aria-hidden="true"><span class="tt-switch-thumb"></span></span>
+							<span class="tt-switch-copy">
+								<span class="tt-switch-label"><?php echo esc_html( $field['label'] ); ?></span>
+								<span class="tt-switch-state">
+									<span class="tt-state-on"><?php esc_html_e( 'روشن', 'torantejarat' ); ?></span>
+									<span class="tt-state-off"><?php esc_html_e( 'خاموش', 'torantejarat' ); ?></span>
+								</span>
+							</span>
+						</label>
 					<?php elseif ( 'checkbox' === $type ) : ?>
 						<label class="tt-check">
 							<input
@@ -1409,6 +1466,7 @@ final class TT_Settings {
 								name="<?php echo esc_attr( $name ); ?>"
 								value="1"
 								<?php checked( $value, 1 ); ?>
+								<?php echo $desc_attr; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped attribute built above. ?>
 							>
 							<?php echo esc_html( $field['label'] ); ?>
 						</label>
@@ -1416,6 +1474,7 @@ final class TT_Settings {
 						<select
 							id="<?php echo esc_attr( $id ); ?>"
 							name="<?php echo esc_attr( $name ); ?>"
+							<?php echo $desc_attr; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped attribute built above. ?>
 						>
 							<?php foreach ( $field['options'] as $opt_val => $opt_label ) : ?>
 								<option
@@ -1426,6 +1485,67 @@ final class TT_Settings {
 								</option>
 							<?php endforeach; ?>
 						</select>
+					<?php elseif ( 'url' === $type ) : ?>
+						<?php if ( 'media-url' === $control ) : ?>
+							<div class="tt-media-control" data-tt-media>
+								<div class="tt-media-preview" data-tt-media-preview <?php if ( ! $open_url ) : ?>hidden<?php endif; ?>>
+									<img src="<?php echo esc_url( $open_url ); ?>" alt="" data-tt-media-image loading="lazy">
+								</div>
+								<div class="tt-media-main">
+						<?php endif; ?>
+									<div class="tt-url-control">
+										<input
+											type="url"
+											id="<?php echo esc_attr( $id ); ?>"
+											name="<?php echo esc_attr( $name ); ?>"
+											value="<?php echo esc_attr( (string) $value ); ?>"
+											class="regular-text code"
+											data-tt-url-input
+											<?php if ( 'media-url' === $control ) : ?>data-tt-media-url<?php endif; ?>
+											<?php echo $desc_attr; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped attribute built above. ?>
+										>
+										<a
+											class="button tt-url-open"
+											data-tt-url-open
+											href="<?php echo esc_url( $open_url ); ?>"
+											target="_blank"
+											rel="noopener noreferrer"
+											<?php if ( ! $open_url ) : ?>hidden<?php endif; ?>
+										>
+											<span class="dashicons dashicons-external" aria-hidden="true"></span>
+											<?php esc_html_e( 'بازکردن', 'torantejarat' ); ?>
+										</a>
+									</div>
+						<?php if ( 'media-url' === $control ) : ?>
+									<div class="tt-media-actions">
+										<button type="button" class="button" data-tt-media-select hidden>
+											<span class="dashicons dashicons-admin-media" aria-hidden="true"></span>
+											<?php esc_html_e( 'انتخاب تصویر', 'torantejarat' ); ?>
+										</button>
+										<button type="button" class="button" data-tt-media-clear hidden>
+											<?php esc_html_e( 'پاک‌کردن انتخاب', 'torantejarat' ); ?>
+										</button>
+									</div>
+								</div>
+							</div>
+						<?php endif; ?>
+					<?php elseif ( 'color' === $type && 'color-hex' === $control ) : ?>
+						<div class="tt-color-control">
+							<input
+								type="text"
+								id="<?php echo esc_attr( $id ); ?>"
+								name="<?php echo esc_attr( $name ); ?>"
+								value="<?php echo esc_attr( (string) $value ); ?>"
+								class="regular-text code tt-color-value"
+								data-tt-color
+								data-tt-color-label="<?php echo esc_attr( $field['label'] ); ?>"
+								pattern="#(?:[0-9a-fA-F]{3}){1,2}"
+								maxlength="7"
+								spellcheck="false"
+								autocomplete="off"
+								<?php echo $desc_attr; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped attribute built above. ?>
+							>
+						</div>
 					<?php else : ?>
 						<input
 							type="<?php echo esc_attr( $type ); ?>"
@@ -1433,10 +1553,11 @@ final class TT_Settings {
 							name="<?php echo esc_attr( $name ); ?>"
 							value="<?php echo esc_attr( (string) $value ); ?>"
 							class="regular-text <?php echo 'url' === $type ? 'code' : ''; ?>"
+							<?php echo $desc_attr; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped attribute built above. ?>
 						>
 					<?php endif; ?>
-					<?php if ( ! empty( $field['desc'] ) ) : ?>
-						<p class="description">
+					<?php if ( $desc_id ) : ?>
+						<p class="description" id="<?php echo esc_attr( $desc_id ); ?>">
 							<?php echo esc_html( $field['desc'] ); ?>
 						</p>
 					<?php endif; ?>
@@ -1627,12 +1748,38 @@ final class TT_Settings {
 			array(),
 			file_exists( $css_path ) ? (string) filemtime( $css_path ) : (string) wp_get_theme()->get( 'Version' )
 		);
+		$section = '';
+		if ( isset( $_GET['section'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Asset route only.
+			$section = sanitize_key( wp_unslash( $_GET['section'] ) );
+		} elseif ( isset( $_GET['tab'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Asset route only.
+			$section = sanitize_key( wp_unslash( $_GET['tab'] ) );
+		}
+		$sub = isset( $_GET['sub'] ) ? sanitize_key( wp_unslash( $_GET['sub'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Asset route only.
+
+		// Only the logo field needs Media Library. Users without upload_files
+		// keep the same manual URL input and never receive an unusable button.
+		$media_enabled = ( 'login' === $section && 'content' === $sub && current_user_can( 'upload_files' ) );
+		if ( $media_enabled ) {
+			wp_enqueue_media();
+		}
+		$script_path = get_template_directory() . '/assets/js/admin-settings.js';
 		wp_enqueue_script(
 			'tt-settings',
 			get_template_directory_uri() . '/assets/js/admin-settings.js',
-			array(),
-			(string) wp_get_theme()->get( 'Version' ),
+			$media_enabled ? array( 'media-views' ) : array(),
+			file_exists( $script_path ) ? (string) filemtime( $script_path ) : (string) wp_get_theme()->get( 'Version' ),
 			true
+		);
+		wp_localize_script(
+			'tt-settings',
+			'ttSettingsControls',
+			array(
+				'media' => array(
+					'enabled' => $media_enabled,
+					'title'   => __( 'انتخاب لوگوی صفحه ورود', 'torantejarat' ),
+					'button'  => __( 'استفاده از این تصویر', 'torantejarat' ),
+				),
+			)
 		);
 		// Panel-wide search. The index is generated server-side from $schema and
 		// the nav map (inc/settings/panel-nav.php) — the script never discovers

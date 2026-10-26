@@ -38,6 +38,10 @@
 	text-decoration: none;
 }
 
+.tt-panel [hidden] {
+	display: none !important;
+}
+
 .tt-panel button,
 .tt-panel input,
 .tt-panel select,
@@ -708,6 +712,218 @@
 .tt-check input {
 	flex: 0 0 auto;
 	margin-top: 5px;
+}
+
+/* Native radio segmented control: yes/no values still reach options.php. */
+.tt-segmented {
+	background: var(--tt-soft);
+	border: 1px solid var(--tt-line);
+	border-radius: 10px;
+	display: inline-flex;
+	flex-wrap: wrap;
+	gap: 4px;
+	max-width: 100%;
+	padding: 4px;
+}
+
+.tt-segment {
+	min-width: 0;
+	position: relative;
+}
+
+.tt-segment input {
+	height: 1px;
+	opacity: 0;
+	position: absolute;
+	width: 1px;
+}
+
+.tt-segment > span {
+	border-radius: 7px;
+	color: var(--tt-muted);
+	cursor: pointer;
+	display: block;
+	font-size: 12px;
+	line-height: 1.7;
+	min-height: 36px;
+	padding: 8px 13px;
+}
+
+.tt-segment input:checked + span {
+	background: #fff;
+	box-shadow: 0 1px 5px rgba(18, 27, 49, 0.12);
+	color: #7d3212;
+	font-weight: 700;
+}
+
+.tt-segment input:focus-visible + span {
+	outline: 3px solid var(--tt-focus);
+	outline-offset: 2px;
+}
+
+/* Native checkbox switch with a text state that works without JavaScript. */
+.tt-switch {
+	align-items: center;
+	cursor: pointer;
+	display: inline-grid;
+	gap: 12px;
+	grid-template-columns: auto minmax(0, 1fr);
+	max-width: 100%;
+	position: relative;
+}
+
+.tt-switch-input {
+	height: 1px;
+	opacity: 0;
+	position: absolute;
+	width: 1px;
+}
+
+.tt-switch-track {
+	background: #778197;
+	border-radius: 20px;
+	display: block;
+	height: 26px;
+	position: relative;
+	transition: background-color 140ms ease;
+	width: 48px;
+}
+
+.tt-switch-thumb {
+	background: #fff;
+	border-radius: 50%;
+	box-shadow: 0 1px 3px rgba(18, 27, 49, 0.28);
+	height: 20px;
+	inset-inline-start: 3px;
+	position: absolute;
+	top: 3px;
+	transition: transform 140ms ease;
+	width: 20px;
+}
+
+.tt-switch-input:checked + .tt-switch-track {
+	background: var(--tt-accent);
+}
+
+.tt-switch-input:checked + .tt-switch-track .tt-switch-thumb {
+	transform: translateX(-22px);
+}
+
+.tt-switch-input:focus-visible + .tt-switch-track {
+	outline: 3px solid var(--tt-focus);
+	outline-offset: 3px;
+}
+
+.tt-switch-copy {
+	display: flex;
+	flex-direction: column;
+	gap: 1px;
+}
+
+.tt-switch-label {
+	color: #26334a;
+	font-size: 13px;
+	font-weight: 650;
+	line-height: 1.7;
+}
+
+.tt-switch-state {
+	color: var(--tt-muted);
+	font-size: 11px;
+	line-height: 1.6;
+}
+
+.tt-state-on {
+	display: none;
+}
+
+.tt-switch-input:checked ~ .tt-switch-copy .tt-state-on {
+	display: inline;
+}
+
+.tt-switch-input:checked ~ .tt-switch-copy .tt-state-off {
+	display: none;
+}
+
+/* Absolute HTTP(S) URLs get an optional open action after validation. */
+.tt-url-control {
+	align-items: center;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+
+.tt-url-control .regular-text {
+	flex: 1 1 260px;
+	min-width: 0;
+}
+
+.tt-url-open {
+	flex: 0 0 auto;
+}
+
+.tt-media-control {
+	align-items: flex-start;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 14px;
+}
+
+.tt-media-preview {
+	align-items: center;
+	background: var(--tt-soft);
+	border: 1px solid var(--tt-line);
+	border-radius: 10px;
+	display: flex;
+	flex: 0 0 112px;
+	height: 86px;
+	justify-content: center;
+	overflow: hidden;
+	padding: 8px;
+}
+
+.tt-media-preview img {
+	display: block;
+	height: auto;
+	max-height: 68px;
+	max-width: 100%;
+	object-fit: contain;
+	width: auto;
+}
+
+.tt-media-main {
+	flex: 1 1 300px;
+	min-width: 0;
+}
+
+.tt-media-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin-top: 10px;
+}
+
+/* The HEX input is the no-JS control; JS inserts the native colour swatch. */
+.tt-color-control {
+	align-items: center;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+}
+
+.tt-panel .tt-control .tt-color-value {
+	font-family: SFMono-Regular, Consolas, "Liberation Mono", monospace;
+	max-width: 150px;
+}
+
+.tt-panel .tt-control .tt-color-swatch {
+	background: #fff;
+	border: 1px solid #cbd3df;
+	border-radius: 8px;
+	cursor: pointer;
+	height: 40px;
+	padding: 3px;
+	width: 48px;
 }
 
 /* The publish utility has its own form and never enters the Settings API. */
