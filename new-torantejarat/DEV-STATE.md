@@ -896,7 +896,7 @@
 - **تست انجام‌شده:** بلوک CSS بررسی شد (آکولاد متوازن، کلاس‌های Editorial بر اساس `.auth__*` اعمال شده و specialized نیستند).
 - **تست باقی‌مانده / محدودیت:** PostCSS Parse، Visual Review روی هاست (Login، Hard Refresh، دسکتاپ/موبایل، Cache Refresh) هنوز انجام نشده است. Production همچنان **NO-GO** است.
 
-## TICKETS-QA-001 — رفع باگ‌های تأییدشدهٔ تیکت + استایل RTL پنل ادمین — 2026-10-27 — CODE DONE / QA-RETEST FIXED (c2df3ab, 7a936b9)
+## TICKETS-QA-001 — رفع باگ‌های تأییدشدهٔ تیکت + استایل RTL پنل کاربر — 2026-10-27 — COMMIT+PUSH (1f06a18)
 
 - **دامنهٔ تغییر:** `new-torantejarat/inc/tickets.php`، `new-torantejarat/inc/requests.php`، `new-torantejarat/woocommerce/myaccount/tickets.php`.
 - **تغییرات قبلی:** کد قدیمی تیکت در `inc/requests.php` **حذف نشده** و مهاجرت به جداول جدید (مرحله ۳) تا تاییدِ کاربر انجام نمی‌شود (عملیات حذف/تغییر DB نیازمند تأیید قبلی است).
@@ -950,13 +950,26 @@
 - Retest روی Laragon: ساخت تیکت، دریافت ایمیل ادمین، بستن تیکت از حساب مشتری، پاسخ مشتری و باز شدن تیکت، تغییر وضعیت از پنل ادمین، صفحه ادمین با RTL.
 - Production همچنان **NO-GO** است.
 
+### بازگشت فاز ۱ (custom fields + attachments + meta tables) — ۲۰۲۶-۱۰-۲۷
+بر اساس بازخورد کاربر، تمام قابلیت‌های اضافه‌شده در فاز۱ (جداول ticket_meta/ticket_fields/ticket_attachments، ذخیره custom_fields در create_ticket، ذخیره پیوست در add_message، فرم enctype multipart، فیلدهای سفارشی و input فایل در تمپلیت حساب کاربری) **بازگردانی شدند**:
+
+- `inc/tickets-meta.php` حذف شد (فایل از disk پاک شد، لود از bootstrap.php حذف شد)
+- ذخیره custom_fields در `torantejarat_tickets_create()` حذف شد
+- ذخیره attachment در `torantejarat_tickets_add_message()` حذف شد
+- `woocommerce/myaccount/tickets.php` به حالت قبل از فاز۱ بازگردانی شد (حذف enctype، فیلدهای سفارشی، input فایل و نمایش پیوست)
+- استایل RTL/فارسی برای تمپلیت تیکت حساب کاربری اضافه شد (رنگ، چیدمان راست‌چین، دکمه‌ها، نوتیس‌ها، تاریخ Y/m/d)
+
+کامیت+پوش: `1f06a18` (تبدیل `00c54bb` → `1f06a18`).
+
 ### مرحلهٔ بعدی (در انتظار تأیید کاربر)
 - حذف کد تیکت قدیمی از `inc/requests.php` و مهاجرت کامل به جداول `torantejarat_tickets` / `torantejarat_ticket_messages` (فقط با تأیید صریح کاربر).
 
-## TICKETS-CUSTOM-001 — سیستم تیکت اختصاصی بر اساس الگو Poshtvan (فاز ۱) — 2026-10-27 — CODE DONE / PUSHED
+## TICKETS-CUSTOM-001 — سیستم تیکت اختصاصی بر اساس الگو Poshtvan (فاز ۱) — 2026-10-27 — REVERTED (بازگشت به حالت پایه)
 
 - **مرجع:** افزونه Poshtvan (میهن وردپرس) در پوشه `poshtvan/` — **فقط مرجع است، کد کپی نشده است.** نیم‌اسپیس تمام توابع جدید `ToranTejarat\Theme` است و پیشوند جداول `torantejarat_` است (نه `mihanticket_`).
 - **دلیل ایجاد جداول جدید (بasiltej):** سیستم فعلی `inc/tickets.php` ندارد پشتیبانی از فیلدهای سفارشی فرم، پیوست فایل و متای تیکت. افزودن این قابلیت‌ها نیازمند جداول کمکی است و بازنویسی کامل سیستم موجود الزامی نیست.
+
+- **وضعیت (۲۰۲۶-۱۰-۲۷):** بر اساس درخواست کاربر، تمام قابلیت‌های فاز۱ (جداول متا/فیلد/پیوست، ذخیره custom_fields/attachment، enctype فرم، نمایش پیوست در تمپلیت) **بازگردانی شدند** (خارج از commit `1f06a18`). سیستم تیکت اکنون به حالت پایه (فقط جداول tickets/messages) بازگشته است.
 
 ### فایل‌های جدید و تغییرات commit `2f3de2a`
 | فایل | توضیح |
