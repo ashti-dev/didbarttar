@@ -990,3 +990,9 @@
 - بستن خودکار تیکت‌ها بعد از X روز
 
 لطفاً اولویت‌ها را برای आगे ادامه بدهید.
+
+### فیکس فوری (2026-10-27، پس از گزارش Fatal در Laragon)
+- **خطا:** `call_user_func_array(): function "ToranTejarat\Theme\\torantejarat_tickets_meta_maybe_create_tables" not found` در hooked `init` → سایت دچار خطای ۵۰۰ می‌شد.
+- **علة:** escaping بک‌سل래ش در `add_action` callback. در `tickets-meta.php` خط ۹۰ ۴ بک‌سل래ش داشت (PHP → ۲ بک‌سل래ش، نامعتبر) و در `tickets.php` خط ۶۱۷ ۱ بک‌سل래ش داشت (PHP → `\t` لیتラル، نامعتبر).
+- **اصلاح:** همه `add_action`های با `__NAMESPACE__ . '...'` را به دقیقاً ۲ بک‌سل래ش در منبع تغییر داد (PHP シングル-quoted → ۱ بک‌سل래ش = جداکننده فضا نام درست).
+- **کامیت‌ها:** `4ee24df` (tickets-meta.php)، `aa13639` (tickets.php) — هر دو Push شده.
