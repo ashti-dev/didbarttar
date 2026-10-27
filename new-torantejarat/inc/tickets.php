@@ -644,7 +644,6 @@ function torantejarat_tickets_setup_capability() {
 		$role->add_cap( torantejarat_tickets_capability() );
 	}
 }
-	}
 
 /* --------------------------------------------------------------
    Frontend: delete ticket (customer owns it)
