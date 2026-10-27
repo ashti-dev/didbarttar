@@ -340,7 +340,7 @@ $torantejarat_ticket_error_msg = $torantejarat_ticket_error_messages[ $ticket_er
 					<?php endif; ?>
 					<?php if ( $can_close ) : ?>
 						<div class="ticket-close-form">
-							<form method="post" action="<?php echo esc_url( wc_get_account_endpoint_url( 'tickets' ) ); ?>" onsubmit="return confirm( '<?php esc_attr_e( 'آیا مطمئن هستید می‌خواهید این تیکت را ببندید؟', 'torantejarat' ); ?>' );">
+							<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" onsubmit="return confirm( '<?php esc_attr_e( 'آیا مطمئن هستید می‌خواهید این تیکت را ببندید؟', 'torantejarat' ); ?>' );">
 <?php wp_nonce_field( 'torantejarat-ticket-close', 'torantejarat_ticket_close_nonce' ); ?>
 		<input type="hidden" name="ticket_id" value="<?php echo esc_attr( $ticket_id ); ?>">
 		<input type="hidden" name="action" value="torantejarat_ticket_close_frontend">
@@ -480,7 +480,7 @@ $torantejarat_ticket_error_msg = $torantejarat_ticket_error_messages[ $ticket_er
 
 			<?php if ( $can_close ) : ?>
 				<div class="ticket-close-form" style="margin-top:16px;">
-					<form method="post" action="<?php echo esc_url( wc_get_account_endpoint_url( 'tickets' ) ); ?>" onsubmit="return confirm( '<?php esc_attr_e( 'آیا مطمئن هستید می‌خواهید این تیکت را ببندید؟', 'torantejarat' ); ?>' );">
+					<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" onsubmit="return confirm( '<?php esc_attr_e( 'آیا مطمئن هستید می‌خواهید این تیکت را ببندید؟', 'torantejarat' ); ?>' );">
 <?php wp_nonce_field( 'torantejarat-ticket-close', 'torantejarat_ticket_close_nonce' ); ?>
 		<input type="hidden" name="ticket_id" value="<?php echo esc_attr( $view_id ); ?>">
 		<input type="hidden" name="action" value="torantejarat_ticket_close_frontend">

@@ -432,7 +432,7 @@ function torantejarat_tickets_notify_admin_new( $ticket_id ) {
 		esc_html( torantejarat_ticket_subjects()[ $ticket['subject_key'] ] ?? $ticket['subject_key'] )
 	);
 
-	if ( wp_schedule_single_event( time(), 'torantejarat_tickets_send_admin_email', array( 'admin', $subject, $message ) ) === false ) {
+	if ( wp_schedule_single_event( time(), 'torantejarat_tickets_send_admin_email', array( 'admin', get_option( 'admin_email' ), $subject, $message ) ) === false ) {
 		// Fallback direct send if scheduling failed
 		wp_mail( get_option( 'admin_email' ), $subject, $message );
 	}
@@ -453,7 +453,7 @@ function torantejarat_tickets_notify_admin_reply( $ticket_id ) {
 		esc_html( $ticket['status'] )
 	);
 
-	if ( wp_schedule_single_event( time(), 'torantejarat_tickets_send_admin_email', array( 'admin_reply', $subject, $message ) ) === false ) {
+	if ( wp_schedule_single_event( time(), 'torantejarat_tickets_send_admin_email', array( 'admin_reply', get_option( 'admin_email' ), $subject, $message ) ) === false ) {
 		wp_mail( get_option( 'admin_email' ), $subject, $message );
 	}
 }
@@ -478,7 +478,7 @@ function torantejarat_tickets_notify_customer_reply( $ticket_id ) {
 		esc_html( $ticket['title'] )
 	);
 
-	if ( wp_schedule_single_event( time(), 'torantejarat_tickets_send_customer_email', array( $user->user_email, $subject, $message ) ) === false ) {
+	if ( wp_schedule_single_event( time(), 'torantejarat_tickets_send_customer_email', array( 'customer', $user->user_email, $subject, $message ) ) === false ) {
 		wp_mail( $user->user_email, $subject, $message );
 	}
 }
