@@ -27,7 +27,7 @@ final class TT_Settings {
 	 */
 	private $schema = array(
 		'general' => array(
-			'label'  => 'عمومی',
+			'label'  => 'عمومی و انتشار',
 			'icon'   => 'dashicons-admin-home',
 			'fields' => array(
 				'topbar_text' => array(
@@ -49,6 +49,7 @@ final class TT_Settings {
 					'type'     => 'select',
 					'default'  => 'no',
 					'desc'     => 'با روشن شدن، متن‌های «نسخه پیش‌نمایش» در فوتر، پرسش‌های صفحهٔ اصلی و صفحهٔ محصول نمایش داده می‌شوند.',
+					'control'  => 'segments',
 					'options'  => array(
 						'no'  => 'خاموش — متن برند',
 						'yes' => 'روشن — متن پیش‌نمایش',
@@ -274,7 +275,7 @@ final class TT_Settings {
 			),
 		),
 		'contact' => array(
-			'label'  => 'تماس',
+			'label'  => 'اطلاعات تماس',
 			'icon'   => 'dashicons-phone',
 			'fields' => array(
 				'phone'         => array(
@@ -382,14 +383,15 @@ final class TT_Settings {
 			),
 		),
 		'login'    => array(
-			'label'  => 'صفحه ورود',
+			'label'  => 'ورود و دسترسی',
 			'icon'   => 'dashicons-lock',
 			'fields' => array(
 				'login_logo'            => array(
 					'label'    => 'لوگوی صفحه ورود (URL)',
 					'type'     => 'url',
 					'default'  => '',
-					'desc'     => 'خالی = لوگوی سفارشی‌ساز، بعد آیکون قالب.',
+					'desc'     => 'انتخاب از کتابخانه یا URL دستی؛ پاک‌کردن انتخاب فایل رسانه را حذف نمی‌کند. خالی = لوگوی سفارشی‌ساز، بعد آیکون قالب.',
+					'control'  => 'media-url',
 					'sanitize' => 'esc_url_raw',
 				),
 				'login_title'           => array(
@@ -411,6 +413,7 @@ final class TT_Settings {
 					'type'     => 'color',
 					'default'  => '#172325',
 					'desc'     => '',
+					'control'  => 'color-hex',
 					'sanitize' => 'sanitize_hex_color',
 				),
 				'login_accent'          => array(
@@ -418,6 +421,7 @@ final class TT_Settings {
 					'type'     => 'color',
 					'default'  => '#f77b3e',
 					'desc'     => '',
+					'control'  => 'color-hex',
 					'sanitize' => 'sanitize_hex_color',
 				),
 				'login_hide_register'   => array(
@@ -425,6 +429,7 @@ final class TT_Settings {
 					'type'     => 'checkbox',
 					'default'  => 0,
 					'desc'     => '',
+					'control'  => 'switch',
 					'sanitize' => 'absint',
 				),
 				'login_hide_lostpassword' => array(
@@ -432,12 +437,13 @@ final class TT_Settings {
 					'type'     => 'checkbox',
 					'default'  => 0,
 					'desc'     => 'توصیه نمی‌شود — فقط اگر ورود فقط با پیامک است.',
+					'control'  => 'switch',
 					'sanitize' => 'absint',
 				),
 			),
 		),
 		'business' => array(
-			'label'  => 'کسب‌وکار',
+			'label'  => 'کسب‌وکار و Schema',
 			'icon'   => 'dashicons-store',
 			'fields' => array(
 				'business_name' => array(
@@ -742,30 +748,50 @@ final class TT_Settings {
 		} elseif ( isset( $_GET['section'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Tab navigation only.
 			$requested = sanitize_key( $_GET['section'] );
 		}
-		$active = isset( $this->schema[ $requested ] ) ? $requested : array_key_first( $this->schema );
 
-		$nav    = torantejarat_panel_nav( $this->schema );
-		$groups = isset( $nav[ $active ]['groups'] ) ? $nav[ $active ]['groups'] : array();
-		// Only a tab that really has sub-sections is split into separate pages.
+		// The dashboard is a view, not an eighth option group. Keep utility
+		// routes out of the schema so they can never register or save a field.
+		$is_dashboard = ( '' === $requested || 'dashboard' === $requested );
+		$active       = $is_dashboard ? 'dashboard' : ( isset( $this->schema[ $requested ] ) ? $requested : array_key_first( $this->schema ) );
+		$nav          = torantejarat_panel_nav( $this->schema );
+		$utility_map  = torantejarat_panel_utility_map();
+		$groups       = ! $is_dashboard && isset( $nav[ $active ]['groups'] ) ? $nav[ $active ]['groups'] : array();
+		$utilities    = ! $is_dashboard && isset( $utility_map[ $active ] ) ? $utility_map[ $active ] : array();
+
+		// Only real field groups split a tab into field sub-pages. Utility pages
+		// have their own renderer and never fall back to all fields in the tab.
 		$split = count( $groups ) > 1;
+		$sub   = ! $is_dashboard && isset( $_GET['sub'] ) ? sanitize_key( $_GET['sub'] ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Page navigation only.
 
-		$sub = isset( $_GET['sub'] ) ? sanitize_key( $_GET['sub'] ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Page navigation only.
-
-		$active_group = null;
-		if ( $split ) {
-			foreach ( $groups as $group ) {
-				if ( $group['id'] === $sub ) {
-					$active_group = $group;
-					break;
+		$active_group   = null;
+		$active_utility = null;
+		if ( ! $is_dashboard ) {
+			if ( $split ) {
+				foreach ( $groups as $group ) {
+					if ( $group['id'] === $sub ) {
+						$active_group = $group;
+						break;
+					}
 				}
 			}
-		} else {
-			$sub = '';
+			if ( ! $active_group ) {
+				foreach ( $utilities as $utility ) {
+					if ( $utility['id'] === $sub ) {
+						$active_utility = $utility;
+						break;
+					}
+				}
+			}
+			if ( ! $split && ! $active_utility ) {
+				$sub = '';
+			} elseif ( $split && ! $active_group && ! $active_utility ) {
+				$sub = '';
+			}
 		}
 
-		// A sub-page renders its own fields only; without a sub a split tab shows
-		// its section index, and a flat tab keeps rendering one single form.
-		if ( $active_group ) {
+		if ( $is_dashboard || $active_utility ) {
+			$ordered = array();
+		} elseif ( $active_group ) {
 			$ordered = $active_group['fields'];
 		} elseif ( $split ) {
 			$ordered = array();
@@ -773,35 +799,95 @@ final class TT_Settings {
 			$ordered = array_keys( $this->schema[ $active ]['fields'] );
 		}
 
-		$ready   = torantejarat_panel_readiness();
-		$version = (string) wp_get_theme()->get( 'Version' );
+		$ready          = torantejarat_panel_readiness();
+		$version        = (string) wp_get_theme()->get( 'Version' );
+		$current_group  = $active_group ? $active_group : $active_utility;
+		$nav_groups     = array_merge( $groups, $utilities );
+		$has_form       = ! $is_dashboard && ! $active_utility && ! empty( $ordered );
+		$has_dirty_form = $has_form || ( $active_utility && 'publish' === $active_utility['id'] );
+		$form_id        = 'tt-form-' . $active . ( $sub ? '-' . $sub : '' );
+		$page_heading   = $current_group;
+		if ( ! $page_heading && ! $split && isset( $groups[0] ) ) {
+			$page_heading = $groups[0];
+		}
+		$heading_label = $page_heading ? $page_heading['label'] : ( ! $is_dashboard && isset( $nav[ $active ]['label'] ) ? $nav[ $active ]['label'] : __( 'داشبورد', 'torantejarat' ) );
+		$heading_icon  = $page_heading ? $page_heading['icon'] : ( ! $is_dashboard && isset( $nav[ $active ]['icon'] ) ? $nav[ $active ]['icon'] : 'dashicons-dashboard' );
+		$heading_desc  = $page_heading && ! empty( $page_heading['desc'] ) ? $page_heading['desc'] : '';
 		?>
-		<div class="wrap tt-wrap">
-			<div class="tt-header">
-				<h1>
-					<span class="dashicons dashicons-store"></span>
-					<?php esc_html_e( 'تنظیمات قالب بلکوکم', 'torantejarat' ); ?>
-					<span class="tt-version"><?php echo esc_html( 'v' . $version ); ?></span>
-				</h1>
-				<div class="tt-search" data-tt-search>
-					<label class="screen-reader-text" for="tt-search-input">
-						<?php esc_html_e( 'جست‌وجو در تنظیمات', 'torantejarat' ); ?>
-					</label>
-					<input
-						type="search"
-						id="tt-search-input"
-						class="tt-search-input"
-						role="combobox"
-						aria-expanded="false"
-						aria-controls="tt-search-results"
-						aria-autocomplete="list"
-						autocomplete="off"
-						placeholder="<?php esc_attr_e( 'جست‌وجو در تنظیمات…', 'torantejarat' ); ?>"
-					>
-					<ul class="tt-search-results" id="tt-search-results" role="listbox" hidden></ul>
+		<div class="wrap tt-wrap tt-panel" data-tt-panel>
+			<header class="tt-header">
+				<div class="tt-header-main">
+					<div class="tt-brand">
+						<span class="tt-brand-mark dashicons dashicons-store" aria-hidden="true"></span>
+						<div>
+							<h1>
+								<?php esc_html_e( 'تنظیمات قالب بلکوکم', 'torantejarat' ); ?>
+								<span class="tt-version"><?php echo esc_html( 'v' . $version ); ?></span>
+							</h1>
+							<p><?php esc_html_e( 'مدیریت ظاهر و محتوای قالب، کنار ابزارهای بومی فروشگاه', 'torantejarat' ); ?></p>
+						</div>
+					</div>
+					<div class="tt-search" data-tt-search>
+						<span class="dashicons dashicons-search" aria-hidden="true"></span>
+						<label class="screen-reader-text" for="tt-search-input">
+							<?php esc_html_e( 'جست‌وجو در تنظیمات', 'torantejarat' ); ?>
+						</label>
+						<input
+							type="search"
+							id="tt-search-input"
+							class="tt-search-input"
+							role="combobox"
+							aria-expanded="false"
+							aria-controls="tt-search-results"
+							aria-autocomplete="list"
+							autocomplete="off"
+							placeholder="<?php esc_attr_e( 'جست‌وجو در تنظیمات…', 'torantejarat' ); ?>"
+						>
+						<ul class="tt-search-results" id="tt-search-results" role="listbox" hidden></ul>
+					</div>
+					<div class="tt-header-actions">
+						<a class="button tt-view-site" href="<?php echo esc_url( home_url( '/' ) ); ?>" target="_blank" rel="noopener noreferrer">
+							<span class="dashicons dashicons-external" aria-hidden="true"></span>
+							<span class="tt-view-label"><?php esc_html_e( 'مشاهده سایت', 'torantejarat' ); ?></span>
+						</a>
+						<?php if ( $has_form ) : ?>
+							<button type="submit" class="button button-primary tt-save-top" form="<?php echo esc_attr( $form_id ); ?>">
+								<?php esc_html_e( 'ذخیره تنظیمات', 'torantejarat' ); ?>
+							</button>
+						<?php endif; ?>
+						<button type="button" class="button tt-nav-toggle" data-tt-nav-toggle aria-controls="tt-sidebar-shell" aria-expanded="false" hidden>
+							<span class="dashicons dashicons-menu" aria-hidden="true"></span>
+							<?php esc_html_e( 'بخش‌ها', 'torantejarat' ); ?>
+						</button>
+					</div>
 				</div>
-			</div>
-			<div class="tt-readiness" role="status" data-tt-readiness>
+				<div class="tt-contextbar">
+					<nav class="tt-context-path" aria-label="<?php esc_attr_e( 'مسیر صفحهٔ فعلی', 'torantejarat' ); ?>">
+						<span><?php esc_html_e( 'بلکوکم', 'torantejarat' ); ?></span>
+						<span aria-hidden="true">/</span>
+						<?php if ( $is_dashboard ) : ?>
+							<span><?php esc_html_e( 'داشبورد', 'torantejarat' ); ?></span>
+						<?php else : ?>
+							<span><?php echo esc_html( $nav[ $active ]['label'] ); ?></span>
+							<?php if ( $current_group ) : ?>
+								<span aria-hidden="true">/</span>
+								<span><?php echo esc_html( $current_group['label'] ); ?></span>
+							<?php endif; ?>
+						<?php endif; ?>
+					</nav>
+					<?php if ( $has_dirty_form ) : ?>
+						<span
+							class="tt-dirty-status"
+							data-tt-dirty-status
+							data-tt-clean-label="<?php esc_attr_e( 'بدون تغییر ذخیره‌نشده', 'torantejarat' ); ?>"
+							data-tt-dirty-label="<?php esc_attr_e( 'تغییرات ذخیره‌نشده دارید', 'torantejarat' ); ?>"
+							role="status"
+							aria-live="polite"
+						><?php esc_html_e( 'بدون تغییر ذخیره‌نشده', 'torantejarat' ); ?></span>
+					<?php endif; ?>
+				</div>
+			</header>
+			<div class="tt-readiness" data-tt-readiness>
 				<?php if ( ! $ready ) : ?>
 					<span class="tt-ready-ok">
 						<span class="dashicons dashicons-yes-alt"></span>
@@ -830,44 +916,75 @@ final class TT_Settings {
 				<?php endif; ?>
 			</div>
 			<div class="tt-layout">
-				<nav class="tt-sidebar" aria-label="<?php esc_attr_e( 'بخش‌های تنظیمات', 'torantejarat' ); ?>">
-					<ul class="tt-nav">
-						<?php foreach ( $nav as $key => $tab ) : ?>
-							<?php
-							$tab_groups = $tab['groups'];
-							$is_open    = ( $key === $active );
-							$base_url   = 'admin.php?page=torantejarat-settings&section=' . $key;
-							?>
-							<li class="tt-nav-item <?php echo $is_open ? 'is-active' : ''; ?>">
-								<a class="tt-nav-link" href="<?php echo esc_url( admin_url( $base_url ) ); ?>"<?php if ( $is_open && ! $active_group ) : ?> aria-current="page"<?php endif; ?>>
-									<span class="dashicons <?php echo esc_attr( $tab['icon'] ); ?>"></span>
-									<span class="tt-nav-text"><?php echo esc_html( $tab['label'] ); ?></span>
+				<button type="button" class="tt-nav-overlay" data-tt-nav-close tabindex="-1" hidden>
+					<span class="screen-reader-text"><?php esc_html_e( 'بستن فهرست بخش‌ها', 'torantejarat' ); ?></span>
+				</button>
+				<aside class="tt-sidebar-shell" id="tt-sidebar-shell" data-tt-nav-shell>
+					<div class="tt-sidebar-head">
+						<span><?php esc_html_e( 'بخش‌های مدیریت', 'torantejarat' ); ?></span>
+						<button type="button" class="button tt-sidebar-close" data-tt-nav-close hidden>
+							<span class="dashicons dashicons-no-alt" aria-hidden="true"></span>
+							<?php esc_html_e( 'بستن', 'torantejarat' ); ?>
+						</button>
+					</div>
+					<nav class="tt-sidebar" aria-label="<?php esc_attr_e( 'بخش‌های تنظیمات', 'torantejarat' ); ?>">
+						<ul class="tt-nav">
+							<li class="tt-nav-item <?php echo $is_dashboard ? 'is-active' : ''; ?>">
+								<a class="tt-nav-link" href="<?php echo esc_url( admin_url( 'admin.php?page=torantejarat-settings' ) ); ?>"<?php if ( $is_dashboard ) : ?> aria-current="page"<?php endif; ?>>
+									<span class="dashicons dashicons-dashboard" aria-hidden="true"></span>
+									<span class="tt-nav-text"><?php esc_html_e( 'داشبورد', 'torantejarat' ); ?></span>
 								</a>
-								<?php if ( $is_open && count( $tab_groups ) > 1 ) : ?>
-									<ul class="tt-subnav">
-										<?php foreach ( $tab_groups as $group ) : ?>
-											<li>
-												<a class="tt-subnav-link <?php echo $group['id'] === $sub ? 'is-active' : ''; ?>"
-																	href="<?php echo esc_url( admin_url( $base_url . '&sub=' . $group['id'] ) ); ?>"<?php if ( $group['id'] === $sub ) : ?> aria-current="page"<?php endif; ?>>
-													<span class="dashicons <?php echo esc_attr( $group['icon'] ); ?>"></span>
-													<span class="tt-subnav-text"><?php echo esc_html( $group['label'] ); ?></span>
-												</a>
-											</li>
-										<?php endforeach; ?>
-									</ul>
-								<?php endif; ?>
 							</li>
-						<?php endforeach; ?>
-					</ul>
-				</nav>
-				<main class="tt-main">
-					<?php if ( ! $ordered ) : ?>
-						<?php $this->render_overview( $active, $nav[ $active ] ); ?>
+							<?php foreach ( $nav as $key => $tab ) : ?>
+								<?php
+								$is_open  = ( $key === $active );
+								$base_url = 'admin.php?page=torantejarat-settings&section=' . $key;
+								?>
+								<li class="tt-nav-item <?php echo $is_open ? 'is-active' : ''; ?>">
+									<a class="tt-nav-link" href="<?php echo esc_url( admin_url( $base_url ) ); ?>"<?php if ( $is_open && ! $current_group ) : ?> aria-current="page"<?php endif; ?>>
+										<span class="dashicons <?php echo esc_attr( $tab['icon'] ); ?>" aria-hidden="true"></span>
+										<span class="tt-nav-text"><?php echo esc_html( $tab['label'] ); ?></span>
+									</a>
+									<?php if ( $is_open && count( $nav_groups ) > 1 ) : ?>
+										<ul class="tt-subnav">
+											<?php foreach ( $nav_groups as $group ) : ?>
+												<?php $is_current = $current_group && $group['id'] === $current_group['id']; ?>
+												<li>
+													<a class="tt-subnav-link <?php echo $is_current ? 'is-active' : ''; ?>"
+														href="<?php echo esc_url( admin_url( $base_url . '&sub=' . $group['id'] ) ); ?>"<?php if ( $is_current ) : ?> aria-current="page"<?php endif; ?>>
+														<span class="dashicons <?php echo esc_attr( $group['icon'] ); ?>" aria-hidden="true"></span>
+														<span class="tt-subnav-text"><?php echo esc_html( $group['label'] ); ?></span>
+													</a>
+												</li>
+											<?php endforeach; ?>
+										</ul>
+									<?php endif; ?>
+								</li>
+							<?php endforeach; ?>
+						</ul>
+					</nav>
+				</aside>
+				<main class="tt-main" id="tt-main">
+					<?php if ( $is_dashboard ) : ?>
+						<?php $this->render_dashboard( $nav ); ?>
+					<?php elseif ( $active_utility ) : ?>
+						<?php $this->render_publish_mode(); ?>
+					<?php elseif ( ! $ordered ) : ?>
+						<?php $this->render_overview( $active, $nav[ $active ], $utilities ); ?>
 					<?php else : ?>
-						<form method="post" action="options.php" class="tt-form" novalidate>
+						<div class="tt-page-heading">
+							<h2 id="tt-page-title">
+								<span class="dashicons <?php echo esc_attr( $heading_icon ); ?>" aria-hidden="true"></span>
+								<?php echo esc_html( $heading_label ); ?>
+							</h2>
+							<?php if ( $heading_desc ) : ?>
+								<p><?php echo esc_html( $heading_desc ); ?></p>
+							<?php endif; ?>
+						</div>
+						<form method="post" action="options.php" class="tt-form" id="<?php echo esc_attr( $form_id ); ?>" data-tt-dirty novalidate>
 							<?php settings_fields( 'torantejarat_' . $active ); ?>
 							<div class="tt-fields">
-								<?php $this->render_fields( $active, $ordered, $active_group ); ?>
+								<?php $this->render_fields( $active, $ordered ); ?>
 							</div>
 							<div class="tt-footer">
 								<?php submit_button( __( 'ذخیره تنظیمات', 'torantejarat' ), 'primary', 'submit', false ); ?>
@@ -877,13 +994,154 @@ final class TT_Settings {
 							</div>
 						</form>
 					<?php endif; ?>
-					<?php if ( 'general' === $active ) : ?>
-						<?php $this->render_publish_mode(); ?>
-					<?php endif; ?>
 				</main>
 			</div>
 		</div>
 		<?php
+	}
+
+	/**
+	 * Dashboard view. It contains links and existing readiness information only;
+	 * no option form and no duplicated store metrics.
+	 *
+	 * @param array $nav Navigation tree from torantejarat_panel_nav().
+	 */
+	private function render_dashboard( array $nav ) {
+		$native = array();
+		if ( post_type_exists( 'product' ) && current_user_can( 'edit_products' ) ) {
+			$native[] = array(
+				'label' => __( 'محصولات و کاتالوگ', 'torantejarat' ),
+				'desc'  => __( 'قیمت، موجودی، تصویر و مشخصات واقعی محصولات', 'torantejarat' ),
+				'icon'  => 'dashicons-products',
+				'url'   => admin_url( 'edit.php?post_type=product' ),
+			);
+		}
+		if ( post_type_exists( 'shop_order' ) && current_user_can( 'edit_shop_orders' ) ) {
+			$native[] = array(
+				'label' => __( 'سفارش‌ها', 'torantejarat' ),
+				'desc'  => __( 'پیگیری سفارش و پرداخت در مدیریت WooCommerce', 'torantejarat' ),
+				'icon'  => 'dashicons-list-view',
+				'url'   => $this->orders_url(),
+			);
+		}
+		if ( post_type_exists( 'torantejarat_request' ) && current_user_can( 'edit_posts' ) ) {
+			$native[] = array(
+				'label' => __( 'درخواست‌ها', 'torantejarat' ),
+				'desc'  => __( 'تماس، اجاره و درخواست بررسی دستگاه', 'torantejarat' ),
+				'icon'  => 'dashicons-clipboard',
+				'url'   => admin_url( 'edit.php?post_type=torantejarat_request' ),
+			);
+		}
+		if ( current_user_can( 'edit_posts' ) ) {
+			$native[] = array(
+				'label' => __( 'نوشته‌های مجله', 'torantejarat' ),
+				'desc'  => __( 'ایجاد و ویرایش راهنماها و مقاله‌های واقعی', 'torantejarat' ),
+				'icon'  => 'dashicons-welcome-write-blog',
+				'url'   => admin_url( 'edit.php' ),
+			);
+		}
+		if ( current_user_can( 'edit_pages' ) ) {
+			$native[] = array(
+				'label' => __( 'برگه‌ها و خدمات', 'torantejarat' ),
+				'desc'  => __( 'محتوای برگه‌های تماس، اجاره، تعمیر و راهنما', 'torantejarat' ),
+				'icon'  => 'dashicons-admin-page',
+				'url'   => admin_url( 'edit.php?post_type=page' ),
+			);
+		}
+		if ( current_user_can( 'edit_theme_options' ) ) {
+			$native[] = array(
+				'label' => __( 'منوها', 'torantejarat' ),
+				'desc'  => __( 'لینک‌های هدر، فوتر و سایر جایگاه‌های منو', 'torantejarat' ),
+				'icon'  => 'dashicons-menu',
+				'url'   => admin_url( 'nav-menus.php' ),
+			);
+			$native[] = array(
+				'label' => __( 'هویت سایت', 'torantejarat' ),
+				'desc'  => __( 'لوگوی اصلی و هویت بصری بومی وردپرس', 'torantejarat' ),
+				'icon'  => 'dashicons-customize',
+				'url'   => admin_url( 'customize.php' ),
+			);
+		}
+		?>
+		<div class="tt-page-heading">
+			<h2 id="tt-page-title">
+				<span class="dashicons dashicons-dashboard" aria-hidden="true"></span>
+				<?php esc_html_e( 'داشبورد بلکوکم', 'torantejarat' ); ?>
+			</h2>
+			<p><?php esc_html_e( 'از اینجا به تنظیمات قالب یا مدیریت بومی محتوای فروشگاه بروید. هیچ عدد یا وضعیت نمایشی جدیدی ساخته نمی‌شود.', 'torantejarat' ); ?></p>
+		</div>
+		<section class="tt-panel-section" aria-labelledby="tt-dashboard-theme">
+			<div class="tt-section-heading">
+				<h3 id="tt-dashboard-theme"><?php esc_html_e( 'تنظیمات قالب', 'torantejarat' ); ?></h3>
+				<p><?php esc_html_e( 'هر بخش فقط Option خودش را ذخیره می‌کند.', 'torantejarat' ); ?></p>
+			</div>
+			<ul class="tt-cards">
+				<?php foreach ( $nav as $key => $tab ) : ?>
+					<li>
+						<a class="tt-card-link" href="<?php echo esc_url( admin_url( 'admin.php?page=torantejarat-settings&section=' . $key ) ); ?>">
+							<span class="dashicons <?php echo esc_attr( $tab['icon'] ); ?>" aria-hidden="true"></span>
+							<span class="tt-card-body">
+								<span class="tt-card-title"><?php echo esc_html( $tab['label'] ); ?></span>
+								<span class="tt-card-meta">
+									<?php
+									printf(
+										/* translators: %s: number of fields in a settings section. */
+										esc_html__( '%s فیلد', 'torantejarat' ),
+										esc_html( number_format_i18n( count( $this->schema[ $key ]['fields'] ) ) )
+									);
+									?>
+								</span>
+							</span>
+						</a>
+					</li>
+				<?php endforeach; ?>
+			</ul>
+		</section>
+		<?php if ( $native ) : ?>
+			<section class="tt-panel-section" aria-labelledby="tt-dashboard-native">
+				<div class="tt-section-heading">
+					<h3 id="tt-dashboard-native"><?php esc_html_e( 'مدیریت بومی سایت و فروشگاه', 'torantejarat' ); ?></h3>
+					<p><?php esc_html_e( 'این داده‌ها در Option قالب تکرار نمی‌شوند؛ ویرایش در منبع اصلی انجام می‌شود.', 'torantejarat' ); ?></p>
+				</div>
+				<ul class="tt-cards">
+					<?php foreach ( $native as $item ) : ?>
+						<li>
+							<a class="tt-card-link" href="<?php echo esc_url( $item['url'] ); ?>">
+								<span class="dashicons <?php echo esc_attr( $item['icon'] ); ?>" aria-hidden="true"></span>
+								<span class="tt-card-body">
+									<span class="tt-card-title"><?php echo esc_html( $item['label'] ); ?></span>
+									<span class="tt-card-desc"><?php echo esc_html( $item['desc'] ); ?></span>
+								</span>
+							</a>
+						</li>
+					<?php endforeach; ?>
+				</ul>
+			</section>
+		<?php endif; ?>
+		<?php
+	}
+
+	/**
+	 * Resolve the native WooCommerce orders screen for both HPOS and posts.
+	 * The legacy URL remains a safe fallback for sites without the controller.
+	 *
+	 * @return string
+	 */
+	private function orders_url() {
+		$fallback = admin_url( 'edit.php?post_type=shop_order' );
+		$class    = 'Automattic\\WooCommerce\\Internal\\Admin\\Orders\\PageController';
+		if ( ! function_exists( 'wc_get_container' ) || ! class_exists( $class ) ) {
+			return $fallback;
+		}
+		try {
+			$controller = wc_get_container()->get( $class );
+			if ( is_object( $controller ) && method_exists( $controller, 'get_orders_url' ) ) {
+				return (string) $controller->get_orders_url();
+			}
+		} catch ( \Throwable $e ) {
+			return $fallback;
+		}
+		return $fallback;
 	}
 
 	/**
@@ -910,8 +1168,8 @@ final class TT_Settings {
 		);
 		?>
 		<section class="tt-publish-mode" id="tt-publish-mode">
-			<h2 class="tt-group-title">
-				<span class="dashicons dashicons-visibility"></span>
+			<h2 class="tt-group-title" id="tt-page-title">
+				<span class="dashicons dashicons-visibility" aria-hidden="true"></span>
 				<?php esc_html_e( 'حالت انتشار', 'torantejarat' ); ?>
 			</h2>
 			<?php if ( isset( $notices[ $notice ] ) ) : ?>
@@ -931,7 +1189,7 @@ final class TT_Settings {
 					</p>
 				</div>
 			</div>
-			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="tt-form">
+			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="tt-form tt-publish-form" id="tt-publish-form" data-tt-dirty>
 				<input type="hidden" name="action" value="torantejarat_publish_mode">
 				<?php wp_nonce_field( 'torantejarat_publish_mode' ); ?>
 				<fieldset>
@@ -965,40 +1223,121 @@ final class TT_Settings {
 	 * to its own page; no form is rendered here, so nothing can be saved from
 	 * this screen.
 	 *
-	 * @param string $tab_key Tab key.
-	 * @param array  $tab     Entry from torantejarat_panel_nav().
+	 * @param string $tab_key   Tab key.
+	 * @param array  $tab       Entry from torantejarat_panel_nav().
+	 * @param array  $utilities Non-field utility cards for this tab.
 	 */
-	private function render_overview( $tab_key, array $tab ) {
-		$base = 'admin.php?page=torantejarat-settings&section=' . $tab_key;
+	private function render_overview( $tab_key, array $tab, array $utilities = array() ) {
+		$base  = 'admin.php?page=torantejarat-settings&section=' . $tab_key;
+		$cards = array_merge( $tab['groups'], $utilities );
 		?>
 		<div class="tt-overview">
-			<h2 class="tt-overview-title">
-				<span class="dashicons <?php echo esc_attr( $tab['icon'] ); ?>"></span>
-				<?php echo esc_html( $tab['label'] ); ?>
-			</h2>
-			<p class="tt-overview-lead">
-				<?php esc_html_e( 'هر زیربخش صفحهٔ جداگانه دارد؛ ذخیره در هر صفحه فقط همان فیلدها را می‌نویسد و بقیهٔ مقادیر دست‌نخورده می‌مانند.', 'torantejarat' ); ?>
-			</p>
+			<div class="tt-page-heading">
+				<h2 class="tt-overview-title" id="tt-page-title">
+					<span class="dashicons <?php echo esc_attr( $tab['icon'] ); ?>" aria-hidden="true"></span>
+					<?php echo esc_html( $tab['label'] ); ?>
+				</h2>
+				<p class="tt-overview-lead">
+					<?php esc_html_e( 'هر زیربخش صفحهٔ جداگانه دارد؛ ذخیره در هر صفحه فقط همان فیلدها را می‌نویسد و بقیهٔ مقادیر دست‌نخورده می‌مانند.', 'torantejarat' ); ?>
+				</p>
+			</div>
 			<ul class="tt-cards">
-				<?php foreach ( $tab['groups'] as $group ) : ?>
+				<?php foreach ( $cards as $group ) : ?>
 					<li>
 						<a class="tt-card-link" href="<?php echo esc_url( admin_url( $base . '&sub=' . $group['id'] ) ); ?>">
-							<span class="dashicons <?php echo esc_attr( $group['icon'] ); ?>"></span>
-							<span class="tt-card-title"><?php echo esc_html( $group['label'] ); ?></span>
-							<span class="tt-card-meta">
-								<?php
-								printf(
-									/* translators: %s: number of fields in the sub-section. */
-									esc_html__( '%s فیلد', 'torantejarat' ),
-									esc_html( number_format_i18n( count( $group['fields'] ) ) )
-								);
-								?>
+							<span class="dashicons <?php echo esc_attr( $group['icon'] ); ?>" aria-hidden="true"></span>
+							<span class="tt-card-body">
+								<span class="tt-card-title"><?php echo esc_html( $group['label'] ); ?></span>
+								<?php if ( ! empty( $group['desc'] ) ) : ?>
+									<span class="tt-card-desc"><?php echo esc_html( $group['desc'] ); ?></span>
+								<?php endif; ?>
+								<span class="tt-card-meta">
+									<?php if ( isset( $group['meta'] ) ) : ?>
+										<?php echo esc_html( $group['meta'] ); ?>
+									<?php else : ?>
+										<?php
+										printf(
+											/* translators: %s: number of fields in the sub-section. */
+											esc_html__( '%s فیلد', 'torantejarat' ),
+											esc_html( number_format_i18n( count( $group['fields'] ) ) )
+										);
+										?>
+									<?php endif; ?>
+								</span>
 							</span>
 						</a>
 					</li>
 				<?php endforeach; ?>
 			</ul>
+			<?php if ( 'home' === $tab_key ) : ?>
+				<?php $this->render_home_data_guide(); ?>
+			<?php endif; ?>
 		</div>
+		<?php
+	}
+
+	/**
+	 * Native-data guide for homepage regions that are not theme text options.
+	 * These links explain where real content is managed; they do not add fields.
+	 */
+	private function render_home_data_guide() {
+		$items = array();
+		if ( current_user_can( 'edit_products' ) ) {
+			$items[] = array(
+				'label' => __( 'تصاویر هیرو و بخش‌های محصول', 'torantejarat' ),
+				'desc'  => __( 'Hero Visual، تخفیف‌ها، اسلایدرها، پرفروش‌ها و تازه‌ترین‌ها از محصولات و فروش واقعی ساخته می‌شوند.', 'torantejarat' ),
+				'icon'  => 'dashicons-products',
+				'url'   => admin_url( 'edit.php?post_type=product' ),
+			);
+		}
+		if ( current_user_can( 'manage_product_terms' ) ) {
+			$items[] = array(
+				'label' => __( 'دسته‌ها و دادهٔ فایندر', 'torantejarat' ),
+				'desc'  => __( 'کارت دسته‌ها و گزینه‌های کاربرد از Termهای واقعی WooCommerce خوانده می‌شوند.', 'torantejarat' ),
+				'icon'  => 'dashicons-category',
+				'url'   => admin_url( 'edit-tags.php?taxonomy=product_cat&post_type=product' ),
+			);
+		}
+		if ( current_user_can( 'edit_pages' ) ) {
+			$items[] = array(
+				'label' => __( 'کارت‌های خدمات', 'torantejarat' ),
+				'desc'  => __( 'مقصد کارت‌های اجاره، تعمیر و آموزش، برگه‌های واقعی با همین Slugهاست.', 'torantejarat' ),
+				'icon'  => 'dashicons-admin-page',
+				'url'   => admin_url( 'edit.php?post_type=page' ),
+			);
+		}
+		if ( current_user_can( 'edit_posts' ) ) {
+			$items[] = array(
+				'label' => __( 'کارت‌های مجله', 'torantejarat' ),
+				'desc'  => __( 'تیتر، تصویر و خلاصهٔ کارت‌ها از نوشته‌های منتشرشده می‌آید.', 'torantejarat' ),
+				'icon'  => 'dashicons-welcome-write-blog',
+				'url'   => admin_url( 'edit.php' ),
+			);
+		}
+		if ( ! $items ) {
+			return;
+		}
+		?>
+		<section class="tt-panel-section tt-native-guide" aria-labelledby="tt-home-native">
+			<div class="tt-section-heading">
+				<h3 id="tt-home-native"><?php esc_html_e( 'بخش‌های داده‌محور صفحه اصلی', 'torantejarat' ); ?></h3>
+				<p><?php esc_html_e( 'این موارد فیلد متنی قالب ندارند و نباید با دادهٔ دست‌ساز جایگزین شوند.', 'torantejarat' ); ?></p>
+			</div>
+			<ul class="tt-cards">
+				<?php foreach ( $items as $item ) : ?>
+					<li>
+						<a class="tt-card-link" href="<?php echo esc_url( $item['url'] ); ?>">
+							<span class="dashicons <?php echo esc_attr( $item['icon'] ); ?>" aria-hidden="true"></span>
+							<span class="tt-card-body">
+								<span class="tt-card-title"><?php echo esc_html( $item['label'] ); ?></span>
+								<span class="tt-card-desc"><?php echo esc_html( $item['desc'] ); ?></span>
+								<span class="tt-card-meta"><?php esc_html_e( 'دادهٔ بومی', 'torantejarat' ); ?></span>
+							</span>
+						</a>
+					</li>
+				<?php endforeach; ?>
+			</ul>
+		</section>
 		<?php
 	}
 
@@ -1010,11 +1349,10 @@ final class TT_Settings {
 	 * The sanitizer uses that list to leave every other stored key untouched —
 	 * saving the hero page must not wipe the trust items or the FAQ repeater.
 	 *
-	 * @param string     $tab_key Tab key.
-	 * @param array      $ordered Field keys to render, in order.
-	 * @param array|null $group   Sub-section being rendered, if any.
+	 * @param string $tab_key Tab key.
+	 * @param array  $ordered Field keys to render, in order.
 	 */
-	private function render_fields( $tab_key, array $ordered, $group = null ) {
+	private function render_fields( $tab_key, array $ordered ) {
 		$fields = $this->schema[ $tab_key ]['fields'];
 		$saved  = get_option( 'torantejarat_' . $tab_key, array() );
 
@@ -1035,16 +1373,6 @@ final class TT_Settings {
 			echo '<input type="hidden" name="' . esc_attr( 'torantejarat_' . $tab_key . '[_tt_scope][]' ) . '" value="' . esc_attr( (string) $scope_key ) . '">';
 		}
 
-		if ( is_array( $group ) ) {
-			?>
-			<section class="tt-group">
-				<h2 class="tt-group-title">
-					<span class="dashicons <?php echo esc_attr( $group['icon'] ); ?>"></span>
-					<?php echo esc_html( $group['label'] ); ?>
-				</h2>
-			<?php
-		}
-
 		foreach ( $ordered as $key ) {
 			$field = $fields[ $key ];
 
@@ -1060,16 +1388,25 @@ final class TT_Settings {
 			$wrapper_id = torantejarat_panel_field_dom_id( $tab_key, $key, true );
 			$name       = 'torantejarat_' . $tab_key . '[' . $key . ']';
 			$type       = $field['type'];
+			$control    = isset( $field['control'] ) ? (string) $field['control'] : '';
+			$desc_id    = ! empty( $field['desc'] ) ? $id . '-description' : '';
+			$desc_attr  = $desc_id ? ' aria-describedby="' . esc_attr( $desc_id ) . '"' : '';
+			$open_url   = '';
+			if ( 'url' === $type && filter_var( (string) $value, FILTER_VALIDATE_URL ) && preg_match( '#^https?://#i', (string) $value ) ) {
+				$open_url = esc_url( (string) $value );
+			}
 			if ( 'repeater' === $type ) {
 				$this->render_repeater_field( $tab_key, $key, $field, $value );
 				continue;
 			}
 			?>
 			<div class="tt-field" id="<?php echo esc_attr( $wrapper_id ); ?>">
-				<?php if ( 'checkbox' !== $type ) : ?>
-				<label class="tt-label" for="<?php echo esc_attr( $id ); ?>">
-					<?php echo esc_html( $field['label'] ); ?>
-				</label>
+				<?php if ( 'segments' === $control ) : ?>
+					<span class="tt-label" id="<?php echo esc_attr( $id . '-label' ); ?>"><?php echo esc_html( $field['label'] ); ?></span>
+				<?php elseif ( 'checkbox' !== $type ) : ?>
+					<label class="tt-label" for="<?php echo esc_attr( $id ); ?>">
+						<?php echo esc_html( $field['label'] ); ?>
+					</label>
 				<?php endif; ?>
 				<div class="tt-control">
 					<?php if ( 'textarea' === $type || 'embed' === $type ) : ?>
@@ -1078,7 +1415,49 @@ final class TT_Settings {
 							name="<?php echo esc_attr( $name ); ?>"
 							rows="4"
 							class="large-text"
+							<?php echo $desc_attr; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped attribute built above. ?>
 						><?php echo esc_textarea( $value ); ?></textarea>
+					<?php elseif ( 'segments' === $control && 'select' === $type && ! empty( $field['options'] ) && is_array( $field['options'] ) ) : ?>
+						<div
+							class="tt-segmented"
+							id="<?php echo esc_attr( $id ); ?>"
+							role="radiogroup"
+							aria-labelledby="<?php echo esc_attr( $id . '-label' ); ?>"
+							<?php echo $desc_attr; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped attribute built above. ?>
+						>
+							<?php foreach ( $field['options'] as $opt_val => $opt_label ) : ?>
+								<label class="tt-segment">
+									<input
+										type="radio"
+										id="<?php echo esc_attr( $id . '-' . sanitize_key( $opt_val ) ); ?>"
+										name="<?php echo esc_attr( $name ); ?>"
+										value="<?php echo esc_attr( $opt_val ); ?>"
+										<?php checked( $value, $opt_val ); ?>
+									>
+									<span><?php echo esc_html( $opt_label ); ?></span>
+								</label>
+							<?php endforeach; ?>
+						</div>
+					<?php elseif ( 'checkbox' === $type && 'switch' === $control ) : ?>
+						<label class="tt-switch">
+							<input
+								class="tt-switch-input"
+								type="checkbox"
+								id="<?php echo esc_attr( $id ); ?>"
+								name="<?php echo esc_attr( $name ); ?>"
+								value="1"
+								<?php checked( $value, 1 ); ?>
+								<?php echo $desc_attr; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped attribute built above. ?>
+							>
+							<span class="tt-switch-track" aria-hidden="true"><span class="tt-switch-thumb"></span></span>
+							<span class="tt-switch-copy">
+								<span class="tt-switch-label"><?php echo esc_html( $field['label'] ); ?></span>
+								<span class="tt-switch-state">
+									<span class="tt-state-on"><?php esc_html_e( 'روشن', 'torantejarat' ); ?></span>
+									<span class="tt-state-off"><?php esc_html_e( 'خاموش', 'torantejarat' ); ?></span>
+								</span>
+							</span>
+						</label>
 					<?php elseif ( 'checkbox' === $type ) : ?>
 						<label class="tt-check">
 							<input
@@ -1087,6 +1466,7 @@ final class TT_Settings {
 								name="<?php echo esc_attr( $name ); ?>"
 								value="1"
 								<?php checked( $value, 1 ); ?>
+								<?php echo $desc_attr; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped attribute built above. ?>
 							>
 							<?php echo esc_html( $field['label'] ); ?>
 						</label>
@@ -1094,6 +1474,7 @@ final class TT_Settings {
 						<select
 							id="<?php echo esc_attr( $id ); ?>"
 							name="<?php echo esc_attr( $name ); ?>"
+							<?php echo $desc_attr; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped attribute built above. ?>
 						>
 							<?php foreach ( $field['options'] as $opt_val => $opt_label ) : ?>
 								<option
@@ -1104,6 +1485,67 @@ final class TT_Settings {
 								</option>
 							<?php endforeach; ?>
 						</select>
+					<?php elseif ( 'url' === $type ) : ?>
+						<?php if ( 'media-url' === $control ) : ?>
+							<div class="tt-media-control" data-tt-media>
+								<div class="tt-media-preview" data-tt-media-preview <?php if ( ! $open_url ) : ?>hidden<?php endif; ?>>
+									<img <?php if ( $open_url ) : ?>src="<?php echo esc_url( $open_url ); ?>"<?php endif; ?> alt="" data-tt-media-image loading="lazy">
+								</div>
+								<div class="tt-media-main">
+						<?php endif; ?>
+									<div class="tt-url-control">
+										<input
+											type="url"
+											id="<?php echo esc_attr( $id ); ?>"
+											name="<?php echo esc_attr( $name ); ?>"
+											value="<?php echo esc_attr( (string) $value ); ?>"
+											class="regular-text code"
+											data-tt-url-input
+											<?php if ( 'media-url' === $control ) : ?>data-tt-media-url<?php endif; ?>
+											<?php echo $desc_attr; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped attribute built above. ?>
+										>
+										<a
+											class="button tt-url-open"
+											data-tt-url-open
+											href="<?php echo esc_url( $open_url ); ?>"
+											target="_blank"
+											rel="noopener noreferrer"
+											<?php if ( ! $open_url ) : ?>hidden<?php endif; ?>
+										>
+											<span class="dashicons dashicons-external" aria-hidden="true"></span>
+											<?php esc_html_e( 'بازکردن', 'torantejarat' ); ?>
+										</a>
+									</div>
+						<?php if ( 'media-url' === $control ) : ?>
+									<div class="tt-media-actions">
+										<button type="button" class="button" data-tt-media-select hidden>
+											<span class="dashicons dashicons-admin-media" aria-hidden="true"></span>
+											<?php esc_html_e( 'انتخاب تصویر', 'torantejarat' ); ?>
+										</button>
+										<button type="button" class="button" data-tt-media-clear hidden>
+											<?php esc_html_e( 'پاک‌کردن انتخاب', 'torantejarat' ); ?>
+										</button>
+									</div>
+								</div>
+							</div>
+						<?php endif; ?>
+					<?php elseif ( 'color' === $type && 'color-hex' === $control ) : ?>
+						<div class="tt-color-control">
+							<input
+								type="text"
+								id="<?php echo esc_attr( $id ); ?>"
+								name="<?php echo esc_attr( $name ); ?>"
+								value="<?php echo esc_attr( (string) $value ); ?>"
+								class="regular-text code tt-color-value"
+								data-tt-color
+								data-tt-color-label="<?php echo esc_attr( $field['label'] ); ?>"
+								pattern="#(?:[0-9a-fA-F]{3}){1,2}"
+								maxlength="7"
+								spellcheck="false"
+								autocomplete="off"
+								<?php echo $desc_attr; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped attribute built above. ?>
+							>
+						</div>
 					<?php else : ?>
 						<input
 							type="<?php echo esc_attr( $type ); ?>"
@@ -1111,10 +1553,11 @@ final class TT_Settings {
 							name="<?php echo esc_attr( $name ); ?>"
 							value="<?php echo esc_attr( (string) $value ); ?>"
 							class="regular-text <?php echo 'url' === $type ? 'code' : ''; ?>"
+							<?php echo $desc_attr; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped attribute built above. ?>
 						>
 					<?php endif; ?>
-					<?php if ( ! empty( $field['desc'] ) ) : ?>
-						<p class="description">
+					<?php if ( $desc_id ) : ?>
+						<p class="description" id="<?php echo esc_attr( $desc_id ); ?>">
 							<?php echo esc_html( $field['desc'] ); ?>
 						</p>
 					<?php endif; ?>
@@ -1122,15 +1565,13 @@ final class TT_Settings {
 			</div>
 			<?php
 		}
-		if ( is_array( $group ) ) {
-			echo '</section>';
-		}
 	}
 
 	/**
-	 * Render a repeater field: a table of saved rows plus one trailing blank
-	 * row, so a row can still be added with JavaScript disabled. The JS
-	 * counterpart is assets/js/admin-settings.js (settings screen only).
+	 * Render a repeater field as cards, with one trailing blank row so a row
+	 * can still be added with JavaScript disabled. Collapse and row buttons
+	 * are JS enhancements; no-JS content stays open and uses the blank row.
+	 * The JS counterpart is assets/js/admin-settings.js (settings screen only).
 	 *
 	 * @param string $tab_key Tab the field belongs to.
 	 * @param string $key     Field key.
@@ -1150,33 +1591,33 @@ final class TT_Settings {
 		$base       = 'torantejarat_' . $tab_key . '[' . $key . ']';
 		$wrapper_id = torantejarat_panel_field_dom_id( $tab_key, $key, true );
 		?>
-		<div class="tt-field tt-field-repeater" id="<?php echo esc_attr( $wrapper_id ); ?>" data-tt-repeater data-tt-max="<?php echo esc_attr( (string) $max ); ?>">
+		<div
+			class="tt-field tt-field-repeater"
+			id="<?php echo esc_attr( $wrapper_id ); ?>"
+			data-tt-repeater
+			data-tt-max="<?php echo esc_attr( (string) $max ); ?>"
+			data-tt-row-label="<?php esc_attr_e( 'پرسش', 'torantejarat' ); ?>"
+			role="group"
+			aria-labelledby="<?php echo esc_attr( $wrapper_id . '-label' ); ?>"
+			<?php if ( ! empty( $field['desc'] ) ) : ?>aria-describedby="<?php echo esc_attr( $wrapper_id . '-description' ); ?>"<?php endif; ?>
+		>
 			<div class="tt-repeater-head">
-				<span class="tt-label"><?php echo esc_html( $field['label'] ); ?></span>
+				<span class="tt-label" id="<?php echo esc_attr( $wrapper_id . '-label' ); ?>"><?php echo esc_html( $field['label'] ); ?></span>
 				<?php if ( ! empty( $field['desc'] ) ) : ?>
-					<p class="description"><?php echo esc_html( $field['desc'] ); ?></p>
+					<p class="description" id="<?php echo esc_attr( $wrapper_id . '-description' ); ?>"><?php echo esc_html( $field['desc'] ); ?></p>
 				<?php endif; ?>
 			</div>
 			<div class="tt-control">
-				<div class="tt-repeater-scroll">
-					<table class="widefat striped tt-repeater-table">
-						<thead>
-							<tr>
-								<?php foreach ( $subfields as $sub ) : ?>
-									<th scope="col"><?php echo esc_html( isset( $sub['label'] ) ? $sub['label'] : '' ); ?></th>
-								<?php endforeach; ?>
-								<th scope="col" class="tt-repeater-act"><span class="screen-reader-text"><?php esc_html_e( 'حذف ردیف', 'torantejarat' ); ?></span></th>
-							</tr>
-						</thead>
-						<tbody>
-							<?php foreach ( $rows as $index => $row ) : ?>
-								<?php $this->render_repeater_row( $base, (int) $index, $subfields, is_array( $row ) ? $row : array() ); ?>
-							<?php endforeach; ?>
-						</tbody>
-					</table>
+				<div class="tt-repeater-list" data-tt-repeater-list>
+					<?php foreach ( $rows as $index => $row ) : ?>
+						<?php $this->render_repeater_row( $base, (int) $index, $subfields, is_array( $row ) ? $row : array() ); ?>
+					<?php endforeach; ?>
 				</div>
+				<noscript>
+					<p class="description"><?php esc_html_e( 'برای افزودن، ردیف خالی آخر را پر کنید. برای حذف، محتوای ردیف را پاک کنید؛ تغییر پس از ذخیره اعمال می‌شود.', 'torantejarat' ); ?></p>
+				</noscript>
 				<p class="tt-repeater-actions">
-					<button type="button" class="button" data-tt-repeater-add><?php esc_html_e( 'افزودن ردیف', 'torantejarat' ); ?></button>
+					<button type="button" class="button" data-tt-repeater-add hidden><?php esc_html_e( 'افزودن ردیف', 'torantejarat' ); ?></button>
 				</p>
 				<?php if ( $max > 0 ) : ?>
 					<?php
@@ -1208,28 +1649,52 @@ final class TT_Settings {
 	 * @param array  $row       Stored row values.
 	 */
 	private function render_repeater_row( $base, $index, array $subfields, array $row ) {
+		$row_label = sprintf(
+			/* translators: %s: repeater row number. */
+			__( 'پرسش %s', 'torantejarat' ),
+			number_format_i18n( $index + 1 )
+		);
 		?>
-		<tr class="tt-repeater-row">
-			<?php foreach ( $subfields as $sub_key => $sub ) : ?>
-				<td>
-					<?php
-					$this->render_subfield_input(
-						$base,
-						$index,
-						(string) $sub_key,
-						$sub,
-						isset( $row[ $sub_key ] ) ? $row[ $sub_key ] : ''
-					);
-					?>
-				</td>
-			<?php endforeach; ?>
-			<td class="tt-repeater-act">
-				<button type="button" class="button-link tt-repeater-remove" data-tt-repeater-remove>
-					<?php esc_html_e( 'حذف', 'torantejarat' ); ?>
-					<span class="screen-reader-text"><?php esc_html_e( 'حذف این ردیف', 'torantejarat' ); ?></span>
-				</button>
-			</td>
-		</tr>
+		<div class="tt-repeater-row" data-tt-repeater-row role="group" aria-label="<?php echo esc_attr( $row_label ); ?>">
+			<div class="tt-repeater-card-head">
+				<span class="tt-repeater-number" data-tt-repeater-number><?php echo esc_html( $row_label ); ?></span>
+				<span class="tt-repeater-summary" data-tt-repeater-summary></span>
+				<div class="tt-repeater-card-actions">
+					<button
+						type="button"
+						class="button tt-repeater-toggle"
+						data-tt-repeater-toggle
+						data-tt-collapse-label="<?php esc_attr_e( 'جمع‌کردن', 'torantejarat' ); ?>"
+						data-tt-expand-label="<?php esc_attr_e( 'بازکردن', 'torantejarat' ); ?>"
+						aria-expanded="true"
+						hidden
+					>
+						<span data-tt-repeater-toggle-text><?php esc_html_e( 'جمع‌کردن', 'torantejarat' ); ?></span>
+						<span class="dashicons dashicons-arrow-up-alt2" aria-hidden="true"></span>
+					</button>
+					<button type="button" class="button-link tt-repeater-remove" data-tt-repeater-remove hidden>
+						<span aria-hidden="true"><?php esc_html_e( 'حذف', 'torantejarat' ); ?></span>
+						<span class="screen-reader-text"><?php esc_html_e( 'حذف این ردیف', 'torantejarat' ); ?></span>
+					</button>
+				</div>
+			</div>
+			<div class="tt-repeater-card-body" data-tt-repeater-body>
+				<?php foreach ( $subfields as $sub_key => $sub ) : ?>
+					<label class="tt-repeater-subfield">
+						<span class="tt-repeater-subfield-label"><?php echo esc_html( isset( $sub['label'] ) ? $sub['label'] : $sub_key ); ?></span>
+						<?php
+						$this->render_subfield_input(
+							$base,
+							$index,
+							(string) $sub_key,
+							$sub,
+							isset( $row[ $sub_key ] ) ? $row[ $sub_key ] : ''
+						);
+						?>
+					</label>
+				<?php endforeach; ?>
+			</div>
+		</div>
 		<?php
 	}
 
@@ -1308,12 +1773,38 @@ final class TT_Settings {
 			array(),
 			file_exists( $css_path ) ? (string) filemtime( $css_path ) : (string) wp_get_theme()->get( 'Version' )
 		);
+		$section = '';
+		if ( isset( $_GET['section'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Asset route only.
+			$section = sanitize_key( wp_unslash( $_GET['section'] ) );
+		} elseif ( isset( $_GET['tab'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Asset route only.
+			$section = sanitize_key( wp_unslash( $_GET['tab'] ) );
+		}
+		$sub = isset( $_GET['sub'] ) ? sanitize_key( wp_unslash( $_GET['sub'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Asset route only.
+
+		// Only the logo field needs Media Library. Users without upload_files
+		// keep the same manual URL input and never receive an unusable button.
+		$media_enabled = ( 'login' === $section && 'content' === $sub && current_user_can( 'upload_files' ) );
+		if ( $media_enabled ) {
+			wp_enqueue_media();
+		}
+		$script_path = get_template_directory() . '/assets/js/admin-settings.js';
 		wp_enqueue_script(
 			'tt-settings',
 			get_template_directory_uri() . '/assets/js/admin-settings.js',
-			array(),
-			(string) wp_get_theme()->get( 'Version' ),
+			$media_enabled ? array( 'media-views' ) : array(),
+			file_exists( $script_path ) ? (string) filemtime( $script_path ) : (string) wp_get_theme()->get( 'Version' ),
 			true
+		);
+		wp_localize_script(
+			'tt-settings',
+			'ttSettingsControls',
+			array(
+				'media' => array(
+					'enabled' => $media_enabled,
+					'title'   => __( 'انتخاب لوگوی صفحه ورود', 'torantejarat' ),
+					'button'  => __( 'استفاده از این تصویر', 'torantejarat' ),
+				),
+			)
 		);
 		// Panel-wide search. The index is generated server-side from $schema and
 		// the nav map (inc/settings/panel-nav.php) — the script never discovers

@@ -34,13 +34,149 @@ function torantejarat_auth_enqueue() {
 }
 add_action( 'wp_enqueue_scripts', __NAMESPACE__ . '\\torantejarat_auth_enqueue', 20 );
 
-function torantejarat_auth_get_page_url() {
-	$page = get_page_by_path( 'login-register' );
-	if ( ! $page ) {
-		$page = get_page_by_path( 'auth' );
+function torantejarat_auth_get_page_id() {
+	foreach ( array( 'login-register', 'auth' ) as $slug ) {
+		$page = get_page_by_path( $slug );
+		if ( $page instanceof \WP_Post && 'publish' === $page->post_status ) {
+			return (int) $page->ID;
+		}
 	}
-	return $page ? get_permalink( $page->ID ) : wp_login_url();
+	return 0;
 }
+
+/**
+ * Canonical customer login URL. Native login remains the fail-open fallback
+ * when the auth page is not published, so a misconfiguration cannot create
+ * a redirect loop or lock the site owner out.
+ */
+function torantejarat_auth_login_page_url( $redirect = '', $reauth = false ) {
+	$page_id = torantejarat_auth_get_page_id();
+	if ( ! $page_id ) {
+		return wp_login_url( $redirect, $reauth );
+	}
+
+	$args = array();
+	if ( is_string( $redirect ) && '' !== $redirect ) {
+		$args['redirect_to'] = $redirect;
+	}
+	if ( $reauth ) {
+		$args['reauth'] = '1';
+	}
+
+	return add_query_arg( $args, get_permalink( $page_id ) );
+}
+
+function torantejarat_auth_register_page_url( $redirect = '' ) {
+	$page_id = torantejarat_auth_get_page_id();
+	if ( ! $page_id ) {
+		return wp_registration_url();
+	}
+
+	$args = array( 'auth_form' => 'register' );
+	if ( is_string( $redirect ) && '' !== $redirect ) {
+		$args['redirect_to'] = $redirect;
+	}
+
+	return add_query_arg( $args, get_permalink( $page_id ) ) . '#register';
+}
+
+function torantejarat_auth_get_page_url() {
+	return torantejarat_auth_login_page_url();
+}
+
+/**
+ * Validate a requested destination against WordPress' allowed redirect hosts.
+ */
+function torantejarat_auth_requested_redirect( $fallback = '' ) {
+	if ( ! isset( $_REQUEST['redirect_to'] ) || ! is_string( $_REQUEST['redirect_to'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Destination is validated, not used for authorization.
+		return $fallback;
+	}
+
+	$requested = trim( wp_unslash( $_REQUEST['redirect_to'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	if ( '' === $requested ) {
+		return $fallback;
+	}
+
+	return wp_validate_redirect( $requested, $fallback );
+}
+
+function torantejarat_auth_login_url_filter( $login_url, $redirect = '', $force_reauth = false ) {
+	if ( ! torantejarat_auth_get_page_id() ) {
+		return $login_url;
+	}
+	return torantejarat_auth_login_page_url( $redirect, $force_reauth );
+}
+add_filter( 'login_url', __NAMESPACE__ . '\\torantejarat_auth_login_url_filter', 10, 3 );
+
+function torantejarat_auth_register_url_filter( $register_url ) {
+	if ( ! torantejarat_auth_get_page_id() ) {
+		return $register_url;
+	}
+	return torantejarat_auth_register_page_url();
+}
+add_filter( 'register_url', __NAMESPACE__ . '\\torantejarat_auth_register_url_filter' );
+
+/**
+ * Hide the native login/register screens without intercepting core recovery,
+ * reset, logout, privacy, recovery-mode, or plugin-defined login actions.
+ */
+function torantejarat_auth_native_screen_redirect() {
+	if ( ! torantejarat_auth_get_page_id() ) {
+		return;
+	}
+
+	$action = isset( $_REQUEST['action'] ) && is_string( $_REQUEST['action'] ) ? sanitize_key( wp_unslash( $_REQUEST['action'] ) ) : 'login'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Routing only.
+	if ( ! in_array( $action, array( 'login', 'register' ), true ) ) {
+		return;
+	}
+
+	$redirect = torantejarat_auth_requested_redirect( '' );
+	$reauth   = ! empty( $_REQUEST['reauth'] ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Boolean routing flag only.
+	$url      = 'register' === $action ? torantejarat_auth_register_page_url( $redirect ) : torantejarat_auth_login_page_url( $redirect, $reauth );
+
+	wp_safe_redirect( $url );
+	exit;
+}
+add_action( 'login_init', __NAMESPACE__ . '\\torantejarat_auth_native_screen_redirect', 1 );
+
+/**
+ * Keep authenticated users away from duplicate login forms, except reauth.
+ */
+function torantejarat_auth_page_redirect() {
+	if ( ! is_page_template( 'page-templates/login-register.php' ) || ! is_user_logged_in() ) {
+		return;
+	}
+	if ( ! empty( $_GET['reauth'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Core reauthentication flag only.
+		return;
+	}
+
+	wp_safe_redirect( torantejarat_auth_requested_redirect( torantejarat_auth_account_url() ) );
+	exit;
+}
+add_action( 'template_redirect', __NAMESPACE__ . '\\torantejarat_auth_page_redirect', 4 );
+
+/**
+ * Customers do not need wp-admin. Staff access remains capability-based.
+ * admin_init also runs for admin-ajax.php and admin-post.php; both must stay
+ * available so frontend forms and nopriv/authenticated AJAX keep working.
+ */
+function torantejarat_auth_admin_access() {
+	global $pagenow;
+
+	if ( wp_doing_ajax() || in_array( $pagenow, array( 'admin-ajax.php', 'admin-post.php' ), true ) ) {
+		return;
+	}
+	if ( ! is_user_logged_in() ) {
+		return; // Core auth_redirect() sends guests through the filtered login URL.
+	}
+	if ( current_user_can( 'edit_posts' ) || current_user_can( 'manage_woocommerce' ) || current_user_can( 'edit_others_shop_orders' ) ) {
+		return;
+	}
+
+	wp_safe_redirect( torantejarat_auth_account_url() );
+	exit;
+}
+add_action( 'admin_init', __NAMESPACE__ . '\\torantejarat_auth_admin_access', 1 );
 
 function torantejarat_auth_account_url() {
 	if ( function_exists( 'wc_get_page_id' ) && wc_get_page_id( 'myaccount' ) > 0 ) {
@@ -155,13 +291,20 @@ function torantejarat_send_json( $success, $message, $redirect = '' ) {
 		}
 
 		$form = isset( $_POST['action'] ) && 'torantejarat_register' === $_POST['action'] ? 'register' : 'login'; // phpcs:ignore WordPress.Security.NonceVerification.Missing
-		$url  = add_query_arg(
-			array(
-				'auth_error' => $message,
-				'auth_form'  => $form,
-			),
-			torantejarat_auth_get_page_url()
+		$args = array(
+			'auth_error' => $message,
+			'auth_form'  => $form,
 		);
+
+		$requested = torantejarat_auth_requested_redirect( '' );
+		if ( '' !== $requested ) {
+			$args['redirect_to'] = $requested;
+		}
+		if ( ! empty( $_POST['reauth'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified before the handler reaches this response.
+			$args['reauth'] = '1';
+		}
+
+		$url = add_query_arg( $args, torantejarat_auth_get_page_url() );
 		wp_safe_redirect( $url . '#' . $form );
 		exit;
 	}
@@ -213,7 +356,7 @@ function torantejarat_auth_login() {
 		torantejarat_send_json( false, __( 'نام کاربری یا رمز عبور اشتباه است.', 'torantejarat' ) );
 	}
 
-	torantejarat_send_json( true, __( 'خوش آمدید.', 'torantejarat' ), torantejarat_auth_account_url() );
+	torantejarat_send_json( true, __( 'خوش آمدید.', 'torantejarat' ), torantejarat_auth_requested_redirect( torantejarat_auth_account_url() ) );
 }
 
 /**
@@ -313,5 +456,5 @@ function torantejarat_auth_register() {
 	wp_set_current_user( $user_id );
 	wp_set_auth_cookie( $user_id, true );
 
-	torantejarat_send_json( true, __( 'ثبت‌نام انجام شد. خوش آمدید.', 'torantejarat' ), torantejarat_auth_account_url() );
+	torantejarat_send_json( true, __( 'ثبت‌نام انجام شد. خوش آمدید.', 'torantejarat' ), torantejarat_auth_requested_redirect( torantejarat_auth_account_url() ) );
 }

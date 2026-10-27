@@ -15,6 +15,37 @@
 | TT-006 | اصلاح شد | Parse هر ۷۲ PHP + ۲۱ JS + DOM smoke | در انتظار Staging | علاقه‌مندی واقعی با REST سازگار، Native fallback و کنترل‌های صادقانه |
 | UX-001 | اصلاح شد | PHP/JS/CSS Parse + source/print assertions | در انتظار Staging | تطبیق ایده‌های `sample woo` و بازطراحی صفحهٔ تشکر/بعد از خرید |
 | TT-029 | اصلاح شد | انجام شد؛ هر ۲۰ JS | در انتظار Staging | رفع خطای Parse اسکریپت ویدیوی محصول در ادمین |
+| AUTH-GATE-001 | پیاده شد | Parse ۷۲/۷۲ PHP و ۲۱/۲۱ JS + DOM smoke | در انتظار Staging | ورود/ثبت‌نام اختصاصی، Guard پیشخوان و حفظ مقصد امن |
+| AUTH-UI-001 | پیاده شد | Parse PHP/JS/CSS + Source و DOM smoke | در انتظار Staging | صفحهٔ ورود/ثبت‌نام مجله‌ای، Responsive و یکپارچه با Login Options |
+| AUTH-UI-002 | اصلاح شد | PostCSS + Source assertions + Diff check | در انتظار تأیید بصری هاست | مرکز/تک‌خطی تیتر، متن زیر لوگو و ثابت‌ماندن تصویر هنگام Register |
+
+### AUTH-GATE-001 — مسیر اختصاصی مشتری و دسترسی پیشخوان (2026-10-27)
+
+- **دامنهٔ تغییر:** `inc/auth.php` لینک‌های `login_url` و `register_url` را به برگهٔ موجود `login-register` (یا Fallback قدیمی `auth`) می‌برد و نمای بومیِ فقط دو Actionِ `login` و `register` را در `login_init` به همان برگه هدایت می‌کند. اگر برگهٔ منتشرشده وجود نداشته باشد، Redirect سراسری فعال نمی‌شود و مسیر بومی به‌عنوان Fail-open برای جلوگیری از Lockout/Loop باقی می‌ماند.
+- **Actions حساس:** `lostpassword`، `rp`/`resetpass`، `logout`، Recovery Mode، Privacy و Actionهای افزونه‌ها وارد Redirect سراسری نشده‌اند؛ Branding بومی `inc/login.php` برای این صفحات حفظ شده است.
+- **پیشخوان:** در `admin_init`، کاربر واردشدهٔ فاقد Capability مدیریتی به حساب خودش می‌رود. دسترسی با `edit_posts`، `manage_woocommerce` یا `edit_others_shop_orders` حفظ می‌شود؛ بنابراین تصمیم بر اساس Capability است، نه نام نقش. `admin-ajax.php` و `admin-post.php` صریحاً مستثنی‌اند تا فرم‌ها و AJAX مهمان/کاربر قطع نشوند. مهمانِ `wp-admin` نیز از `auth_redirect()` بومی با URL فیلترشده عبور می‌کند.
+- **مقصد امن:** `redirect_to` با `wp_validate_redirect()` و Fallback حساب مصرف می‌شود و در هر دو فرم، خطای No-JS و Success ورود/ثبت‌نام حفظ می‌شود. `reauth` نیز به صفحهٔ اختصاصی و فرم می‌رسد. ریدایرکت مهمان تیکت در `inc/requests.php` به Helper اختصاصی تغییر کرد.
+- **No-JS و صفحه‌بندی فرم:** `auth_form=register` سمت Server تب/پنل درست را رندر می‌کند و لینک‌های No-JS دیگر به ثبت‌نام بومی وابسته نیستند. JS انتخاب Server را بدون Hash حفظ می‌کند، Focus را به اولین فیلد غیرمخفی می‌برد و Roving `tabindex` تب‌ها را به‌روز می‌کند.
+- **تست انجام‌شده:** Parse هر ۷۲ PHP با `php-parser`، Parse هر ۲۱ JS با `node --check`، Source assertions برای محدودهٔ Actionها، استثنای AJAX/Admin Post، وجود `redirect_to`/`reauth` در هر دو فرم و مصرف آن در دو Success Handler؛ DOM smoke برای حفظ تب Register بدون Hash، Focus، Click، Arrow key و `tabindex`؛ `git diff --check`. در اجرای اول، یک Assertion اشتباهِ تست، مصرف Helper در Redirect کاربرِ واردشده را هم شمرد؛ Assertion اصلاح و فقط دو Success Handler بررسی شد، کد در آن مرحله تغییر نکرد.
+- **تست باقی‌مانده / محدودیت:** Runtime وردپرس/WooCommerce و مرورگر در این محیط اجرا نشده است. روی Staging باید مهمان و Customer برای `/wp-admin/` و `/wp-login.php`، مدیر/Shop Manager، AJAX و Admin Post، Login/Register با JS روشن/خاموش، Logout، Lost Password/Reset، `reauth=1`، مقصد داخلی و External Open Redirect تست شوند. این کد Redirect/Authorization در سطح قالب است، نه جایگزین WAF یا Rule وب‌سرور؛ تا این ماتریس Production **NO-GO** است.
+
+### AUTH-UI-001 — تجربهٔ مجله‌ای ورود و ثبت‌نام (2026-10-27)
+
+- **ساختار:** `page-templates/login-register.php` اکنون یک صفحهٔ Standalone تمام‌عرض با ستون Editorial و ستون فرم است؛ Header/Footer فروشگاه حذف شده‌اند، اما `wp_head`، `wp_body_open`، `wp_footer`، Body Classes و Skip Link حفظ شده‌اند. Handlerهای `wp_signon`، Woo Customer Registration، Nonce، AJAX و Native POST تغییر نکرده‌اند.
+- **تنظیمات موجود:** لوگو، تیتر، توضیح، رنگ پس‌زمینه، Accent و گزینه‌های مخفی‌کردن Register/Recovery همان Login Options فعلی را مصرف می‌کنند؛ Option یا Backend تکراری اضافه نشده است. رنگ‌ها پیش از ورود به CSS با `sanitize_hex_color` بررسی می‌شوند و توضیح تب پنل در `inc/settings/panel-nav.php` با مصرف جدید هماهنگ شد.
+- **تصویر و محتوا:** تصویر واقعی موجود `assets/images/device-orange.webp` با ابعاد `956×1020` و Alt توصیفی استفاده شد. هیچ نام برند، قیمت، مشخصات فنی، Review یا Claim تازه‌ای به تصویر نسبت داده نشده است. متن‌های مزیت فقط به سفارش، فاکتور، مشخصات خرید و تیکت‌های موجود حساب اشاره دارند.
+- **Responsive/RTL:** در Desktop ستون تصویری و فرم تمام‌ارتفاع‌اند؛ در عرض‌های کوچک تصویر و فهرست مزیت‌ها حذف می‌شوند تا فرم سریع دیده شود. لوگو، تیتر، مسیر بازگشت و فرم باقی می‌مانند. Focus، Autofill، Error/Success/Info، Password Strength و Reduced Motion استایل دارند.
+- **No-JS و صفحه‌کلید:** انتخاب `auth_form=register` سمت Server انجام می‌شود و لینک‌های No-JS هر دو مسیر را حفظ می‌کنند. در JS، Load هیچ Focusی نمی‌دزدد؛ Click و Arrow key روی تب می‌مانند و دکمهٔ سوییچ به اولین فیلد غیرمخفی می‌رود. Roving `tabindex` نیز به‌روز می‌شود. Padding رمز به Wrapper وابسته شد تا پس از تغییر Input به Text، متن زیر دکمهٔ نمایش رمز نرود.
+- **تست انجام‌شده:** Parse هر ۷۲ PHP با `php-parser`، Parse هر ۲۱ JS با `node --check`، Parse `auth.css` با PostCSS (۱۳۷ Rule)، Source assertions برای Hookهای سند، دو POST/Nonce/`redirect_to`/`reauth`، مصرف Login Options، Recovery و تصویر؛ DOM smoke برای انتخاب Server بدون Hash، عدم سرقت Focus، Click، دو Arrow پیوسته، Focus سوییچ و ارسال Action/Nonce/`redirect_to` در AJAX؛ `git diff --check`.
+- **تست باقی‌مانده / محدودیت:** Render واقعی PHP، WordPress/WooCommerce و Browser Runtime در این محیط اجرا نشده‌اند؛ بنابراین این لاگ تأیید بصری یا Accessibility کامل نیست. روی Staging باید عرض‌های ۳۲۰/۳۹۰/۶۰۰/۷۶۸/۹۶۰/۱۰۲۴/۱۴۴۰، RTL و Zoom، Keyboard/Focus، Reduced Motion، Autofill، لوگوی واقعی، متن طولانی Options، Register غیرفعال، Recovery مخفی، خطاهای Server، Login/Register با JS روشن/خاموش و Console بررسی شوند. Production همچنان **NO-GO** است.
+
+### AUTH-UI-002 — اصلاح چیدمان گزارش‌شده روی هاست (2026-10-27)
+
+- **گزارش کاربر:** تیتر «به بلکوکم خوش آمدید» باید وسط و در یک خط باشد؛ «پرتال مشتریان / فروشگاه تجهیزات بازرسی» باید زیر لوگو قرار بگیرد؛ با انتخاب Register تصویر ستون راست به پایین می‌پرد.
+- **علت مشخص در کد:** در `assets/css/auth.css` محدودیت `max-width:13ch` تیتر را به خط بعد می‌برد و Brand Row افقی بود. فرم Register بلندتر است و ارتفاع Grid Row را زیاد می‌کند؛ ستون Editorial نیز با Grid Stretch بلند می‌شد و `margin-top:auto` تصویر را در فضای اضافه به پایین هل می‌داد. این استنباط از CSS است، نه ادعای Reproduce در مرورگر محلی.
+- **اصلاح:** تیتر با عرض کامل، `text-align:center`، `white-space:nowrap` و Font Size واکنش‌گرا تنظیم شد. Brand Row عمودی شد و متن آن در Breakpointهای موبایل نیز حذف نمی‌شود. ستون Editorial با `position:sticky`، `align-self:start` و `min-height:100vh` از کشیده‌شدن با فرم جدا شد؛ در حالت تک‌ستونهٔ حداکثر ۹۶۰px این رفتار Reset می‌شود. سمت فرم حداقل ارتفاع Viewport را حفظ می‌کند.
+- **تست انجام‌شده:** Parse فایل با PostCSS (۱۳۴ Rule)، Source assertions برای Center/Nowrap، عرض کامل تیتر، Brand Row عمودی و نمایش متن در موبایل، Sticky/Reset و حداقل ارتفاع فرم؛ `git diff --check`.
+- **تست باقی‌مانده:** تأیید بصری روی هاست در Login و Register، اسکرول فرم بلند ثبت‌نام و عرض‌های موبایل/دسکتاپ. Runtime مرورگر در این محیط اجرا نشده و نتیجهٔ بصری نهایی باید با Cache بروزشده بررسی شود.
 
 ### UX-001 — تطبیق `sample woo` و بازطراحی صفحهٔ تشکر
 
@@ -772,3 +803,152 @@
 ### مرز نتیجه
 - **Visual Review دستی و بازبینی Contrast موارد Incomplete هنوز انجام نشده است.** Screenshot و `violations=0` جای این بازبینی را نمی‌گیرند؛ نتیجهٔ axe گواهی سازگاری کامل WCAG نیست و هفت View نماینده نیز تمام وضعیت‌های پنل یا سایر مرورگرها را پوشش نمی‌دهد.
 - Gateway Sandbox/واقعی، ایمیل واقعی، CWV و Staging/Production Gateهای جدا هستند؛ **Production همچنان NO-GO است**.
+
+## REPO-CLEANUP-001 — محدودسازی برنچ به پوشهٔ قالب — 2026-10-26
+
+- پس از تأیید صریح کاربر، **۲۴۳ فایل tracked خارج از `new-torantejarat/`** در همین Commit حذف شدند تا فقط پوشهٔ قالب فعال روی GitHub باقی بماند. `.git/` و تاریخچهٔ Commitها حذف نشده‌اند و فایل‌های حذف‌شده از تاریخچه قابل بازیابی‌اند.
+- حذف شامل `theme/` قدیمی، `tests/`, `.github/workflows/`, `wp-theme-agent-kit/`, CSVها و سایر فایل‌های ریشه است. هر ۱۲۷ فایل tracked داخل `new-torantejarat/`، از جمله همین لاگ، باقی مانده‌اند.
+- **نتیجهٔ جانبی تأییدشده:** Harness و Workflow Acceptance دیگر روی این برنچ موجود نیستند و Runهای قبلی، از جمله `40295922846`، شاهد تاریخی Commit خودشان محسوب می‌شوند؛ هیچ CI تازه‌ای پس از Cleanup ادعا نمی‌شود. برای اجرای دوبارهٔ تست باید فایل‌های لازم از تاریخچه بازیابی شوند.
+- محتوای Runtime قالب در این Cleanup تغییر نکرده است؛ تنها تغییر داخل پوشهٔ قالب، ثبت همین رویداد در `DEV-STATE.md` است. هیچ تغییری روی Production یا دادهٔ سایت انجام نشده و Production همچنان **NO-GO** است.
+
+## ADMIN-UX-001 — معماری و Wireframe بازطراحی پنل — 2026-10-26 — DESIGN DONE
+
+### قلمرو و خروجی
+- سند `ADMIN-REDESIGN.md` بر مبنای Commit `9862b90483818fbe132c767135effcdfdde33b82` تهیه شد. این مرحله فقط Audit و طراحی است؛ `ADMIN-UI-001` هنوز شروع نشده و هیچ PHP/CSS/JS یا Optionای تغییر نکرده است.
+- هر ۷ Tab و ۶۱ Field نگاشت شدند: `general=3`، `home=34`، `contact=7`، `social=4`، `footer=2`، `login=7` و `business=4`. برای Home نیز ۳۳ Scalar و یک FAQ Repeater جدا ثبت شد.
+- معماری پیشنهادی فاز ۱ شامل Dashboard نمایشی، همان هفت Option با Label روشن‌تر، ۱۷ Group دارای فیلد و Utility Route مستقل `general/publish` است. Dashboard و Publish عمداً Group خالی Schema نیستند تا Fallback رندر فعلی نتواند همهٔ فیلدها را ناخواسته در آن صفحه‌ها نشان دهد.
+- قرارداد `_tt_scope`، Settings API/`options.php`، Optionها، Defaults، Sanitizerها، Input Nameها و DOM IDها در طرح حفظ شده‌اند. Auto-save، AJAX Save، `localStorage`، Reset All و Import/Export در فاز اول نیستند.
+- نقشهٔ مصرف صفحهٔ اصلی، بخش‌های Copy را از دادهٔ بومی محصول/دسته/نوشته و فروش واقعی جدا می‌کند. کنترل‌های Typography، Range، Layout و Icon بدون مصرف Frontend صرفاً به‌خاطر شباهت به تصاویر اضافه نمی‌شوند.
+- مرز `login` و Account روشن شد: شش فیلد فقط `wp-login.php` را کنترل می‌کنند و `login_hide_register` علاوه بر آن، صفحهٔ سفارشی ثبت‌نام را نیز در بر می‌گیرد؛ این فیلدها کنترل Endpointهای حساب WooCommerce نیستند. گزارش بی‌استایل بودن Account در این مرحله علت‌یابی یا اصلاح نشده است.
+
+### تصمیم‌های کنترل و مسیر
+- طرح فاز ۱ Media + URL را فقط برای `login_logo` با ذخیرهٔ همان URL پیشنهاد می‌کند؛ حذف انتخاب، Attachment را حذف نمی‌کند و Fallback دستی/No-JS باقی می‌ماند. پیش از کدنویسی، API و Capability رسمی بررسی می‌شود.
+- Switchها نوع ذخیره را تغییر نمی‌دهند: `preview_note=yes/no` و Checkboxهای Login همان `0/1` باقی می‌مانند. FAQ به Card Repeater می‌رود، ولی ترتیب سه Slot و Fallback موقعیتی و سقف ۱۲ حفظ می‌شود و Drag/Drop فاز اول نیست.
+- مقصدهای جدید Readiness و Redirect حالت انتشار در سند نگاشت شده‌اند؛ لینک بومی ایمیلها دست‌نخورده می‌ماند. مسیر سفارش Woo/HPOS هنگام پیاده‌سازی بررسی می‌شود و URL حدسی ثبت نخواهد شد.
+- Design Tokenهای برند، Wireframe RTL، Drawer موبایل، Focus/Keyboard، Save Scope، Dirty-state و Acceptance مرحلهٔ بعد در همان سند مشخص شده‌اند. نسبت‌های جفت‌رنگ ثبت‌شده فقط محاسبهٔ ایستا هستند، نه گواهی WCAG یا نتیجهٔ Runtime.
+
+### اعتبارسنجی واقعی همین مرحله
+- یک اسکریپت Python موقت، سطرهای نگاشت سند را مستقیماً با Schema خوانده‌شده از `class-theme-settings.php` مقایسه کرد: **۶۱/۶۱ سطر، Missing=۰، Extra=۰، Duplicate=۰ و Type Mismatch=۰**. شمارش هر Tab نیز با Schema برابر بود.
+- نسبت Contrast جفت‌رنگ‌های پیشنهادی با محاسبهٔ Python بررسی شد؛ از جمله متن تیره روی نارنجی `5.94:1` و متن `#50575e` روی سفید `7.33:1`. این محاسبه جای axe، Visual Review یا تست مرورگر را نمی‌گیرد.
+- هیچ Runtime/WordPress/Browser Test یا CI تازه‌ای اجرا نشده است. Harness و Workflow پس از `REPO-CLEANUP-001` در Tree فعلی نیستند و نتایج Runهای قبلی فقط تاریخی‌اند؛ Production همچنان **NO-GO** است.
+
+### ادامه
+- مرحلهٔ بعد `ADMIN-UI-001` است: Shell و کنترل‌های نگاشت‌شده در Commitهای کوچک، با حفظ قرارداد ذخیره و برنامهٔ تست ثبت‌شده در `ADMIN-REDESIGN.md`.
+- بررسی Account روی هاست به مسیر مستقل و URL/Screenshot بخش آسیب‌دیده نیاز دارد و نباید با بازطراحی پنل ترکیب شود.
+
+## ADMIN-UI-001A — Shell، Dashboard و Routing پنل — 2026-10-26 — CODE DONE / RUNTIME PENDING
+
+- پوستهٔ پنل در `class-theme-settings.php` و `assets/admin/panel.css` بازطراحی شد: Header و Search، Breadcrumb، Sidebar تو در تو، Dashboard، کارت‌های Section، فرم‌های دوستونه، Save بالای صفحه، Dirty Status و Drawer موبایل. این تغییر صرفاً رابط مدیریت است و Frontend یا دادهٔ سایت تغییر نکرده است.
+- هر ۶۱ فیلد در ۱۷ Group واقعی قرار گرفت و Utility Route جداگانهٔ `general/publish` اضافه شد. Dashboard و Publish به Schema اضافه نشده‌اند؛ بنابراین تعداد Optionها همان ۷ و تعداد Fieldها همان ۶۱ است. بررسی Python روی Schema و Map نتیجهٔ `Missing=0 / Unknown=0 / Duplicate=0` داد.
+- Dashboard فقط لینک به صفحات بومی محصول، سفارش، درخواست، نوشته، برگه، منو و هویت سایت می‌دهد و هیچ Metric یا وضعیت ساختگی نمی‌سازد. مسیر سفارش با `PageController::get_orders_url()` برای HPOS/Legacy و Fallback بومی ساخته می‌شود. راهنمای Home نیز دادهٔ محصول/Term/نوشته را به منبع واقعی لینک می‌کند.
+- Redirect حالت انتشار و لینک‌های Readiness به Subpage درست متصل شدند. `_tt_scope`، Settings API/`options.php`، Input Name/DOM ID، Defaults، Sanitizerها و انواع ذخیره تغییر نکرده‌اند؛ تفاوت Schema در Diff فقط چهار Label نمایشی Tab است.
+- Drawer Progressive Enhancement است: بدون JS، Toggle مخفی و Navigation در جریان عادی صفحه باقی می‌ماند. با JS، Escape، Focus Trap، بازگشت Focus و Inert پشتیبانی‌شده کنترل می‌شود. Dirty-state مبتنی بر Snapshot کنترل‌های Submit‌شونده است و Repeater Add/Remove را نیز پوشش می‌دهد؛ AJAX Save یا Auto-save اضافه نشده است.
+- **تست واقعی این بخش:** `php-parser` برای ۳ PHP تغییرکرده، `node --check` برای ۲ JS پنل، PostCSS Parse برای CSS و `git diff --check` موفق بود. ۱۲ Assertion در JSDOM برای Drawer/Open/Close/Focus، Dirty/Clean/Beforeunload/Submit، سقف و Renumbering ردیف و بازگشت Desktop موفق شد. این تست DOM شبیه‌سازی‌شده است، نه Browser Runtime.
+- **باقی‌مانده:** Media + URL، Color + HEX، Switch و Card Repeater در Commitهای بعدی همین شناسه؛ سپس تست وردپرس/ووکامرس، Save Scope، No-JS واقعی، Keyboard/axe و Overflow در مرورگر و CI لازم است. PHP CLI و Runtime محلی موجود نیست و هیچ ادعای اجرای وردپرس/مرورگر/CI برای این تغییر وجود ندارد. Production همچنان **NO-GO** است.
+
+## ADMIN-UI-001B — Media/URL، Color/HEX و Switch — 2026-10-26 — CODE DONE / RUNTIME PENDING
+
+- `preview_note` به Segmented Control با Radioهای بومی رفت و همان مقدار `yes/no` را Submit می‌کند. دو Checkbox لاگین Switch شدند، ولی Input و مقدار `1` و Sanitizer فعلی حفظ شده‌اند؛ متن «روشن/خاموش» با CSS و بدون JS به‌روز می‌شود. `login_bg` و `login_accent` اکنون HEX قابل ویرایش دارند و Swatch بومی فقط با JS ساخته می‌شود؛ نام Input، Default و `sanitize_hex_color` تغییر نکرده است.
+- `login_logo` کنترل Media + URL گرفت. `wp_enqueue_media()` و Dependency رسمی `media-views` فقط در `login/content` و با Capabilityِ `upload_files` فعال می‌شوند. Frame به `image` و Single Select محدود است و فقط `attachment.url` را در Input فعلی می‌نویسد؛ Attachment ID یا Migration اضافه نشده و «پاک‌کردن انتخاب» هیچ فایلی حذف نمی‌کند. بدون JS/Capability، دکمه‌ها مخفی و URL دستی قابل Save است.
+- URLهای HTTP(S) معتبر دکمهٔ «بازکردن» در Tab جدید دارند؛ مقدار نامعتبر یا خالی دکمه‌ای ندارد. راهنماهای فیلدها با `aria-describedby` به کنترل‌ها متصل شدند. تفاوت Schema از مبنای `878721f` هیچ تغییری در `type/default/sanitize/options` ندارد و فقط Metadata نمایشی `control` و توضیح Media اضافه شده است.
+- **تست واقعی این بخش:** `php-parser`، PostCSS Parse، `node --check` و `git diff --check` موفق بودند. ۱۶ Assertion در JSDOM برای Media Frame تصویری، انتخاب URL، Dirty-state، Preview، Clear بدون Attachment ID/Delete، لینک معتبر/نامعتبر، Color دوطرفه و مقدار `yes/no` و `0/1` موفق شد. یک Assertion مستقل نیز Fallback غیرفعال‌بودن Media و Save مقدار URL دستی را تأیید کرد. این‌ها Runtime وردپرس یا مرورگر واقعی نیستند.
+- **باقی‌مانده:** Card Repeater و سپس تست واقعی Save Scope، Media Library روی وردپرس، No-JS/Keyboard/axe و Responsive در مرورگر/CI. Production همچنان **NO-GO** است.
+
+## ADMIN-UI-001C — Card Repeater برای FAQ — 2026-10-26 — CODE DONE / RUNTIME PENDING
+
+- جدول FAQ در `class-theme-settings.php` به کارت‌های RTL تبدیل شد؛ همان `data-tt-name`، Nameهای `torantejarat_home[faq][i][q/a]`، ترتیب Submit و Sanitizer حفظ شده‌اند. هیچ Drag/Drop یا تغییر ترتیب خودکار اضافه نشده و سه Slot موقعیتی دست‌نخورده‌اند.
+- Add/Remove، شمارهٔ ردیف، Summary از متن پرسش و Collapse با JS فعال می‌شوند. Collapse فقط Body بصری را مخفی می‌کند و Inputها را Disable یا Rename نمی‌کند. هر ردیف `role=group` و Label شماره‌دار دارد و Renumbering علاوه بر Nameها، Label ردیف را به‌روز می‌کند.
+- بدون JS همهٔ Bodyها باز و دکمه‌های Add/Remove/Collapse مخفی‌اند؛ `<noscript>` توضیح می‌دهد برای افزودن باید ردیف خالی آخر پر شود و برای حذف باید محتوای ردیف پاک شود. سقف ۱۲ و رفتار Legacy Overflow در PHP تغییر نکرده است.
+- **تست واقعی این بخش:** `php-parser`، PostCSS Parse، `node --check` و `git diff --check` موفق بودند. ۱۷ Assertion در JSDOM برای Collapse/Expand، حفظ Name، Add تا سقف، Renumbering، Summary، Dirty-state و Focus پس از Add/Remove موفق شد. ۳ Assertion جدا نیز Legacy Overflow را در حالت رشدناپذیر و کوچک‌شدن تا آستانه تأیید کرد. Source Contract برای Trailing Blank، سقف ۱۲ و No-JS Controls بررسی شد.
+- **باقی‌مانده:** تست واقعی Save روی Option خام، خروجی سه Slot در Frontend، No-JS/Keyboard/axe، عرض‌های ۳۲۰/۳۹۰/۷۶۸/۱۴۴۰ و اجرای CI/Runtime وردپرس. این JSDOMها Browser Runtime نیستند و Production همچنان **NO-GO** است.
+
+## ADMIN-UI-001 — جمع‌بندی پیاده‌سازی و Static QA — 2026-10-26 — IMPLEMENTATION COMPLETE / RUNTIME PENDING
+
+- پیاده‌سازی فاز ۱ در سه بخش Push شد: Shell/Routing در `52718b1`، کنترل‌های فیلد در `407fa65` و Card Repeater در `2ed48b0`. هر ۷ Option و ۶۱ Field باقی مانده‌اند و هر Field فقط یک Group دارد؛ Search Index نیز از همین Map یک خروجی برای هر Field می‌سازد.
+- بازبینی نهایی چند مورد کوچک را اصلاح کرد: Image بدون URL دیگر `src=""` ندارد، نمایش لینک سمت Server علاوه بر Scheme با `FILTER_VALIDATE_URL` محدود می‌شود، Header در عرض ۳۲۰ سه‌ردیفه می‌شود، Focus هنگام تغییر Desktop به Mobile از Sidebar مخفی خارج می‌شود و لایهٔ Drawer بالای Search Results قرار می‌گیرد.
+- بررسی Diff از `878721f` هیچ تغییری در `register_setting`، Option Keyها، `type/default/sanitize/options` و منطق Sanitizer نشان نمی‌دهد. Metadata نمایشی `control`، Label/Description و Rendererها تغییر کرده‌اند؛ `_tt_scope` و Save بومی حفظ شده‌اند.
+- **وضعیت تست:** در جمع‌بندی نیز Parse هر ۳ PHP تغییرکردهٔ Shell، `node --check` هر ۲ JS، PostCSS، Coverage دقیق ۶۱/۶۱، Diff قرارداد Option و `git diff --check` موفق بود. ۴ Assertion جدید Drawer برای Open، Escape/Focus، Desktop و Focus هنگام Resize نیز PASS شد. نتیجهٔ نهایی فقط Static/DOM Simulated است؛ هیچ WordPress/PHP CLI، Browser Runtime، axe یا CI تازه‌ای در این محیط وجود ندارد.
+- **مرحلهٔ لازم بعد:** ماتریس Runtime روی وردپرس/WooCommerce ایزوله شامل Option خام و Sentinel برای هر Subpage، انتخاب واقعی Media، Publish Redirect، No-JS، Search Deep Link، Keyboard/axe و Responsive ۳۲۰/۳۹۰/۷۶۸/۱۴۴۰. تا انجام این موارد، Production **NO-GO** است و PASS تاریخی Runهای قبل به این نسخه منتسب نمی‌شود.
+
+## HOST-QA-001 — نخستین گزارش هاست تست و یکدست‌سازی فونت — 2026-10-27 — USER CHECK / RETEST PENDING
+
+- کاربر پس از اجرای داشبورد روی هاست تست، نتیجه را «اوکیه» گزارش کرد. این یک شاهد کاربر دربارهٔ همان Dashboard است و جای ماتریس کامل Save/No-JS/Responsive/axe را نمی‌گیرد.
+- مورد فونت نیز از گزارش کاربر تأیید شد. علت در `assets/admin/panel.css` مشخص بود: System Font، مقدار `Vazirmatn` بارگذاری‌شده در `inc/admin.php` را Override می‌کرد. Stack پنل به `Vazirmatn,Tahoma,Arial,sans-serif` تغییر کرد و Override فونت Inputهای Code/HEX نیز به `inherit` تغییر یافت. فونت آیکون‌های Dashicons دست‌نخورده است.
+- تست Agent در این تغییر به PostCSS Parse و `git diff --check` محدود است؛ یکدستی بصری باید روی همان هاست تست با Cache Refresh بررسی شود. هیچ تست جدید وردپرس/مرورگر توسط Agent اجرا نشده است.
+
+## AUTH-UI-003 — ترازوسطی صفحه ورود (ستون فرم + ستون Editorial) — 2026-10-27 — CODE DONE / VISUAL PENDING
+
+- **درخواست کاربر:** همه موارد صفحه وارد/ثبت‌نام را دقیقاً وسط سکشن و یک‌دست کرد؛ تیتر یک‌خط/وسط، متن زیر لوگو،固دماندن تصویر هنگام Register.
+- **دامنهٔ تغییر:** `assets/css/auth.css`؛ `#auth-panel-login` (ستون فرم/ورود سمت راست) و `.auth__panel`/`.auth__editorial` (ستون Editorial/چپ). پنل ثبت‌نام (`#auth-panel-register`) دست‌نخورده است طبق «فقط در سقحه ورود».
+- **تغییرات ستون فرم (راست):**
+  - `.auth__heading` → `text-align: center` (تیتر «خوش برگشتید» / «تأیید هویت دوباره»)
+  - `.auth__sub` → `text-align: center` (توضیح زیر تیتر)
+  - `.auth__options` → `justify-content: center` (مرا به خاطر بسپار و فراموشی رمز در یک سطر و وسط)
+  - `.auth__error` → عرض کامل + `text-align: center` (پیام‌های خطای زیر فیلدها)
+  - `[data-error-for="terms"]` → `text-align: center` (خطای قوانین)
+- **تغییرات ستون Editorial (چپ):**
+  - `.auth__brand-row` → `align-items: center` + `text-align: center` (لوگو و متن برند وسط)
+  - `.auth__brand-copy` → `text-align: center` («پرتال مشتریان» + «فروشگاه تجهیزات بازرسی» زیر لوگو، وسط)
+  - `.auth__eyebrow` → `justify-content: center` («حساب شما، مسیر پیگیری خرید» وسط)
+  - `.auth__headline` → `text-align: center` (tiتر «به بلکوکم خوش آمدید» یک‌خط/وسط — از قبل حفظ شده)
+  - `.auth__intro` → `margin: 16px auto 0` + `text-align: center` («برای مدیریت فروشگاه وارد شوید.» وسط)
+- **نکته طراحی:** متن داخل ورودی‌ها (موبایل/ایمیل/نام کاربری/رمز) دست‌نخورده می‌ماند (تراز پیش‌فرض RTL) تا خوانایی شماره موبایل و ایمیل حفظ شود؛ دکمه ورود/ثبت‌نام قبلاً `width: 100%` و سوییچ `text-align: center` بودند و بدون تغییر باقی مانده‌اند. Sticky Panel و `justify-content: center` روی `.auth__forms` قبلاً کارت فرم را عمودی وسط سکشن نگه می‌داشته است؛ حالا آیتم‌های افقی هم یک‌دست وسط‌اند.
+- **تست انجام‌شده:** بلوک CSS بررسی شد (آکولاد متوازن، کلاس‌های Editorial بر اساس `.auth__*` اعمال شده و specialized نیستند).
+- **تست باقی‌مانده / محدودیت:** PostCSS Parse، Visual Review روی هاست (Login، Hard Refresh، دسکتاپ/موبایل، Cache Refresh) هنوز انجام نشده است. Production همچنان **NO-GO** است.
+
+## TICKETS-QA-001 — رفع باگ‌های تأییدشدهٔ تیکت + استایل RTL پنل ادمین — 2026-10-27 — CODE DONE / QA-RETEST FIXED (c2df3ab, 7a936b9)
+
+- **دامنهٔ تغییر:** `new-torantejarat/inc/tickets.php`، `new-torantejarat/inc/requests.php`، `new-torantejarat/woocommerce/myaccount/tickets.php`.
+- **تغییرات قبلی:** کد قدیمی تیکت در `inc/requests.php` **حذف نشده** و مهاجرت به جداول جدید (مرحله ۳) تا تاییدِ کاربر انجام نمی‌شود (عملیات حذف/تغییر DB نیازمند تأیید قبلی است).
+
+### نتایج بازآزمایی QA (محیط لوکال Laragon 127.0.0.1:8098)
+| مورد | نتیجه |
+|---|---|
+| T3 redirect بعد از پاسخ مشتری (`?view_ticket=4&ticket_sent=1`) | ✅ PASS |
+| T4 ۶ وضعیت فارسی در runtime | ✅ PASS |
+| T5 اسپم Deprecated در `tickets.php:132/220` | ✅ PASS |
+| T6 سرفصل «تیکت #5»، خطای محدودیت فارسی، notice صادقانه | ✅ PASS |
+| محدودیت ۶۰ ثانیه (`rate_limit_seconds`) | ✅ PASS |
+| ثبت تیکت / پاسخ / نمایش به مشتری | ✅ PASS |
+| پاسخ پشتیبانی → نمایش به‌عنوان «پشتیبانی» (`is_staff=1`) | ✅ PASS |
+| منوی ادمین + capability `manage_torantejarat_tickets` | ✅ PASS |
+| T1 ایمیل (فیکس c2df3ab) | در انتظار RetestRuntime |
+| T2 بستن تیکت (فیکس c2df3ab) | در انتظار RetestRuntime |
+
+### باگ‌های تأییدشدهٔ رفع‌شده (کد)
+| # | شدة | علة ریشه‌ای | فایل: محل | اصلاح |
+|---|---|---|---|---|
+| T1 | 🔴 |callback کرون به صورت رشتهٔ غیر-نام‌فضا ثبت شده بود (Fatal wp-cron) — و drumه `torantejarat_tickets_send_email($type,$to,$subject,$message)` ۴ آرگومان می‌خواست در حالی ۳ Framed می‌شد | `inc/tickets.php:435,456,481` | `add_action` با `__NAMESPACE__` + ۴ آرگومان صحیح (`get_option('admin_email')` / `$user->user_email` به‌عنوان `$to`) |
+| T2 | 🔴 | فرم بستن تیکت به `wc_get_account_endpoint_url('tickets')` پست می‌شد در حالی هندلر روی `admin_post_*` است → هیچ Status تغییر نمی‌کرد | `woocommerce/myaccount/tickets.php:343,483` | `action` به `admin_url('admin-post.php')` تغییر یافت (دو نمونه) |
+| T3 | 🟡 | redirect پاسخ مشتری باعث `view_ticket=3/` می‌شد → `is_numeric=false` | `inc/tickets.php:559` (خطا :555) | `add_query_arg(['view_ticket'=>$id,...], wc_get_account_endpoint_url('tickets'))` |
+| T4 | 🟡 | `torantejarat_ticket_statuses()` فقط `open/answered/closed` باز می‌گرفت | `inc/requests.php` | ۶ وضعیت فارسی: `open`, `answered`, `awaiting_customer`, `awaiting_support`, `reopened`, `closed` |
+| T5 | 🟡 | پارامتر optional قبل از required → Deprecated در هر لود | `inc/tickets.php:132,220` | `$body` قبل از `$order_id`/`$is_staff`؛ ۵ صدا (call) اصلاح شدند |
+| T6 | Cosmetic | سرور `تiket #%d` (لاطین+فارسی المختلط) | `woocommerce/myaccount/tickets.php:428` | `تیکت #%d` |
+| — | Minor | `wpdb->prepare($sql, [])` بدون placeholder → Notice در هر لود صفحه ادمین | `inc/tickets.php:357` | `if ($params)` guard قبل از `prepare` |
+
+### سایر اصلاحات
+- پیام موفقیت تیکت: ادعای غیرواقعی «پاسخ از طریق ایمیل…» حذف شد (چون T1 تا تاییدِ Runtime فعال نیست).
+- نقشهٔ پیام خطای فارسی شامل `rate_limit_open` (۳ تیکت باز) و `rate_limit_seconds` (۶۰ ثانیه).
+- استایل RTL/فارسی صفحات ادمین (`torantejarat_tickets_admin_page` و جزئیات): `direction: rl`، تراز راست جدول/فرم، دکمه‌ها و نوتیس‌ها.
+
+### فایل‌های تغییر کردهٔ commit‌ها
+- `945d24a`: `inc/tickets.php`، `inc/requests.php`، `woocommerce/myaccount/tickets.php` + `DEV-STATE.md`
+- `c2df3ab`: `inc/tickets.php` (T1/T2 Fixes) + `woocommerce/myaccount/tickets.php` (T2 action)
+- `7a936b9`: `inc/tickets.php` (wpdb::prepare guard)
+
+### تست انجام‌شده (این sandbox)
+- PHP CLI/WordPress Runtime در این محیط وجود ندارد؛ تست Runtime اجرا **نشده** است.
+- فقط بررسی استاتیک: تراز آکولاد/پرانتز/برکت در ۳ فایل PHP تغییر کرده (سالم)؛ جست‌وجو رشته‌های قدیمی (`value="close"`، `تiket #`) هیچ نتیجه‌ای نداد.
+
+### ⚠️ ریسک‌های باز / Notes (لازم قبل از مرحله ۳)
+1. تاییدِ Runtime T1/T2 روی Laragon (`C:\laragon\www\torantejarat-test`) انجام نشده است — نیاز به Retest واقعی.
+2. ترنزینت `torantejarat_tickets_open_{user_id}` در موقع بستن کم نمی‌شود — کاربر ممکن است تا ۲۴ ساعت قفل شود (بسته به رفع T2).
+3. پاسخ روی تیکت بسته غیرممکن است (dead-end) — شاخه `reopened` از طریق UI دست‌یافتنی نیست.
+4. `debug.log` ۲۰۷KB است و شامل فیتال/Deprecated قدیمی — پاکسازی نیاز به تأیید دارد.
+
+### تست باقی‌مانده / محدودیت (لازم قبلِ مرحله ۳)
+- Retest روی Laragon: ساخت تیکت، دریافت ایمیل ادمین، بستن تیکت از حساب مشتری، پاسخ مشتری و باز شدن تیکت، تغییر وضعیت از پنل ادمین، صفحه ادمین با RTL.
+- Production همچنان **NO-GO** است.
+
+### مرحلهٔ بعدی (در انتظار تأیید کاربر)
+- حذف کد تیکت قدیمی از `inc/requests.php` و مهاجرت کامل به جداول `torantejarat_tickets` / `torantejarat_ticket_messages` (فقط با تأیید صریح کاربر).

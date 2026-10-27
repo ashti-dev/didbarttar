@@ -49,7 +49,7 @@
 		register: document.getElementById( 'auth-panel-register' )
 	};
 
-	function activateTab( name, updateHash ) {
+	function activateTab( name, updateHash, focusTarget ) {
 		if ( ! panes[ name ] ) {
 			return;
 		}
@@ -57,6 +57,7 @@
 			var isActive = tab.dataset.tab === name;
 			tab.classList.toggle( 'is-active', isActive );
 			tab.setAttribute( 'aria-selected', isActive ? 'true' : 'false' );
+			tab.tabIndex = isActive ? 0 : -1;
 		} );
 		Object.keys( panes ).forEach( function ( key ) {
 			if ( ! panes[ key ] ) {
@@ -72,26 +73,37 @@
 				history.replaceState( null, '', hash );
 			}
 		}
-		var first = panes[ name ].querySelector( 'input' );
-		if ( first ) {
-			first.focus( { preventScroll: true } );
+		if ( 'field' === focusTarget ) {
+			var first = panes[ name ].querySelector( 'input:not([type="hidden"])' );
+			if ( first ) {
+				first.focus( { preventScroll: true } );
+			}
+		} else if ( 'tab' === focusTarget ) {
+			var activeTab = document.querySelector( '.auth__tab[data-tab="' + name + '"]' );
+			if ( activeTab ) {
+				activeTab.focus( { preventScroll: true } );
+			}
 		}
 	}
 
 	tabs.forEach( function ( tab ) {
 		tab.addEventListener( 'click', function () {
-			activateTab( tab.dataset.tab, true );
+			activateTab( tab.dataset.tab, true, 'tab' );
 		} );
 	} );
 
-	/* hash deep link: #login / #register */
+	/* Hash deep link wins; otherwise keep the server-rendered No-JS selection. */
 	var initial = window.location.hash.replace( '#', '' );
-	activateTab( panes[ initial ] ? initial : 'login', false );
+	if ( ! panes[ initial ] ) {
+		var activePane = document.querySelector( '.auth__pane.is-active' );
+		initial = activePane && 'auth-panel-register' === activePane.id ? 'register' : 'login';
+	}
+	activateTab( panes[ initial ] ? initial : 'login', false, 'none' );
 
 	/* switch links inside forms */
 	document.querySelectorAll( '.auth__switch-btn' ).forEach( function ( btn ) {
 		btn.addEventListener( 'click', function () {
-			activateTab( btn.dataset.goto, true );
+			activateTab( btn.dataset.goto, true, 'field' );
 		} );
 	} );
 
@@ -104,7 +116,8 @@
 		var names = Array.prototype.map.call( tabs, function ( tab ) {
 			return tab.dataset.tab;
 		} );
-		var current = names.indexOf( window.location.hash.replace( '#', '' ) );
+		var activeTab = document.querySelector( '.auth__tab.is-active' );
+		var current = activeTab ? names.indexOf( activeTab.dataset.tab ) : 0;
 		if ( current === -1 ) {
 			current = 0;
 		}
@@ -116,7 +129,7 @@
 		} else if ( e.key === 'End' ) {
 			next = names.length - 1;
 		}
-		activateTab( names[ next ], true );
+		activateTab( names[ next ], true, 'tab' );
 	} );
 
 	/* ---------- Password visibility ---------- */
