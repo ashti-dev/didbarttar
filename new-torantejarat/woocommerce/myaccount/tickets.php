@@ -14,8 +14,9 @@ $torantejarat_statuses = \ToranTejarat\Theme\torantejarat_ticket_statuses();
 $user_id = get_current_user_id();
 $tickets = \ToranTejarat\Theme\torantejarat_tickets_get_user_tickets( $user_id );
 
-$ticket_sent  = isset( $_GET['ticket_sent'] ) && '1' === $_GET['ticket_sent'];
-$ticket_error = isset( $_GET['ticket_error'] ) ? sanitize_key( wp_unslash( $_GET['ticket_error'] ) ) : '';
+$ticket_sent   = isset( $_GET['ticket_sent'] ) && '1' === $_GET['ticket_sent'];
+$ticket_deleted = isset( $_GET['ticket_deleted'] ) && '1' === $_GET['ticket_deleted'];
+$ticket_error  = isset( $_GET['ticket_error'] ) ? sanitize_key( wp_unslash( $_GET['ticket_error'] ) ) : '';
 
 $torantejarat_ticket_error_messages = array(
 	'nonce'           => __( 'درخواست نامعتبر است.', 'torantejarat' ),
@@ -272,6 +273,12 @@ $torantejarat_ticket_error_msg = $torantejarat_ticket_error_messages[ $ticket_er
 	<div class="torantejarat-tickets-notice is-success" role="status">
 		<strong><?php esc_html_e( 'تیکت با موفقیت ثبت شد.', 'torantejarat' ); ?></strong>
 		<?php esc_html_e( 'پشتیبانی تیکت را بررسی می‌کند و پاسخ در حساب کاربری شما درج می‌شود.', 'torantejarat' ); ?>
+	</div>
+<?php endif; ?>
+
+<?php if ( $ticket_deleted ) : ?>
+	<div class="torantejarat-tickets-notice is-success" role="status">
+		<strong><?php esc_html_e( 'تیکت با موفقیت حذف شد.', 'torantejarat' ); ?></strong>
 	</div>
 <?php endif; ?>
 

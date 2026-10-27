@@ -688,7 +688,7 @@ function torantejarat_tickets_handle_delete_frontend() {
 		set_transient( torantejarat_tickets_open_count_key( get_current_user_id() ), max( 0, $open_count - 1 ), DAY_IN_SECONDS );
 	}
 
-	wp_safe_redirect( add_query_arg( 'ticket_sent', '1', wc_get_account_endpoint_url( 'tickets' ) ) );
+	wp_safe_redirect( add_query_arg( 'ticket_deleted', '1', wc_get_account_endpoint_url( 'tickets' ) ) );
 	exit;
 }
 
