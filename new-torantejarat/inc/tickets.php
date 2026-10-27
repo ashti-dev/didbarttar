@@ -653,24 +653,90 @@ function torantejarat_tickets_admin_page() {
 	$tickets = torantejarat_tickets_get_all( $status, $search );
 
 	?>
-<style>
-.torantejarat-tickets-admin { direction: rtl; }
-.torantejarat-tickets-admin .wrap > h1,
-.torantejarat-tickets-admin h1 { text-align: right; }
-.torantejarat-tickets-admin .wp-list-table th,
-.torantejarat-tickets-admin .wp-list-table td { text-align: right; vertical-align: middle; }
-.torantejarat-tickets-admin .wp-list-table .actions { text-align: center; }
-.torantejarat-tickets-admin .form-table th { text-align: right; }
-.torantejarat-tickets-admin .form-table td { text-align: right; }
-.torantejarat-tickets-admin .form-table select,
-.torantejarat-tickets-admin .form-table input[type="text"],
-.torantejarat-tickets-admin .form-table textarea { direction: rtl; }
-.torantejarat-tickets-admin .button { float: right; }
-.torantejarat-tickets-admin .updated,
-.torantejarat-tickets-admin .error { text-align: right; direction: rtl; }
-.torantejarat-tickets-admin label { display: block; text-align: right; }
-.torantejarat-tickets-admin .ticket-time { float: left; text-align: left; }
-</style>
+	<style>
+	.torantejarat-tickets-admin {
+		direction: rtl;
+		text-align: right;
+		font-family: Vazirmatn, Tahoma, Arial, sans-serif;
+	}
+	.torantejarat-tickets-admin .wrap > h1,
+	.torantejarat-tickets-admin h1 {
+		text-align: right;
+	}
+	.torantejarat-tickets-admin .wp-list-table th,
+	.torantejarat-tickets-admin .wp-list-table td {
+		text-align: right;
+		vertical-align: middle;
+	}
+	.torantejarat-tickets-admin .wp-list-table .actions {
+		text-align: center;
+	}
+	.torantejarat-tickets-admin .form-table th {
+		text-align: right;
+	}
+	.torantejarat-tickets-admin .form-table td {
+		text-align: right;
+	}
+	.torantejarat-tickets-admin .form-table select,
+	.torantejarat-tickets-admin .form-table input[type="text"],
+	.torantejarat-tickets-admin .form-table textarea {
+		direction: rtl;
+	}
+	.torantejarat-tickets-admin .button {
+		float: right;
+	}
+	.torantejarat-tickets-admin .updated,
+	.torantejarat-tickets-admin .error {
+		text-align: right;
+		direction: rtl;
+	}
+	.torantejarat-tickets-admin label {
+		display: block;
+		text-align: right;
+	}
+	.torantejarat-tickets-admin .ticket-time {
+		float: left;
+		text-align: left;
+	}
+	.torantejarat-tickets-admin .ticket-status {
+		display: inline-block;
+		padding: 4px 10px;
+		border-radius: 12px;
+		font-size: 12px;
+		font-weight: 800;
+	}
+	.torantejarat-tickets-admin .status-open { background: #fef3f2; color: #b42318; }
+	.torantejarat-tickets-admin .status-closed { background: #eef4fa; color: #36567a; }
+	.torantejarat-tickets-admin .status-answered { background: #eef9f2; color: #247348; }
+	.torantejarat-tickets-admin .status-awaiting_customer,
+	.torantejarat-tickets-admin .status-awaiting_support { background: #fffbeb; color: #b45309; }
+	.torantejarat-tickets-admin .status-reopened { background: #f3e8ff; color: #7c3aed; }
+	.torantejarat-tickets-admin .ticket-actions a {
+		display: inline-block;
+		margin-left: 8px;
+		padding: 4px 10px;
+		background: #f4f5f1;
+		color: #172325;
+		text-decoration: none;
+		border-radius: 6px;
+		font-size: 12px;
+	}
+	.torantejarat-tickets-admin .ticket-actions a:hover {
+		background: #e9ece6;
+	}
+	.torantejarat-tickets-admin input[type="search"],
+	.torantejarat-tickets-admin select {
+		direction: rtl;
+		padding: 6px 10px;
+		border: 1px solid #d5ddd5;
+		border-radius: 6px;
+	}
+	.torantejarat-tickets-admin .no-tickets {
+		text-align: center;
+		padding: 40px 20px;
+		color: #606c68;
+	}
+	</style>
 <div class="wrap torantejarat-tickets-admin">
 	<h1><?php esc_html_e( 'Support Tickets', 'torantejarat' ); ?></h1>
 
@@ -714,7 +780,7 @@ function torantejarat_tickets_admin_page() {
 							<td><?php echo esc_html( $ticket['title'] ); ?></td>
 							<td><?php echo esc_html( $customer_name ); ?></td>
 							<td><?php echo esc_html( $order_label ); ?></td>
-							<td><?php echo esc_html( $status_label ); ?></td>
+							<td><span class="ticket-status status-<?php echo esc_attr( $ticket['status'] ); ?>"><?php echo esc_html( $status_label ); ?></span></td>
 							<td><?php echo esc_html( mysql2date( 'Y/m/d H:i', $ticket['updated_at'] ) ); ?></td>
 							<td>
 								<a href="<?php echo esc_url( admin_url( 'admin.php?page=torantejarat-tickets&view=details&id=' . $ticket['id'] ) ); ?>"><?php esc_html_e( 'View', 'torantejarat' ); ?></a>
@@ -784,7 +850,27 @@ function torantejarat_tickets_admin_details_page( $ticket_id ) {
 	}
 
 	?>
-	<div class="wrap">
+	<style>
+	.torantejarat-ticket-details { direction: rtl; text-align: right; font-family: Vazirmatn, Tahoma, Arial, sans-serif; }
+	.torantejarat-ticket-details .wrap > h1 { text-align: right; }
+	.torantejarat-ticket-details h2 { text-align: right; }
+	.torantejarat-ticket-details .form-table th { text-align: right; }
+	.torantejarat-ticket-details .form-table td { text-align: right; }
+	.torantejarat-ticket-details textarea { direction: rtl; width: 100%; }
+	.torantejarat-ticket-details .ticket-message { margin-bottom: 12px; padding: 10px 14px; border-radius: 10px; }
+	.torantejarat-ticket-details .ticket-message.customer { background: #eef4fa; border-left: 4px solid #36567a; }
+	.torantejarat-ticket-details .ticket-message.staff { background: #eef9f2; border-left: 4px solid #247348; }
+	.torantejarat-ticket-details .ticket-message strong { display: block; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+	.torantejarat-ticket-details .ticket-time { font-size: 11px; color: #606c68; display: block; margin-top: 2px; }
+	.torantejarat-ticket-details .ticket-status { display: inline-block; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 800; }
+	.torantejarat-ticket-details .status-open { background: #fef3f2; color: #b42318; }
+	.torantejarat-ticket-details .status-closed { background: #eef4fa; color: #36567a; }
+	.torantejarat-ticket-details .status-answered { background: #eef9f2; color: #247348; }
+	.torantejarat-ticket-details .status-awaiting_customer,
+	.torantejarat-ticket-details .status-awaiting_support { background: #fffbeb; color: #b45309; }
+	.torantejarat-ticket-details .status-reopened { background: #f3e8ff; color: #7c3aed; }
+	</style>
+	<div class="wrap torantejarat-ticket-details">
 		<h1><?php esc_html_e( 'Ticket Details', 'torantejarat' ); ?> #<?php echo esc_html( $ticket_id ); ?></h1>
 
 		<table class="form-table">
@@ -811,7 +897,7 @@ function torantejarat_tickets_admin_details_page( $ticket_id ) {
 			</tr>
 			<tr>
 				<th scope="row"><?php esc_html_e( 'Status', 'torantejarat' ); ?></th>
-				<td><?php echo esc_html( $statuses[ $ticket['status'] ] ?? $ticket['status'] ); ?></td>
+				<td><span class="ticket-status status-<?php echo esc_attr( $ticket['status'] ); ?>"><?php echo esc_html( $statuses[ $ticket['status'] ] ?? $ticket['status'] ); ?></span></td>
 			</tr>
 			<tr>
 				<th scope="row"><?php esc_html_e( 'Created', 'torantejarat' ); ?></th>
@@ -827,7 +913,7 @@ function torantejarat_tickets_admin_details_page( $ticket_id ) {
 		<?php if ( $messages ) : ?>
 			<ul>
 				<?php foreach ( $messages as $msg ) : ?>
-					<li>
+					<li class="ticket-message <?php echo $msg['is_staff'] ? 'staff' : 'customer'; ?>">
 						<strong><?php echo $msg['is_staff'] ? esc_html__( 'Support', 'torantejarat' ) : esc_html__( 'Customer', 'torantejarat' ); ?></strong>
 						<span class="ticket-time"><?php echo esc_html( mysql2date( 'Y/m/d H:i', $msg['created_at'] ) ); ?></span>
 						<p><?php echo esc_html( $msg['body'] ); ?></p>
