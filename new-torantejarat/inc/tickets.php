@@ -614,7 +614,7 @@ function torantejarat_tickets_setup_capability() {
 		$role->add_cap( torantejarat_tickets_capability() );
 	}
 }
-add_action( 'init', __NAMESPACE__ . '\torantejarat_tickets_setup_capability', 10 );
+add_action( 'init', __NAMESPACE__ . '\\torantejarat_tickets_setup_capability', 10 );
 
 /* --------------------------------------------------------------
    Admin menu (phase 4)
