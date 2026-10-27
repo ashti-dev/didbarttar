@@ -26,29 +26,11 @@ function torantejarat_tickets_schema_version() {
 }
 
 /* --------------------------------------------------------------
-   Statuses (final slugs)
+   Statuses & Subject keys
+   --------------------------------------------------------------
+   Defined in inc/requests.php (loaded before this file in bootstrap.php).
+   Do NOT redeclare here to avoid "Cannot redeclare" fatal.
    -------------------------------------------------------------- */
-function torantejarat_ticket_statuses() {
-	return array(
-		'open'             => __( 'Open', 'torantejarat' ),
-		'awaiting_customer'=> __( 'Waiting for Customer', 'torantejarat' ),
-		'awaiting_support' => __( 'Waiting for Support', 'torantejarat' ),
-		'closed'           => __( 'Closed', 'torantejarat' ),
-	);
-}
-
-/* --------------------------------------------------------------
-   Subject keys (user can also pass a custom title)
-   -------------------------------------------------------------- */
-function torantejarat_ticket_subjects() {
-	return array(
-		'order'   => __( 'Order Follow-up', 'torantejarat' ),
-		'product' => __( 'Product Issue', 'torantejarat' ),
-		'invoice' => __( 'Invoice & Payment', 'torantejarat' ),
-		'return'  => __( 'Return', 'torantejarat' ),
-		'other'   => __( 'Other', 'torantejarat' ),
-	);
-}
 
 /* --------------------------------------------------------------
    Create tables on init (dbDelta)
