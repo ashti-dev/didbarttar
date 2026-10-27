@@ -745,7 +745,7 @@ function torantejarat_tickets_admin_page() {
 	// If viewing details, redirect to standalone details page
 	if ( isset( $_GET['view'] ) && 'details' === $_GET['view'] && ! empty( $_GET['id'] ) ) {
 		$ticket_id = absint( $_GET['id'] );
-		orantejarat_tickets_admin_details_page( $ticket_id );
+		torantejarat_tickets_admin_details_page( $ticket_id );
 		return;
 	}
 
