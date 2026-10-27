@@ -876,16 +876,22 @@
 - مورد فونت نیز از گزارش کاربر تأیید شد. علت در `assets/admin/panel.css` مشخص بود: System Font، مقدار `Vazirmatn` بارگذاری‌شده در `inc/admin.php` را Override می‌کرد. Stack پنل به `Vazirmatn,Tahoma,Arial,sans-serif` تغییر کرد و Override فونت Inputهای Code/HEX نیز به `inherit` تغییر یافت. فونت آیکون‌های Dashicons دست‌نخورده است.
 - تست Agent در این تغییر به PostCSS Parse و `git diff --check` محدود است؛ یکدستی بصری باید روی همان هاست تست با Cache Refresh بررسی شود. هیچ تست جدید وردپرس/مرورگر توسط Agent اجرا نشده است.
 
-## AUTH-UI-003 — ترازوسطی پنل ورود (فقط سقحه ورود) — 2026-10-27 — CODE DONE / VISUAL PENDING
+## AUTH-UI-003 — ترازوسطی صفحه ورود (ستون فرم + ستون Editorial) — 2026-10-27 — CODE DONE / VISUAL PENDING
 
-- **درخواست کاربر:** فقط در سقحه ورود، مواردی که سمت راست (ستون فرم) قرار داده شده بودند را همه وسط چین و یک‌دست کرد؛ دقیقاً وسط سکشن.
-- **دامنهٔ تغییر:** `assets/css/auth.css`؛ فقط `#auth-panel-login` (پنل ورود/ستون فرم سمت راست). پنل ثبت‌نام (`#auth-panel-register`) دست‌نخورده است طبق «فقط در سقحه ورود».
-- **تغییرات:**
+- **درخواست کاربر:** همه موارد صفحه وارد/ثبت‌نام را دقیقاً وسط سکشن و یک‌دست کرد؛ تیتر یک‌خط/وسط، متن زیر لوگو،固دماندن تصویر هنگام Register.
+- **دامنهٔ تغییر:** `assets/css/auth.css`؛ `#auth-panel-login` (ستون فرم/ورود سمت راست) و `.auth__panel`/`.auth__editorial` (ستون Editorial/چپ). پنل ثبت‌نام (`#auth-panel-register`) دست‌نخورده است طبق «فقط در سقحه ورود».
+- **تغییرات ستون فرم (راست):**
   - `.auth__heading` → `text-align: center` (تیتر «خوش برگشتید» / «تأیید هویت دوباره»)
   - `.auth__sub` → `text-align: center` (توضیح زیر تیتر)
   - `.auth__options` → `justify-content: center` (مرا به خاطر بسپار و فراموشی رمز در یک سطر و وسط)
   - `.auth__error` → عرض کامل + `text-align: center` (پیام‌های خطای زیر فیلدها)
   - `[data-error-for="terms"]` → `text-align: center` (خطای قوانین)
+- **تغییرات ستون Editorial (چپ):**
+  - `.auth__brand-row` → `align-items: center` + `text-align: center` (لوگو و متن برند وسط)
+  - `.auth__brand-copy` → `text-align: center` («پرتال مشتریان» + «فروشگاه تجهیزات بازرسی» زیر لوگو، وسط)
+  - `.auth__eyebrow` → `justify-content: center` («حساب شما، مسیر پیگیری خرید» وسط)
+  - `.auth__headline` → `text-align: center` (tiتر «به بلکوکم خوش آمدید» یک‌خط/وسط — از قبل حفظ شده)
+  - `.auth__intro` → `margin: 16px auto 0` + `text-align: center` («برای مدیریت فروشگاه وارد شوید.» وسط)
 - **نکته طراحی:** متن داخل ورودی‌ها (موبایل/ایمیل/نام کاربری/رمز) دست‌نخورده می‌ماند (تراز پیش‌فرض RTL) تا خوانایی شماره موبایل و ایمیل حفظ شود؛ دکمه ورود/ثبت‌نام قبلاً `width: 100%` و سوییچ `text-align: center` بودند و بدون تغییر باقی مانده‌اند. Sticky Panel و `justify-content: center` روی `.auth__forms` قبلاً کارت فرم را عمودی وسط سکشن نگه می‌داشته است؛ حالا آیتم‌های افقی هم یک‌دست وسط‌اند.
-- **تست انجام‌شده:** بلوک CSS بررسی شد (آکولاد متوازن، انتخابگر `#auth-panel-login` با specificity بالاتر از `.auth__field > .auth__error`).
+- **تست انجام‌شده:** بلوک CSS بررسی شد (آکولاد متوازن، کلاس‌های Editorial بر اساس `.auth__*` اعمال شده و specialized نیستند).
 - **تست باقی‌مانده / محدودیت:** PostCSS Parse، Visual Review روی هاست (Login، Hard Refresh، دسکتاپ/موبایل، Cache Refresh) هنوز انجام نشده است. Production همچنان **NO-GO** است.
