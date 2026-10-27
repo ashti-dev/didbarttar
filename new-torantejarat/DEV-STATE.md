@@ -875,3 +875,17 @@
 - کاربر پس از اجرای داشبورد روی هاست تست، نتیجه را «اوکیه» گزارش کرد. این یک شاهد کاربر دربارهٔ همان Dashboard است و جای ماتریس کامل Save/No-JS/Responsive/axe را نمی‌گیرد.
 - مورد فونت نیز از گزارش کاربر تأیید شد. علت در `assets/admin/panel.css` مشخص بود: System Font، مقدار `Vazirmatn` بارگذاری‌شده در `inc/admin.php` را Override می‌کرد. Stack پنل به `Vazirmatn,Tahoma,Arial,sans-serif` تغییر کرد و Override فونت Inputهای Code/HEX نیز به `inherit` تغییر یافت. فونت آیکون‌های Dashicons دست‌نخورده است.
 - تست Agent در این تغییر به PostCSS Parse و `git diff --check` محدود است؛ یکدستی بصری باید روی همان هاست تست با Cache Refresh بررسی شود. هیچ تست جدید وردپرس/مرورگر توسط Agent اجرا نشده است.
+
+## AUTH-UI-003 — ترازوسطی پنل ورود (فقط سقحه ورود) — 2026-10-27 — CODE DONE / VISUAL PENDING
+
+- **درخواست کاربر:** فقط در سقحه ورود، مواردی که سمت راست (ستون فرم) قرار داده شده بودند را همه وسط چین و یک‌دست کرد؛ دقیقاً وسط سکشن.
+- **دامنهٔ تغییر:** `assets/css/auth.css`؛ فقط `#auth-panel-login` (پنل ورود/ستون فرم سمت راست). پنل ثبت‌نام (`#auth-panel-register`) دست‌نخورده است طبق «فقط در سقحه ورود».
+- **تغییرات:**
+  - `.auth__heading` → `text-align: center` (تیتر «خوش برگشتید» / «تأیید هویت دوباره»)
+  - `.auth__sub` → `text-align: center` (توضیح زیر تیتر)
+  - `.auth__options` → `justify-content: center` (مرا به خاطر بسپار و فراموشی رمز در یک سطر و وسط)
+  - `.auth__error` → عرض کامل + `text-align: center` (پیام‌های خطای زیر فیلدها)
+  - `[data-error-for="terms"]` → `text-align: center` (خطای قوانین)
+- **نکته طراحی:** متن داخل ورودی‌ها (موبایل/ایمیل/نام کاربری/رمز) دست‌نخورده می‌ماند (تراز پیش‌فرض RTL) تا خوانایی شماره موبایل و ایمیل حفظ شود؛ دکمه ورود/ثبت‌نام قبلاً `width: 100%` و سوییچ `text-align: center` بودند و بدون تغییر باقی مانده‌اند. Sticky Panel و `justify-content: center` روی `.auth__forms` قبلاً کارت فرم را عمودی وسط سکشن نگه می‌داشته است؛ حالا آیتم‌های افقی هم یک‌دست وسط‌اند.
+- **تست انجام‌شده:** بلوک CSS بررسی شد (آکولاد متوازن، انتخابگر `#auth-panel-login` با specificity بالاتر از `.auth__field > .auth__error`).
+- **تست باقی‌مانده / محدودیت:** PostCSS Parse، Visual Review روی هاست (Login، Hard Refresh، دسکتاپ/موبایل، Cache Refresh) هنوز انجام نشده است. Production همچنان **NO-GO** است.

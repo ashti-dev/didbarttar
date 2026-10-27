@@ -735,6 +735,31 @@
 	text-underline-offset: 4px;
 }
 
+/* ورود — هر چیز داخل پنل ورود دقیقاً وسط سکشن و یک‌دست */
+/* محدود به #auth-panel-login؛ پنل ثبت‌نام تغییری نمی‌کند. */
+#auth-panel-login .auth__heading {
+	text-align: center;
+}
+
+#auth-panel-login .auth__sub {
+	text-align: center;
+}
+
+#auth-panel-login .auth__options {
+	justify-content: center;
+}
+
+#auth-panel-login .auth__error {
+	inset-inline-start: 0;
+	inset-inline-end: 0;
+	text-align: center;
+	transform: translateY(-16px);
+}
+
+#auth-panel-login .auth__form > [data-error-for="terms"] {
+	text-align: center;
+}
+
 .auth__footnote {
 	margin-top: 17px;
 	margin-bottom: 0;
