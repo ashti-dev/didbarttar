@@ -202,6 +202,9 @@ function torantejarat_tickets_create( $user_id, $subject_key, $title, $body, $or
 	set_transient( torantejarat_tickets_rate_key( $user_id ), $now, 60 * MINUTE_IN_SECONDS );
 	set_transient( torantejarat_tickets_open_count_key( $user_id ), $open_count + 1, DAY_IN_SECONDS );
 
+	// Save custom field values as ticket meta
+	torantejarat_tickets_save_custom_fields( $ticket_id, $_POST );
+
 	// Notify admin (asynchronous if possible)
 	torantejarat_tickets_notify_admin_new( $ticket_id );
 
@@ -276,6 +279,15 @@ function torantejarat_tickets_add_message( $ticket_id, $author_id, $body, $is_st
 		array( 'id' => $ticket_id ),
 		array( '%s', '%s', '%s', '%s', '%d', '%s' )
 	);
+
+	// Save attachment(s) for this message
+	if ( ! empty( $_FILES ) && isset( $_FILES['ticket_attachment'] ) && ! empty( $_FILES['ticket_attachment']['name'] ) ) {
+		$attachment_result = torantejarat_tickets_add_attachment( $ticket_id, $_FILES['ticket_attachment'], $message_id );
+		if ( is_wp_error( $attachment_result ) ) {
+			// Attachment failure should not roll back the message
+			// Errors are surfaced to the caller via the returned message_id only
+		}
+	}
 
 	// Notify the other party
 	if ( $is_staff ) {

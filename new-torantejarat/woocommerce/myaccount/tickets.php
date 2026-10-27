@@ -265,6 +265,55 @@ $ticket_error = isset( $_GET['ticket_error'] ) ? sanitize_key( wp_unslash( $_GET
 	font-size: 15px;
 	color: #172325;
 }
+.ticket-attachments {
+	margin-top: 12px;
+	padding: 12px;
+	background: #f4f3ef;
+	border-radius: 10px;
+	border: 1px solid #e2e5df;
+}
+.ticket-attachments h4 {
+	margin: 0 0 8px;
+	font-size: 14px;
+	color: #172325;
+}
+.ticket-attachments p {
+	margin: 4px 0;
+	font-size: 13px;
+	color: #606c68;
+}
+.ticket-attachments p a {
+	color: #f77b3e;
+	text-decoration: underline;
+}
+.ticket-custom-fields {
+	margin-top: 16px;
+	padding: 14px;
+	background: #fef9f0;
+	border-radius: 10px;
+	border: 1px solid #f3e3c6;
+}
+.ticket-custom-fields h4 {
+	margin: 0 0 10px;
+	font-size: 14px;
+	color: #8a5a00;
+}
+.ticket-custom-fields p {
+	margin: 4px 0;
+	font-size: 13px;
+	color: #606c68;
+}
+.ticket-custom-fields p strong {
+	color: #172325;
+}
+input[type="file"] {
+	width: 100%;
+	padding: 8px 12px;
+	border: 1px solid #dce1db;
+	border-radius: 10px;
+	font-size: 13px;
+	background: #fff;
+}
 </style>
 <?php if ( $ticket_sent ) : ?>
 	<div class="torantejarat-tickets-notice is-success" role="status">
@@ -361,7 +410,7 @@ $torantejarat_ticket_error_msg = $torantejarat_ticket_error_messages[ $ticket_er
 
 <div class="torantejarat-tickets-form">
 	<h3><?php esc_html_e( 'ثبت تیکت جدید', 'torantejarat' ); ?></h3>
-	<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="acp-form-grid" id="acp-ticket-form" novalidate>
+	<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="acp-form-grid" id="acp-ticket-form" novalidate enctype="multipart/form-data">
 		<input type="hidden" name="action" value="torantejarat_ticket_create_frontend">
 		<?php wp_nonce_field( 'torantejarat-ticket-create', 'torantejarat_ticket_create_nonce' ); ?>
 
@@ -372,7 +421,7 @@ $torantejarat_ticket_error_msg = $torantejarat_ticket_error_messages[ $ticket_er
 			<label for="acp-tk-subject"><?php esc_html_e( 'موضوع', 'torantejarat' ); ?></label>
 			<select id="acp-tk-subject" name="subject_key">
 				<?php foreach ( $torantejarat_subjects as $key => $label ) : ?>
-					<option value="<?php echo esc_attr( $key ); ?>"><?php echo esc_html( $label ); ?></option>
+				<option value="<?php echo esc_attr( $key ); ?>"><?php echo esc_html( $label ); ?></option>
 				<?php endforeach; ?>
 			</select>
 		</div>
@@ -397,14 +446,25 @@ $torantejarat_ticket_error_msg = $torantejarat_ticket_error_messages[ $ticket_er
 					)
 				);
 				foreach ( $orders as $oid ) : ?>
-					<option value="<?php echo esc_attr( $oid ); ?>"><?php printf( esc_html__( '#%s', 'torantejarat' ), esc_html( $oid ) ); ?></option>
+				<option value="<?php echo esc_attr( $oid ); ?>"><?php printf( esc_html__( '#%s', 'torantejarat' ), esc_html( $oid ) ); ?></option>
 				<?php endforeach; ?>
 			</select>
+		</div>
+
+		<!-- Custom fields from settings -->
+		<div class="acp-field acp-full">
+			<label><?php esc_html_e( 'افزودنی‌ها', 'torantejarat' ); ?></label>
+			<?php \ToranTejarat\Theme\torantejarat_tickets_render_custom_fields(); ?>
 		</div>
 
 		<div class="acp-field acp-full">
 			<label for="acp-tk-msg"><?php esc_html_e( 'متن پیام', 'torantejarat' ); ?></label>
 			<textarea id="acp-tk-msg" name="body" rows="5" required maxlength="2000"><?php echo esc_textarea( isset( $_POST['body'] ) ? wp_unslash( $_POST['body'] ) : '' ); ?></textarea>
+		</div>
+
+		<div class="acp-field acp-full">
+			<label for="acp-tk-attachment"><?php esc_html_e( 'پیوست فایل (اختیاری)', 'torantejarat' ); ?></label>
+			<input type="file" id="acp-tk-attachment" name="ticket_attachment">
 		</div>
 
 		<div class="acp-full">
@@ -449,32 +509,70 @@ $torantejarat_ticket_error_msg = $torantejarat_ticket_error_messages[ $ticket_er
 
 			<div class="ticket-history">
 				<h4><?php esc_html_e( 'گفت‌وگو', 'torantejarat' ); ?></h4>
-				<?php if ( $view_messages ) : ?>
-					<?php foreach ( $view_messages as $msg ) : ?>
-						<div class="ticket-message <?php echo (int) $msg['is_staff'] === 1 ? 'staff' : 'customer'; ?>">
-							<strong><?php echo (int) $msg['is_staff'] === 1 ? esc_html__( 'پشتیبانی', 'torantejarat' ) : esc_html__( 'شما', 'torantejarat' ); ?></strong>
-							<span class="ticket-time"><?php echo esc_html( mysql2date( 'Y/m/d H:i', $msg['created_at'] ) ); ?></span>
-							<?php echo esc_html( $msg['body'] ); ?>
-						</div>
-					<?php endforeach; ?>
-				<?php else : ?>
-					<p><?php esc_html_e( 'هیچ پیامی ثبت نشده است.', 'torantejarat' ); ?></p>
-				<?php endif; ?>
+		<?php if ( $view_messages ) : ?>
+			<?php foreach ( $view_messages as $msg ) : ?>
+			<div class="ticket-message <?php echo (int) $msg['is_staff'] === 1 ? 'staff' : 'customer'; ?>">
+				<strong><?php echo (int) $msg['is_staff'] === 1 ? esc_html__( 'پشتیبانی', 'torantejarat' ) : esc_html__( 'شما', 'torantejarat' ); ?></strong>
+				<span class="ticket-time"><?php echo esc_html( mysql2date( 'Y/m/d H:i', $msg['created_at'] ) ); ?></span>
+				<?php echo esc_html( $msg['body'] ); ?>
+				<?php
+				$msg_attachments = \ToranTejarat\Theme\torantejarat_tickets_get_attachments( $view_id, (int) $msg['id'] );
+				if ( $msg_attachments ) :
+					echo '<div class="ticket-attachments">';
+					foreach ( $msg_attachments as $att ) :
+						?><p><a href="<?php echo esc_url( $att['file_path'] ); ?>" target="_blank" rel="noopener"><?php echo esc_html( $att['file_name'] ); ?></a> (<?php echo esc_html( size_format( $att['file_size'] ) ); ?>)</p><?php
+					endforeach;
+					echo '</div>';
+				endif;
+				?>
 			</div>
+			<?php endforeach; ?>
+		<?php else : ?>
+		<p><?php esc_html_e( 'هیچ پیامی ثبت نشده است.', 'torantejarat' ); ?></p>
+		<?php endif; ?>
+
+		<?php
+		$custom_values = \ToranTejarat\Theme\torantejarat_tickets_get_custom_field_values( $view_id );
+		if ( $custom_values ) :
+			?>
+			<div class="ticket-custom-fields">
+				<h4><?php esc_html_e( 'افزودنی‌ها', 'torantejarat' ); ?></h4>
+				<?php foreach ( $custom_values as $fname => $fval ) : ?>
+				<p><strong><?php echo esc_html( $fname ); ?>:</strong> <?php echo esc_html( $fval ); ?></p>
+				<?php endforeach; ?>
+			</div>
+		<?php endif; ?>
+
+		<?php
+		$ticket_attachments = \ToranTejarat\Theme\torantejarat_tickets_get_attachments( $view_id );
+		if ( $ticket_attachments ) :
+			?>
+			<div class="ticket-attachments">
+				<h4><?php esc_html_e( 'پیوست‌های تیکت', 'torantejarat' ); ?></h4>
+				<?php foreach ( $ticket_attachments as $att ) : ?>
+				<p><a href="<?php echo esc_url( $att['file_path'] ); ?>" target="_blank" rel="noopener"><?php echo esc_html( $att['file_name'] ); ?></a> (<?php echo esc_html( size_format( $att['file_size'] ) ); ?>)</p>
+				<?php endforeach; ?>
+			</div>
+		<?php endif; ?>
+		</div>
 
 			<?php if ( $can_reply ) : ?>
 				<div class="ticket-reply-form">
 					<h4><?php esc_html_e( 'پاسخ جدید', 'torantejarat' ); ?></h4>
-					<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" novalidate>
-						<input type="hidden" name="action" value="torantejarat_ticket_reply_frontend">
-						<input type="hidden" name="ticket_id" value="<?php echo esc_attr( $view_id ); ?>">
-						<?php wp_nonce_field( 'torantejarat-ticket-reply', 'torantejarat_ticket_reply_nonce' ); ?>
-						<div class="acp-field acp-full">
-							<label for="acp-tk-reply"><?php esc_html_e( 'متن پاسخ', 'torantejarat' ); ?></label>
-							<textarea id="acp-tk-reply" name="body" rows="4" required maxlength="2000"></textarea>
-						</div>
-						<button class="acp-btn acp-btn-primary" type="submit"><?php esc_html_e( 'ارسال پاسخ', 'torantejarat' ); ?></button>
-					</form>
+	<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" novalidate enctype="multipart/form-data">
+		<input type="hidden" name="action" value="torantejarat_ticket_reply_frontend">
+		<input type="hidden" name="ticket_id" value="<?php echo esc_attr( $view_id ); ?>">
+		<?php wp_nonce_field( 'torantejarat-ticket-reply', 'torantejarat_ticket_reply_nonce' ); ?>
+		<div class="acp-field acp-full">
+			<label for="acp-tk-reply"><?php esc_html_e( 'متن پاسخ', 'torantejarat' ); ?></label>
+			<textarea id="acp-tk-reply" name="body" rows="4" required maxlength="2000"></textarea>
+		</div>
+		<div class="acp-field acp-full">
+			<label for="acp-tk-reply-attachment"><?php esc_html_e( 'پیوست فایل (اختیاری)', 'torantejarat' ); ?></label>
+			<input type="file" id="acp-tk-reply-attachment" name="ticket_attachment">
+		</div>
+		<button class="acp-btn acp-btn-primary" type="submit"><?php esc_html_e( 'ارسال پاسخ', 'torantejarat' ); ?></button>
+	</form>
 				</div>
 			<?php endif; ?>
 
