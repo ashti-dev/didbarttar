@@ -296,9 +296,12 @@ function torantejarat_ticket_subjects() {
 
 function torantejarat_ticket_statuses() {
 	return array(
-		'open'     => __( 'باز', 'torantejarat' ),
-		'answered' => __( 'پاسخ داده شد', 'torantejarat' ),
-		'closed'   => __( 'بسته شد', 'torantejarat' ),
+		'open'             => __( 'باز', 'torantejarat' ),
+		'answered'         => __( 'پاسخ داده شد', 'torantejarat' ),
+		'awaiting_customer'=> __( 'در انتظار مشتری', 'torantejarat' ),
+		'awaiting_support' => __( 'در انتظار پشتیبانی', 'torantejarat' ),
+		'reopened'         => __( 'باز شد', 'torantejarat' ),
+		'closed'           => __( 'بسته شد', 'torantejarat' ),
 	);
 }
 

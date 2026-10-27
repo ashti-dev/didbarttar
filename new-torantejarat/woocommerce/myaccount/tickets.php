@@ -269,14 +269,28 @@ $ticket_error = isset( $_GET['ticket_error'] ) ? sanitize_key( wp_unslash( $_GET
 <?php if ( $ticket_sent ) : ?>
 	<div class="torantejarat-tickets-notice is-success" role="status">
 		<strong><?php esc_html_e( 'تیکت با موفقیت ثبت شد.', 'torantejarat' ); ?></strong>
-		<?php esc_html_e( 'پاسخ از طریق ایمیل برایتان ارسال می‌شود.', 'torantejarat' ); ?>
+		<?php esc_html_e( 'پشتیبانی تیکت را بررسی می‌کند و پاسخ در حساب کاربری شما درج می‌شود.', 'torantejarat' ); ?>
 	</div>
 <?php endif; ?>
 
+<?php
+$torantejarat_ticket_error_messages = array(
+	'nonce'           => __( 'درخواست نامعتبر است.', 'torantejarat' ),
+	'not_found'       => __( 'تیکت یافت نشد.', 'torantejarat' ),
+	'empty_title'     => __( 'عنوان تیکت الزامی است.', 'torantejarat' ),
+	'title_too_long'  => __( 'عنوان حداکثر ۱۵۰ کاراکتر می‌تواند باشد.', 'torantejarat' ),
+	'body_too_short'  => __( 'پیام باید حداقل ۱۰ کاراکتر باشد.', 'torantejarat' ),
+	'invalid_order'   => __( 'سفارش معتبر نیست یا به شما تعلق ندارد.', 'torantejarat' ),
+	'rate_limit_open' => __( 'شما دارای ۳ تیکت باز هستید. تا بستن یکی از آن‌ها صبر کنید.', 'torantejarat' ),
+	'rate_limit_seconds'=> __( 'لطفاً حداقل ۶۰ ثانیه قبل از ارسال تیکت دیگر صبر کنید.', 'torantejarat' ),
+	'db_error'        => __( 'خطا در ذخیره تیکت.', 'torantejarat' ),
+);
+$torantejarat_ticket_error_msg = $torantejarat_ticket_error_messages[ $ticket_error ] ?? esc_html( ucfirst( str_replace( '_', ' ', $ticket_error ) ) );
+?>
 <?php if ( $ticket_error ) : ?>
 	<div class="torantejarat-tickets-notice is-error" role="alert">
 		<strong><?php esc_html_e( 'ثبت تیکت انجام نشد.', 'torantejarat' ); ?></strong>
-		<?php echo esc_html( ucfirst( str_replace( '_', ' ', $ticket_error ) ) ); ?>
+		<?php echo $torantejarat_ticket_error_msg; ?>
 	</div>
 <?php endif; ?>
 
@@ -327,10 +341,10 @@ $ticket_error = isset( $_GET['ticket_error'] ) ? sanitize_key( wp_unslash( $_GET
 					<?php if ( $can_close ) : ?>
 						<div class="ticket-close-form">
 							<form method="post" action="<?php echo esc_url( wc_get_account_endpoint_url( 'tickets' ) ); ?>" onsubmit="return confirm( '<?php esc_attr_e( 'آیا مطمئن هستید می‌خواهید این تیکت را ببندید؟', 'torantejarat' ); ?>' );">
-								<?php wp_nonce_field( 'torantejarat-ticket-close', 'torantejarat_ticket_close_nonce' ); ?>
-								<input type="hidden" name="ticket_id" value="<?php echo esc_attr( $ticket_id ); ?>">
-								<input type="hidden" name="action" value="close">
-								<button type="submit"><?php esc_html_e( 'بستن تیکت', 'torantejarat' ); ?></button>
+<?php wp_nonce_field( 'torantejarat-ticket-close', 'torantejarat_ticket_close_nonce' ); ?>
+		<input type="hidden" name="ticket_id" value="<?php echo esc_attr( $ticket_id ); ?>">
+		<input type="hidden" name="action" value="torantejarat_ticket_close_frontend">
+		<button type="submit"><?php esc_html_e( 'بستن تیکت', 'torantejarat' ); ?></button>
 							</form>
 						</div>
 					<?php endif; ?>
@@ -411,7 +425,7 @@ $ticket_error = isset( $_GET['ticket_error'] ) ? sanitize_key( wp_unslash( $_GET
 		$status_badge_class = 'open' === $view_st ? 'open' : 'closed';
 		?>
 		<div class="ticket-view-detail">
-			<h3><?php printf( esc_html__( 'تiket #%d', 'torantejarat' ), $view_id ); ?></h3>
+			<h3><?php printf( esc_html__( 'تیکت #%d', 'torantejarat' ), $view_id ); ?></h3>
 			<table>
 				<tr>
 					<th><?php esc_html_e( 'عنوان', 'torantejarat' ); ?></th>
@@ -467,10 +481,10 @@ $ticket_error = isset( $_GET['ticket_error'] ) ? sanitize_key( wp_unslash( $_GET
 			<?php if ( $can_close ) : ?>
 				<div class="ticket-close-form" style="margin-top:16px;">
 					<form method="post" action="<?php echo esc_url( wc_get_account_endpoint_url( 'tickets' ) ); ?>" onsubmit="return confirm( '<?php esc_attr_e( 'آیا مطمئن هستید می‌خواهید این تیکت را ببندید؟', 'torantejarat' ); ?>' );">
-						<?php wp_nonce_field( 'torantejarat-ticket-close', 'torantejarat_ticket_close_nonce' ); ?>
-						<input type="hidden" name="ticket_id" value="<?php echo esc_attr( $view_id ); ?>">
-						<input type="hidden" name="action" value="close">
-						<button type="submit"><?php esc_html_e( 'بستن تیکت', 'torantejarat' ); ?></button>
+<?php wp_nonce_field( 'torantejarat-ticket-close', 'torantejarat_ticket_close_nonce' ); ?>
+		<input type="hidden" name="ticket_id" value="<?php echo esc_attr( $view_id ); ?>">
+		<input type="hidden" name="action" value="torantejarat_ticket_close_frontend">
+		<button type="submit"><?php esc_html_e( 'بستن تیکت', 'torantejarat' ); ?></button>
 					</form>
 				</div>
 			<?php endif; ?>

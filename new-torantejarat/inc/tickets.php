@@ -129,7 +129,7 @@ function torantejarat_tickets_messages_table() {
  * @param string $body         First message body
  * @return int|WP_Error Ticket ID on success
  */
-function torantejarat_tickets_create( $user_id, $subject_key, $title, $order_id = 0, $body ) {
+function torantejarat_tickets_create( $user_id, $subject_key, $title, $body, $order_id = 0 ) {
 	global $wpdb;
 
 	$user_id = absint( $user_id );
@@ -196,7 +196,7 @@ function torantejarat_tickets_create( $user_id, $subject_key, $title, $order_id 
 	}
 
 	// First message (customer)
-	torantejarat_tickets_add_message( $ticket_id, $user_id, false, $body );
+	torantejarat_tickets_add_message( $ticket_id, $user_id, $body, false );
 
 	// Update counters
 	set_transient( torantejarat_tickets_rate_key( $user_id ), $now, 60 * MINUTE_IN_SECONDS );
@@ -217,7 +217,7 @@ function torantejarat_tickets_create( $user_id, $subject_key, $title, $order_id 
  * @param string $body
  * @return int|WP_Error
  */
-function torantejarat_tickets_add_message( $ticket_id, $author_id, $is_staff = false, $body ) {
+function torantejarat_tickets_add_message( $ticket_id, $author_id, $body, $is_staff = false ) {
 	global $wpdb;
 
 	$ticket_id = absint( $ticket_id );
@@ -493,8 +493,8 @@ function torantejarat_tickets_send_email( $type, $to, $subject, $message ) {
 	wp_mail( $to, $subject, $message );
 }
 
-add_action( 'torantejarat_tickets_send_admin_email', 'torantejarat_tickets_send_email', 10, 4 );
-add_action( 'torantejarat_tickets_send_customer_email', 'torantejarat_tickets_send_email', 10, 4 );
+add_action( 'torantejarat_tickets_send_admin_email', __NAMESPACE__ . '\\torantejarat_tickets_send_email', 10, 4 );
+add_action( 'torantejarat_tickets_send_customer_email', __NAMESPACE__ . '\\torantejarat_tickets_send_email', 10, 4 );
 
 /* --------------------------------------------------------------
    Frontend handler: create ticket from /my-account/tickets/
@@ -515,7 +515,7 @@ function torantejarat_tickets_handle_create_frontend() {
 	$order_id    = isset( $_POST['order_id'] ) ? absint( $_POST['order_id'] ) : 0;
 	$body        = isset( $_POST['body'] ) ? wp_unslash( $_POST['body'] ) : '';
 
-	$result = torantejarat_tickets_create( get_current_user_id(), $subject_key, $title, $order_id, $body );
+	$result = torantejarat_tickets_create( get_current_user_id(), $subject_key, $title, $body, $order_id );
 
 	if ( is_wp_error( $result ) ) {
 		wp_safe_redirect( add_query_arg( 'ticket_error', $result->get_error_code(), wc_get_account_endpoint_url( 'tickets' ) ) );
@@ -549,14 +549,14 @@ function torantejarat_tickets_handle_reply_frontend() {
 		exit;
 	}
 
-	$result = torantejarat_tickets_add_message( $ticket_id, get_current_user_id(), false, $body );
+	$result = torantejarat_tickets_add_message( $ticket_id, get_current_user_id(), $body, false );
 
 	if ( is_wp_error( $result ) ) {
-		wp_safe_redirect( add_query_arg( 'ticket_error', $result->get_error_code(), wc_get_account_endpoint_url( 'tickets?view_ticket=' . $ticket_id ) ) );
+		wp_safe_redirect( add_query_arg( array( 'view_ticket' => $ticket_id, 'ticket_error' => $result->get_error_code() ), wc_get_account_endpoint_url( 'tickets' ) ) );
 		exit;
 	}
 
-	wp_safe_redirect( add_query_arg( 'ticket_sent', '1', wc_get_account_endpoint_url( 'tickets?view_ticket=' . $ticket_id ) ) );
+	wp_safe_redirect( add_query_arg( array( 'view_ticket' => $ticket_id, 'ticket_sent' => '1' ), wc_get_account_endpoint_url( 'tickets' ) ) );
 	exit;
 }
 
@@ -649,8 +649,26 @@ function torantejarat_tickets_admin_page() {
 	$tickets = torantejarat_tickets_get_all( $status, $search );
 
 	?>
-	<div class="wrap">
-		<h1><?php esc_html_e( 'Support Tickets', 'torantejarat' ); ?></h1>
+<style>
+.torantejarat-tickets-admin { direction: rtl; }
+.torantejarat-tickets-admin .wrap > h1,
+.torantejarat-tickets-admin h1 { text-align: right; }
+.torantejarat-tickets-admin .wp-list-table th,
+.torantejarat-tickets-admin .wp-list-table td { text-align: right; vertical-align: middle; }
+.torantejarat-tickets-admin .wp-list-table .actions { text-align: center; }
+.torantejarat-tickets-admin .form-table th { text-align: right; }
+.torantejarat-tickets-admin .form-table td { text-align: right; }
+.torantejarat-tickets-admin .form-table select,
+.torantejarat-tickets-admin .form-table input[type="text"],
+.torantejarat-tickets-admin .form-table textarea { direction: rtl; }
+.torantejarat-tickets-admin .button { float: right; }
+.torantejarat-tickets-admin .updated,
+.torantejarat-tickets-admin .error { text-align: right; direction: rtl; }
+.torantejarat-tickets-admin label { display: block; text-align: right; }
+.torantejarat-tickets-admin .ticket-time { float: left; text-align: left; }
+</style>
+<div class="wrap torantejarat-tickets-admin">
+	<h1><?php esc_html_e( 'Support Tickets', 'torantejarat' ); ?></h1>
 
 		<form method="get" action="">
 			<input type="hidden" name="page" value="torantejarat-tickets">
@@ -751,7 +769,7 @@ function torantejarat_tickets_admin_details_page( $ticket_id ) {
 	// Handle reply
 	if ( isset( $_POST['torantejarat_ticket_reply_nonce'] ) && wp_verify_nonce( sanitize_key( wp_unslash( $_POST['torantejarat_ticket_reply_nonce'] ) ), 'torantejarat-ticket-reply' ) ) {
 		$body = isset( $_POST['ticket_reply'] ) ? wp_unslash( $_POST['ticket_reply'] ) : '';
-		$result = torantejarat_tickets_add_message( $ticket_id, get_current_user_id(), true, $body );
+		$result = torantejarat_tickets_add_message( $ticket_id, get_current_user_id(), $body, true );
 		if ( is_wp_error( $result ) ) {
 			echo '<div class="error"><p>' . esc_html( $result->get_error_message() ) . '</p></div>';
 		} else {
@@ -859,7 +877,7 @@ function torantejarat_tickets_admin_add_page() {
 		$order_id = absint( $_POST['order_id'] );
 		$body = isset( $_POST['body'] ) ? wp_unslash( $_POST['body'] ) : '';
 
-		$result = torantejarat_tickets_create( $user_id, $subject_key, $title, $order_id, $body );
+		$result = torantejarat_tickets_create( $user_id, $subject_key, $title, $body, $order_id );
 		if ( is_wp_error( $result ) ) {
 			echo '<div class="error"><p>' . esc_html( $result->get_error_message() ) . '</p></div>';
 		} else {
