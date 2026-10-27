@@ -644,6 +644,55 @@ function torantejarat_tickets_setup_capability() {
 		$role->add_cap( torantejarat_tickets_capability() );
 	}
 }
+	}
+
+/* --------------------------------------------------------------
+   Frontend: delete ticket (customer owns it)
+   -------------------------------------------------------------- */
+function torantejarat_tickets_handle_delete_frontend() {
+	if ( ! is_user_logged_in() ) {
+		wp_safe_redirect( wp_login_url() );
+		exit;
+	}
+
+	if ( ! isset( $_POST['torantejarat_ticket_delete_nonce'] ) || ! wp_verify_nonce( sanitize_key( wp_unslash( $_POST['torantejarat_ticket_delete_nonce'] ) ), 'torantejarat-ticket-delete' ) ) {
+		wp_safe_redirect( add_query_arg( 'ticket_error', 'nonce', wc_get_account_endpoint_url( 'tickets' ) ) );
+		exit;
+	}
+
+	$ticket_id = isset( $_POST['ticket_id'] ) ? absint( $_POST['ticket_id'] ) : 0;
+
+	$ticket = torantejarat_tickets_get( $ticket_id );
+	if ( ! $ticket || (int) $ticket['user_id'] !== get_current_user_id() ) {
+		wp_safe_redirect( add_query_arg( 'ticket_error', 'not_found', wc_get_account_endpoint_url( 'tickets' ) ) );
+		exit;
+	}
+
+	global $wpdb;
+	// Delete messages first
+	$wpdb->delete(
+		torantejarat_tickets_messages_table(),
+		array( 'ticket_id' => $ticket_id ),
+		array( '%d' )
+	);
+	// Delete ticket
+	$wpdb->delete(
+		torantejarat_tickets_get_table(),
+		array( 'id' => $ticket_id ),
+		array( '%d' )
+	);
+
+	// Decrease open count if ticket was open
+	$ticket = (array) $ticket;
+	if ( in_array( $ticket['status'], array( 'open', 'awaiting_customer', 'awaiting_support' ), true ) ) {
+		$open_count = (int) get_transient( torantejarat_tickets_open_count_key( get_current_user_id() ) );
+		set_transient( torantejarat_tickets_open_count_key( get_current_user_id() ), max( 0, $open_count - 1 ), DAY_IN_SECONDS );
+	}
+
+	wp_safe_redirect( add_query_arg( 'ticket_sent', '1', wc_get_account_endpoint_url( 'tickets' ) ) );
+	exit;
+}
+
 add_action( 'init', __NAMESPACE__ . '\\torantejarat_tickets_setup_capability', 10 );
 
 /* --------------------------------------------------------------

@@ -326,15 +326,25 @@ $torantejarat_ticket_error_msg = $torantejarat_ticket_error_messages[ $ticket_er
 							<?php endforeach; ?>
 						</div>
 					<?php endif; ?>
-					<?php if ( $can_close ) : ?>
-						<div class="ticket-close-form">
-							<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" onsubmit="return confirm( '<?php esc_attr_e( 'آیا مطمئن هستید می‌خواهید این تیکت را ببندید؟', 'torantejarat' ); ?>' );">
-								<?php wp_nonce_field( 'torantejarat-ticket-close', 'torantejarat_ticket_close_nonce' ); ?>
-								<input type="hidden" name="ticket_id" value="<?php echo esc_attr( $ticket_id ); ?>">
-								<input type="hidden" name="action" value="torantejarat_ticket_close_frontend">
-								<button type="submit"><?php esc_html_e( 'بستن تیکت', 'torantejarat' ); ?></button>
-							</form>
-						</div>
+<?php if ( $can_close ) : ?>
+					<div class="ticket-close-form">
+						<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" onsubmit="return confirm( '<?php esc_attr_e( 'آیا مطمئن هستید می‌خواهید این تیکت را ببندید؟', 'torantejarat' ); ?>' );">
+							<?php wp_nonce_field( 'torantejarat-ticket-close', 'torantejarat_ticket_close_nonce' ); ?>
+							<input type="hidden" name="ticket_id" value="<?php echo esc_attr( $ticket_id ); ?>">
+							<input type="hidden" name="action" value="torantejarat_ticket_close_frontend">
+							<button type="submit"><?php esc_html_e( 'بستن تیکت', 'torantejarat' ); ?></button>
+						</form>
+					</div>
+					<?php endif; ?>
+					<?php if ( $ticket_st === 'open' || $ticket_st === 'awaiting_customer' || $ticket_st === 'awaiting_support' ) : ?>
+					<div class="ticket-delete-form" style="margin-left:8px;">
+						<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" onsubmit="return confirm( '<?php esc_attr_e( 'آیا مطمئن هستید می‌خواهید این تیکت را حذف کنید؟ این عمل غیرقابل‌بازگشت است.', 'torantejarat' ); ?>' );">
+							<?php wp_nonce_field( 'torantejarat-ticket-delete', 'torantejarat_ticket_delete_nonce' ); ?>
+							<input type="hidden" name="ticket_id" value="<?php echo esc_attr( $ticket_id ); ?>">
+							<input type="hidden" name="action" value="torantejarat_ticket_delete_frontend">
+							<button type="submit" style="background:#fef3f2;color:#b42318;border:1px solid #f5c7c3;"><?php esc_html_e( 'حذف تیکت', 'torantejarat' ); ?></button>
+						</form>
+					</div>
 					<?php endif; ?>
 				</div>
 			</li>
