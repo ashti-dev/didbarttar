@@ -18,7 +18,6 @@ require_once __DIR__ . '/assets.php';
 require_once __DIR__ . '/woocommerce.php';
 require_once __DIR__ . '/requests.php';
 require_once __DIR__ . '/tickets.php';
-require_once __DIR__ . '/tickets-meta.php';
 require_once __DIR__ . '/cleanup.php';
 require_once __DIR__ . '/login.php';
 require_once __DIR__ . '/admin.php';
