@@ -715,7 +715,7 @@ body.search-open{overflow:hidden}
 .torantejarat-sortbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:#fff;border:1px solid var(--line);border-radius:30px;padding:8px 10px;box-shadow:0 6px 22px #1723250d;width:100%;margin-bottom:24px}
 .torantejarat-sortbar-count{font-size:12px;color:var(--muted);padding:6px 12px;white-space:nowrap}
 .torantejarat-sortbar-label{font-size:12px;color:var(--muted);white-space:nowrap}
-.torantejarat-sort-pill{font-size:12px;font-weight:700;color:var(--ink);border-radius:20px;padding:8px 16px;white-space:nowrap}
+.torantejarat-sort-pill{font-size:12px;font-weight:700;color:var(--ink);border-radius:20px;padding:8px 16px;white-space:nowrap;line-height:1.5}
 .torantejarat-sort-pill:hover{background:#f4f5f1}
 .torantejarat-sort-pill.is-active{background:linear-gradient(135deg,#f97e36,#ef6a1f);color:#fff;box-shadow:0 6px 16px #ef6a1f55}
 @media(max-width:600px){.torantejarat-sortbar{flex-wrap:nowrap;overflow-x:auto;border-radius:16px}.torantejarat-sortbar-count{flex-shrink:0}}
