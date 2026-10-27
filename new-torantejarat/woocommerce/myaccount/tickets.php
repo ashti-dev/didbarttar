@@ -299,7 +299,7 @@ $torantejarat_ticket_error_msg = $torantejarat_ticket_error_messages[ $ticket_er
 			?>
 			<li>
 				<div class="ticket-info">
-					<span class="ticket-title"><?php echo esc_html( $ticket['title'] ); ?></span>
+					<span class="ticket-title"><a href="<?php echo esc_url( add_query_arg( 'view_ticket', $ticket_id, wc_get_account_endpoint_url( 'tickets' ) ) ); ?>"><?php echo esc_html( $ticket['title'] ); ?></a></span>
 					<span class="ticket-meta">
 						<?php echo esc_html( mysql2date( 'Y/m/d', $ticket['created_at'] ) ); ?>
 						<?php if ( ! empty( $ticket['order_id'] ) ) : ?>

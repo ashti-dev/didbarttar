@@ -163,10 +163,12 @@ function torantejarat_tickets_create( $user_id, $subject_key, $title, $body, $or
 		return new \WP_Error( 'body_too_short', __( 'Message must be at least 10 characters.', 'torantejarat' ) );
 	}
 
-	// Rate limit: max 3 open tickets per user
-	$open_count = (int) get_transient( torantejarat_tickets_open_count_key( $user_id ) );
-	if ( $open_count >= 3 ) {
-		return new \WP_Error( 'rate_limit_open', __( 'You already have 3 open tickets. Please wait until one is closed.', 'torantejarat' ) );
+	// Rate limit: max 3 open tickets per user (admins/staff bypass)
+	if ( ! torantejarat_tickets_user_can_manage() ) {
+		$open_count = (int) get_transient( torantejarat_tickets_open_count_key( $user_id ) );
+		if ( $open_count >= 3 ) {
+			return new \WP_Error( 'rate_limit_open', __( 'شما دارای ۳ تیکت باز هستید. تا بستن یکی از آن‌ها صبر کنید.', 'torantejarat' ) );
+		}
 	}
 
 	// Rate limit: min 60 seconds between submissions
@@ -330,7 +332,7 @@ function torantejarat_tickets_get_user_tickets( $user_id ) {
  *
  * @return array
  */
-function torantejarat_tickets_get_all( $status = '', $search = '' ) {
+function torantejarat_tickets_get_all( $status = '', $search = '', $per_page = 20, $offset = 0 ) {
 	global $wpdb;
 
 	$sql = "SELECT * FROM " . torantejarat_tickets_get_table();
@@ -353,12 +355,42 @@ function torantejarat_tickets_get_all( $status = '', $search = '' ) {
 	}
 
 	$sql .= " ORDER BY updated_at DESC, created_at DESC";
+	$sql .= $wpdb->prepare( " LIMIT %d OFFSET %d", absint( $per_page ), absint( $offset ) );
 
 	if ( $params ) {
 		return $wpdb->get_results( $wpdb->prepare( $sql, $params ), ARRAY_A );
 	}
 
 	return $wpdb->get_results( $sql, ARRAY_A );
+}
+
+function torantejarat_tickets_count_all( $status = '', $search = '' ) {
+	global $wpdb;
+
+	$sql = "SELECT COUNT(*) FROM " . torantejarat_tickets_get_table();
+	$where = array();
+	$params = array();
+
+	if ( '' !== $status ) {
+		$where[] = "status = %s";
+		$params[] = $status;
+	}
+
+	if ( '' !== $search ) {
+		$where[] = "(title LIKE %s OR id = %d)";
+		$params[] = '%' . $wpdb->esc_like( $search ) . '%';
+		$params[] = absint( $search );
+	}
+
+	if ( $where ) {
+		$sql .= ' WHERE ' . implode( ' AND ', $where );
+	}
+
+	if ( $params ) {
+		return (int) $wpdb->get_var( $wpdb->prepare( $sql, $params ) );
+	}
+
+	return (int) $wpdb->get_var( $sql );
 }
 
 /**
@@ -411,6 +443,16 @@ function torantejarat_tickets_set_status( $ticket_id, $status, $user_id ) {
 		array( 'id' => $ticket_id ),
 		array( '%s', '%s', '%d' )
 	);
+
+	// Update open ticket counter when closing/reopening
+	$ticket_user_id = (int) $ticket['user_id'];
+	if ( $status === 'closed' ) {
+		$open_count = (int) get_transient( torantejarat_tickets_open_count_key( $ticket_user_id ) );
+		set_transient( torantejarat_tickets_open_count_key( $ticket_user_id ), max( 0, $open_count - 1 ), DAY_IN_SECONDS );
+	} elseif ( $status === 'open' || $status === 'reopened' ) {
+		$open_count = (int) get_transient( torantejarat_tickets_open_count_key( $ticket_user_id ) );
+		set_transient( torantejarat_tickets_open_count_key( $ticket_user_id ), $open_count + 1, DAY_IN_SECONDS );
+	}
 
 	return true;
 }
@@ -644,16 +686,31 @@ add_action( 'admin_menu', __NAMESPACE__ . '\\torantejarat_tickets_admin_menu', 3
 /* --------------------------------------------------------------
    Admin page: list tickets
    -------------------------------------------------------------- */
+/* --------------------------------------------------------------
+   Admin page: list tickets (AJAX load more)
+   -------------------------------------------------------------- */
 function torantejarat_tickets_admin_page() {
 	if ( ! torantejarat_tickets_user_can_manage() ) {
 		wp_die( __( 'شما دسترسی به مدیریت تیکت‌ها را ندارید.', 'torantejarat' ) );
 	}
 
+	// If viewing details, redirect to standalone details page
+	if ( isset( $_GET['view'] ) && 'details' === $_GET['view'] && ! empty( $_GET['id'] ) ) {
+		$ticket_id = absint( $_GET['id'] );
+		orantejarat_tickets_admin_details_page( $ticket_id );
+		return;
+	}
+
 	$status  = isset( $_GET['status'] ) ? sanitize_key( wp_unslash( $_GET['status'] ) ) : '';
 	$search  = isset( $_GET['s'] ) ? sanitize_text_field( wp_unslash( $_GET['s'] ) ) : '';
-	$statuses = torantejarat_ticket_statuses();
+	$page    = isset( $_GET['paged'] ) ? max( 1, absint( $_GET['paged'] ) ) : 1;
+	$per_page = 20;
+	$offset  = ( $page - 1 ) * $per_page;
 
-	$tickets = torantejarat_tickets_get_all( $status, $search );
+	$statuses = torantejarat_ticket_statuses();
+	$tickets  = torantejarat_tickets_get_all( $status, $search, $per_page, $offset );
+	$total    = torantejarat_tickets_count_all( $status, $search );
+	$total_pages = ceil( $total / $per_page );
 
 	?>
 	<style>
@@ -709,6 +766,13 @@ function torantejarat_tickets_admin_page() {
 		font-weight: 800;
 		color: #172325;
 		font-size: 15px;
+	}
+	.torantejarat-tickets-admin .ticket-title a {
+		color: #172325;
+		text-decoration: none;
+	}
+	.torantejarat-tickets-admin .ticket-title a:hover {
+		color: #f77b3e;
 	}
 	.torantejarat-tickets-admin .ticket-customer {
 		color: #606c68;
@@ -815,9 +879,52 @@ function torantejarat_tickets_admin_page() {
 		display: block;
 		text-align: right;
 	}
+	.torantejarat-tickets-admin .load-more-wrap {
+		text-align: center;
+		margin-top: 24px;
+	}
+	.torantejarat-tickets-admin .load-more-btn {
+		background: #f77b3e;
+		color: #fff;
+		border: none;
+		padding: 12px 30px;
+		border-radius: 8px;
+		font-weight: 700;
+		font-family: inherit;
+		font-size: 14px;
+		cursor: pointer;
+	}
+	.torantejarat-tickets-admin .load-more-btn:hover {
+		background: #e96a2b;
+	}
+	.torantejarat-tickets-admin .load-more-btn:disabled {
+		background: #ccc;
+		cursor: not-allowed;
+	}
+	.torantejarat-tickets-admin .load-more-spinner {
+		display: none;
+		width: 16px;
+		height: 16px;
+		border: 2px solid #fff;
+		border-top-color: transparent;
+		border-radius: 50%;
+		animation: spin 1s linear infinite;
+		margin-left: 8px;
+		vertical-align: middle;
+	}
+	@keyframes spin {
+		to { transform: rotate(360deg); }
+	}
 	</style>
 <div class="wrap torantejarat-tickets-admin">
 	<h1><?php esc_html_e( 'پشتیبانی تیکت', 'torantejarat' ); ?></h1>
+
+	<?php if ( ! empty( $_GET['ticket_sent'] ) ) : ?>
+	<div class="updated notice is-dismissible"><p><?php esc_html_e( 'تیکت با موفقیت ثبت شد.', 'torantejarat' ); ?></p></div>
+	<?php endif; ?>
+	<?php if ( ! empty( $_GET['ticket_error'] ) ) : ?>
+	<div class="error notice is-dismissible"><p><?php echo esc_html( $_GET['ticket_error'] === 'forbidden' ? __( 'شما دسترسی به این تیکت را ندارید.', 'torantejarat' ) : __( 'تیکت یافت نشد.', 'torantejarat' ) ); ?></p></div>
+	<?php endif; ?>
 
 	<form method="get" action="" class="filter-form">
 		<input type="hidden" name="page" value="torantejarat-tickets">
@@ -834,7 +941,7 @@ function torantejarat_tickets_admin_page() {
 			<label for="s"><?php esc_html_e( 'جستجو در عنوان یا شماره تیکت', 'torantejarat' ); ?></label>
 			<input type="search" name="s" id="s" value="<?php echo esc_attr( $search ); ?>" placeholder="<?php esc_attr_e( 'جستجو...', 'torantejarat' ); ?>">
 		</div>
-		<button type="submit" class="button button-primary"><?php esc_html_e( 'フィلتر کردن', 'torantejarat' ); ?></button>
+		<button type="submit" class="button button-primary"><?php esc_html_e( 'فیلتر کردن', 'torantejarat' ); ?></button>
 	</form>
 
 	<?php if ( $tickets ) : ?>
@@ -850,7 +957,7 @@ function torantejarat_tickets_admin_page() {
 				<th style="width: 100px;"><?php esc_html_e( 'عملیات', 'torantejarat' ); ?></th>
 			</tr>
 		</thead>
-		<tbody>
+		<tbody id="torantejarat-tickets-list">
 			<?php foreach ( $tickets as $ticket ) : ?>
 				<?php
 				$user = get_user_by( 'id', $ticket['user_id'] );
@@ -860,28 +967,90 @@ function torantejarat_tickets_admin_page() {
 				?>
 				<tr>
 					<td class="ticket-id"><?php echo esc_html( $ticket['id'] ); ?></td>
-					<td class="ticket-title"><?php echo esc_html( $ticket['title'] ); ?></td>
+					<td class="ticket-title"><a href="<?php echo esc_url( admin_url( 'admin.php?page=torantejarat-tickets&view=details&id=' . $ticket['id'] ) ); ?>"><?php echo esc_html( $ticket['title'] ); ?></a></td>
 					<td class="ticket-customer"><?php echo esc_html( $customer_name ); ?></td>
 					<td class="ticket-order"><?php echo esc_html( $order_label ); ?></td>
 					<td><span class="ticket-status status-<?php echo esc_attr( $ticket['status'] ); ?>"><?php echo esc_html( $status_label ); ?></span></td>
 					<td><?php echo esc_html( mysql2date( 'Y/m/d H:i', $ticket['updated_at'] ) ); ?></td>
-					<td class="ticket-actions">
-						<a href="<?php echo esc_url( admin_url( 'admin.php?page=torantejarat-tickets&view=details&id=' . $ticket['id'] ) ); ?>" class="view-btn"><?php esc_html_e( 'مشاهده', 'torantejarat' ); ?></a>
-					</td>
+					<td class="ticket-actions"><a href="<?php echo esc_url( admin_url( 'admin.php?page=torantejarat-tickets&view=details&id=' . $ticket['id'] ) ); ?>" class="view-btn"><?php esc_html_e( 'مشاهده', 'torantejarat' ); ?></a></td>
 				</tr>
 			<?php endforeach; ?>
 		</tbody>
 	</table>
+
+	<div class="load-more-wrap">
+		<?php if ( $page < $total_pages ) : ?>
+		<button class="load-more-btn" id="torantejarat-load-more" data-page="<?php echo esc_attr( $page + 1 ); ?>" data-total="<?php echo esc_attr( $total_pages ); ?>" data-status="<?php echo esc_attr( $status ); ?>" data-search="<?php echo esc_attr( $search ); ?>">
+			<span class="load-more-text"><?php esc_html_e( 'بارگذاری المزيد', 'torantejarat' ); ?></span>
+			<span class="load-more-spinner"></span>
+		</button>
+		<?php else : ?>
+		<p style="color:#606c68; font-size:13px;"><?php esc_html_e( 'هیچ تیکت دیگر نیست.', 'torantejarat' ); ?></p>
+		<?php endif; ?>
+	</div>
 	<?php else : ?>
 	<div class="no-tickets">
 		<p><?php esc_html_e( 'تیکتی یافت نشد.', 'torantejarat' ); ?></p>
 	</div>
 	<?php endif; ?>
-
-	<?php if ( isset( $_GET['view'] ) && 'details' === $_GET['view'] && ! empty( $_GET['id'] ) ) : ?>
-		<?php torantejarat_tickets_admin_details_page( absint( $_GET['id'] ) ); ?>
-	<?php endif; ?>
 </div>
+	<?php
+
+	// AJAX load more script
+	?><script>
+	(function() {
+		var btn = document.getElementById( 'torantejarat-load-more' );
+		if ( ! btn ) return;
+		var tbody = document.getElementById( 'torantejarat-tickets-list' );
+		var spinner = btn.querySelector( '.load-more-spinner' );
+		var text = btn.querySelector( '.load-more-text' );
+		var currentPage = parseInt( btn.getAttribute( 'data-page' ) );
+		var totalPages = parseInt( btn.getAttribute( 'data-total' ) );
+		var status = btn.getAttribute( 'data-status' );
+		var search = btn.getAttribute( 'data-search' );
+		var loading = false;
+
+		btn.addEventListener( 'click', function() {
+			if ( loading || currentPage > totalPages ) return;
+			loading = true;
+			btn.disabled = true;
+			spinner.style.display = 'inline-block';
+			text.textContent = '<?php esc_html_e( 'بارگذاری...', 'torantejarat' ); ?>';
+
+			var formData = new FormData();
+			formData.append( 'action', 'torantejarat_tickets_load_more' );
+			formData.append( 'status', status );
+			formData.append( 'search', search );
+			formData.append( 'page', currentPage );
+
+			fetch( ajaxurl, {
+				method: 'POST',
+				body: formData
+			} )
+			.then( function( response ) { return response.json(); } )
+			.then( function( data ) {
+				if ( data.success && data.data.html ) {
+					tbody.insertAdjacentHTML( 'beforeend', data.data.html );
+					currentPage++;
+					btn.setAttribute( 'data-page', currentPage );
+					if ( currentPage > totalPages ) {
+						btn.style.display = 'none';
+					}
+				}
+				loading = false;
+				btn.disabled = false;
+				spinner.style.display = 'none';
+				text.textContent = '<?php esc_html_e( 'بارگذاری المزيد', 'torantejarat' ); ?>';
+			} )
+			.catch( function() {
+				loading = false;
+				btn.disabled = false;
+				spinner.style.display = 'none';
+				text.textContent = '<?php esc_html_e( 'بارگذاری المزيد', 'torantejarat' ); ?>';
+			} );
+		} );
+	})();
+	</script>
 	<?php
 }
 
@@ -1115,6 +1284,7 @@ function torantejarat_tickets_admin_details_page( $ticket_id ) {
 	}
 	</style>
 <div class="wrap torantejarat-ticket-details">
+	<a href="<?php echo esc_url( admin_url( 'admin.php?page=torantejarat-tickets' ) ); ?>" class="button button-secondary" style="float: left; margin-bottom: 16px;"><?php esc_html_e( 'بازگشت به لیست', 'torantejarat' ); ?></a>
 	<h1>تیکت #<?php echo esc_html( $ticket_id ); ?></h1>
 
 	<div class="ticket-header">
@@ -1322,4 +1492,50 @@ function torantejarat_tickets_admin_add_page() {
 	</form>
 </div>
 	<?php
+}
+
+/* --------------------------------------------------------------
+   AJAX: Load more tickets for admin list
+   -------------------------------------------------------------- */
+function torantejarat_tickets_load_more() {
+	if ( ! torantejarat_tickets_user_can_manage() ) {
+		wp_send_json_error( array( 'message' => 'دسترسی ندارید.' ), 403 );
+	}
+
+	$status  = isset( $_POST['status'] ) ? sanitize_key( wp_unslash( $_POST['status'] ) ) : '';
+	$search  = isset( $_POST['search'] ) ? sanitize_text_field( wp_unslash( $_POST['search'] ) ) : '';
+	$page    = isset( $_POST['page'] ) ? absint( $_POST['page'] ) : 1;
+	$per_page = 20;
+	$offset  = ( $page - 1 ) * $per_page;
+
+	$tickets = torantejarat_tickets_get_all( $status, $search, $per_page, $offset );
+	$total   = torantejarat_tickets_count_all( $status, $search );
+
+	$statuses = torantejarat_ticket_statuses();
+
+	$html = '';
+	foreach ( $tickets as $ticket ) {
+		$user = get_user_by( 'id', $ticket['user_id'] );
+		$customer_name = $user ? esc_html( $user->display_name ) : sprintf( __( 'کاربر #%d', 'torantejarat' ), $ticket['user_id'] );
+		$order_label = $ticket['order_id'] ? sprintf( '#%d', $ticket['order_id'] ) : __( '—', 'torantejarat' );
+		$status_label = $statuses[ $ticket['status'] ] ?? $ticket['status'];
+
+		$html .= '<tr>';
+		$html .= '<td class="ticket-id">' . esc_html( $ticket['id'] ) . '</td>';
+		$html .= '<td class="ticket-title"><a href="' . esc_url( admin_url( 'admin.php?page=torantejarat-tickets&view=details&id=' . $ticket['id'] ) ) . '">' . esc_html( $ticket['title'] ) . '</a></td>';
+		$html .= '<td class="ticket-customer">' . esc_html( $customer_name ) . '</td>';
+		$html .= '<td class="ticket-order">' . esc_html( $order_label ) . '</td>';
+		$html .= '<td><span class="ticket-status status-' . esc_attr( $ticket['status'] ) . '">' . esc_html( $status_label ) . '</span></td>';
+		$html .= '<td>' . esc_html( mysql2date( 'Y/m/d H:i', $ticket['updated_at'] ) ) . '</td>';
+		$html .= '<td class="ticket-actions"><a href="' . esc_url( admin_url( 'admin.php?page=torantejarat-tickets&view=details&id=' . $ticket['id'] ) ) . '" class="view-btn">' . esc_html__( 'مشاهده', 'torantejarat' ) . '</a></td>';
+		$html .= '</tr>';
+	}
+
+	$has_more = ( $page * $per_page ) < $total;
+
+	wp_send_json_success( array(
+		'html'      => $html,
+		'has_more'  => $has_more,
+		'next_page' => $page + 1,
+	) );
 }

@@ -68,6 +68,8 @@ add_action( 'admin_post_torantejarat_ticket', __NAMESPACE__ . '\\torantejarat_ha
 add_action( 'admin_post_torantejarat_ticket_create_frontend', __NAMESPACE__ . '\\torantejarat_tickets_handle_create_frontend' );
 add_action( 'admin_post_torantejarat_ticket_reply_frontend', __NAMESPACE__ . '\\torantejarat_tickets_handle_reply_frontend' );
 add_action( 'admin_post_torantejarat_ticket_close_frontend', __NAMESPACE__ . '\\torantejarat_tickets_handle_close_frontend' );
+add_action( 'wp_ajax_torantejarat_tickets_load_more', __NAMESPACE__ . '\\\\torantejarat_tickets_load_more' );
+add_action( 'wp_ajax_nopriv_torantejarat_tickets_load_more', '__return_false' );
 add_action( 'add_meta_boxes_torantejarat_request', __NAMESPACE__ . '\\torantejarat_ticket_admin_metabox' );
 add_action( 'save_post_torantejarat_request', __NAMESPACE__ . '\\torantejarat_ticket_admin_save' );
 add_filter( 'manage_torantejarat_request_posts_columns', __NAMESPACE__ . '\\torantejarat_request_columns' );
