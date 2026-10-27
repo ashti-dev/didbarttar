@@ -895,3 +895,41 @@
 - **نکته طراحی:** متن داخل ورودی‌ها (موبایل/ایمیل/نام کاربری/رمز) دست‌نخورده می‌ماند (تراز پیش‌فرض RTL) تا خوانایی شماره موبایل و ایمیل حفظ شود؛ دکمه ورود/ثبت‌نام قبلاً `width: 100%` و سوییچ `text-align: center` بودند و بدون تغییر باقی مانده‌اند. Sticky Panel و `justify-content: center` روی `.auth__forms` قبلاً کارت فرم را عمودی وسط سکشن نگه می‌داشته است؛ حالا آیتم‌های افقی هم یک‌دست وسط‌اند.
 - **تست انجام‌شده:** بلوک CSS بررسی شد (آکولاد متوازن، کلاس‌های Editorial بر اساس `.auth__*` اعمال شده و specialized نیستند).
 - **تست باقی‌مانده / محدودیت:** PostCSS Parse، Visual Review روی هاست (Login، Hard Refresh، دسکتاپ/موبایل، Cache Refresh) هنوز انجام نشده است. Production همچنان **NO-GO** است.
+
+## TICKETS-QA-001 — رفع باگ‌های تأییدشدهٔ تیکت + استایل RTL پنل ادمین — 2026-10-27 — CODE DONE / RETEST PENDING
+
+- **دامنهٔ تغییر:** `new-torantejarat/inc/tickets.php`، `new-torantejarat/inc/requests.php`، `new-torantejarat/woocommerce/myaccount/tickets.php`.
+- **تغییرات قبلی:** کد قدیمی تیکت در `inc/requests.php` **حذف نشده** و مهاجرت به جداول جدید (مرحله ۳) تا تاییدِ کاربر انجام نمی‌شود (عملیات حذف/تغییر DB نیازمند تأیید قبلی است).
+
+### باگ‌های تأییدشدهٔ رفع‌شده
+| # | شدة | علة ریشه‌ای | فایل: محل | اصلاح |
+|---|---|---|---|---|
+| T1 | 🔴 |callback کرون به صورت رشتهٔ غیر-نام‌فضا در namespace `ToranTejarat\Theme` ثبت شده بود → wp-cron Fatal `call_user_func_array(): torantejarat_tickets_send_email not found`؛ ایمیل ادمین/مشتری هرگز ارسال نمی‌شد و خطیات کرون عمومی را أضعاف می‌کرد | `inc/tickets.php:496–497` | `add_action(..., __NAMESPACE__ . '\\torantejarat_tickets_send_email', 10, 4 )` |
+| T2 | 🔴 | فرم بستن تیکت `name="action" value="close"` می‌فرستد در حالی‌که هندلر رجیسترات شده `admin_post_torantejarat_ticket_close_frontend` است → هیچ وضعیت تغییر نمی‌کرد / صفحه سفید | `woocommerce/myaccount/tickets.php:346, 486` | مقدار `action` به `torantejarat_ticket_close_frontend` تغییر یافت (دو نمونه) |
+| T3 | 🟡 | redirect پاسخ مشتری `wc_get_account_endpoint_url( 'tickets?view_ticket=' . $id )` باعث `view_ticket=3/` می‌شد → `is_numeric=false` و view_ticket=3/ با is_numeric=false پنهان می‌شود | `inc/tickets.php:559` (مسیر خطا هم در :555) | `add_query_arg( array( 'view_ticket' => $ticket_id, ... ), wc_get_account_endpoint_url( 'tickets' ) )` |
+| T4 | 🟡 | `torantejarat_ticket_statuses()` در `requests.php` فقط `open/answered/closed` باز می‌گرفت؛ `awaiting_customer`/`awaiting_support`/`reopened` در `tickets.php` استفاده شده بودند → fallback به `open` و state machine ناقص | `inc/requests.php: torantejarat_ticket_statuses()` | ۶ وضعیت: `open`, `answered`, `awaiting_customer` (در انتظار مشتری), `awaiting_support` (در انتظار پشتیبانی), `reopened` (باز شد), `closed` (بسته شد) |
+| T5 | 🟡 | پارامتر optional قبل از required در `torantejarat_tickets_create(..., $order_id = 0, $body)` و `torantejarat_tickets_add_message(..., $is_staff = false, $body)` → Deprecated در هر لود | `inc/tickets.php:132, 220` | `$body` قبل از `$order_id`/`$is_staff`؛ همه ۵ صدا (call) در `tickets.php` و `myaccount/tickets.php` اصلاح شدند |
+| T6 | Cosmetic | سرور `تiket #%d` (لاطین+فارسی المختلط) | `woocommerce/myaccount/tickets.php:428` | `تیکت #%d` |
+
+### سایر اصلاحات
+- پیام موفقیت تیکت: ادعای غیرواقعی «پاسخ از طریق ایمیل…» حذف شد چون سیستم ایمیل هم‌زمان با T1 فعال نمی‌گردد (تا تاییدِ Runtime).
+- نقشهٔ پیام خطای فارسی شامل `rate_limit_open` (۳ تیکت باز) و `rate_limit_seconds` (۶۰ ثانیه) به جای `Rate limit open` انگلیسی خالی.
+- استایل RTL/فارسی صفحات ادمین (`torantejarat_tickets_admin_page` و جزئیات kautta `div.wrap.torantejarat-tickets-admin` + بلوک `<style>` اینلاین در `inc/tickets.php`): `direction: rl`، تراز راست جدول/فرم، دکمه‌ها و نوتیس‌ها.
+
+### فایل‌های تغییر کردهٔ commit `945d24a`
+- `inc/tickets.php` (+ins/–del)
+- `inc/requests.php`
+- `woocommerce/myaccount/tickets.php`
+- `DEV-STATE.md` (این ثبت)
+
+### تست انجام‌شده (این sandbox)
+- PHP CLI/WordPress Runtime در این محیط وجود ندارد؛ تست Runtime اجرا **نشده** است.
+- فقط بررسی استاتیک: تراز آکولاد/پرانتز/برکت در ۳ فایل PHP تغییر کرده (سالم)؛
+  جست‌وجو رشته‌های قدیمی (`value="close"`، `تiket #`) هیچ نتیجه‌ای نداد.
+
+### تست باقی‌مانده / محدودیت (لازم قبلِ مرحله ۳)
+- Retest روی Laragon (`C:\laragon\www\torantejarat-test`): ساخت تیکت، دریافت ایمیل ادمین، بستن تیکت از حساب مشتری، پاسخ مشتری و باز شدن تیکت، تغییر وضعیت از پنل ادمین، صفحه ادمین با RTL.
+- Production همچنان **NO-GO** است.
+
+### مرحلهٔ بعدی (در انتظار تأیید کاربر)
+- حذف کد تیکت قدیمی از `inc/requests.php` و مهاجرت کامل به جداول `torantejarat_tickets` / `torantejarat_ticket_messages` (فقط با تأیید صریح کاربر).
