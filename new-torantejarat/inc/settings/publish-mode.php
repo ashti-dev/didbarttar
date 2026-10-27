@@ -21,7 +21,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 add_action( 'admin_post_torantejarat_publish_mode', __NAMESPACE__ . '\\torantejarat_handle_publish_mode' );
 
 /**
- * Redirect back to the general settings page with a short status code.
+ * Redirect back to the dedicated publish utility page with a short status code.
  *
  * @param string $notice Notice key.
  */
@@ -30,6 +30,7 @@ function torantejarat_publish_mode_redirect( $notice ) {
 		array(
 			'page'       => 'torantejarat-settings',
 			'section'    => 'general',
+			'sub'        => 'publish',
 			'tt_publish' => sanitize_key( $notice ),
 		),
 		admin_url( 'admin.php' )

@@ -296,9 +296,12 @@ function torantejarat_ticket_subjects() {
 
 function torantejarat_ticket_statuses() {
 	return array(
-		'open'     => __( 'باز', 'torantejarat' ),
-		'answered' => __( 'پاسخ داده شد', 'torantejarat' ),
-		'closed'   => __( 'بسته شد', 'torantejarat' ),
+		'open'             => __( 'باز', 'torantejarat' ),
+		'answered'         => __( 'پاسخ داده شد', 'torantejarat' ),
+		'awaiting_customer'=> __( 'در انتظار مشتری', 'torantejarat' ),
+		'awaiting_support' => __( 'در انتظار پشتیبانی', 'torantejarat' ),
+		'reopened'         => __( 'باز شد', 'torantejarat' ),
+		'closed'           => __( 'بسته شد', 'torantejarat' ),
 	);
 }
 
@@ -363,7 +366,7 @@ function torantejarat_create_ticket( $user_id, $subject, $order_id, $message ) {
 
 function torantejarat_handle_ticket() {
 	if ( ! is_user_logged_in() ) {
-		wp_safe_redirect( wp_login_url() );
+		wp_safe_redirect( torantejarat_auth_get_page_url() );
 		exit;
 	}
 	/*

@@ -22,6 +22,8 @@
 /coming-soon.html
 /_removed-files/
 /*.svg
+
+# Poshtvan plugin — reference only (not part of the custom ticket system)
 poshtvan/
 new-torantejarat/ADMIN-REDESIGN.md
 new-torantejarat/assets/js/wishlist.js

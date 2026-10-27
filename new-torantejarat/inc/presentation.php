@@ -243,8 +243,10 @@ function torantejarat_card_price( $product ) {
  * Home page copy — the single source of truth for the "home" settings tab.
  *
  * CONTRACT (Phase 3.2): every key below is a field of the `home` tab in
- * inc/settings/class-theme-settings.php, and every consumer reads it through
- * torantejarat_home(). Each default is the exact text that was hardcoded in
+ * inc/settings/class-theme-settings.php, and every frontend consumer reads it
+ * through torantejarat_home(). TT_Settings lazily injects these same values into its
+ * schema; scalar defaults must not be duplicated in that class. Each default
+ * is the exact text that was hardcoded in
  * front-page.php before the panel existed, so an empty (never saved) option
  * reproduces the previous markup byte for byte — that equality is asserted by
  * the acceptance test (MD5 of "/" with every field empty).

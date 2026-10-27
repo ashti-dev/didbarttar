@@ -1,7 +1,7 @@
 /**
  * Login / Register — بلکوکم
  * Tabs, validation, password strength, Persian digit normalization,
- * show/hide password. Server-ready: set data-endpoint on each form.
+ * show/hide password. Native POST remains available without JavaScript.
  */
 ( function () {
 	'use strict';
@@ -49,13 +49,20 @@
 		register: document.getElementById( 'auth-panel-register' )
 	};
 
-	function activateTab( name, updateHash ) {
+	function activateTab( name, updateHash, focusTarget ) {
+		if ( ! panes[ name ] ) {
+			return;
+		}
 		tabs.forEach( function ( tab ) {
 			var isActive = tab.dataset.tab === name;
 			tab.classList.toggle( 'is-active', isActive );
 			tab.setAttribute( 'aria-selected', isActive ? 'true' : 'false' );
+			tab.tabIndex = isActive ? 0 : -1;
 		} );
 		Object.keys( panes ).forEach( function ( key ) {
+			if ( ! panes[ key ] ) {
+				return;
+			}
 			var show = key === name;
 			panes[ key ].hidden = ! show;
 			panes[ key ].classList.toggle( 'is-active', show );
@@ -66,26 +73,37 @@
 				history.replaceState( null, '', hash );
 			}
 		}
-		var first = panes[ name ].querySelector( 'input' );
-		if ( first ) {
-			first.focus( { preventScroll: true } );
+		if ( 'field' === focusTarget ) {
+			var first = panes[ name ].querySelector( 'input:not([type="hidden"])' );
+			if ( first ) {
+				first.focus( { preventScroll: true } );
+			}
+		} else if ( 'tab' === focusTarget ) {
+			var activeTab = document.querySelector( '.auth__tab[data-tab="' + name + '"]' );
+			if ( activeTab ) {
+				activeTab.focus( { preventScroll: true } );
+			}
 		}
 	}
 
 	tabs.forEach( function ( tab ) {
 		tab.addEventListener( 'click', function () {
-			activateTab( tab.dataset.tab, true );
+			activateTab( tab.dataset.tab, true, 'tab' );
 		} );
 	} );
 
-	/* hash deep link: #login / #register */
+	/* Hash deep link wins; otherwise keep the server-rendered No-JS selection. */
 	var initial = window.location.hash.replace( '#', '' );
-	activateTab( panes[ initial ] ? initial : 'login', false );
+	if ( ! panes[ initial ] ) {
+		var activePane = document.querySelector( '.auth__pane.is-active' );
+		initial = activePane && 'auth-panel-register' === activePane.id ? 'register' : 'login';
+	}
+	activateTab( panes[ initial ] ? initial : 'login', false, 'none' );
 
 	/* switch links inside forms */
 	document.querySelectorAll( '.auth__switch-btn' ).forEach( function ( btn ) {
 		btn.addEventListener( 'click', function () {
-			activateTab( btn.dataset.goto, true );
+			activateTab( btn.dataset.goto, true, 'field' );
 		} );
 	} );
 
@@ -95,8 +113,11 @@
 			return;
 		}
 		e.preventDefault();
-		var names = [ 'login', 'register' ];
-		var current = names.indexOf( window.location.hash.replace( '#', '' ) );
+		var names = Array.prototype.map.call( tabs, function ( tab ) {
+			return tab.dataset.tab;
+		} );
+		var activeTab = document.querySelector( '.auth__tab.is-active' );
+		var current = activeTab ? names.indexOf( activeTab.dataset.tab ) : 0;
 		if ( current === -1 ) {
 			current = 0;
 		}
@@ -108,7 +129,7 @@
 		} else if ( e.key === 'End' ) {
 			next = names.length - 1;
 		}
-		activateTab( names[ next ], true );
+		activateTab( names[ next ], true, 'tab' );
 	} );
 
 	/* ---------- Password visibility ---------- */
@@ -226,8 +247,8 @@
 			ok = false;
 		}
 		var emailVal = String( email.value || '' ).trim();
-		if ( emailVal && ! isValidEmail( emailVal ) ) {
-			setFieldError( email, 'ایمیل معتبر نیست.' );
+		if ( ! emailVal || ! isValidEmail( emailVal ) ) {
+			setFieldError( email, 'ایمیل معتبر برای ساخت حساب و بازیابی رمز لازم است.' );
 			ok = false;
 		}
 		if ( pass1.value.length < 8 ) {
@@ -290,11 +311,12 @@
 
 		setLoading( true );
 		var body = new URLSearchParams();
-		body.append( 'action', type );
-		body.append( 'nonce', window.torantejaratAuth ? window.torantejaratAuth.nonce : '' );
 		new FormData( form ).forEach( function ( value, key ) {
 			body.append( key, value );
 		} );
+		body.set( 'action', type );
+		body.set( 'nonce', window.torantejaratAuth && window.torantejaratAuth.nonce ? window.torantejaratAuth.nonce : body.get( 'nonce' ) || '' );
+		body.set( 'auth_via', 'ajax' );
 		fetch( endpoint, {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
