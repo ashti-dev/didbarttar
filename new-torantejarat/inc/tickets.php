@@ -607,21 +607,24 @@ add_action( 'init', __NAMESPACE__ . '\\torantejarat_tickets_setup_capability', 1
 /* --------------------------------------------------------------
    Admin menu (phase 4)
    -------------------------------------------------------------- */
+/* --------------------------------------------------------------
+   Admin menu
+   -------------------------------------------------------------- */
 function torantejarat_tickets_admin_menu() {
 	add_menu_page(
-		__( 'Tickets', 'torantejarat' ),
-		__( 'Support Tickets', 'torantejarat' ),
+		__( 'پشتیبانی تیکت', 'torantejarat' ),
+		__( 'پشتیبانی تیکت', 'torantejarat' ),
 		torantejarat_tickets_capability(),
 		'torantejarat-tickets',
 		__NAMESPACE__ . '\\torantejarat_tickets_admin_page',
 		'dashicons-ticket',
-		55
+	55
 	);
 
 	add_submenu_page(
 		'torantejarat-tickets',
-		__( 'All Tickets', 'torantejarat' ),
-		__( 'All Tickets', 'torantejarat' ),
+		__( 'همه تیکت‌ها', 'torantejarat' ),
+		__( 'همه تیکت‌ها', 'torantejarat' ),
 		torantejarat_tickets_capability(),
 		'torantejarat-tickets',
 		__NAMESPACE__ . '\\torantejarat_tickets_admin_page'
@@ -629,8 +632,8 @@ function torantejarat_tickets_admin_menu() {
 
 	add_submenu_page(
 		'torantejarat-tickets',
-		__( 'Add Ticket', 'torantejarat' ),
-		__( 'Add Ticket', 'torantejarat' ),
+		__( 'ثبت تیکت جدید', 'torantejarat' ),
+		__( 'ثبت تیکت جدید', 'torantejarat' ),
 		torantejarat_tickets_capability(),
 		'torantejarat-tickets-add',
 		__NAMESPACE__ . '\\torantejarat_tickets_admin_add_page'
@@ -639,11 +642,11 @@ function torantejarat_tickets_admin_menu() {
 add_action( 'admin_menu', __NAMESPACE__ . '\\torantejarat_tickets_admin_menu', 30 );
 
 /* --------------------------------------------------------------
-   Admin page: list tickets (simple HTML list for now; WP_List_Table can replace later)
+   Admin page: list tickets
    -------------------------------------------------------------- */
 function torantejarat_tickets_admin_page() {
 	if ( ! torantejarat_tickets_user_can_manage() ) {
-		wp_die( __( 'You do not have permission to manage tickets.', 'torantejarat' ) );
+		wp_die( __( 'شما دسترسی به مدیریت تیکت‌ها را ندارید.', 'torantejarat' ) );
 	}
 
 	$status  = isset( $_GET['status'] ) ? sanitize_key( wp_unslash( $_GET['status'] ) ) : '';
@@ -658,52 +661,71 @@ function torantejarat_tickets_admin_page() {
 		direction: rtl;
 		text-align: right;
 		font-family: Vazirmatn, Tahoma, Arial, sans-serif;
+		max-width: 1400px;
+		margin: 0 auto;
+		padding: 20px;
 	}
 	.torantejarat-tickets-admin .wrap > h1,
 	.torantejarat-tickets-admin h1 {
 		text-align: right;
+		font-size: 28px;
+		color: #172325;
+		margin-bottom: 20px;
+	}
+	.torantejarat-tickets-admin .wp-list-table {
+		border-collapse: separate;
+		border-spacing: 0;
+		width: 100%;
+		background: #fff;
+		border: 1px solid #e2e5df;
+		border-radius: 12px;
+		overflow: hidden;
+		margin-bottom: 24px;
 	}
 	.torantejarat-tickets-admin .wp-list-table th,
 	.torantejarat-tickets-admin .wp-list-table td {
 		text-align: right;
 		vertical-align: middle;
+		padding: 14px 16px;
+		border-bottom: 1px solid #f2f3ef;
 	}
-	.torantejarat-tickets-admin .wp-list-table .actions {
-		text-align: center;
+	.torantejarat-tickets-admin .wp-list-table th {
+		background: #fafaf7;
+		font-weight: 800;
+		color: #172325;
+		font-size: 13px;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
 	}
-	.torantejarat-tickets-admin .form-table th {
-		text-align: right;
+	.torantejarat-tickets-admin .wp-list-table tbody tr:hover {
+		background: #f9fbf6;
 	}
-	.torantejarat-tickets-admin .form-table td {
-		text-align: right;
+	.torantejarat-tickets-admin .ticket-id {
+		font-family: monospace;
+		font-weight: 800;
+		color: #36567a;
 	}
-	.torantejarat-tickets-admin .form-table select,
-	.torantejarat-tickets-admin .form-table input[type="text"],
-	.torantejarat-tickets-admin .form-table textarea {
-		direction: rtl;
+	.torantejarat-tickets-admin .ticket-title {
+		font-weight: 800;
+		color: #172325;
+		font-size: 15px;
 	}
-	.torantejarat-tickets-admin .button {
-		float: right;
+	.torantejarat-tickets-admin .ticket-customer {
+		color: #606c68;
+		font-size: 14px;
 	}
-	.torantejarat-tickets-admin .updated,
-	.torantejarat-tickets-admin .error {
-		text-align: right;
-		direction: rtl;
-	}
-	.torantejarat-tickets-admin label {
-		display: block;
-		text-align: right;
-	}
-	.torantejarat-tickets-admin .ticket-time {
-		float: left;
-		text-align: left;
+	.torantejarat-tickets-admin .ticket-order {
+		color: #606c68;
+		font-size: 14px;
 	}
 	.torantejarat-tickets-admin .ticket-status {
 		display: inline-block;
 		padding: 4px 10px;
 		border-radius: 12px;
-		font-size: 12px;
+		font-size: 11px;
 		font-weight: 800;
+		text-transform: uppercase;
+		letter-spacing: 0.03em;
 	}
 	.torantejarat-tickets-admin .status-open { background: #fef3f2; color: #b42318; }
 	.torantejarat-tickets-admin .status-closed { background: #eef4fa; color: #36567a; }
@@ -714,89 +736,152 @@ function torantejarat_tickets_admin_page() {
 	.torantejarat-tickets-admin .ticket-actions a {
 		display: inline-block;
 		margin-left: 8px;
-		padding: 4px 10px;
+		padding: 6px 12px;
 		background: #f4f5f1;
 		color: #172325;
 		text-decoration: none;
 		border-radius: 6px;
 		font-size: 12px;
+		font-weight: 700;
 	}
 	.torantejarat-tickets-admin .ticket-actions a:hover {
 		background: #e9ece6;
+		color: #f77b3e;
 	}
-	.torantejarat-tickets-admin input[type="search"],
-	.torantejarat-tickets-admin select {
+	.torantejarat-tickets-admin .ticket-actions .view-btn {
+		background: #eef4fa;
+		color: #36567a;
+	}
+	.torantejarat-tickets-admin .ticket-actions .view-btn:hover {
+		background: #dcebf5;
+		color: #2c5282;
+	}
+	.torantejarat-tickets-admin .filter-form {
+		background: #fff;
+		border: 1px solid #e2e5df;
+		border-radius: 12px;
+		padding: 20px;
+		margin-bottom: 24px;
+		display: flex;
+		flex-wrap: wrap;
+		gap: 16px;
+		align-items: center;
+	}
+	.torantejarat-tickets-admin .filter-form label {
+		display: block;
+		font-weight: 800;
+		font-size: 13px;
+		color: #172325;
+		margin-bottom: 6px;
+	}
+	.torantejarat-tickets-admin .filter-form select,
+	.torantejarat-tickets-admin .filter-form input[type="search"] {
 		direction: rtl;
-		padding: 6px 10px;
+		padding: 8px 12px;
 		border: 1px solid #d5ddd5;
-		border-radius: 6px;
+		border-radius: 8px;
+		font-size: 13px;
+		font-family: inherit;
+	}
+	.torantejarat-tickets-admin .filter-form button {
+		margin-top: 8px;
 	}
 	.torantejarat-tickets-admin .no-tickets {
 		text-align: center;
-		padding: 40px 20px;
+		padding: 60px 20px;
 		color: #606c68;
+		background: #fff;
+		border: 1px solid #e2e5df;
+		border-radius: 12px;
+	}
+	.torantejarat-tickets-admin .no-tickets p {
+		font-size: 16px;
+		font-weight: 700;
+		color: #172325;
+		margin: 0;
+	}
+	.torantejarat-tickets-admin .updated,
+	.torantejarat-tickets-admin .error {
+		text-align: right;
+		direction: rtl;
+		border-radius: 10px;
+		padding: 12px 16px;
+		margin-bottom: 20px;
+	}
+	.torantejarat-tickets-admin .button {
+		float: right;
+	}
+	.torantejarat-tickets-admin label {
+		display: block;
+		text-align: right;
 	}
 	</style>
 <div class="wrap torantejarat-tickets-admin">
-	<h1><?php esc_html_e( 'Support Tickets', 'torantejarat' ); ?></h1>
+	<h1><?php esc_html_e( 'پشتیبانی تیکت', 'torantejarat' ); ?></h1>
 
-		<form method="get" action="">
-			<input type="hidden" name="page" value="torantejarat-tickets">
-			<label for="status"><?php esc_html_e( 'Status', 'torantejarat' ); ?></label>
+	<form method="get" action="" class="filter-form">
+		<input type="hidden" name="page" value="torantejarat-tickets">
+		<div style="min-width: 150px;">
+			<label for="status"><?php esc_html_e( 'وضعیت', 'torantejarat' ); ?></label>
 			<select name="status" id="status">
-				<option value=""><?php esc_html_e( 'All statuses', 'torantejarat' ); ?></option>
+				<option value=""><?php esc_html_e( 'همه وضعیت‌ها', 'torantejarat' ); ?></option>
 				<?php foreach ( $statuses as $key => $label ) : ?>
 					<option value="<?php echo esc_attr( $key ); ?>" <?php selected( $status, $key ); ?>><?php echo esc_html( $label ); ?></option>
 				<?php endforeach; ?>
 			</select>
-			<label for="s"><?php esc_html_e( 'Search by title or ticket ID', 'torantejarat' ); ?></label>
-			<input type="search" name="s" id="s" value="<?php echo esc_attr( $search ); ?>">
-			<?php submit_button( __( 'Filter', 'torantejarat' ), '', 'filter', false ); ?>
-		</form>
+		</div>
+		<div style="min-width: 250px; flex: 1;">
+			<label for="s"><?php esc_html_e( 'جستجو در عنوان یا شماره تیکت', 'torantejarat' ); ?></label>
+			<input type="search" name="s" id="s" value="<?php echo esc_attr( $search ); ?>" placeholder="<?php esc_attr_e( 'جستجو...', 'torantejarat' ); ?>">
+		</div>
+		<button type="submit" class="button button-primary"><?php esc_html_e( 'フィلتر کردن', 'torantejarat' ); ?></button>
+	</form>
 
-		<?php if ( $tickets ) : ?>
-			<table class="wp-list-table widefat fixed striped">
-				<thead>
-					<tr>
-						<th><?php esc_html_e( 'ID', 'torantejarat' ); ?></th>
-						<th><?php esc_html_e( 'Title', 'torantejarat' ); ?></th>
-						<th><?php esc_html_e( 'Customer', 'torantejarat' ); ?></th>
-						<th><?php esc_html_e( 'Order', 'torantejarat' ); ?></th>
-						<th><?php esc_html_e( 'Status', 'torantejarat' ); ?></th>
-						<th><?php esc_html_e( 'Updated', 'torantejarat' ); ?></th>
-						<th><?php esc_html_e( 'Action', 'torantejarat' ); ?></th>
-					</tr>
-				</thead>
-				<tbody>
-					<?php foreach ( $tickets as $ticket ) : ?>
-						<?php
-						$user = get_user_by( 'id', $ticket['user_id'] );
-						$customer_name = $user ? esc_html( $user->display_name ) : sprintf( __( 'User #%d', 'torantejarat' ), $ticket['user_id'] );
-						$order_label = $ticket['order_id'] ? sprintf( '#%d', $ticket['order_id'] ) : __( '—', 'torantejarat' );
-						$status_label = $statuses[ $ticket['status'] ] ?? $ticket['status'];
-						?>
-						<tr>
-							<td><?php echo esc_html( $ticket['id'] ); ?></td>
-							<td><?php echo esc_html( $ticket['title'] ); ?></td>
-							<td><?php echo esc_html( $customer_name ); ?></td>
-							<td><?php echo esc_html( $order_label ); ?></td>
-							<td><span class="ticket-status status-<?php echo esc_attr( $ticket['status'] ); ?>"><?php echo esc_html( $status_label ); ?></span></td>
-							<td><?php echo esc_html( mysql2date( 'Y/m/d H:i', $ticket['updated_at'] ) ); ?></td>
-							<td>
-								<a href="<?php echo esc_url( admin_url( 'admin.php?page=torantejarat-tickets&view=details&id=' . $ticket['id'] ) ); ?>"><?php esc_html_e( 'View', 'torantejarat' ); ?></a>
-							</td>
-						</tr>
-					<?php endforeach; ?>
-				</tbody>
-			</table>
-		<?php else : ?>
-			<p><?php esc_html_e( 'No tickets found.', 'torantejarat' ); ?></p>
-		<?php endif; ?>
-
-		<?php if ( isset( $_GET['view'] ) && 'details' === $_GET['view'] && ! empty( $_GET['id'] ) ) : ?>
-			<?php torantejarat_tickets_admin_details_page( absint( $_GET['id'] ) ); ?>
-		<?php endif; ?>
+	<?php if ( $tickets ) : ?>
+	<table class="wp-list-table widefat fixed striped">
+		<thead>
+			<tr>
+				<th style="width: 60px;"><?php esc_html_e( 'شناسه', 'torantejarat' ); ?></th>
+				<th><?php esc_html_e( 'عنوان', 'torantejarat' ); ?></th>
+				<th style="width: 160px;"><?php esc_html_e( 'مشتری', 'torantejarat' ); ?></th>
+				<th style="width: 100px;"><?php esc_html_e( 'سفارش', 'torantejarat' ); ?></th>
+				<th style="width: 130px;"><?php esc_html_e( 'وضعیت', 'torantejarat' ); ?></th>
+				<th style="width: 150px;"><?php esc_html_e( 'آخرین به‌روزرسانی', 'torantejarat' ); ?></th>
+				<th style="width: 100px;"><?php esc_html_e( 'عملیات', 'torantejarat' ); ?></th>
+			</tr>
+		</thead>
+		<tbody>
+			<?php foreach ( $tickets as $ticket ) : ?>
+				<?php
+				$user = get_user_by( 'id', $ticket['user_id'] );
+				$customer_name = $user ? esc_html( $user->display_name ) : sprintf( __( 'کاربر #%d', 'torantejarat' ), $ticket['user_id'] );
+				$order_label = $ticket['order_id'] ? sprintf( '#%d', $ticket['order_id'] ) : __( '—', 'torantejarat' );
+				$status_label = $statuses[ $ticket['status'] ] ?? $ticket['status'];
+				?>
+				<tr>
+					<td class="ticket-id"><?php echo esc_html( $ticket['id'] ); ?></td>
+					<td class="ticket-title"><?php echo esc_html( $ticket['title'] ); ?></td>
+					<td class="ticket-customer"><?php echo esc_html( $customer_name ); ?></td>
+					<td class="ticket-order"><?php echo esc_html( $order_label ); ?></td>
+					<td><span class="ticket-status status-<?php echo esc_attr( $ticket['status'] ); ?>"><?php echo esc_html( $status_label ); ?></span></td>
+					<td><?php echo esc_html( mysql2date( 'Y/m/d H:i', $ticket['updated_at'] ) ); ?></td>
+					<td class="ticket-actions">
+						<a href="<?php echo esc_url( admin_url( 'admin.php?page=torantejarat-tickets&view=details&id=' . $ticket['id'] ) ); ?>" class="view-btn"><?php esc_html_e( 'مشاهده', 'torantejarat' ); ?></a>
+					</td>
+				</tr>
+			<?php endforeach; ?>
+		</tbody>
+	</table>
+	<?php else : ?>
+	<div class="no-tickets">
+		<p><?php esc_html_e( 'تیکتی یافت نشد.', 'torantejarat' ); ?></p>
 	</div>
+	<?php endif; ?>
+
+	<?php if ( isset( $_GET['view'] ) && 'details' === $_GET['view'] && ! empty( $_GET['id'] ) ) : ?>
+		<?php torantejarat_tickets_admin_details_page( absint( $_GET['id'] ) ); ?>
+	<?php endif; ?>
+</div>
 	<?php
 }
 
@@ -805,12 +890,12 @@ function torantejarat_tickets_admin_page() {
    -------------------------------------------------------------- */
 function torantejarat_tickets_admin_details_page( $ticket_id ) {
 	if ( ! torantejarat_tickets_user_can_manage() ) {
-		wp_die( __( 'You do not have permission to manage tickets.', 'torantejarat' ) );
+		wp_die( __( 'شما دسترسی به مدیریت تیکت‌ها را ندارید.', 'torantejarat' ) );
 	}
 
 	$ticket = torantejarat_tickets_get( $ticket_id );
 	if ( ! $ticket ) {
-		wp_die( __( 'Ticket not found.', 'torantejarat' ) );
+		wp_die( __( 'تیکت یافت نشد.', 'torantejarat' ) );
 	}
 	$ticket = (array) $ticket;
 
@@ -827,7 +912,7 @@ function torantejarat_tickets_admin_details_page( $ticket_id ) {
 			if ( is_wp_error( $result ) ) {
 				echo '<div class="error"><p>' . esc_html( $result->get_error_message() ) . '</p></div>';
 			} else {
-				echo '<div class="updated"><p>' . esc_html__( 'Status updated.', 'torantejarat' ) . '</p></div>';
+				echo '<div class="updated"><p>' . esc_html__( 'وضعیت تیکت به‌روزرسانی شد.', 'torantejarat' ) . '</p></div>';
 				$ticket = torantejarat_tickets_get( $ticket_id );
 				$ticket = (array) $ticket;
 			}
@@ -843,7 +928,7 @@ function torantejarat_tickets_admin_details_page( $ticket_id ) {
 		if ( is_wp_error( $result ) ) {
 			echo '<div class="error"><p>' . esc_html( $result->get_error_message() ) . '</p></div>';
 		} else {
-			echo '<div class="updated"><p>' . esc_html__( 'Reply sent.', 'torantejarat' ) . '</p></div>';
+			echo '<div class="updated"><p>' . esc_html__( 'پاسخ ارسال شد.', 'torantejarat' ) . '</p></div>';
 		}
 		wp_safe_redirect( admin_url( 'admin.php?page=torantejarat-tickets&view=details&id=' . $ticket_id ) );
 		exit;
@@ -851,86 +936,241 @@ function torantejarat_tickets_admin_details_page( $ticket_id ) {
 
 	?>
 	<style>
-	.torantejarat-ticket-details { direction: rtl; text-align: right; font-family: Vazirmatn, Tahoma, Arial, sans-serif; }
-	.torantejarat-ticket-details .wrap > h1 { text-align: right; }
-	.torantejarat-ticket-details h2 { text-align: right; }
-	.torantejarat-ticket-details .form-table th { text-align: right; }
-	.torantejarat-ticket-details .form-table td { text-align: right; }
-	.torantejarat-ticket-details textarea { direction: rtl; width: 100%; }
-	.torantejarat-ticket-details .ticket-message { margin-bottom: 12px; padding: 10px 14px; border-radius: 10px; }
-	.torantejarat-ticket-details .ticket-message.customer { background: #eef4fa; border-left: 4px solid #36567a; }
-	.torantejarat-ticket-details .ticket-message.staff { background: #eef9f2; border-left: 4px solid #247348; }
-	.torantejarat-ticket-details .ticket-message strong { display: block; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
-	.torantejarat-ticket-details .ticket-time { font-size: 11px; color: #606c68; display: block; margin-top: 2px; }
-	.torantejarat-ticket-details .ticket-status { display: inline-block; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 800; }
+	.torantejarat-ticket-details {
+		direction: rtl;
+		text-align: right;
+		font-family: Vazirmatn, Tahoma, Arial, sans-serif;
+		max-width: 1000px;
+		margin: 0 auto;
+		padding: 24px;
+	}
+	.torantejarat-ticket-details .wrap > h1,
+	.torantejarat-ticket-details h1 {
+		text-align: right;
+		font-size: 28px;
+		color: #172325;
+		margin-bottom: 24px;
+	}
+	.torantejarat-ticket-details .ticket-header {
+		background: #fff;
+		border: 1px solid #e2e5df;
+		border-radius: 16px;
+		padding: 24px;
+		margin-bottom: 24px;
+		box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+	}
+	.torantejarat-ticket-details .ticket-header h2 {
+		font-size: 20px;
+		color: #172325;
+		margin: 0 0 4px 0;
+		font-weight: 800;
+	}
+	.torantejarat-ticket-details .ticket-header .ticket-meta {
+		color: #606c68;
+		font-size: 13px;
+	}
+	.torantejarat-ticket-details .info-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+		gap: 16px;
+		margin-bottom: 24px;
+	}
+	.torantejarat-ticket-details .info-card {
+		background: #fff;
+		border: 1px solid #e2e5df;
+		border-radius: 12px;
+		padding: 16px;
+	}
+	.torantejarat-ticket-details .info-card .label {
+		display: block;
+		font-size: 11px;
+		font-weight: 800;
+		color: #8a9590;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		margin-bottom: 6px;
+	}
+	.torantejarat-ticket-details .info-card .value {
+		font-size: 15px;
+		color: #172325;
+		font-weight: 700;
+	}
+	.torantejarat-ticket-details .ticket-status-badge {
+		display: inline-block;
+		padding: 6px 14px;
+		border-radius: 20px;
+		font-size: 11px;
+		font-weight: 800;
+		text-transform: uppercase;
+		letter-spacing: 0.03em;
+	}
 	.torantejarat-ticket-details .status-open { background: #fef3f2; color: #b42318; }
 	.torantejarat-ticket-details .status-closed { background: #eef4fa; color: #36567a; }
 	.torantejarat-ticket-details .status-answered { background: #eef9f2; color: #247348; }
 	.torantejarat-ticket-details .status-awaiting_customer,
 	.torantejarat-ticket-details .status-awaiting_support { background: #fffbeb; color: #b45309; }
 	.torantejarat-ticket-details .status-reopened { background: #f3e8ff; color: #7c3aed; }
+	.torantejarat-ticket-details h2 {
+		font-size: 18px;
+		color: #172325;
+		margin: 28px 0 16px 0;
+		font-weight: 800;
+		border-bottom: 2px solid #f2f3ef;
+		padding-bottom: 8px;
+	}
+	.torantejarat-ticket-details .conversation {
+		background: #fff;
+		border: 1px solid #e2e5df;
+		border-radius: 12px;
+		padding: 20px;
+		margin-bottom: 24px;
+	}
+	.torantejarat-ticket-details .ticket-message {
+		margin-bottom: 16px;
+		padding: 14px 18px;
+		border-radius: 12px;
+		line-height: 1.6;
+	}
+	.torantejarat-ticket-details .ticket-message.customer {
+		background: #eef4fa;
+		border-left: 4px solid #36567a;
+	}
+	.torantejarat-ticket-details .ticket-message.staff {
+		background: #eef9f2;
+		border-left: 4px solid #247348;
+	}
+	.torantejarat-ticket-details .ticket-message strong {
+		display: block;
+		font-size: 11px;
+		font-weight: 800;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		margin-bottom: 6px;
+	}
+	.torantejarat-ticket-details .ticket-message.staff strong { color: #247348; }
+	.torantejarat-ticket-details .ticket-message.customer strong { color: #36567a; }
+	.torantejarat-ticket-details .ticket-time {
+		font-size: 11px;
+		color: #8a9590;
+		margin-top: 4px;
+		display: block;
+	}
+	.torantejarat-ticket-details .reply-form {
+		background: #fff;
+		border: 1px solid #e2e5df;
+		border-radius: 12px;
+		padding: 24px;
+	}
+	.torantejarat-ticket-details .reply-form table.form-table {
+		width: 100%;
+		border-collapse: separate;
+		border-spacing: 0;
+	}
+	.torantejarat-ticket-details .reply-form th,
+	.torantejarat-ticket-details .reply-form td {
+		text-align: right;
+		padding: 14px 0;
+		border-bottom: 1px solid #f2f3ef;
+	}
+	.torantejarat-ticket-details .reply-form th {
+		font-weight: 800;
+		color: #172325;
+		font-size: 14px;
+		width: 130px;
+	}
+	.torantejarat-ticket-details .reply-form td select {
+		width: 100%;
+		max-width: 220px;
+		padding: 8px 12px;
+		border: 1px solid #d5ddd5;
+		border-radius: 8px;
+		font-family: inherit;
+		font-size: 13px;
+		direction: rtl;
+	}
+	.torantejarat-ticket-details .reply-form textarea {
+		width: 100%;
+		padding: 12px 16px;
+		border: 1px solid #d5ddd5;
+		border-radius: 8px;
+		font-family: inherit;
+		font-size: 14px;
+		min-height: 120px;
+		direction: rtl;
+		resize: vertical;
+	}
+	.torantejarat-ticket-details .reply-form .button-primary {
+		float: right;
+		padding: 10px 24px;
+		font-size: 14px;
+		font-weight: 700;
+	}
+	.torantejarat-ticket-details .updated,
+	.torantejarat-ticket-details .error {
+		border-radius: 10px;
+		padding: 12px 16px;
+		margin-bottom: 20px;
+		text-align: right;
+		direction: rtl;
+	}
 	</style>
-	<div class="wrap torantejarat-ticket-details">
-		<h1><?php esc_html_e( 'Ticket Details', 'torantejarat' ); ?> #<?php echo esc_html( $ticket_id ); ?></h1>
+<div class="wrap torantejarat-ticket-details">
+	<h1>تیکت #<?php echo esc_html( $ticket_id ); ?></h1>
 
-		<table class="form-table">
-			<tr>
-				<th scope="row"><?php esc_html_e( 'Title', 'torantejarat' ); ?></th>
-				<td><?php echo esc_html( $ticket['title'] ); ?></td>
-			</tr>
-			<tr>
-				<th scope="row"><?php esc_html_e( 'Customer', 'torantejarat' ); ?></th>
-				<td>
-					<?php echo esc_html( $user ? $user->display_name : sprintf( __( 'User #%d', 'torantejarat' ), $ticket['user_id'] ) ); ?>
-					<?php if ( $user ) : ?>
-						(<?php echo esc_html( $user->user_email ); ?>)
-					<?php endif; ?>
-				</td>
-			</tr>
-			<tr>
-				<th scope="row"><?php esc_html_e( 'Order', 'torantejarat' ); ?></th>
-				<td><?php echo $order ? sprintf( '<a href="%s">#%d</a>', esc_url( $order->get_view_order_url() ), $order->get_id() ) : __( '—', 'torantejarat' ); ?></td>
-			</tr>
-			<tr>
-				<th scope="row"><?php esc_html_e( 'Subject', 'torantejarat' ); ?></th>
-				<td><?php echo esc_html( torantejarat_ticket_subjects()[ $ticket['subject_key'] ] ?? $ticket['subject_key'] ); ?></td>
-			</tr>
-			<tr>
-				<th scope="row"><?php esc_html_e( 'Status', 'torantejarat' ); ?></th>
-				<td><span class="ticket-status status-<?php echo esc_attr( $ticket['status'] ); ?>"><?php echo esc_html( $statuses[ $ticket['status'] ] ?? $ticket['status'] ); ?></span></td>
-			</tr>
-			<tr>
-				<th scope="row"><?php esc_html_e( 'Created', 'torantejarat' ); ?></th>
-				<td><?php echo esc_html( mysql2date( 'Y/m/d H:i', $ticket['created_at'] ) ); ?></td>
-			</tr>
-			<tr>
-				<th scope="row"><?php esc_html_e( 'Last Reply', 'torantejarat' ); ?></th>
-				<td><?php echo esc_html( $ticket['last_reply_at'] ? mysql2date( 'Y/m/d H:i', $ticket['last_reply_at'] ) : __( '—', 'torantejarat' ) ) . ' (' . esc_html( $ticket['last_reply_by'] ?? '—' ) . ')'; ?></td>
-			</tr>
-		</table>
+	<div class="ticket-header">
+		<h2><?php echo esc_html( $ticket['title'] ); ?></h2>
+		<div class="ticket-meta">
+			<?php echo esc_html( $statuses[ $ticket['status'] ] ?? $ticket['status'] ); ?>
+			 &nbsp;|&nbsp;
+			<?php echo esc_html( mysql2date( 'Y/m/d H:i', $ticket['created_at'] ) ); ?>
+		</div>
+	</div>
 
-		<h2><?php esc_html_e( 'Conversation', 'torantejarat' ); ?></h2>
+	<div class="info-grid">
+		<div class="info-card">
+			<span class="label"><?php esc_html_e( 'مشتری', 'torantejarat' ); ?></span>
+			<span class="value"><?php echo esc_html( $user ? $user->display_name : sprintf( __( 'کاربر #%d', 'torantejarat' ), $ticket['user_id'] ) ); ?></span>
+			<?php if ( $user ) : ?>
+				<br><span style="font-size:12px;color:#606c68;"><?php echo esc_html( $user->user_email ); ?></span>
+			<?php endif; ?>
+		</div>
+		<div class="info-card">
+			<span class="label"><?php esc_html_e( 'سفارش', 'torantejarat' ); ?></span>
+			<span class="value"><?php echo $order ? sprintf( '<a href="%s">#%d</a>', esc_url( $order->get_view_order_url() ), $order->get_id() ) : __( '—', 'torantejarat' ); ?></span>
+		</div>
+		<div class="info-card">
+			<span class="label"><?php esc_html_e( 'موضوع', 'torantejarat' ); ?></span>
+			<span class="value"><?php echo esc_html( torantejarat_ticket_subjects()[ $ticket['subject_key'] ] ?? $ticket['subject_key'] ); ?></span>
+		</div>
+		<div class="info-card">
+			<span class="label"><?php esc_html_e( 'وضعیت', 'torantejarat' ); ?></span>
+			<span class="ticket-status-badge status-<?php echo esc_attr( $ticket['status'] ); ?>"><?php echo esc_html( $statuses[ $ticket['status'] ] ?? $ticket['status'] ); ?></span>
+		</div>
+	</div>
+
+	<h2><?php esc_html_e( 'گفت‌وگو', 'torantejarat' ); ?></h2>
+	<div class="conversation">
 		<?php if ( $messages ) : ?>
-			<ul>
-				<?php foreach ( $messages as $msg ) : ?>
-					<li class="ticket-message <?php echo $msg['is_staff'] ? 'staff' : 'customer'; ?>">
-						<strong><?php echo $msg['is_staff'] ? esc_html__( 'Support', 'torantejarat' ) : esc_html__( 'Customer', 'torantejarat' ); ?></strong>
-						<span class="ticket-time"><?php echo esc_html( mysql2date( 'Y/m/d H:i', $msg['created_at'] ) ); ?></span>
-						<p><?php echo esc_html( $msg['body'] ); ?></p>
-					</li>
-				<?php endforeach; ?>
-			</ul>
+			<?php foreach ( $messages as $msg ) : ?>
+				<div class="ticket-message <?php echo $msg['is_staff'] ? 'staff' : 'customer'; ?>">
+					<strong><?php echo $msg['is_staff'] ? esc_html__( 'پشتیبانی', 'torantejarat' ) : esc_html__( 'مشتری', 'torantejarat' ); ?></strong>
+					<span class="ticket-time"><?php echo esc_html( mysql2date( 'Y/m/d H:i', $msg['created_at'] ) ); ?></span>
+					<p><?php echo esc_html( $msg['body'] ); ?></p>
+				</div>
+			<?php endforeach; ?>
 		<?php else : ?>
-			<p><?php esc_html_e( 'No messages yet.', 'torantejarat' ); ?></p>
+			<p><?php esc_html_e( 'هنوز پیامی ثبت نشده است.', 'torantejarat' ); ?></p>
 		<?php endif; ?>
+	</div>
 
-		<h2><?php esc_html_e( 'Send Reply', 'torantejarat' ); ?></h2>
+	<div class="reply-form">
+		<h2><?php esc_html_e( 'ارسال پاسخ', 'torantejarat' ); ?></h2>
 		<form method="post" action="">
 			<?php wp_nonce_field( 'torantejarat-ticket-reply', 'torantejarat_ticket_reply_nonce' ); ?>
 			<?php wp_nonce_field( 'torantejarat-ticket-status', 'torantejarat_ticket_status_nonce' ); ?>
 			<table class="form-table">
 				<tr>
-					<th scope="row"><?php esc_html_e( 'New Status', 'torantejarat' ); ?></th>
+					<th scope="row"><?php esc_html_e( 'وضعیت جدید', 'torantejarat' ); ?></th>
 					<td>
 						<select name="new_status">
 							<?php foreach ( $statuses as $key => $label ) : ?>
@@ -940,15 +1180,16 @@ function torantejarat_tickets_admin_details_page( $ticket_id ) {
 					</td>
 				</tr>
 				<tr>
-					<th scope="row"><?php esc_html_e( 'Reply', 'torantejarat' ); ?></th>
+					<th scope="row"><?php esc_html_e( 'متن پاسخ', 'torantejarat' ); ?></th>
 					<td>
-						<textarea name="ticket_reply" rows="5" style="width:100%;" required><?php echo esc_html( isset( $_POST['ticket_reply'] ) ? wp_unslash( $_POST['ticket_reply'] ) : '' ); ?></textarea>
+						<textarea name="ticket_reply" rows="5" required><?php echo esc_html( isset( $_POST['ticket_reply'] ) ? wp_unslash( $_POST['ticket_reply'] ) : '' ); ?></textarea>
 					</td>
 				</tr>
 			</table>
-			<?php submit_button( __( 'Update Status & Send Reply', 'torantejarat' ), 'primary', 'save_ticket', false ); ?>
+			<?php submit_button( __( 'بروزرسانی وضعیت و ارسال پاسخ', 'torantejarat' ), 'primary', 'save_ticket', false ); ?>
 		</form>
 	</div>
+</div>
 	<?php
 }
 
@@ -957,7 +1198,7 @@ function torantejarat_tickets_admin_details_page( $ticket_id ) {
    -------------------------------------------------------------- */
 function torantejarat_tickets_admin_add_page() {
 	if ( ! torantejarat_tickets_user_can_manage() ) {
-		wp_die( __( 'You do not have permission to manage tickets.', 'torantejarat' ) );
+		wp_die( __( 'شما دسترسی به مدیریت تیکت‌ها را ندارید.', 'torantejarat' ) );
 	}
 
 	if ( isset( $_POST['torantejarat_ticket_create_nonce'] ) && wp_verify_nonce( sanitize_key( wp_unslash( $_POST['torantejarat_ticket_create_nonce'] ) ), 'torantejarat-ticket-create' ) ) {
@@ -971,7 +1212,7 @@ function torantejarat_tickets_admin_add_page() {
 		if ( is_wp_error( $result ) ) {
 			echo '<div class="error"><p>' . esc_html( $result->get_error_message() ) . '</p></div>';
 		} else {
-			echo '<div class="updated"><p>' . esc_html__( 'Ticket created successfully.', 'torantejarat' ) . '</p></div>';
+			echo '<div class="updated"><p>' . esc_html__( 'تیکت با موفقیت ایجاد شد.', 'torantejarat' ) . '</p></div>';
 			wp_safe_redirect( admin_url( 'admin.php?page=torantejarat-tickets&view=details&id=' . $result ) );
 			exit;
 		}
@@ -980,46 +1221,105 @@ function torantejarat_tickets_admin_add_page() {
 	$users = get_users( array( 'role__in' => array( 'administrator', 'customer', 'shop_manager' ), 'fields' => array( 'ID', 'display_name', 'user_email' ) ) );
 	$subjects = torantejarat_ticket_subjects();
 	?>
-	<div class="wrap">
-		<h1><?php esc_html_e( 'Add New Ticket', 'torantejarat' ); ?></h1>
-		<form method="post" action="">
-			<?php wp_nonce_field( 'torantejarat-ticket-create', 'torantejarat_ticket_create_nonce' ); ?>
-			<table class="form-table">
-				<tr>
-					<th scope="row"><?php esc_html_e( 'Customer', 'torantejarat' ); ?></th>
-					<td>
-						<select name="user_id" required>
-							<?php foreach ( $users as $u ) : ?>
-								<option value="<?php echo esc_attr( $u->ID ); ?>"><?php echo esc_html( $u->display_name ) . ' (' . esc_html( $u->user_email ) . ')'; ?></option>
-							<?php endforeach; ?>
-						</select>
-					</td>
-				</tr>
-				<tr>
-					<th scope="row"><?php esc_html_e( 'Subject', 'torantejarat' ); ?></th>
-					<td>
-						<select name="subject_key">
-							<?php foreach ( $subjects as $key => $label ) : ?>
-								<option value="<?php echo esc_attr( $key ); ?>"><?php echo esc_html( $label ); ?></option>
-							<?php endforeach; ?>
-						</select>
-					</td>
-				</tr>
-				<tr>
-					<th scope="row"><?php esc_html_e( 'Title', 'torantejarat' ); ?></th>
-					<td><input type="text" name="title" required maxlength="150" style="width:100%;"></td>
-				</tr>
-				<tr>
-					<th scope="row"><?php esc_html_e( 'Order ID (optional)', 'torantejarat' ); ?></th>
-					<td><input type="number" name="order_id" min="0" value="0"></td>
-				</tr>
-				<tr>
-					<th scope="row"><?php esc_html_e( 'Message', 'torantejarat' ); ?></th>
-					<td><textarea name="body" rows="5" required style="width:100%;"></textarea></td>
-				</tr>
-			</table>
-			<?php submit_button( __( 'Create Ticket', 'torantejarat' ), 'primary', 'create_ticket', false ); ?>
-		</form>
-	</div>
+	<style>
+	.torantejarat-tickets-add {
+		direction: rtl;
+		text-align: right;
+		font-family: Vazirmatn, Tahoma, Arial, sans-serif;
+		max-width: 700px;
+		margin: 0 auto;
+		padding: 24px;
+	}
+	.torantejarat-tickets-add .wrap > h1,
+	.torantejarat-tickets-add h1 {
+		text-align: right;
+		font-size: 28px;
+		color: #172325;
+		margin-bottom: 24px;
+	}
+	.torantejarat-tickets-add form {
+		background: #fff;
+		border: 1px solid #e2e5df;
+		border-radius: 16px;
+		padding: 30px;
+		box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+	}
+	.torantejarat-tickets-add .form-table {
+		width: 100%;
+		border-collapse: separate;
+		border-spacing: 0;
+	}
+	.torantejarat-tickets-add .form-table th,
+	.torantejarat-tickets-add .form-table td {
+		text-align: right;
+		padding: 16px 0;
+		border-bottom: 1px solid #f2f3ef;
+	}
+	.torantejarat-tickets-add .form-table th {
+		font-weight: 800;
+		color: #172325;
+		font-size: 14px;
+		width: 150px;
+	}
+	.torantejarat-tickets-add .form-table select,
+	.torantejarat-tickets-add .form-table input[type="text"],
+	.torantejarat-tickets-add .form-table input[type="number"],
+	.torantejarat-tickets-add .form-table textarea {
+		width: 100%;
+		padding: 10px 14px;
+		border: 1px solid #d5ddd5;
+		border-radius: 8px;
+		font-family: inherit;
+		font-size: 13px;
+		direction: rtl;
+	}
+	.torantejarat-tickets-add .button-primary {
+		float: right;
+		padding: 10px 24px;
+		font-size: 14px;
+		font-weight: 700;
+	}
+	</style>
+<div class="wrap torantejarat-tickets-add">
+	<h1><?php esc_html_e( 'ثبت تیکت جدید', 'torantejarat' ); ?></h1>
+	<form method="post" action="">
+		<?php wp_nonce_field( 'torantejarat-ticket-create', 'torantejarat_ticket_create_nonce' ); ?>
+		<table class="form-table">
+			<tr>
+				<th scope="row"><?php esc_html_e( 'مشتری', 'torantejarat' ); ?></th>
+				<td>
+					<select name="user_id" required>
+						<?php foreach ( $users as $u ) : ?>
+							<option value="<?php echo esc_attr( $u->ID ); ?>"><?php echo esc_html( $u->display_name ) . ' (' . esc_html( $u->user_email ) . ')'; ?></option>
+						<?php endforeach; ?>
+					</select>
+				</td>
+			</tr>
+			<tr>
+				<th scope="row"><?php esc_html_e( 'موضوع', 'torantejarat' ); ?></th>
+				<td>
+					<select name="subject_key">
+						<?php foreach ( $subjects as $key => $label ) : ?>
+							<option value="<?php echo esc_attr( $key ); ?>"><?php echo esc_html( $label ); ?></option>
+						<?php endforeach; ?>
+					</select>
+				</td>
+			</tr>
+			<tr>
+				<th scope="row"><?php esc_html_e( 'عنوان تیکت', 'torantejarat' ); ?></th>
+				<td><input type="text" name="title" required maxlength="150" style="width:100%;"></td>
+			</tr>
+			<tr>
+				<th scope="row"><?php esc_html_e( 'شماره سفارش (اختیاری)', 'torantejarat' ); ?></th>
+				<td><input type="number" name="order_id" min="0" value="0"></td>
+			</tr>
+			<tr>
+				<th scope="row"><?php esc_html_e( 'متن پیام', 'torantejarat' ); ?></th>
+				<td><textarea name="body" rows="5" required style="width:100%;"></textarea></td>
+			</tr>
+		</table>
+		<?php submit_button( __( 'ایجاد تیکت', 'torantejarat' ), 'primary', 'create_ticket', false ); ?>
+	</form>
+</div>
 	<?php
 }
