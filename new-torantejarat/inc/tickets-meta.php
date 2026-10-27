@@ -87,7 +87,7 @@ function torantejarat_tickets_meta_maybe_create_tables() {
 
 	update_option( 'torantejarat_tickets_meta_db_version', torantejarat_tickets_meta_schema_version() );
 }
-add_action( 'init', __NAMESPACE__ . '\\\\torantejarat_tickets_meta_maybe_create_tables', 12 );
+add_action( 'init', __NAMESPACE__ . '\\torantejarat_tickets_meta_maybe_create_tables', 12 );
 
 /* --------------------------------------------------------------
    Meta CRUD
