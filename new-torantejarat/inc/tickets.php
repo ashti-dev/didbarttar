@@ -354,7 +354,11 @@ function torantejarat_tickets_get_all( $status = '', $search = '' ) {
 
 	$sql .= " ORDER BY updated_at DESC, created_at DESC";
 
-	return $wpdb->get_results( $wpdb->prepare( $sql, $params ), ARRAY_A );
+	if ( $params ) {
+		return $wpdb->get_results( $wpdb->prepare( $sql, $params ), ARRAY_A );
+	}
+
+	return $wpdb->get_results( $sql, ARRAY_A );
 }
 
 /**
