@@ -433,7 +433,7 @@ function torantejarat_tickets_set_status( $ticket_id, $status, $user_id ) {
 	$ticket = (array) $ticket;
 
 	// Owners can only close/reopen their own tickets; staff can change any
-	if ( ! torantejarat_tickets_user_can_manage() && $ticket['user_id'] !== $user_id ) {
+	if ( ! torantejarat_tickets_user_can_manage() && (int) $ticket['user_id'] !== $user_id ) {
 		return new \WP_Error( 'forbidden', __( 'You cannot modify this ticket.', 'torantejarat' ) );
 	}
 
