@@ -692,6 +692,34 @@ function torantejarat_tickets_handle_delete_frontend() {
 	exit;
 }
 
+/* --------------------------------------------------------------
+   Admin: delete all tickets (bulk, destructive)
+   -------------------------------------------------------------- */
+function torantejarat_tickets_handle_admin_delete_all() {
+	if ( ! torantejarat_tickets_user_can_manage() ) {
+		wp_die( __( 'شما دسترسی به مدیریت تیکت‌ها را ندارید.', 'torantejarat' ) );
+	}
+
+	if ( ! isset( $_POST['torantejarat_ticket_delete_all_nonce'] ) || ! wp_verify_nonce( sanitize_key( wp_unslash( $_POST['torantejarat_ticket_delete_all_nonce'] ) ), 'torantejarat-ticket-delete-all' ) ) {
+		wp_safe_redirect( add_query_arg( 'ticket_error', 'nonce', admin_url( 'admin.php?page=torantejarat-tickets' ) ) );
+		exit;
+	}
+
+	global $wpdb;
+	$ticket_table  = torantejarat_tickets_get_table();
+	$message_table = torantejarat_tickets_messages_table();
+
+	$count = (int) $wpdb->get_var( "SELECT COUNT(*) FROM $ticket_table" );
+
+	// حذف پیام‌های تیکت‌ها ابتدا
+	$wpdb->query( "DELETE FROM $message_table" );
+	// حذف همه تیکت‌ها
+	$wpdb->query( "DELETE FROM $ticket_table" );
+
+	wp_safe_redirect( add_query_arg( 'ticket_deleted_all', $count, admin_url( 'admin.php?page=torantejarat-tickets' ) ) );
+	exit;
+}
+
 add_action( 'init', __NAMESPACE__ . '\\torantejarat_tickets_setup_capability', 10 );
 
 /* --------------------------------------------------------------
@@ -923,6 +951,18 @@ function torantejarat_tickets_admin_page() {
 	.torantejarat-tickets-admin .button {
 		float: right;
 	}
+	.torantejarat-tickets-admin .button-danger {
+		background: #dc2626;
+		color: #fff;
+		border: none;
+	}
+	.torantejarat-tickets-admin .button-danger:hover {
+		background: #b91c1c;
+	}
+	.torantejarat-tickets-admin .delete-all-form {
+		display: inline-block;
+		margin-bottom: 20px;
+	}
 	.torantejarat-tickets-admin label {
 		display: block;
 		text-align: right;
@@ -967,14 +1007,24 @@ function torantejarat_tickets_admin_page() {
 <div class="wrap torantejarat-tickets-admin">
 	<h1><?php esc_html_e( 'پشتیبانی تیکت', 'torantejarat' ); ?></h1>
 
-	<?php if ( ! empty( $_GET['ticket_sent'] ) ) : ?>
+	<?php if ( ! empty( $_GET['ticket_deleted_all'] ) ) : ?>
+<div class="updated notice is-dismissible"><p><?php echo sprintf( _n( '%d تیکت با موفقیت حذف شد.', '%d تیکت با موفقیت حذف شد.', (int) $_GET['ticket_deleted_all'], 'torantejarat' ), (int) $_GET['ticket_deleted_all'] ); ?></p></div>
+<?php endif; ?>
+<?php if ( ! empty( $_GET['ticket_sent'] ) ) : ?>
 	<div class="updated notice is-dismissible"><p><?php esc_html_e( 'تیکت با موفقیت ثبت شد.', 'torantejarat' ); ?></p></div>
 	<?php endif; ?>
 	<?php if ( ! empty( $_GET['ticket_error'] ) ) : ?>
 	<div class="error notice is-dismissible"><p><?php echo esc_html( $_GET['ticket_error'] === 'forbidden' ? __( 'شما دسترسی به این تیکت را ندارید.', 'torantejarat' ) : __( 'تیکت یافت نشد.', 'torantejarat' ) ); ?></p></div>
-	<?php endif; ?>
+<?php endif; ?>
 
-	<form method="get" action="" class="filter-form">
+<?php if ( $tickets ) : ?>
+<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="delete-all-form" onsubmit="return confirm( 'آیا مطمئن هستید که همه تیکت‌ها و پیام‌های آن‌ها به طور دائم حذف شوند؟ این عمل غیرقابل بازگشت است.' );">
+	<input type="hidden" name="action" value="torantejarat_ticket_delete_all_admin">
+	<?php wp_nonce_field( 'torantejarat-ticket-delete-all', 'torantejarat_ticket_delete_all_nonce' ); ?>
+	<button type="submit" class="button button-danger delete-all-btn"><?php esc_html_e( 'حذف همه تیکت‌ها', 'torantejarat' ); ?></button>
+</form>
+<?php endif; ?>
+<form method="get" action="" class="filter-form">
 		<input type="hidden" name="page" value="torantejarat-tickets">
 		<div style="min-width: 150px;">
 			<label for="status"><?php esc_html_e( 'وضعیت', 'torantejarat' ); ?></label>
