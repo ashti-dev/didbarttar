@@ -76,7 +76,7 @@ $torantejarat_ticket_error_msg = $torantejarat_ticket_error_messages[ $ticket_er
 	font-weight: 800;
 	padding: 4px 10px;
 	border-radius: 20px;
-	margin-right: 8px;
+	margin-left: 8px;
 }
 .torantejarat-tickets-list li .ticket-badge.open { background: #fef3f2; color: #b42318; }
 .torantejarat-tickets-list li .ticket-badge.closed { background: #eef4fa; color: #36567a; }
@@ -109,16 +109,19 @@ $torantejarat_ticket_error_msg = $torantejarat_ticket_error_messages[ $ticket_er
 .torantejarat-tickets-form textarea {
 	width: 100%;
 	padding: 10px 14px;
+	padding-inline-end: 36px;
 	border: 1px solid #dce1db;
 	border-radius: 10px;
 	font-size: 14px;
 	font-family: inherit;
 	box-sizing: border-box;
 	direction: rtl;
+	text-align: right;
 }
 .torantejarat-tickets-form textarea {
 	min-height: 100px;
 	resize: vertical;
+	text-align: right;
 }
 .torantejarat-tickets-form .acp-full { grid-column: 1 / -1; }
 .torantejarat-tickets-form button {
@@ -238,8 +241,8 @@ $torantejarat_ticket_error_msg = $torantejarat_ticket_error_messages[ $ticket_er
 	padding: 10px 14px;
 	border-radius: 10px;
 }
-.ticket-message.customer { background: #eef4fa; border-left: 4px solid #36567a; }
-.ticket-message.staff { background: #eff9f2; border-left: 4px solid #247348; }
+.ticket-message.customer { background: #eef4fa; border-right: 4px solid #36567a; }
+.ticket-message.staff { background: #eff9f2; border-right: 4px solid #247348; }
 .ticket-message strong {
 	display: block;
 	font-size: 12px;
@@ -344,7 +347,7 @@ $torantejarat_ticket_error_msg = $torantejarat_ticket_error_messages[ $ticket_er
 					</div>
 					<?php endif; ?>
 					<?php if ( $ticket_st === 'open' || $ticket_st === 'awaiting_customer' || $ticket_st === 'awaiting_support' ) : ?>
-					<div class="ticket-delete-form" style="margin-left:8px;">
+					<div class="ticket-delete-form" style="margin-right:8px;">
 						<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" onsubmit="return confirm( '<?php esc_attr_e( 'آیا مطمئن هستید می‌خواهید این تیکت را حذف کنید؟ این عمل غیرقابل‌بازگشت است.', 'torantejarat' ); ?>' );">
 							<?php wp_nonce_field( 'torantejarat-ticket-delete', 'torantejarat_ticket_delete_nonce' ); ?>
 							<input type="hidden" name="ticket_id" value="<?php echo esc_attr( $ticket_id ); ?>">
