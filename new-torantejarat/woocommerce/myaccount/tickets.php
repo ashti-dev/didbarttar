@@ -392,6 +392,7 @@ $torantejarat_ticket_error_msg = $torantejarat_ticket_error_messages[ $ticket_er
 			<select id="acp-tk-order" name="order_id">
 				<option value="0"><?php esc_html_e( 'بدون سفارش', 'torantejarat' ); ?></option>
 				<?php
+				$default_order_id = isset( $_GET['order_id'] ) ? absint( $_GET['order_id'] ) : 0;
 				$orders = wc_get_orders(
 					array(
 						'customer_id' => $user_id,
@@ -401,8 +402,10 @@ $torantejarat_ticket_error_msg = $torantejarat_ticket_error_messages[ $ticket_er
 						'return'      => 'ids',
 					)
 				);
-				foreach ( $orders as $oid ) : ?>
-				<option value="<?php echo esc_attr( $oid ); ?>"><?php printf( esc_html__( '#%s', 'torantejarat' ), esc_html( $oid ) ); ?></option>
+				foreach ( $orders as $oid ) :
+					$selected = selected( $default_order_id, $oid, false );
+				?>
+				<option value="<?php echo esc_attr( $oid ); ?>"<?php echo $selected; ?>><?php printf( esc_html__( '#%s', 'torantejarat' ), esc_html( $oid ) ); ?></option>
 				<?php endforeach; ?>
 			</select>
 		</div>

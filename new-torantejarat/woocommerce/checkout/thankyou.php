@@ -343,6 +343,35 @@ remove_action( 'woocommerce_thankyou', 'woocommerce_order_details_table', 10 );
 </div>
 
 <?php
+/* ---------- Quick ticket for this order ---------- */
+/* بخش ثبت تیکت سریع برای سفارش فعلی — کاربر بتواند مستقیماً از رسید خرید تیکت پشتیبانی مرتبطة با همین سفارش ثبت کند. */
+$ticket_url = wc_get_account_endpoint_url( 'tickets' );
+$ticket_url = add_query_arg( 'order_id', $order->get_id(), $ticket_url );
+?>
+<div class="torantejarat-thx torantejarat-thx--ticket-quick">
+	<section class="torantejarat-thx__card torantejarat-thx__ticket-quick">
+		<div class="torantejarat-thx__section-head">
+			<div>
+				<span class="torantejarat-thx__kicker"><?php esc_html_e( 'پشتیبانی سفارش', 'torantejarat' ); ?></span>
+				<h2><?php esc_html_e( 'سوال درباره این سفارش دارید؟', 'torantejarat' ); ?></h2>
+			</div>
+		</div>
+		<p class="torantejarat-thx__sub">
+			<?php
+			printf(
+				/* translators: %s: order number */
+				esc_html__( 'اگر مشکلی در سفارش شماره %s دارید، می‌توانید مستقیماً تیکت پشتیبانی ثبت کنید.', 'torantejarat' ),
+				'<strong>#' . esc_html( torantejarat_fa_number( $order->get_order_number() ) ) . '</strong>'
+			);
+			?>
+		</p>
+		<a class="torantejarat-btn torantejarat-btn-primary torantejarat-btn-block" href="<?php echo esc_url( $ticket_url ); ?>">
+			<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align: middle; margin-inline-end: 6px;"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+			<?php esc_html_e( 'ثبت تیکت برای این سفارش', 'torantejarat' ); ?>
+		</a>
+	</section>
+</div>
+<?php
 /* ---------- Print-only formal invoice (window.print shows only this) ---------- */
 $inv_state_name = $order->get_billing_state();
 if ( function_exists( 'WC' ) && WC()->countries ) {
