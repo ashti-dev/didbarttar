@@ -667,6 +667,12 @@ function torantejarat_tickets_handle_delete_frontend() {
 		exit;
 	}
 
+	// فقط تیکت‌های بسته (closed) توسط کاربر قابل حذف هستند
+	if ( $ticket['status'] !== 'closed' ) {
+		wp_safe_redirect( add_query_arg( 'ticket_error', 'not_closed', wc_get_account_endpoint_url( 'tickets' ) ) );
+		exit;
+	}
+
 	global $wpdb;
 	// Delete messages first
 	$wpdb->delete(

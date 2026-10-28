@@ -29,6 +29,7 @@ $torantejarat_ticket_error_messages = array(
 	'rate_limit_seconds'=> __( 'لطفاً حداقل ۶۰ ثانیه قبل از ارسال تیکت دیگر صبر کنید.', 'torantejarat' ),
 	'forbidden'       => __( 'شما دسترسی به این تیکت را ندارید.', 'torantejarat' ),
 	'db_error'        => __( 'خطا در ذخیره تیکت.', 'torantejarat' ),
+	'not_closed'      => __( 'فقط تیکت‌های بسته قابل حذف هستند.', 'torantejarat' ),
 );
 $torantejarat_ticket_error_msg = $torantejarat_ticket_error_messages[ $ticket_error ] ?? esc_html( ucfirst( str_replace( '_', ' ', $ticket_error ) ) );
 ?>
@@ -363,8 +364,8 @@ $torantejarat_ticket_error_msg = $torantejarat_ticket_error_messages[ $ticket_er
 						</form>
 					</div>
 					<?php endif; ?>
-					<?php if ( $ticket_st === 'open' || $ticket_st === 'awaiting_customer' || $ticket_st === 'awaiting_support' ) : ?>
-					<div class="ticket-delete-form" style="margin-right:8px;">
+		<?php if ( $ticket_st === 'closed' ) : ?>
+			<div class="ticket-delete-form" style="margin-right:8px;">
 						<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" onsubmit="return confirm( '<?php esc_attr_e( 'آیا مطمئن هستید می‌خواهید این تیکت را حذف کنید؟ این عمل غیرقابل‌بازگشت است.', 'torantejarat' ); ?>' );">
 							<?php wp_nonce_field( 'torantejarat-ticket-delete', 'torantejarat_ticket_delete_nonce' ); ?>
 							<input type="hidden" name="ticket_id" value="<?php echo esc_attr( $ticket_id ); ?>">
