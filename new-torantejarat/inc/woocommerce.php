@@ -1497,6 +1497,8 @@ function torantejarat_checkout_fields( $fields ) {
 		'billing_address_1'  => array( 'label' => __( 'آدرس خیابان', 'torantejarat' ), 'placeholder' => __( 'نام خیابان، پلاک و واحد', 'torantejarat' ), 'priority' => 50, 'autocomplete' => 'street-address', 'class' => array( 'form-row-wide' ) ),
 		'billing_postcode'   => array( 'label' => __( 'کد پستی', 'torantejarat' ), 'placeholder' => __( 'کد پستی ۱۰ رقمی', 'torantejarat' ), 'priority' => 60, 'autocomplete' => 'postal-code', 'class' => array( 'form-row-first' ), 'custom_attributes' => array( 'dir' => 'ltr', 'inputmode' => 'numeric' ) ),
 		'billing_phone'      => array( 'label' => __( 'تلفن همراه', 'torantejarat' ), 'placeholder' => '09123456789', 'priority' => 70, 'autocomplete' => 'tel', 'class' => array( 'form-row-last' ), 'custom_attributes' => array( 'dir' => 'ltr' ) ),
+		// WooCommerce uses this field for order emails and checkout account creation.
+		'billing_email'      => array( 'label' => __( 'ایمیل', 'torantejarat' ), 'placeholder' => 'name@example.com', 'priority' => 80, 'autocomplete' => 'email', 'class' => array( 'form-row-wide' ), 'custom_attributes' => array( 'dir' => 'ltr', 'inputmode' => 'email' ) ),
 	);
 	$billing = array();
 	foreach ( $keep as $key => $overrides ) {
@@ -1962,6 +1964,54 @@ function torantejarat_receipt_actions() {
 }
 
 /**
+ * Build an honest payment/fulfilment badge without treating every status as paid.
+ * A custom shipped status is not necessarily paid; a previous payment date is.
+ *
+ * @param \WC_Order $order Order object.
+ * @return array{label:string,state:string}
+ */
+function torantejarat_order_status_badge( $order ) {
+	$status       = $order->get_status();
+	$method       = $order->get_payment_method();
+	$is_cod       = 'cod' === $method;
+	$has_payment  = ! $is_cod && ( $order->is_paid() || (bool) $order->get_date_paid() );
+	$label        = __( 'در انتظار پرداخت', 'torantejarat' );
+	$state        = 'pending';
+
+	if ( in_array( $status, array( 'failed', 'cancelled', 'refunded' ), true ) ) {
+		$label = 'failed' === $status ? __( 'پرداخت ناموفق', 'torantejarat' ) : wc_get_order_status_name( $status );
+		$state = 'failed';
+	} elseif ( 'shipped' === $status ) {
+		$label = $is_cod ? __( 'ارسال شد — پرداخت هنگام تحویل', 'torantejarat' ) : ( $has_payment ? __( 'پرداخت شد — ارسال شد', 'torantejarat' ) : __( 'ارسال شد', 'torantejarat' ) );
+		$state = 'shipped';
+	} elseif ( 'completed' === $status ) {
+		$label = $is_cod ? __( 'تحویل شد — پرداخت هنگام تحویل', 'torantejarat' ) : ( $has_payment ? __( 'پرداخت شد — تحویل شد', 'torantejarat' ) : __( 'تحویل شد', 'torantejarat' ) );
+		$state = 'shipped';
+	} elseif ( 'processing' === $status ) {
+		$label = $is_cod ? __( 'در حال آماده‌سازی — پرداخت هنگام تحویل', 'torantejarat' ) : ( $has_payment ? __( 'پرداخت شد — در حال آماده‌سازی', 'torantejarat' ) : __( 'در حال آماده‌سازی', 'torantejarat' ) );
+		$state = $has_payment ? 'paid' : 'pending';
+	} elseif ( 'on-hold' === $status ) {
+		if ( $is_cod ) {
+			$label = __( 'پرداخت هنگام تحویل', 'torantejarat' );
+		} elseif ( $has_payment ) {
+			$label = __( 'پرداخت شد — در انتظار بررسی', 'torantejarat' );
+			$state = 'paid';
+		} elseif ( 'bacs' === $method ) {
+			$label = __( 'در انتظار پرداخت', 'torantejarat' );
+		} else {
+			$label = __( 'در انتظار بررسی', 'torantejarat' );
+		}
+	} elseif ( $is_cod ) {
+		$label = __( 'پرداخت هنگام تحویل', 'torantejarat' );
+	} elseif ( $has_payment ) {
+		$label = __( 'پرداخت شد', 'torantejarat' );
+		$state = 'paid';
+	}
+
+	return array( 'label' => $label, 'state' => $state );
+}
+
+/**
  * Professional invoice header — order-pay (object), thankyou + view-order (ID).
  * Hooks only; no Woo template override. Native Woo data, HPOS-safe.
  *
@@ -1972,17 +2022,7 @@ function torantejarat_invoice_header( $maybe_order = 0 ) {
 	if ( ! $order instanceof \WC_Order ) {
 		return;
 	}
-	$status = $order->get_status();
-	$badge  = array( 'label' => __( 'در انتظار پرداخت', 'torantejarat' ), 'class' => 'is-pending' );
-	if ( 'failed' === $status ) {
-		$badge = array( 'label' => __( 'پرداخت ناموفق', 'torantejarat' ), 'class' => 'is-failed' );
-	} elseif ( in_array( $status, array( 'processing', 'on-hold' ), true ) ) {
-		$badge = array( 'label' => __( 'پرداخت شد — در حال آماده‌سازی', 'torantejarat' ), 'class' => 'is-paid' );
-	} elseif ( in_array( $status, array( 'shipped', 'completed' ), true ) ) {
-		$badge = array( 'label' => __( 'ارسال شد', 'torantejarat' ), 'class' => 'is-shipped' );
-	} elseif ( in_array( $status, array( 'cancelled', 'refunded' ), true ) ) {
-		$badge = array( 'label' => wc_get_order_status_name( $status ), 'class' => 'is-failed' );
-	}
+	$badge   = torantejarat_order_status_badge( $order );
 	$created = $order->get_date_created();
 	$date    = $created ? torantejarat_jalali_ymd( $created->date( 'Y' ), $created->date( 'n' ), $created->date( 'j' ) ) : __( '—', 'torantejarat' );
 	$name    = trim( $order->get_billing_first_name() . ' ' . $order->get_billing_last_name() );
@@ -2008,7 +2048,7 @@ function torantejarat_invoice_header( $maybe_order = 0 ) {
 				<strong class="torantejarat-invoice-brand"><?php esc_html_e( 'بلکوکم', 'torantejarat' ); ?></strong>
 				<span class="torantejarat-invoice-sub"><?php esc_html_e( 'فاکتور سفارش', 'torantejarat' ); ?></span>
 			</div>
-			<span class="torantejarat-invoice-badge <?php echo esc_attr( $badge['class'] ); ?>"><?php echo esc_html( $badge['label'] ); ?></span>
+			<span class="torantejarat-invoice-badge is-<?php echo esc_attr( $badge['state'] ); ?>"><?php echo esc_html( $badge['label'] ); ?></span>
 		</div>
 		<dl class="torantejarat-invoice-meta">
 			<div><dt><?php esc_html_e( 'شماره سفارش', 'torantejarat' ); ?></dt><dd><?php echo esc_html( torantejarat_fa_number( $order->get_order_number() ) ); ?></dd></div>

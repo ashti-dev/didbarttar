@@ -72,7 +72,9 @@
 
 	function highlight( index ) {
 		Array.prototype.forEach.call( list.children, function ( li, i ) {
-			li.classList.toggle( 'is-active', i === index );
+			var selected = i === index;
+			li.classList.toggle( 'is-active', selected );
+			li.setAttribute( 'aria-selected', selected ? 'true' : 'false' );
 		} );
 		active = index;
 		if ( index >= 0 && list.children[ index ] ) {

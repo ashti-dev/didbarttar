@@ -22,13 +22,6 @@
 		}, 2600 );
 	}
 
-	document.addEventListener( 'click', function ( e ) {
-		var t = e.target.closest( '[data-toast]' );
-		if ( t ) {
-			toast( t.dataset.toast );
-		}
-	} );
-
 	/* ---------- More sheet ---------- */
 	var sheet = document.getElementById( 'acp-sheet' );
 	var scrim = document.querySelector( '.acp-scrim' );
@@ -93,10 +86,10 @@
 		if ( confirmYes ) {
 			if ( href ) {
 				confirmYes.setAttribute( 'href', href );
-				confirmYes.style.display = '';
 			} else {
-				confirmYes.style.display = 'none';
+				confirmYes.removeAttribute( 'href' );
 			}
+			confirmYes.style.display = ( href || typeof onYes === 'function' ) ? '' : 'none';
 		}
 		confirmCb = ( typeof onYes === 'function' ) ? onYes : null;
 		closeSheet();
@@ -227,55 +220,61 @@
 		loadTab( window.location.href, false );
 	} );
 
-	/* ---------- Wishlist remove (REST) ---------- */
-	document.addEventListener( 'click', function ( e ) {
-		var btn = e.target.closest( '[data-remove-wish]' );
-		if ( ! btn || ! window.torantejaratAccount ) {
-			return;
-		}
-		if ( ! btn.dataset.confirmed ) {
-			e.preventDefault();
-			btn.dataset.confirmed = '1';
-			openConfirm(
-				'حذف از علاقه‌مندی‌ها',
-			 'این محصول برای همیشه از فهرست علاقه‌مندی‌های شما حذف می‌شود.',
-				function () {
-					delete btn.dataset.confirmed;
-					btn.click();
-				}
-			);
-			return;
-		}
-		delete btn.dataset.confirmed;
+	/* ---------- Wishlist remove (REST + native form fallback) ---------- */
+	function removeWishlistItem( btn ) {
 		btn.disabled = true;
 		var body = new URLSearchParams();
-		body.append( 'product_id', btn.dataset.removeWish || '' );
-		body.append( 'nonce', window.torantejaratAccount.nonce );
+		body.set( 'product_id', btn.dataset.removeWish || '' );
 		fetch( window.torantejaratAccount.restToggle, {
 			method: 'POST',
-			headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+			credentials: 'same-origin',
+			headers: {
+				'Content-Type': 'application/x-www-form-urlencoded',
+				'X-WP-Nonce': window.torantejaratAccount.restNonce
+			},
 			body: body.toString()
-		} ).then( function ( res ) {
-			return res.json();
+		} ).then( function ( response ) {
+			return response.json().then( function ( data ) {
+				if ( ! response.ok ) {
+					throw new Error( 'request' );
+				}
+				return data;
+			} );
 		} ).then( function ( data ) {
-			if ( data && data.wishlisted === false ) {
-				var card = btn.closest( '.acp-wish' );
-				if ( card ) {
-					card.remove();
+			if ( ! data || data.wishlisted !== false ) {
+				throw new Error( 'response' );
+			}
+			var card = btn.closest( '.acp-wish' );
+			if ( card ) {
+				card.remove();
+			}
+			toast( 'از علاقه‌مندی‌ها حذف شد.' );
+			if ( ! document.querySelector( '#wish-grid .acp-wish' ) ) {
+				var empty = document.getElementById( 'wish-empty' );
+				if ( empty ) {
+					empty.hidden = false;
 				}
-				toast( 'از علاقه‌مندی‌ها حذف شد.' );
-				if ( ! document.querySelector( '#wish-grid .acp-wish' ) ) {
-					var empty = document.getElementById( 'wish-empty' );
-					if ( empty ) {
-						empty.hidden = false;
-					}
-				}
-			} else {
-				btn.disabled = false;
 			}
 		} ).catch( function () {
 			btn.disabled = false;
+			toast( 'حذف انجام نشد. دوباره تلاش کنید.' );
 		} );
+	}
+
+	document.addEventListener( 'click', function ( e ) {
+		var btn = e.target.closest( '[data-remove-wish]' );
+		if ( ! btn || ! confirmBox || ! window.torantejaratAccount || ! window.torantejaratAccount.restNonce ) {
+			return;
+		}
+		e.preventDefault();
+		openConfirm(
+			'حذف از علاقه‌مندی‌ها',
+			'این محصول از فهرست علاقه‌مندی‌های شما حذف می‌شود.',
+			null,
+			function () {
+				removeWishlistItem( btn );
+			}
+		);
 	} );
 
 	/* ---------- Toggle ticket threads ---------- */
@@ -309,18 +308,4 @@
 			}
 		} );
 	}
-
-	/* ---------- Add to cart (visual feedback) ---------- */
-	document.addEventListener( 'click', function ( e ) {
-		var btn = e.target.closest( '[data-add-cart]' );
-		if ( ! btn ) {
-			return;
-		}
-		btn.textContent = '✔ افزوده شد';
-		btn.disabled = true;
-		setTimeout( function () {
-			btn.textContent = 'افزودن به سبد';
-			btn.disabled = false;
-		}, 1600 );
-	} );
 } )();

@@ -21,11 +21,11 @@ if ( ! $torantejarat_products ) { return; }
 <section class="torantejarat-section torantejarat-soft-section torantejarat-product-slider-section"><div class="torantejarat-container woocommerce">
 	<div class="torantejarat-section-heading">
 		<div>
-			<span class="torantejarat-eyebrow"><?php esc_html_e( 'منتخب خریداران', 'torantejarat' ); ?></span>
-			<h2><?php esc_html_e( 'دستگاه‌هایی که بیشتر می‌خرند', 'torantejarat' ); ?></h2>
-			<p><?php esc_html_e( 'قیمت و مشخصات کلیدی همه مدل‌ها در یک نگاه — کنار هم مقایسه کنید.', 'torantejarat' ); ?></p>
+<span class="torantejarat-eyebrow"><?php esc_html_e( 'پیشنهاد بلکوکم', 'torantejarat' ); ?></span>
+		<h2><?php esc_html_e( 'دوربین‌های منتخب', 'torantejarat' ); ?></h2>
+		<p><?php esc_html_e( 'مدل‌ها را ببینید، مشخصات فنی و قیمت‌ها را مقایسه کنید.', 'torantejarat' ); ?></p>
 		</div>
-		<?php if ( wc_get_page_id( 'shop' ) > 0 ) : ?><a class="torantejarat-text-link" href="<?php echo esc_url( wc_get_page_permalink( 'shop' ) ); ?>"><?php esc_html_e( 'همه دستگاه‌ها', 'torantejarat' ); ?> <?php torantejarat_icon( 'arrow' ); ?></a><?php endif; ?>
+		<?php if ( wc_get_page_id( 'shop' ) > 0 ) : ?><a class="torantejarat-text-link" href="<?php echo esc_url( wc_get_page_permalink( 'shop' ) ); ?>"><?php esc_html_e( 'مشاهده همه دوربین‌ها', 'torantejarat' ); ?> <?php torantejarat_icon( 'arrow' ); ?></a><?php endif; ?>
 	</div>
 	<div class="product-slider-wrap"
 		data-slider
