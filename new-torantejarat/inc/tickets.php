@@ -692,16 +692,22 @@ function torantejarat_tickets_handle_delete_frontend() {
 	exit;
 }
 
+
 /* --------------------------------------------------------------
-   Admin: delete all tickets (bulk, destructive)
+   Admin: delete selected tickets (bulk, destructive)
    -------------------------------------------------------------- */
-function torantejarat_tickets_handle_admin_delete_all() {
+function torantejarat_tickets_handle_admin_delete_selected() {
 	if ( ! torantejarat_tickets_user_can_manage() ) {
 		wp_die( __( 'شما دسترسی به مدیریت تیکت‌ها را ندارید.', 'torantejarat' ) );
 	}
 
-	if ( ! isset( $_POST['torantejarat_ticket_delete_all_nonce'] ) || ! wp_verify_nonce( sanitize_key( wp_unslash( $_POST['torantejarat_ticket_delete_all_nonce'] ) ), 'torantejarat-ticket-delete-all' ) ) {
+	if ( ! isset( $_POST['torantejarat_ticket_delete_selected_nonce'] ) || ! wp_verify_nonce( sanitize_key( wp_unslash( $_POST['torantejarat_ticket_delete_selected_nonce'] ) ), 'torantejarat-ticket-delete-selected' ) ) {
 		wp_safe_redirect( add_query_arg( 'ticket_error', 'nonce', admin_url( 'admin.php?page=torantejarat-tickets' ) ) );
+		exit;
+	}
+
+	if ( ! isset( $_POST['ticket_ids'] ) || ! is_array( $_POST['ticket_ids'] ) ) {
+		wp_safe_redirect( add_query_arg( 'ticket_error', 'no_selection', admin_url( 'admin.php?page=torantejarat-tickets' ) ) );
 		exit;
 	}
 
@@ -709,16 +715,48 @@ function torantejarat_tickets_handle_admin_delete_all() {
 	$ticket_table  = torantejarat_tickets_get_table();
 	$message_table = torantejarat_tickets_messages_table();
 
-	$count = (int) $wpdb->get_var( "SELECT COUNT(*) FROM $ticket_table" );
+	$deleted_count = 0;
+	$skipped_count = 0;
 
-	// حذف پیام‌های تیکت‌ها ابتدا
-	$wpdb->query( "DELETE FROM $message_table" );
-	// حذف همه تیکت‌ها
-	$wpdb->query( "DELETE FROM $ticket_table" );
+	foreach ( $_POST['ticket_ids'] as $ticket_id ) {
+		$ticket_id = absint( $ticket_id );
+		if ( $ticket_id <= 0 ) {
+			continue;
+		}
 
-	wp_safe_redirect( add_query_arg( 'ticket_deleted_all', $count, admin_url( 'admin.php?page=torantejarat-tickets' ) ) );
+		// فقط تیکت‌های بسته (closed) قابل حذف هستند
+		$ticket = $wpdb->get_row( $wpdb->prepare( "SELECT status FROM $ticket_table WHERE id = %d", $ticket_id ), ARRAY_A );
+		if ( ! $ticket || $ticket['status'] !== 'closed' ) {
+			$skipped_count++;
+			continue;
+		}
+
+		// حذف پیام‌های تیکت ابتدا
+		$wpdb->delete(
+			$message_table,
+			array( 'ticket_id' => $ticket_id ),
+			array( '%d' )
+		);
+
+		// حذف تیکت
+		$wpdb->delete(
+			$ticket_table,
+			array( 'id' => $ticket_id ),
+			array( '%d' )
+		);
+
+		$deleted_count++;
+	}
+
+	$redirect_url = add_query_arg( array(
+		'ticket_deleted_selected' => $deleted_count,
+		'ticket_skipped'          => $skipped_count,
+	), admin_url( 'admin.php?page=torantejarat-tickets' ) );
+
+	wp_safe_redirect( $redirect_url );
 	exit;
 }
+
 
 add_action( 'init', __NAMESPACE__ . '\\torantejarat_tickets_setup_capability', 10 );
 
@@ -959,7 +997,24 @@ function torantejarat_tickets_admin_page() {
 	.torantejarat-tickets-admin .button-danger:hover {
 		background: #b91c1c;
 	}
-	.torantejarat-tickets-admin .delete-all-form {
+	.torantejarat-tickets-admin .delete-selected-form {
+	.torantejarat-tickets-admin .delete-ticket-btn {
+\tdisplay: inline-block;
+		margin-bottom: 20px;
+		background: #dc2626;
+		color: #fff;
+		border: none;
+		padding: 4px 8px;
+		font-size: 11px;
+		border-radius: 4px;
+		text-decoration: none;
+	}
+	.torantejarat-tickets-admin .delete-ticket-btn:hover {
+		background: #b91c1c;
+	}
+	.torantejarat-tickets-admin th input[type="checkbox"] {
+		margin: 0;
+	}
 		display: inline-block;
 		margin-bottom: 20px;
 	}
@@ -1007,22 +1062,20 @@ function torantejarat_tickets_admin_page() {
 <div class="wrap torantejarat-tickets-admin">
 	<h1><?php esc_html_e( 'پشتیبانی تیکت', 'torantejarat' ); ?></h1>
 
-	<?php if ( ! empty( $_GET['ticket_deleted_all'] ) ) : ?>
-<div class="updated notice is-dismissible"><p><?php echo sprintf( _n( '%d تیکت با موفقیت حذف شد.', '%d تیکت با موفقیت حذف شد.', (int) $_GET['ticket_deleted_all'], 'torantejarat' ), (int) $_GET['ticket_deleted_all'] ); ?></p></div>
+	<?php if ( ! empty( $_GET["ticket_deleted_selected"] ) ) : ?>
+<div class="updated notice is-dismissible"><p><?php echo sprintf( _n( "%d تیکت حذف شد.", "%d تیکت حذف شد.", (int) $_GET["ticket_deleted_selected"], "torantejarat" ), (int) $_GET["ticket_deleted_selected"] ); if ( ! empty( $_GET["ticket_skipped"] ) ) echo " " . sprintf( _n( "%d تیکت قابل حذف نبود و نادیده گرفت.", "%d تیکت قابل حذف نبود و نادیده گرفت.", (int) $_GET["ticket_skipped"], "torantejarat" ), (int) $_GET["ticket_skipped"] ); ?></p></div>
+<?php endif; ?>
 <?php endif; ?>
 <?php if ( ! empty( $_GET['ticket_sent'] ) ) : ?>
 	<div class="updated notice is-dismissible"><p><?php esc_html_e( 'تیکت با موفقیت ثبت شد.', 'torantejarat' ); ?></p></div>
 	<?php endif; ?>
 	<?php if ( ! empty( $_GET['ticket_error'] ) ) : ?>
 	<div class="error notice is-dismissible"><p><?php echo esc_html( $_GET['ticket_error'] === 'forbidden' ? __( 'شما دسترسی به این تیکت را ندارید.', 'torantejarat' ) : __( 'تیکت یافت نشد.', 'torantejarat' ) ); ?></p></div>
-<?php endif; ?>
-
-<?php if ( $tickets ) : ?>
-<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="delete-all-form" onsubmit="return confirm( 'آیا مطمئن هستید که همه تیکت‌ها و پیام‌های آن‌ها به طور دائم حذف شوند؟ این عمل غیرقابل بازگشت است.' );">
-	<input type="hidden" name="action" value="torantejarat_ticket_delete_all_admin">
-	<?php wp_nonce_field( 'torantejarat-ticket-delete-all', 'torantejarat_ticket_delete_all_nonce' ); ?>
-	<button type="submit" class="button button-danger delete-all-btn"><?php esc_html_e( 'حذف همه تیکت‌ها', 'torantejarat' ); ?></button>
+	<form method="post" action="<?php echo esc_url( admin_url( "admin-post.php" ) ); ?>" class="delete-selected-form" onsubmit="return confirm( 'آیا مطمئن هستید که تیکت‌های انتخاب شده به طور دائم حذف شوند؟ این عمل غیرقابل بازگشت است.' );">
+\t<?php wp_nonce_field( "torantejarat-ticket-delete-selected", "torantejarat_ticket_delete_selected_nonce" ); ?>
+	<button type="submit" class="button button-danger delete-selected-btn"><?php esc_html_e( "حذف تیکت‌های انتخاب شده", "torantejarat" ); ?></button>
 </form>
+<?php endif; ?>
 <?php endif; ?>
 <form method="get" action="" class="filter-form">
 		<input type="hidden" name="page" value="torantejarat-tickets">
@@ -1046,6 +1099,7 @@ function torantejarat_tickets_admin_page() {
 	<table class="wp-list-table widefat fixed striped">
 		<thead>
 			<tr>
+				<th style="width: 40px; text-align: center;"><input type="checkbox" id="select-all-tickets" onclick="torantejaratToggleAllTickets(this)"></th>
 				<th style="width: 60px;"><?php esc_html_e( 'شناسه', 'torantejarat' ); ?></th>
 				<th><?php esc_html_e( 'عنوان', 'torantejarat' ); ?></th>
 				<th style="width: 160px;"><?php esc_html_e( 'مشتری', 'torantejarat' ); ?></th>
@@ -1064,7 +1118,7 @@ function torantejarat_tickets_admin_page() {
 				$status_label = $statuses[ $ticket['status'] ] ?? $ticket['status'];
 				?>
 				<tr>
-					<td class="ticket-id"><?php echo esc_html( $ticket['id'] ); ?></td>
+					<?php if ( $ticket["status"] === "closed" ) : ?><td style="text-align: center;"><input type="checkbox" name="ticket_ids[]" value="<?php echo esc_attr( $ticket["id"] ); ?>"></td><?php else : ?><td style="text-align: center;"><span class="dashicons dashicons-lock" title="<?php esc_attr_e( "فقط تیکت‌های بسته قابل حذف هستند", "torantejarat" ); ?>"></span></td><?php endif; ?><td class="ticket-id"><?php echo esc_html( $ticket['id'] ); ?></td>
 					<td class="ticket-title"><a href="<?php echo esc_url( admin_url( 'admin.php?page=torantejarat-tickets&view=details&id=' . $ticket['id'] ) ); ?>"><?php echo esc_html( $ticket['title'] ); ?></a></td>
 					<td class="ticket-customer"><?php echo esc_html( $customer_name ); ?></td>
 					<td class="ticket-order"><?php echo esc_html( $order_label ); ?></td>
@@ -1148,6 +1202,15 @@ function torantejarat_tickets_admin_page() {
 			} );
 		} );
 	})();
+
+		// Select all / deselect all checkboxes
+		function torantejaratToggleAllTickets( checkbox ) {
+			var isChecked = checkbox.checked;
+			var checkboxes = document.querySelectorAll( 'input[name="ticket_ids[]"]' );
+			for ( var i = 0; i < checkboxes.length; i++ ) {
+				checkboxes[ i ].checked = isChecked;
+			}
+		}
 	</script>
 	<?php
 }
