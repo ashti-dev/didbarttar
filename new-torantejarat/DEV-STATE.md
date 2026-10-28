@@ -1094,7 +1094,7 @@
 | `e97e112` |feat: استایل RTL/فارسی پنل کاربر تیکت |
 | `de2ddc1` |feat: اصلاح Layout نمایش جزئیات تیکت در پنل کاربر |
 
-## TICKETS-QA-003 — حذف همه تیکت‌ها توسط ادمین (bulk delete) — 2026-10-28 — COMMIT+PUSH
+## TICKETS-QA-003 — حذف انتخاب‌شده تیکت‌ها توسط ادمین (bulk delete selective) — 2026-10-28 — COMMIT+PUSH
 
 ### دامنهٔ تغییر
 `new-torantejarat/inc/bootstrap.php`، `new-torantejarat/inc/tickets.php`.
@@ -1103,32 +1103,41 @@
 
 #### ۱. ثبت admin_post handler (`bootstrap.php:72`)
 ```php
-add_action( 'admin_post_torantejarat_ticket_delete_all_admin', __NAMESPACE__ . '\\\\torantejarat_tickets_handle_admin_delete_all' );
+add_action( 'admin_post_torantejarat_ticket_delete_selected_admin', __NAMESPACE__ . '\\\\torantejarat_tickets_handle_admin_delete_selected' );
 ```
 
-#### ۲. تابع مدیریت حذف همه (`tickets.php:698`)
-`torantejarat_tickets_handle_admin_delete_all()`:
+#### ۲. تابع مدیریت حذف انتخاب‌شده (`tickets.php:699`)
+`torantejarat_tickets_handle_admin_delete_selected()`:
 - بررسی دسترسی `torantejarat_tickets_user_can_manage()` (فقط `manage_options`)
-- تایید nonce با اکشن `torantejarat-ticket-delete-all`
+- تایید nonce با اکشن `torantejarat-ticket-delete-selected`
 - متد POST از طریق `admin-post.php`
-- شمارش تیکت‌ها قبل از حذف
-- ابتدا حذف تمام پیام‌ها (`torantejarat_tickets_messages_table()`)
-- سپس حذف همه تیکت‌ها (`torantejarat_tickets_get_table()`)
-- redirect با `?ticket_deleted_all=<count>` و پیام موفقیت
+- پذیرش آرایه `ticket_ids[]` از فرم
+- **فقط تیکت‌های بسته (`closed`) قابل حذف هستند** — تیکت‌های باز نادیده گرفته می‌شوند
+- ابتدا حذف پیام‌های هر تیکت، سپس حذف تیکت
+- redirect با `?ticket_deleted_selected=<count>&ticket_skipped=<count>` و پیام موفقیت
 
-#### ۳. دکمه «حذف همه تیکت‌ها» در صفحه ادمین (`tickets.php:1018`)
-- نمایش تنها وقتی `$tickets` خالی نباشد
-- فرم POST با `action=torantejarat_ticket_delete_all_admin`
+#### ۳. چک‌باکس انتخاب در جدول ادمین (`tickets.php:1102`)
+- چک‌باکس «انتخاب همه» در هدر جدول با جاوااسکریپت `torantejaratToggleAllTickets()`
+- چک‌باکس در هر سطر فقط برای تیکت‌های `closed` (با نام `ticket_ids[]`)
+- برای تیکت‌های غیربسته: آیکون قفل (`dashicons-lock`) به جای چک‌باکس
+
+#### ۴. دکمه «حذف تیکت‌های انتخاب شده» در نوار فیلتر (`tickets.php:1074`)
+- فرم POST با `action=torantejarat_ticket_delete_selected_admin`
 - `wp_nonce_field` برای امنیت
 - `onsubmit="return confirm(...)"` با هشدار فارسی غیرقابل بازگشت
+- نمایش تنها وقتی `$tickets` خالی نباشد
 - دکمه با کلاس `button button-danger` (رنگ قرمز)
 
-#### ۴. استایل CSS (`tickets.php:952-964`)
-- `.torantejarat-tickets-admin .button-danger`: پس‌زمینه قرمز `#dc2626`،Hover `#b91c1c`
-- `.torantejarat-tickets-admin .delete-all-form`: نمایش خطی، حاشیه پایین
+#### ۵. استایل CSS (`tickets.php:1000-1013`)
+- `.torantejarat-tickets-admin .button-danger`: پس‌زمینه قرمز `#dc2626`، hover `#b91c1c`
+- `.torantejarat-tickets-admin .delete-selected-form`: نمایش خطی، حاشیه پایین
+- `.torantejarat-tickets-admin .delete-ticket-btn`: دکمه حذف تکی (قرمز)
+- `.torantejarat-tickets-admin th input[type="checkbox"]`: بدون حاشیه
 
-#### ۵. پیام موفقیت (`tickets.php:1010`)
-`ticket_deleted_all` با `_n()` برای تک^جمعی فارسی: «%d تیکت با موفقیت حذف شد.»
+#### ۶. پیام موفقیت (`tickets.php:1065`)
+`ticket_deleted_selected` و `ticket_skipped` با `_n()` برای تک^جمعی فارسی:
+- «%d تیکت حذف شد.»
+- «%d تیکت قابل حذف نبود و نادیده گرفت.» (برای تیکت‌های غیرclosed)
 
 ### محافظت‌های امنیتی اعمال‌شده
 
@@ -1138,23 +1147,26 @@ add_action( 'admin_post_torantejarat_ticket_delete_all_admin', __NAMESPACE__ . '
 | Nonce | تاییدیه CSRF برای فرم حذف |
 | POST | فقط متد POST پذیرفته می‌شود (نه GET) |
 | JavaScript confirm | تایید دوباره قبل از ارسال درخواست |
+| بررسی وضعیت `closed` | فقط تیکت‌های بسته قابل حذف؛ بازها محفوظ می‌مانند |
 | `wp_safe_redirect` | redirect امن و مجاز |
-| Escaping | `esc_url`، `esc_html_e`، `wp_nonce_field` |
+| Escaping | `esc_url`، `esc_html_e`، `wp_nonce_field`، `esc_attr` |
 
 ### تست انجام‌شده (این sandbox)
 - PHP CLI / WordPress Runtime در این محیط وجود ندارد؛ **تست Runtime اجرا نشده است**.
-- بررسی استاتیک: تمام تغییرات با `grep` تایید شدند.
+- بررسی استاتیک: تمام تغییرات با `grep` تایید شدند. residue از `delete-all` باقی نمانده است.
 
 ### تست باقی‌مانده (لازم روی Laragon)
-- حذف همه تیکت‌ها از طریق دکمه ادمین و بررسی Redirect + پیام موفقیت
-- تلاش دسترسی غیرمجاز (کاربر غیرمدیر) — بررسی wp_die
+- انتخاب و حذف تیکت‌های بسته از طریق چک‌باکس‌ها و بررسی Redirect + پیام موفقیت
+- تلاش حذف تیکت‌های باز — باید نادیده گرفته شوند (skip)
+- تلاش دسترسی غیرمجاز (کاربر غیرمدیر) — بررسی `wp_die`
 - تلاش بدون nonce — بررسی redirect خطا
 - تایید JavaScript confirm قبل از حذف
 
 ### کامیت و Push
-- **کامیت:** `2f2619f` (Push شده روی `arena/c5f65381-didbarttar`)
+- **کامیت:** `a5f5838` (Push شده روی `arena/c5f65381-didbarttar`)
 - **Production:** همچنان **NO-GO** است تا تکمیل تست روی Laragon/Staging.
 
+### گام‌های بعدی (در انتظار اولویت کاربر)
 ### گام‌های بعدی (در انتظار اولویت کاربر)
 - تست روی Laragon / Staging
 - Production gates (NO-GO تا تکمیل تست)
