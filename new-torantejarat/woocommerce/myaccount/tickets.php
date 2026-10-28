@@ -181,7 +181,7 @@ $torantejarat_ticket_error_msg = $torantejarat_ticket_error_messages[ $ticket_er
 .ticket-messages p strong { color: #f77b3e; }
 
 .ticket-close-form {
-	margin-top: 12px;
+	margin-top: 16px;
 	display: inline-block;
 	text-align: right;
 }
@@ -204,6 +204,8 @@ $torantejarat_ticket_error_msg = $torantejarat_ticket_error_messages[ $ticket_er
 	padding: 24px;
 	background: #fff;
 	text-align: right;
+	max-width: 100%;
+	box-sizing: border-box;
 }
 .ticket-view-detail h3 {
 	margin-top: 0;
@@ -228,8 +230,18 @@ $torantejarat_ticket_error_msg = $torantejarat_ticket_error_messages[ $ticket_er
 	width: 30%;
 }
 .ticket-view-detail td { color: #606c68; }
+.ticket-view-detail tr:last-child td,
+.ticket-view-detail tr:last-child th {
+	border-bottom: none;
+}
 
-.ticket-history { margin-bottom: 20px; }
+.ticket-history {
+	margin-bottom: 20px;
+	background: #f4f3ef;
+	border: 1px solid #e2e5df;
+	border-radius: 12px;
+	padding: 16px;
+}
 .ticket-history h4 {
 	margin-top: 0;
 	margin-bottom: 10px;
@@ -240,6 +252,7 @@ $torantejarat_ticket_error_msg = $torantejarat_ticket_error_messages[ $ticket_er
 	margin-bottom: 12px;
 	padding: 10px 14px;
 	border-radius: 10px;
+	direction: rtl;
 }
 .ticket-message.customer { background: #eef4fa; border-right: 4px solid #36567a; }
 .ticket-message.staff { background: #eff9f2; border-right: 4px solid #247348; }
@@ -255,6 +268,7 @@ $torantejarat_ticket_error_msg = $torantejarat_ticket_error_messages[ $ticket_er
 	color: #606c68;
 	display: block;
 	margin-top: 2px;
+	text-align: right;
 }
 
 .ticket-reply-form {
@@ -262,6 +276,9 @@ $torantejarat_ticket_error_msg = $torantejarat_ticket_error_messages[ $ticket_er
 	border-top: 1px solid #f2f3ef;
 	padding-top: 20px;
 	text-align: right;
+	padding-bottom: 20px;
+	background: #fafaf7;
+	border-radius: 12px;
 }
 .ticket-reply-form h4 {
 	margin-top: 0;
@@ -490,7 +507,7 @@ $torantejarat_ticket_error_msg = $torantejarat_ticket_error_messages[ $ticket_er
 			<?php endif; ?>
 
 			<?php if ( $can_close ) : ?>
-			<div class="ticket-close-form" style="margin-top:16px;">
+			<div class="ticket-close-form">
 				<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" onsubmit="return confirm( '<?php esc_attr_e( 'آیا مطمئن هستید می‌خواهید این تیکت را ببندید؟', 'torantejarat' ); ?>' );">
 					<?php wp_nonce_field( 'torantejarat-ticket-close', 'torantejarat_ticket_close_nonce' ); ?>
 					<input type="hidden" name="ticket_id" value="<?php echo esc_attr( $view_id ); ?>">
