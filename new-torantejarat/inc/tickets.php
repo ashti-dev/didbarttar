@@ -409,6 +409,46 @@ function torantejarat_tickets_get_messages( $ticket_id ) {
 	);
 }
 
+/* --------------------------------------------------------------
+   State machine: valid ticket status transitions
+   -------------------------------------------------------------- */
+function torantejarat_tickets_can_transition( $from_status, $to_status, $user_id ) {
+    $is_staff = torantejarat_tickets_user_can_manage();
+
+    $allowed = array(
+        'open'              => array( 'awaiting_customer' ),
+        'awaiting_customer' => array( 'answered' ),
+        'answered'          => array( 'closed', 'awaiting_support' ),
+        'closed'            => array( 'reopened' ),
+        'reopened'          => array( 'awaiting_customer' ),
+        'awaiting_support'  => array( 'answered', 'closed' ),
+    );
+
+    if ( ! isset( $allowed[ $from_status ] ) || ! in_array( $to_status, $allowed[ $from_status ], true ) ) {
+        return false;
+    }
+
+    // Only staff can move tickets into waiting-for-customer states
+    $staff_only = array(
+        'open'    => array( 'awaiting_customer' ),
+        'reopened'=> array( 'awaiting_customer' ),
+    );
+    if ( isset( $staff_only[ $from_status ] ) && in_array( $to_status, $staff_only[ $from_status ], true ) && ! $is_staff ) {
+        return false;
+    }
+
+    // Only customers can reply (awaiting_customer -> answered) or reopen closed tickets
+    $customer_only = array(
+        'awaiting_customer' => array( 'answered' ),
+        'closed'            => array( 'reopened' ),
+    );
+    if ( isset( $customer_only[ $from_status ] ) && in_array( $to_status, $customer_only[ $from_status ], true ) && $is_staff ) {
+        return false;
+    }
+
+    return true;
+}
+
 /**
  * Update ticket status (admin or owner).
  *
@@ -435,6 +475,10 @@ function torantejarat_tickets_set_status( $ticket_id, $status, $user_id ) {
 	// Owners can only close/reopen their own tickets; staff can change any
 	if ( ! torantejarat_tickets_user_can_manage() && (int) $ticket['user_id'] !== $user_id ) {
 		return new \WP_Error( 'forbidden', __( 'You cannot modify this ticket.', 'torantejarat' ) );
+	}
+
+	if ( ! torantejarat_tickets_can_transition( $ticket['status'], $status, $user_id ) ) {
+		return new \WP_Error( 'invalid_transition', __( 'تغییر وضعیت از %1$s به %2$s مجاز نیست.', 'torantejarat' ) );
 	}
 
 	$wpdb->update(
