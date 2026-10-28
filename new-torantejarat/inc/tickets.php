@@ -6,7 +6,6 @@
  *   {$wpdb->prefix}torantejarat_tickets
  *   {$wpdb->prefix}torantejarat_ticket_messages
  *
- * This system is independent of CPT torantejarat_request (contact/rent/repairs).
  * Tickets are for logged-in customers only. Guest contact form stays separate.
  *
  * @package ToranTejarat
@@ -1065,17 +1064,14 @@ function torantejarat_tickets_admin_page() {
 	<?php if ( ! empty( $_GET["ticket_deleted_selected"] ) ) : ?>
 <div class="updated notice is-dismissible"><p><?php echo sprintf( _n( "%d تیکت حذف شد.", "%d تیکت حذف شد.", (int) $_GET["ticket_deleted_selected"], "torantejarat" ), (int) $_GET["ticket_deleted_selected"] ); if ( ! empty( $_GET["ticket_skipped"] ) ) echo " " . sprintf( _n( "%d تیکت قابل حذف نبود و نادیده گرفت.", "%d تیکت قابل حذف نبود و نادیده گرفت.", (int) $_GET["ticket_skipped"], "torantejarat" ), (int) $_GET["ticket_skipped"] ); ?></p></div>
 <?php endif; ?>
-<?php endif; ?>
 <?php if ( ! empty( $_GET['ticket_sent'] ) ) : ?>
 	<div class="updated notice is-dismissible"><p><?php esc_html_e( 'تیکت با موفقیت ثبت شد.', 'torantejarat' ); ?></p></div>
 	<?php endif; ?>
 	<?php if ( ! empty( $_GET['ticket_error'] ) ) : ?>
 	<div class="error notice is-dismissible"><p><?php echo esc_html( $_GET['ticket_error'] === 'forbidden' ? __( 'شما دسترسی به این تیکت را ندارید.', 'torantejarat' ) : __( 'تیکت یافت نشد.', 'torantejarat' ) ); ?></p></div>
 	<form method="post" action="<?php echo esc_url( admin_url( "admin-post.php" ) ); ?>" class="delete-selected-form" onsubmit="return confirm( 'آیا مطمئن هستید که تیکت‌های انتخاب شده به طور دائم حذف شوند؟ این عمل غیرقابل بازگشت است.' );">
-\t<?php wp_nonce_field( "torantejarat-ticket-delete-selected", "torantejarat_ticket_delete_selected_nonce" ); ?>
+	<?php wp_nonce_field("torantejarat-ticket-delete-selected", "torantejarat_ticket_delete_selected_nonce" ); ?>
 	<button type="submit" class="button button-danger delete-selected-btn"><?php esc_html_e( "حذف تیکت‌های انتخاب شده", "torantejarat" ); ?></button>
-</form>
-<?php endif; ?>
 <?php endif; ?>
 <form method="get" action="" class="filter-form">
 		<input type="hidden" name="page" value="torantejarat-tickets">
