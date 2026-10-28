@@ -1009,3 +1009,92 @@
 - **علة:** escaping بک‌سل래ش در `add_action` callback. در `tickets-meta.php` خط ۹۰ ۴ بک‌سل래ش داشت (PHP → ۲ بک‌سل래ش، نامعتبر) و در `tickets.php` خط ۶۱۷ ۱ بک‌سل래ش داشت (PHP → `\t` لیتラル، نامعتبر).
 - **اصلاح:** همه `add_action`های با `__NAMESPACE__ . '...'` را به دقیقاً ۲ بک‌سل래ش در منبع تغییر داد (PHP シングル-quoted → ۱ بک‌سل래ش = جداکننده فضا نام درست).
 - **کامیت‌ها:** `4ee24df` (tickets-meta.php)، `aa13639` (tickets.php) — هر دو Push شده.
+
+## TICKETS-QA-002 — اصلاح استایل/Layout پنل کاربر تیکت + ثبت تیکت سریع برای سفارش — 2026-10-28 — COMMIT+PUSH
+
+### دامنهٔ تغییر
+`new-torantejarat/woocommerce/myaccount/tickets.php` (فقط `<style>` و HTML inline)، `new-torantejarat/woocommerce/checkout/thankyou.php`، `new-torantejarat/assets/css/native.css`، `new-torantejarat/template-parts/home-products.php`، `new-torantejarat/inc/settings/class-theme-settings.php`، `new-torantejarat/inc/tickets.php`.
+
+### تغییرات اعمال‌شده
+
+#### ۱. تغییر متن اسلایدر صفحه اصلی (`home-products.php`)
+- eyebrow: «منتخب خریداران» → «پیشنهاد بلکوکم»
+- h2: «دستگاه‌هایی که بیشتر می‌خرند» → «دوربین‌های منتخب»
+- توضیح: «قیمت و مشخصات کلیدی همه مدل‌ها در یک نگاه — کنار هم مقایسه کنید.» → «مدل‌ها را ببینید، مشخصات فنی و قیمت‌ها را مقایسه کنید.»
+- دکمه: «همه دستگاه‌ها» → «مشاهده همه دوربین‌ها»
+- **کامیت:** `ddeb38e` (Push شده)
+
+#### ۲. اصلاح برش متون مرتب‌سازی فروشگاه در دسکتاپ (`native.css`)
+- `.torantejarat-sort-pill`: اضافه شدن `line-height: 1.5` تا متون فارسی با descendant (پ، چ، ک، گ، ی ...) در دسکتاپ برش نخورند.
+- **کامیت:** `845a0a8` (Push شده)
+
+#### ۳. اصلاح تایپ نام تابع جزئیات تیکت در پنل ادمین (`tickets.php`)
+- خط ۷۴۸: `orantejarat_tickets_admin_details_page` → `torantejarat_tickets_admin_details_page` (حرف `t` اولی گم شده بود)
+- باعث خطای Fatal هنگام باز کردن `wp-admin/admin.php?page=torantejarat-tickets&view=details&id=X` می‌شد.
+- **کامیت:** `37605f9` (Push شده)
+
+#### ۴. دکمه تنظیمات قالب در نوار بالای ادمین (`class-theme-settings.php`)
+- افزودن هوک `admin_bar_menu` با اولویت ۵۰ در constructor کلاس `TT_Settings`.
+- متد جدید `admin_bar_menu($wp_admin_bar)`: دکمه «تنظیمات قالب» با آیکون چرخدنده (`dashicons-settings`).
+- لینک به `admin.php?page=torantejarat-settings`؛ فقط برای کاربران با `manage_options` نمایش داده می‌شود.
+- **کامیت:** `97e9950` (Push شده)
+
+#### ۵. ثبت تیکت سریع برای سفارش در صفحهٔ تشکر (`thankyou.php` + `tickets.php`)
+- `woocommerce/checkout/thankyou.php`: اضافه شدن بخش «پشتیبانی سفارش» با دکمه «ثبت تیکت برای این سفارش» و لینک به فرم تیکت با پارامتر `?order_id=...` (آیکون SVG اینلاین برای سازگاری frontend).
+- `woocommerce/myaccount/tickets.php`: خواندن `order_id` از `$_GET` و انتخاب خودکار آن در dropdown «سفارش مرتبط»when arriving from thank-you page.
+- **کامیت:** `eaadab1` (Push شده)
+
+#### ۶. رفع خطای Forbidden هنگام بستن تیکت (`tickets.php`)
+- تابع `torantejarat_tickets_set_status()` در خط ۴۳۶: `$ticket['user_id']` از `$wpdb->get_row()` به صورت string می‌آمد (مثل `"1"`)، در حالی `$user_id` از `absint()` int بود. مقابله `'1' !== 1` با `!==`true می‌گرداند و خطای forbidden ایجاد می‌کرد.
+- اصلاح: اضافه کردن `(int)` به `$ticket['user_id']` برای مقایسه type-safe.
+- همهٔ مقایسه‌های `user_id !==` در فایل بررسی شدند؛ بقیه (`خطوط ۱۵۶، ۵۹۳، ۶۲۶، ۶۶۵`) از قبل `(int)` داشتند.
+- **کامیت:** `4a12daa` (Push شده)
+
+#### ۷. استایل RTL/فارسی پنل کاربر تیکت (`tickets.php` — `<style>`)
+- `.ticket-message.customer` / `.staff`: `border-left` → `border-right` (لبه رنگین در سمت راست در RTL)
+- `.torantejarat-tickets-list li .ticket-badge`: `margin-right: 8px` → `margin-left: 8px` (فاصله badge در flex RTL)
+- فرم حذف تیکت: `style="margin-left:8px"` → `margin-right:8px`
+- فیلدهای فرم (`select`/`input[type="text"]`/`textarea`): اضافه شدن `text-align: right` + `padding-inline-end: 36px`
+- textarea پیام تیکت: اضافه شدن `text-align: right`
+- **کامیت:** `e97e112` (Push شده)
+
+#### ۸. اصلاح Layout نمایش جزئیات تیکت (`tickets.php` — `<style>` + HTML)
+- `.ticket-view-detail`: `max-width: 100%` + `box-sizing: border-box` (ظاهر کارتنما)
+- جدول جزئیات: `border-bottom: none` در `tr:last-child` (حذف خط زائد)
+- `.ticket-history`: `background`、`border`、`border-radius`、`padding` (ظاهر کارتنما)
+- `.ticket-message`: `direction: rtl`
+- `.ticket-time`: `text-align: right`
+- `.ticket-reply-form`: `padding-bottom` + `background` + `border-radius` (ظاهر کارتنما)
+- حذف `inline style="margin-top:16px"` از `ticket-close-form` (به CSS منتقل شد)
+- `.ticket-close-form`: `margin-top` از ۱۲px به ۱۶px
+- **کامیت:** `de2ddc1` (Push شده)
+
+### تست انجام‌شده (این sandbox)
+- PHP CLI / WordPress Runtime در این محیط وجود ندارد؛ **تست Runtime اجرا نشده است**.
+- بررسی استاتیک: تمام تغییرات CSS با `grep` تایید شدند؛ هیچ آکولاد/برکت ناهماهنگ در `tickets.php` یافت نشد؛桑تیکس PHP بررسی نتوانست اجرا شود (بدون php-cli).
+
+### تست باقی‌مانده (لازم روی Laragon)
+- باز کردن جزئیات تیکت در پنل کاربر (`/my-account/tickets/?view_ticket=ID`) و بررسی Layout
+- ثبت تیکت جدید از صفحه تشکر با `?order_id=` و بررسی انتخاب خودکار سفارش در فرم
+- بستن تیکت توسط مشتری (بعد از fix type-safe) — بررسی عدم خطای Forbidden
+- دکمه تنظیمات قالب در نوار بالای ادمین (`/wp-admin/`)
+- Production همچنان **NO-GO** است.
+
+### کامیت‌ها و Push
+همهٔ کامیت‌های بالا روی برنچ `arena/c5f65381-didbarttar` Push شده‌اند:
+
+| کامیت | توضیح |
+|------|-------|
+| `ddeb38e` |feat: تغییر متن سرصفحه اسلایدر محصولات صفحه اصلی |
+| `845a0a8` |fix: اصلاح برش متون مرتب‌سازی فروشگاه در دسکتاپ |
+| `37605f9` |fix: اصلاح تایپ نام تابع جزئیات تیکت در پنل ادمین |
+| `97e9950` |feat: افزودن دکمه تنظیمات قالب به نوار بالای ادمین |
+| `eaadab1` |feat: افزودن ثبت تیکت سریع برای سفارش در صفحهٔ تشکر |
+| `4a12daa` |fix: رفع خطای Forbidden هنگام بستن تیکت توسط مشتری |
+| `e97e112` |feat: استایل RTL/فارسی پنل کاربر تیکت |
+| `de2ddc1` |feat: اصلاح Layout نمایش جزئیات تیکت در پنل کاربر |
+
+### گام‌های بعدی (در انتظار اولویت کاربر)
+- ثبت مدonim نهایی در `DEV-STATE.md` (انجام شد در این بخش)
+- تست روی Laragon / Staging
+- Production gates (NO-GO تا تکمیل تست)
