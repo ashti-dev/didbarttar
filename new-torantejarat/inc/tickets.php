@@ -275,7 +275,8 @@ function torantejarat_tickets_add_message( $ticket_id, $author_id, $body, $is_st
 			'last_reply_at'=> current_time( 'mysql' ),
 		),
 		array( 'id' => $ticket_id ),
-		array( '%s', '%s', '%s', '%s', '%d', '%s' )
+		array( '%s', '%s', '%s', '%s' ),
+		array( '%d' )
 	);
 
 	// Notify the other party
@@ -1231,31 +1232,38 @@ function torantejarat_tickets_admin_details_page( $ticket_id ) {
 	$user = get_user_by( 'id', $ticket['user_id'] );
 	$order = $ticket['order_id'] ? wc_get_order( $ticket['order_id'] ) : null;
 
+	// Handle reply (processed FIRST so both reply and status change can be saved)
+	$reply_sent = false;
+	if ( isset( $_POST['torantejarat_ticket_reply_nonce'] ) && wp_verify_nonce( sanitize_key( wp_unslash( $_POST['torantejarat_ticket_reply_nonce'] ) ), 'torantejarat-ticket-reply' ) ) {
+		$body = isset( $_POST['ticket_reply'] ) ? wp_unslash( $_POST['ticket_reply'] ) : '';
+		if ( trim( $body ) !== '' ) {
+			$result = torantejarat_tickets_add_message( $ticket_id, get_current_user_id(), $body, true );
+			$reply_sent = ! is_wp_error( $result );
+		}
+	}
+
 	// Handle status change
+	$status_updated = false;
 	if ( isset( $_POST['torantejarat_ticket_status_nonce'] ) && wp_verify_nonce( sanitize_key( wp_unslash( $_POST['torantejarat_ticket_status_nonce'] ) ), 'torantejarat-ticket-status' ) ) {
 		if ( isset( $_POST['new_status'] ) ) {
 			$result = torantejarat_tickets_set_status( $ticket_id, sanitize_key( wp_unslash( $_POST['new_status'] ) ), get_current_user_id() );
-			if ( is_wp_error( $result ) ) {
-				echo '<div class="error"><p>' . esc_html( $result->get_error_message() ) . '</p></div>';
-			} else {
-				echo '<div class="updated"><p>' . esc_html__( 'وضعیت تیکت به‌روزرسانی شد.', 'torantejarat' ) . '</p></div>';
-				$ticket = torantejarat_tickets_get( $ticket_id );
-				$ticket = (array) $ticket;
-			}
+			$status_updated = ! is_wp_error( $result );
 		}
-		wp_safe_redirect( admin_url( 'admin.php?page=torantejarat-tickets&view=details&id=' . $ticket_id ) );
-		exit;
 	}
 
-	// Handle reply
-	if ( isset( $_POST['torantejarat_ticket_reply_nonce'] ) && wp_verify_nonce( sanitize_key( wp_unslash( $_POST['torantejarat_ticket_reply_nonce'] ) ), 'torantejarat-ticket-reply' ) ) {
-		$body = isset( $_POST['ticket_reply'] ) ? wp_unslash( $_POST['ticket_reply'] ) : '';
-		$result = torantejarat_tickets_add_message( $ticket_id, get_current_user_id(), $body, true );
-		if ( is_wp_error( $result ) ) {
-			echo '<div class="error"><p>' . esc_html( $result->get_error_message() ) . '</p></div>';
-		} else {
-			echo '<div class="updated"><p>' . esc_html__( 'پاسخ ارسال شد.', 'torantejarat' ) . '</p></div>';
-		}
+	$redirect_url = admin_url( 'admin.php?page=torantejarat-tickets&view=details&id=' . $ticket_id );
+	$redirect_args = array();
+	if ( $reply_sent ) {
+		$redirect_args['reply_sent'] = '1';
+	}
+	if ( $status_updated ) {
+		$redirect_args['status_updated'] = '1';
+	}
+	if ( ! empty( $redirect_args ) ) {
+		$redirect_url = add_query_arg( $redirect_args, $redirect_url );
+	}
+	wp_safe_redirect( $redirect_url );
+	exit;
 		wp_safe_redirect( admin_url( 'admin.php?page=torantejarat-tickets&view=details&id=' . $ticket_id ) );
 		exit;
 	}
@@ -1443,6 +1451,13 @@ function torantejarat_tickets_admin_details_page( $ticket_id ) {
 <div class="wrap torantejarat-ticket-details">
 	<a href="<?php echo esc_url( admin_url( 'admin.php?page=torantejarat-tickets' ) ); ?>" class="button button-secondary" style="float: left; margin-bottom: 16px;"><?php esc_html_e( 'بازگشت به لیست', 'torantejarat' ); ?></a>
 	<h1>تیکت #<?php echo esc_html( $ticket_id ); ?></h1>
+	
+	<?php if ( ! empty( $_GET['reply_sent'] ) ) : ?>
+	<div class="updated notice is-dismissible"><p><?php esc_html_e( 'پاسخ ارسال شد.', 'torantejarat' ); ?></p></div>
+	<?php endif; ?>
+	<?php if ( ! empty( $_GET['status_updated'] ) ) : ?>
+	<div class="updated notice is-dismissible"><p><?php esc_html_e( 'وضعیت تیکت به‌روزرسانی شد.', 'torantejarat' ); ?></p></div>
+	<?php endif; ?>
 
 	<div class="ticket-header">
 		<h2><?php echo esc_html( $ticket['title'] ); ?></h2>

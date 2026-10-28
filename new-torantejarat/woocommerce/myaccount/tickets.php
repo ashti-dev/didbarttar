@@ -324,7 +324,7 @@ $torantejarat_ticket_error_msg = $torantejarat_ticket_error_messages[ $ticket_er
 			$can_close  = in_array( $ticket_st, array( 'open', 'awaiting_support', 'awaiting_customer' ), true );
 			$status_badge_class = 'open' === $ticket_st ? 'open' : 'closed';
 			?>
-			<li>
+			<li data-view-url="<?php echo esc_url( add_query_arg( 'view_ticket', $ticket_id, wc_get_account_endpoint_url( 'tickets' ) ) ); ?>" class="ticket-row" style="cursor:pointer;">
 				<div class="ticket-info">
 					<span class="ticket-title"><a href="<?php echo esc_url( add_query_arg( 'view_ticket', $ticket_id, wc_get_account_endpoint_url( 'tickets' ) ) ); ?>"><?php echo esc_html( $ticket['title'] ); ?></a></span>
 					<span class="ticket-meta">
@@ -384,6 +384,7 @@ $torantejarat_ticket_error_msg = $torantejarat_ticket_error_messages[ $ticket_er
 	</div>
 <?php endif; ?>
 
+	<?php if ( empty( $_GET["view_ticket"] ) ) : ?>
 <div class="torantejarat-tickets-form">
 	<h3><?php esc_html_e( 'ثبت تیکت جدید', 'torantejarat' ); ?></h3>
 	<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="acp-form-grid" id="acp-ticket-form" novalidate>
@@ -440,6 +441,7 @@ $torantejarat_ticket_error_msg = $torantejarat_ticket_error_messages[ $ticket_er
 		</div>
 	</form>
 </div>
+	<?php endif; ?>
 
 <?php if ( ! empty( $_GET['view_ticket'] ) && is_numeric( $_GET['view_ticket'] ) ) : ?>
 	<?php
@@ -522,3 +524,25 @@ $torantejarat_ticket_error_msg = $torantejarat_ticket_error_messages[ $ticket_er
 
 	<?php endif; ?>
 <?php endif; ?>
+
+
+<script>
+(function() {
+    document.querySelectorAll('.ticket-row').forEach(function(row) {
+        row.addEventListener('click', function(e) {
+            // Don't navigate if clicking on a link, button, or form element
+            var target = e.target;
+            while (target && target !== row) {
+                if (target.tagName === 'A' || target.tagName === 'BUTTON' || target.tagName === 'INPUT' || target.tagName === 'SELECT' || target.tagName === 'TEXTAREA') {
+                    return;
+                }
+                target = target.parentElement;
+            }
+            var url = row.getAttribute('data-view-url');
+            if (url) {
+                window.location.href = url;
+            }
+        });
+    });
+})();
+</script>
