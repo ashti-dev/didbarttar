@@ -322,7 +322,7 @@ $torantejarat_ticket_error_msg = $torantejarat_ticket_error_messages[ $ticket_er
 			$messages   = \ToranTejarat\Theme\torantejarat_tickets_get_messages( $ticket['id'] );
 			$ticket_st  = isset( $ticket['status'] ) ? $ticket['status'] : 'open';
 			$ticket_id  = (int) $ticket['id'];
-			$can_close  = in_array( $ticket_st, array( 'open', 'awaiting_support', 'awaiting_customer' ), true );
+			$can_close  = in_array( $ticket_st, array( 'awaiting_support' ), true );
 			$status_badge_class = 'open' === $ticket_st ? 'open' : 'closed';
 			?>
 			<li data-view-url="<?php echo esc_url( add_query_arg( 'view_ticket', $ticket_id, wc_get_account_endpoint_url( 'tickets' ) ) ); ?>" class="ticket-row" style="cursor:pointer;">
@@ -452,7 +452,7 @@ $torantejarat_ticket_error_msg = $torantejarat_ticket_error_messages[ $ticket_er
 		$view_messages = \ToranTejarat\Theme\torantejarat_tickets_get_messages( $view_id );
 		$view_st       = isset( $view_ticket['status'] ) ? $view_ticket['status'] : 'open';
 		$can_reply     = in_array( $view_st, array( 'open', 'awaiting_support', 'awaiting_customer' ), true );
-		$can_close     = in_array( $view_st, array( 'open', 'awaiting_support', 'awaiting_customer' ), true );
+		$can_close     = in_array( $view_st, array( 'awaiting_support' ), true );
 		$status_badge_class = 'open' === $view_st ? 'open' : 'closed';
 		?>
 		<div class="ticket-view-detail">

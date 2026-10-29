@@ -485,7 +485,7 @@ function torantejarat_tickets_set_status( $ticket_id, $status, $user_id ) {
 		torantejarat_tickets_get_table(),
 		array( 'status' => $status, 'updated_at' => current_time( 'mysql' ) ),
 		array( 'id' => $ticket_id ),
-		array( '%s', '%s', '%d' )
+		array( '%s', '%s' )
 	);
 
 	// Update open ticket counter when closing/reopening
@@ -1301,20 +1301,20 @@ function torantejarat_tickets_admin_details_page( $ticket_id ) {
 		}
 	}
 
-	$redirect_url = admin_url( 'admin.php?page=torantejarat-tickets&view=details&id=' . $ticket_id );
-	$redirect_args = array();
-	if ( $reply_sent ) {
-		$redirect_args['reply_sent'] = '1';
-	}
-	if ( $status_updated ) {
-		$redirect_args['status_updated'] = '1';
-	}
-	if ( ! empty( $redirect_args ) ) {
-		$redirect_url = add_query_arg( $redirect_args, $redirect_url );
-	}
-	wp_safe_redirect( $redirect_url );
-	exit;
-		wp_safe_redirect( admin_url( 'admin.php?page=torantejarat-tickets&view=details&id=' . $ticket_id ) );
+	// Only redirect after a POST (reply or status change); a plain GET must render the page.
+	if ( isset( $_POST['torantejarat_ticket_reply_nonce'] ) || isset( $_POST['torantejarat_ticket_status_nonce'] ) ) {
+		$redirect_url  = admin_url( 'admin.php?page=torantejarat-tickets&view=details&id=' . $ticket_id );
+		$redirect_args = array();
+		if ( $reply_sent ) {
+			$redirect_args['reply_sent'] = '1';
+		}
+		if ( $status_updated ) {
+			$redirect_args['status_updated'] = '1';
+		}
+		if ( ! empty( $redirect_args ) ) {
+			$redirect_url = add_query_arg( $redirect_args, $redirect_url );
+		}
+		wp_safe_redirect( $redirect_url );
 		exit;
 	}
 
