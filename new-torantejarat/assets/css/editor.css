@@ -1,0 +1,21 @@
+/* WordPress scopes add_editor_style() to the content editor, not the frontend. */
+body {
+	font-family: Vazirmatn, Tahoma, Arial, sans-serif;
+	--ink: #172325;
+	--muted: #657271;
+	--orange: #f77b3e;
+	--soft: #f4f5f1;
+	--line: #e2e7e2;
+	line-height: 1.9;
+	overflow-wrap: anywhere;
+}
+
+img,
+video {
+	max-inline-size: 100%;
+	block-size: auto;
+}
+
+pre {
+	overflow: auto;
+}

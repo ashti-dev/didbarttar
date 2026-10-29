@@ -1,0 +1,267 @@
+<?php
+/**
+ * Product Finder — 4-step wizard matching the HTML kit quiz contract.
+ * Steps: usecase (category) → min cable length → max head diameter → budget.
+ * Each step has an explicit "not sure" skip. Results sort cheapest-first.
+ * Progressive enhancement: works without JS (plain form submit).
+ *
+ * @package ToranTejarat
+ */
+
+/* Template Name: راهنمای انتخاب — فیلتر محصول */
+
+namespace ToranTejarat\Theme;
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
+$torantejarat_steps = array(
+	'usecase'  => array(
+		'label'   => __( 'بیشتر برای چه کاری نیاز دارید؟', 'torantejarat' ),
+		'hint'    => __( 'کاربرد اصلی، اولین معیار محدود کردن گزینه‌هاست.', 'torantejarat' ),
+		'options' => array(
+			'plumbing'   => __( 'لوله و فاضلاب', 'torantejarat' ),
+			'automotive' => __( 'موتور خودرو', 'torantejarat' ),
+			'industrial' => __( 'بازرسی صنعتی', 'torantejarat' ),
+			'general'    => __( 'کاربری عمومی', 'torantejarat' ),
+			''           => __( 'هنوز مطمئن نیستم', 'torantejarat' ),
+		),
+	),
+	'length'   => array(
+		'label'   => __( 'مسیر شما تقریباً چقدر طول دارد؟', 'torantejarat' ),
+		'hint'    => __( 'دستگاه باید حداقل طول مورد نیاز شما را پوشش دهد.', 'torantejarat' ),
+		'options' => array(
+			'5'  => __( 'تا ۵ متر', 'torantejarat' ),
+			'10' => __( 'تا ۱۰ متر', 'torantejarat' ),
+			'20' => __( 'تا ۲۰ متر', 'torantejarat' ),
+			'30' => __( 'بیش از ۲۰ متر', 'torantejarat' ),
+			''   => __( 'هنوز اندازه نگرفته‌ام', 'torantejarat' ),
+		),
+	),
+	'diameter' => array(
+		'label'   => __( 'قطر ورودی مسیر چقدر است؟', 'torantejarat' ),
+		'hint'    => __( 'اندازه‌ها فقط برای غربال اولیه‌اند؛ فضای عبور و خمش باید جداگانه بررسی شود.', 'torantejarat' ),
+		'options' => array(
+			'5'  => __( 'حداکثر ۵ میلی‌متر', 'torantejarat' ),
+			'8'  => __( 'حداکثر ۸ میلی‌متر', 'torantejarat' ),
+			'20' => __( 'تا ۲۰ میلی‌متر', 'torantejarat' ),
+			''   => __( 'بزرگ‌تر یا نامشخص', 'torantejarat' ),
+		),
+	),
+	'budget'   => array(
+		'label'   => __( 'بودجه تقریبی شما چقدر است؟', 'torantejarat' ),
+		'hint'    => __( 'مقایسه بر اساس قیمت نمونه کاتالوگ انجام می‌شود.', 'torantejarat' ),
+		'options' => array(
+			'7000000'  => __( 'تا ۷ میلیون تومان', 'torantejarat' ),
+			'10000000' => __( 'تا ۱۰ میلیون تومان', 'torantejarat' ),
+			'15000000' => __( 'تا ۱۵ میلیون تومان', 'torantejarat' ),
+			''         => __( 'فعلاً محدودیتی تعیین نمی‌کنم', 'torantejarat' ),
+		),
+	),
+);
+
+$torantejarat_answers = array();
+foreach ( array_keys( $torantejarat_steps ) as $torantejarat_key ) {
+	$torantejarat_answers[ $torantejarat_key ] = isset( $_GET[ $torantejarat_key ] ) // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		? sanitize_text_field( wp_unslash( $_GET[ $torantejarat_key ] ) ) // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		: '';
+}
+$torantejarat_submitted = isset( $_GET['finder'] ) && '1' === sanitize_text_field( wp_unslash( $_GET['finder'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+
+$torantejarat_results = array();
+$torantejarat_chosen  = array();
+$torantejarat_skipped = 0;
+$torantejarat_partial = '';
+if ( $torantejarat_submitted && torantejarat_woocommerce_available() ) {
+	$torantejarat_cat_map = array(
+		/* Use-case → catalog category slugs (exact DB slugs; arrays group the
+		   newer sub-categories under the four quiz answers). */
+		'plumbing'   => array( 'pipe', '%d9%81%d8%a7%d8%b6%d9%84%d8%a7%d8%a8' ),
+		'automotive' => array( 'auto' ),
+		'industrial' => array( '%d8%a8%d8%a7%d8%b2%d8%b1%d8%b3%db%8c-%d8%b5%d9%86%d8%b9%d8%aa%db%8c', '%d8%b5%d9%86%d8%b9%d8%aa%db%8c', '%d8%af%d9%88%d8%b1%d8%a8%db%8c%d9%86-%d8%b4%d9%84%d9%86%da%af%db%8c-%d8%b5%d9%86%d8%b9%d8%aa%db%8c', '%d8%af%d9%88%d8%b1%d8%a8%db%8c%d9%86-%d8%b4%d9%84%d9%86%da%af%db%8c-%d8%ad%d8%b1%d9%81%d9%87%d8%a7%db%8c' ),
+		'general'    => array( '%da%a9%d8%a7%d8%b1%d8%a8%d8%b1%db%8c-%d8%b9%d9%85%d9%88%d9%85%db%8c' ),
+	);
+	$torantejarat_query  = array(
+		'status'     => 'publish',
+		'visibility' => 'catalog',
+		'limit'      => 50,
+	);
+	if ( '' !== $torantejarat_answers['usecase'] && isset( $torantejarat_cat_map[ $torantejarat_answers['usecase'] ] ) ) {
+		$torantejarat_query['category'] = $torantejarat_cat_map[ $torantejarat_answers['usecase'] ];
+	}
+	$torantejarat_min_length = is_numeric( $torantejarat_answers['length'] ) ? (float) $torantejarat_answers['length'] : 0;
+	$torantejarat_max_diam   = is_numeric( $torantejarat_answers['diameter'] ) ? (float) $torantejarat_answers['diameter'] : 0;
+	$torantejarat_budget     = is_numeric( $torantejarat_answers['budget'] ) ? (float) $torantejarat_answers['budget'] : 0;
+
+	$torantejarat_candidates = array_values(
+		array_filter(
+			wc_get_products( $torantejarat_query ),
+			static fn( $item ) => $item instanceof \WC_Product && $item->is_visible()
+		)
+	);
+	/* Relaxation ladder: exact match first; on empty, drop budget, then
+	   diameter, then length — always labeled honestly as partial. */
+	$torantejarat_levels = array(
+		array( 'budget' => $torantejarat_budget, 'diam' => $torantejarat_max_diam, 'len' => $torantejarat_min_length, 'label' => '' ),
+		array( 'budget' => 0, 'diam' => $torantejarat_max_diam, 'len' => $torantejarat_min_length, 'label' => __( 'بدون در نظر گرفتن سقف بودجه', 'torantejarat' ) ),
+		array( 'budget' => 0, 'diam' => 0, 'len' => $torantejarat_min_length, 'label' => __( 'بدون در نظر گرفتن بودجه و قطر ورودی', 'torantejarat' ) ),
+		array( 'budget' => 0, 'diam' => 0, 'len' => 0, 'label' => __( 'فقط بر اساس کاربرد', 'torantejarat' ) ),
+	);
+	foreach ( $torantejarat_levels as $torantejarat_level ) {
+		$torantejarat_results = array();
+		$torantejarat_skipped = 0;
+		foreach ( $torantejarat_candidates as $torantejarat_candidate ) {
+			if ( $torantejarat_level['len'] > 0 ) {
+				$torantejarat_cable = torantejarat_finder_meters( $torantejarat_candidate->get_attribute( 'pa_cable-length' ) );
+				if ( null === $torantejarat_cable ) {
+					++$torantejarat_skipped;
+					continue;
+				}
+				if ( $torantejarat_cable < $torantejarat_level['len'] ) {
+					continue;
+				}
+			}
+			if ( $torantejarat_level['diam'] > 0 ) {
+				$torantejarat_head = torantejarat_finder_meters( $torantejarat_candidate->get_attribute( 'pa_lens-diameter' ) );
+				if ( null === $torantejarat_head ) {
+					++$torantejarat_skipped;
+					continue;
+				}
+				if ( $torantejarat_head > $torantejarat_level['diam'] ) {
+					continue;
+				}
+			}
+			if ( $torantejarat_level['budget'] > 0 && (float) $torantejarat_candidate->get_price() > $torantejarat_level['budget'] ) {
+				continue;
+			}
+			$torantejarat_results[] = $torantejarat_candidate;
+		}
+		if ( $torantejarat_results ) {
+			$torantejarat_partial = $torantejarat_level['label'];
+			break;
+		}
+	}
+	usort(
+		$torantejarat_results,
+		static fn( $a, $b ) => (float) $a->get_price() <=> (float) $b->get_price()
+	);
+	foreach ( $torantejarat_steps as $torantejarat_key => $torantejarat_step ) {
+		$torantejarat_value = $torantejarat_answers[ $torantejarat_key ];
+		if ( '' !== $torantejarat_value && isset( $torantejarat_step['options'][ $torantejarat_value ] ) ) {
+			$torantejarat_chosen[] = $torantejarat_step['options'][ $torantejarat_value ];
+		}
+	}
+}
+
+/**
+ * Parse a measure like "۱۰ متر" or "8 میلی‌متر" to a float. Null when unknown.
+ */
+function torantejarat_finder_meters( $text ) {
+	$latin = str_replace(
+		array( '۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹' ),
+		array( '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' ),
+		(string) $text
+	);
+	if ( preg_match( '/\d+(?:\.\d+)?/', $latin, $matches ) ) {
+		return (float) $matches[0];
+	}
+	return null;
+}
+
+get_header();
+?>
+<main id="torantejarat-main" class="torantejarat-main" tabindex="-1">
+	<?php while ( have_posts() ) : the_post(); ?>
+		<?php get_template_part( 'template-parts/page-intro', null, array( 'title' => get_the_title(), 'description' => ! post_password_required() && has_excerpt() ? get_the_excerpt() : '' ) ); ?>
+		<section class="torantejarat-section"><div class="torantejarat-container">
+			<div class="torantejarat-finder<?php echo $torantejarat_submitted ? ' is-submitted' : ''; ?>" data-finder>
+				<button type="button" class="torantejarat-btn torantejarat-btn-outline torantejarat-finder-edit" data-finder-edit hidden><?php esc_html_e( 'ویرایش پاسخ‌ها', 'torantejarat' ); ?></button>
+				<form class="torantejarat-finder-form" method="get" action="<?php echo esc_url( get_permalink() ); ?>" data-finder-form>
+					<input type="hidden" name="finder" value="1">
+					<p class="torantejarat-finder-progress" data-finder-progress hidden></p>
+					<?php foreach ( $torantejarat_steps as $torantejarat_step_key => $torantejarat_step ) : ?>
+						<fieldset class="torantejarat-finder-step" data-step="<?php echo esc_attr( $torantejarat_step_key ); ?>">
+							<legend><?php echo esc_html( $torantejarat_step['label'] ); ?></legend>
+							<p class="torantejarat-finder-hint"><?php echo esc_html( $torantejarat_step['hint'] ); ?></p>
+							<div class="torantejarat-finder-options">
+								<?php foreach ( $torantejarat_step['options'] as $torantejarat_opt_key => $torantejarat_opt_label ) : ?>
+									<label class="torantejarat-finder-option">
+										<input type="radio" name="<?php echo esc_attr( $torantejarat_step_key ); ?>" value="<?php echo esc_attr( $torantejarat_opt_key ); ?>"<?php echo $torantejarat_submitted ? checked( $torantejarat_answers[ $torantejarat_step_key ], (string) $torantejarat_opt_key, false ) : ''; ?>>
+										<span><?php echo esc_html( $torantejarat_opt_label ); ?></span>
+									</label>
+								<?php endforeach; ?>
+							</div>
+						</fieldset>
+					<?php endforeach; ?>
+					<div class="torantejarat-finder-foot">
+						<button type="button" class="torantejarat-finder-back" data-finder-back hidden><?php esc_html_e( 'بازگشت به سؤال قبل', 'torantejarat' ); ?></button>
+						<button type="submit" class="torantejarat-btn torantejarat-btn-primary torantejarat-finder-submit"><?php esc_html_e( 'نمایش نتایج', 'torantejarat' ); ?></button>
+					</div>
+				</form>
+				<?php if ( $torantejarat_submitted ) : ?>
+					<div class="torantejarat-finder-results" data-finder-results>
+						<?php if ( $torantejarat_results ) : ?>
+						<div class="torantejarat-finder-box">
+							<span class="torantejarat-eyebrow"><?php esc_html_e( 'نتیجه بررسی اولیه', 'torantejarat' ); ?></span>
+							<h2><?php echo esc_html( sprintf( __( '%s گزینه مرتبط با پاسخ‌های شما', 'torantejarat' ), torantejarat_fa_number( count( $torantejarat_results ) ) ) ); ?></h2>
+							<?php if ( '' !== $torantejarat_partial ) : ?><p class="torantejarat-finder-partial"><?php echo esc_html( sprintf( __( 'تطابق جزئی (%s) — هیچ مدلی تمام شرط‌ها را نداشت.', 'torantejarat' ), $torantejarat_partial ) ); ?></p><?php endif; ?>
+							<?php if ( $torantejarat_chosen ) : ?><p class="torantejarat-finder-summary"><?php echo esc_html( implode( ' • ', $torantejarat_chosen ) ); ?></p><?php endif; ?>
+							<?php
+							$torantejarat_prices = array();
+							foreach ( $torantejarat_results as $torantejarat_item ) {
+								$torantejarat_p = $torantejarat_item->get_price();
+								if ( '' !== $torantejarat_p && null !== $torantejarat_p ) {
+									$torantejarat_prices[] = (float) $torantejarat_p;
+								}
+							}
+							?>
+							<?php if ( count( $torantejarat_prices ) > 1 ) : ?><p class="torantejarat-finder-range"><?php echo esc_html( sprintf( __( 'بازه قیمت مدل‌های مناسب: %s تا %s تومان', 'torantejarat' ), torantejarat_fa_number( min( $torantejarat_prices ) ), torantejarat_fa_number( max( $torantejarat_prices ) ) ) ); ?></p><?php endif; ?>
+							<?php if ( $torantejarat_skipped > 0 ) : ?><p class="torantejarat-finder-skipped"><?php echo esc_html( sprintf( __( '%s مدل چون مشخصات فنی کامل نداشتند در نظر گرفته نشدند — برای بررسی آن‌ها از کارشناس بپرسید.', 'torantejarat' ), torantejarat_fa_number( $torantejarat_skipped ) ) ); ?></p><?php endif; ?>
+							<div class="torantejarat-finder-grid">
+								<?php foreach ( $torantejarat_results as $torantejarat_item ) : ?>
+									<?php
+									$torantejarat_item_id  = $torantejarat_item->get_id();
+									$torantejarat_item_url = get_permalink( $torantejarat_item_id );
+									?>
+									<article class="torantejarat-finder-card">
+										<a class="torantejarat-finder-card-image" href="<?php echo esc_url( $torantejarat_item_url ); ?>" tabindex="-1" aria-hidden="true">
+											<?php if ( $torantejarat_item->get_image_id() ) : ?>
+												<?php echo wp_get_attachment_image( $torantejarat_item->get_image_id(), 'torantejarat-card', false, array( 'loading' => 'lazy' ) ); ?>
+											<?php else : ?>
+												<?php torantejarat_icon( 'scan' ); ?>
+											<?php endif; ?>
+										</a>
+										<h3><a href="<?php echo esc_url( $torantejarat_item_url ); ?>"><?php echo esc_html( $torantejarat_item->get_name() ); ?></a></h3>
+										<div class="torantejarat-finder-card-specs">
+											<?php foreach ( torantejarat_product_attribute_items( $torantejarat_item, 3 ) as $torantejarat_attr ) : ?>
+												<span><?php echo esc_html( $torantejarat_attr['label'] . ': ' . $torantejarat_attr['value'] ); ?></span>
+											<?php endforeach; ?>
+										</div>
+										<div class="torantejarat-finder-card-price"><?php echo wp_kses_post( torantejarat_card_price( $torantejarat_item ) ); ?></div>
+										<a class="torantejarat-btn torantejarat-btn-primary" href="<?php echo esc_url( $torantejarat_item_url ); ?>"><?php esc_html_e( 'بررسی دستگاه', 'torantejarat' ); ?></a>
+									</article>
+								<?php endforeach; ?>
+							</div>
+							<p class="torantejarat-finder-note"><?php esc_html_e( 'این نتیجه تأیید تناسب فنی نیست؛ شرایط محیط و اطلاعات سازنده باید بررسی شوند.', 'torantejarat' ); ?></p>
+							<p><a class="torantejarat-text-link" href="<?php echo esc_url( get_permalink() ); ?>"><?php esc_html_e( 'شروع دوباره', 'torantejarat' ); ?> <?php torantejarat_icon( 'arrow' ); ?></a></p>
+						</div>
+						<?php else : ?>
+							<div class="torantejarat-empty-state">
+								<?php torantejarat_icon( 'search' ); ?>
+								<p><?php esc_html_e( 'هیچ دستگاهی تمام شرایط شما را ندارد. پاسخ‌ها را بازبینی کنید یا نیازتان را برای بررسی فنی آماده کنید.', 'torantejarat' ); ?></p>
+								<?php
+								$torantejarat_contact = get_page_by_path( 'contact' );
+								if ( $torantejarat_contact ) :
+									?>
+									<a class="torantejarat-btn torantejarat-btn-outline" href="<?php echo esc_url( get_permalink( $torantejarat_contact ) ); ?>"><?php esc_html_e( 'آماده‌سازی درخواست بررسی', 'torantejarat' ); ?></a>
+								<?php endif; ?>
+							</div>
+						<?php endif; ?>
+					</div>
+				<?php endif; ?>
+			</div>
+		</div></section>
+	<?php endwhile; ?>
+</main>
+<?php get_footer(); ?>

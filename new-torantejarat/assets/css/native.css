@@ -1,0 +1,1040 @@
+/* WP/Woo markup bridge. Design values and breakpoints come from the HTML source.
+ * Native platform classes are deliberately retained; Theme-owned classes use its prefix.
+ * No Foundation base/layout/components stylesheet is loaded alongside the source.
+ */
+.torantejarat-site [hidden]{display:none!important}
+.torantejarat-site :focus-visible{outline:2px solid var(--orange);outline-offset:4px}
+.torantejarat-site .torantejarat-brand-wrap{display:flex;align-items:center;gap:11px}
+.torantejarat-site .custom-logo-link{flex:none}
+.torantejarat-site .custom-logo{height:46px;width:auto;max-width:220px;object-fit:contain}
+@media(max-width:600px){.torantejarat-site .custom-logo{height:38px;max-width:170px}}
+/* Footer is dark — logo sits on a light pill so the artwork stays visible. */
+.torantejarat-site .torantejarat-site-footer .custom-logo-link{display:inline-block;background:#fff;border-radius:14px;padding:8px 14px}
+.torantejarat-site .torantejarat-site-footer .custom-logo{height:52px;max-width:230px}
+.torantejarat-site .torantejarat-nav-list,.torantejarat-site .torantejarat-nav-list ul,.torantejarat-utility-menu,.torantejarat-footer-menu,.torantejarat-hero-actions{list-style:none;padding:0}
+/* Nav actions (support + deals) sit at the inline-end of the desktop menu row. */
+@media(min-width:901px){
+.torantejarat-site .torantejarat-main-nav{display:flex;align-items:center;gap:16px}
+.torantejarat-site .torantejarat-main-nav .torantejarat-nav-list{width:auto;flex:1;min-width:0}
+.torantejarat-site .torantejarat-nav-actions{margin-inline-start:auto}
+}
+.torantejarat-site .torantejarat-nav-actions{display:flex;align-items:center;gap:10px;flex:none}
+.torantejarat-site .torantejarat-nav-btn{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:700;border:1px solid var(--line);border-radius:999px;padding:8px 16px;white-space:nowrap;background:#fff}
+.torantejarat-site .torantejarat-nav-btn .torantejarat-icon{width:18px;height:18px}
+.torantejarat-site .torantejarat-nav-btn:hover{border-color:var(--ink)}
+.torantejarat-site .torantejarat-nav-btn.is-deals{background:#f77b3e;border-color:#f77b3e;color:#1c1206}
+.torantejarat-site .torantejarat-nav-btn.is-deals:hover{background:#e96a2b;border-color:#e96a2b}
+@media(max-width:900px){.torantejarat-site .torantejarat-main-nav{flex-direction:column;align-items:stretch}.torantejarat-site .torantejarat-nav-actions{flex-direction:column;align-items:stretch;margin:8px 0 0}.torantejarat-site .torantejarat-nav-btn{justify-content:center}}
+.torantejarat-nav-list{display:flex;align-items:center;gap:30px;width:100%;margin:0}
+.torantejarat-nav-list li{position:relative}
+.torantejarat-nav-list a{display:block}
+.torantejarat-nav-list .sub-menu{display:none;position:absolute;inset-block-start:100%;inset-inline-start:0;min-width:220px;z-index:30;background:#fff;border:1px solid var(--line);border-radius:8px;margin:0;padding:10px}
+.torantejarat-nav-list li:hover>.sub-menu,.torantejarat-nav-list li:focus-within>.sub-menu{display:block}
+.torantejarat-nav-list .sub-menu .sub-menu{position:static;margin-inline-start:12px;min-width:0;border:0}
+.torantejarat-utility-menu{margin:0;display:flex;gap:18px}
+.torantejarat-footer-menu{margin:0}
+.torantejarat-footer-menu a{display:block;font-size:11px;color:#a8b8ab;margin:9px 0}
+.torantejarat-footer-menu a:hover{color:var(--orange)}
+.torantejarat-footer-menu ul{list-style:none;padding-inline-start:12px}
+.torantejarat-hero-actions a{display:inline-flex;align-items:center;justify-content:center;gap:12px;min-height:48px;padding:12px 23px;border-radius:9px;font-weight:700;font-size:13px;line-height:1.7;border:1px solid #5a6564;background:transparent;color:#f3f4ef;transition:background .2s,transform .2s}
+.torantejarat-hero-actions a:hover{background:#ffffff0d}
+.torantejarat-hero-actions li:first-child a{background:var(--orange);color:#211e18;border-color:transparent}
+.torantejarat-hero-actions li:first-child a:hover{background:#e96a2b;transform:translateY(-2px)}
+.torantejarat-hero-text-only{grid-template-columns:1fr}
+.torantejarat-editorial-card .torantejarat-card-link{display:block;height:100%}
+.torantejarat-editorial-art img{width:100%;height:100%;object-fit:cover;position:relative;z-index:1}
+.torantejarat-content-wide .torantejarat-prose{max-width:760px}
+.torantejarat-page-content>:last-child{margin-bottom:0}
+.torantejarat-page-content p{margin-bottom:1em}
+.torantejarat-prose img,.torantejarat-page-content img{max-width:100%;height:auto}
+.torantejarat-site .aligncenter{display:block;margin-inline:auto}
+.torantejarat-site .alignleft{float:left;margin:0 1em 1em 0}
+.torantejarat-site .alignright{float:right;margin:0 0 1em 1em}
+.torantejarat-site .wp-caption{max-width:100%}
+.torantejarat-site .wp-caption-text{font-size:11px;color:var(--muted)}
+.torantejarat-site .navigation.pagination{margin-top:30px}
+.torantejarat-site .nav-links{display:flex;flex-wrap:wrap;gap:12px}
+.torantejarat-site .page-numbers,.torantejarat-site .post-page-numbers{border:1px solid var(--line);padding:7px 13px;border-radius:7px}
+.torantejarat-site .page-numbers.current,.torantejarat-site .post-page-numbers.current{background:var(--ink);color:#fff}
+.torantejarat-empty-state .torantejarat-header-search{margin:20px auto;width:min(560px,100%)}
+.torantejarat-site ul.products.torantejarat-product-grid{display:grid;list-style:none;padding:0;margin:0 0 30px;clear:both}
+.torantejarat-site ul.products.torantejarat-product-grid::before,.torantejarat-site ul.products.torantejarat-product-grid::after{display:none}
+.torantejarat-site ul.products.torantejarat-product-grid>li.product{float:none;width:auto;margin:0;clear:none;min-width:0;display:flex;flex-direction:column}
+.torantejarat-site ul.products.torantejarat-product-grid>li.product a.woocommerce-LoopProduct-link{display:flex;flex-direction:column;flex:1}
+.torantejarat-site ul.products.torantejarat-product-grid .torantejarat-product-image img{height:100%;width:100%;margin:0;object-fit:cover}
+.torantejarat-site ul.products.torantejarat-product-grid .woocommerce-loop-product__title{padding:0}
+.torantejarat-site ul.products.torantejarat-product-grid .torantejarat-product-info{display:flex;flex-direction:column;flex:1}
+.torantejarat-site ul.products.torantejarat-product-grid .torantejarat-product-bottom{margin-top:auto;flex-wrap:wrap}
+.torantejarat-site ul.products.torantejarat-product-grid .price{color:var(--ink);font-weight:700;margin:0;min-width:0;overflow-wrap:anywhere}
+.torantejarat-site ul.products.torantejarat-product-grid .price ins{text-decoration:none;display:inline}
+.torantejarat-site ul.products.torantejarat-product-grid .price del{font-size:.8em;font-weight:400;display:inline}
+.torantejarat-site #torantejarat-main ul.products.torantejarat-product-grid .button,.torantejarat-site #torantejarat-main ul.products.torantejarat-product-grid .added_to_cart{display:flex;align-items:center;justify-content:center;gap:10px;padding:12px 14px;border:1px solid transparent;border-radius:10px;background:var(--orange);margin:12px 0 0;font-size:13px;font-weight:800;color:#211e18;line-height:1.9;white-space:normal;width:100%;transition:filter .2s,transform .2s}
+.torantejarat-site ul.products.torantejarat-product-grid .button:hover{background:var(--orange);filter:brightness(.94)}
+.torantejarat-site ul.products.torantejarat-product-grid .button.added::after{content:'✓';font-weight:900}
+/* Shop card refresh: hover lift, price row, centered CTA, stock chip. */
+.torantejarat-site ul.products .torantejarat-shop-card{transition:transform .25s ease,box-shadow .25s ease}
+.torantejarat-site ul.products .torantejarat-shop-card:hover{transform:translateY(-4px);box-shadow:0 14px 34px #1723251a}
+.torantejarat-site ul.products.torantejarat-product-grid .torantejarat-product-bottom{display:grid;grid-template-columns:minmax(0,1fr);gap:4px;margin-top:auto;padding-top:13px;border-top:1px solid #edf0e9}
+.torantejarat-site ul.products .torantejarat-shop-card .stock{font-size:10px;font-weight:700;margin:8px 0 0;padding:3px 10px;border-radius:20px;width:fit-content;background:#eef4e6;color:#4d6b43}
+.torantejarat-site ul.products .torantejarat-shop-card .stock.out-of-stock{background:#fdeaea;color:#b3402e}
+/* Catalog toolbar: count grows, view controls at the end. */
+.torantejarat-catalog-toolbar{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.torantejarat-catalog-toolbar .woocommerce-result-count{flex:1;margin:0;min-width:140px}
+.torantejarat-catalog-toolbar .woocommerce-ordering{margin:0}
+@media(max-width:600px){.torantejarat-catalog-toolbar .woocommerce-ordering{flex:1}.torantejarat-catalog-toolbar .woocommerce-ordering select{width:100%}}
+.torantejarat-site ul.products.torantejarat-product-grid .onsale{position:absolute;inset-block-start:12px;inset-inline-start:12px;inset-inline-end:auto;margin:0;min-height:0;min-width:0;border-radius:5px;padding:3px 9px;background:#ffffffed;color:var(--ink);line-height:1.9;font-size:9px;pointer-events:none}
+/* Breadcrumbs render through the shared .torantejarat-site-crumbs component. */
+.torantejarat-site .woocommerce-products-header h1{font-size:36px;letter-spacing:-1px}
+.torantejarat-site .woocommerce-products-header p{max-width:640px;font-size:12px;margin-top:14px;line-height:2.1}
+.torantejarat-site .woocommerce-result-count,.torantejarat-site .woocommerce-ordering{font-size:11px;margin-bottom:20px}
+.torantejarat-site .woocommerce-ordering select{font:inherit;background:#f8f9f5;border:1px solid var(--line);border-radius:7px;padding:10px;max-width:100%}
+.torantejarat-site .torantejarat-pdp-gallery{min-width:0;position:relative}
+.torantejarat-site .torantejarat-pdp-grid::after{display:none}
+.torantejarat-site.woocommerce div.product div.images,.torantejarat-site.woocommerce div.product div.summary{float:none;width:auto;min-width:0;margin:0}
+.torantejarat-site .torantejarat-pdp-gallery .woocommerce-product-gallery__wrapper{margin:0}
+.torantejarat-site .torantejarat-pdp-purchase p.price,.torantejarat-site .torantejarat-pdp-purchase span.price{color:var(--ink);font-size:28px;font-weight:700;letter-spacing:-.7px;margin:20px 0}
+.torantejarat-site .torantejarat-pdp-purchase .woocommerce-Price-currencySymbol{font-size:11px;font-weight:400;letter-spacing:0}
+.torantejarat-site.woocommerce div.product .torantejarat-pdp-purchase .single_add_to_cart_button{background:#f77b3e;background:var(--orange);color:#211e18;font:700 13px/1.7 Vazirmatn,Tahoma,Arial,sans-serif;padding:12px 23px;border:1px solid transparent;border-radius:9px;min-height:48px;white-space:normal;transition:background .2s,transform .2s}
+.torantejarat-site .torantejarat-pdp-purchase form.cart{margin:18px 0 0;display:flex;gap:10px;align-items:stretch}
+.torantejarat-site .torantejarat-pdp-purchase form.cart .quantity{flex:0 0 72px}
+.torantejarat-site .torantejarat-pdp-purchase form.cart .single_add_to_cart_button{flex:1;display:flex;align-items:center;justify-content:center;gap:10px}
+
+/* AJAX add-to-cart button states (Persian text states set by ajax-add-to-cart.js). */
+body.single-product a.added_to_cart.wc-forward{display:none!important}
+.single_add_to_cart_button.wc-ajax-loading,.add_to_cart_button.wc-ajax-loading{opacity:.75}
+.single_add_to_cart_button.wc-ajax-added,.add_to_cart_button.wc-ajax-added{background:var(--green);border-color:var(--green)}
+.single_add_to_cart_button.wc-ajax-error,.add_to_cart_button.wc-ajax-error{background:#b3261e;border-color:#b3261e}
+
+/* PDP anchor tabs: active state + single open panel with a soft entrance. */
+.torantejarat-pdp-tabs a[aria-current="true"]{border-color:var(--orange);color:#b25529}
+.js-tabs .torantejarat-tab-hidden{display:none}
+.torantejarat-tab-open{animation:torantejarat-tab-in .45s ease}
+@keyframes torantejarat-tab-in{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){.torantejarat-tab-open{animation:none}}
+
+/* Honest social proof badge inside the purchase box (mobile-first). */
+.torantejarat-pdp-proof{display:flex;align-items:center;justify-content:center;gap:8px;background:#eef9f1;border:1px solid rgba(47,168,96,.35);color:#1f5c37;border-radius:10px;padding:10px 14px;margin:14px 0 0;font-size:13px;line-height:1.9;text-align:center;animation:torantejarat-proof-in .5s ease}
+.torantejarat-pdp-proof .torantejarat-icon{width:18px;height:18px;flex-shrink:0}
+.torantejarat-pdp-proof strong{font-weight:800}
+@keyframes torantejarat-proof-in{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){.torantejarat-pdp-proof{animation:none}}
+@media(max-width:600px){.torantejarat-pdp-proof{font-size:12px;padding:9px 12px;margin-top:12px}}
+.torantejarat-site .torantejarat-pdp-purchase input.qty{min-height:51px;border:1px solid var(--line);border-radius:8px;margin-inline-end:10px}
+.torantejarat-site .torantejarat-pdp-purchase table.variations select{font:inherit;padding:10px;border:1px solid var(--line);border-radius:8px;max-width:100%}
+.torantejarat-site .torantejarat-product-details{padding-block:40px}
+.torantejarat-site .torantejarat-product-details .woocommerce-tabs{margin-bottom:40px}
+.torantejarat-site .torantejarat-product-details .upsells>h2{margin-bottom:30px}
+@media(max-width:1150px){.torantejarat-hero-actions a{padding-inline:15px;font-size:11px}}
+@media(max-width:1100px){.torantejarat-site .woocommerce-products-header h1{font-size:30px}}
+@media(max-width:900px){
+  .torantejarat-nav-list{flex-direction:column;align-items:stretch;gap:0}
+  .torantejarat-nav-list .sub-menu{display:block;position:static;border:0;padding:0 12px;min-width:0}
+  .torantejarat-site:not(.torantejarat-js) .torantejarat-main-nav{display:block;position:static;max-height:none;box-shadow:none}
+  .torantejarat-hero-actions a{font-size:10px;min-height:43px;padding:10px 13px}
+  .torantejarat-site .woocommerce-products-header h1{font-size:28px}
+}
+@media(max-width:600px){
+  .torantejarat-hero-actions{flex-wrap:wrap}
+  .torantejarat-hero-actions a{min-height:45px;font-size:11px;padding:11px 13px}
+  .torantejarat-footer-menu a{font-size:10px}
+  .torantejarat-site .woocommerce-products-header h1{font-size:29px;line-height:1.7}
+  .torantejarat-site .woocommerce-products-header p{font-size:11px;line-height:2;margin-top:10px}
+  .torantejarat-site .woocommerce-result-count,.torantejarat-site .woocommerce-ordering{float:none;display:block;width:100%}
+}
+
+#torantejarat-main .torantejarat-product-info :is(h2,h3){font-size:13px;min-height:42px;line-height:1.8}
+#torantejarat-main .torantejarat-product-bottom .price{font-size:16px;letter-spacing:-.5px}
+#torantejarat-main .torantejarat-product-bottom .price .woocommerce-Price-currencySymbol{font-size:9px;font-weight:400;letter-spacing:0}
+#torantejarat-main .torantejarat-editorial-body :is(h2,h3){font-size:16px;min-height:50px}
+@media(max-width:1150px){#torantejarat-main .torantejarat-product-info :is(h2,h3){font-size:12px}
+#torantejarat-main .torantejarat-product-bottom .price{font-size:14px}
+}
+@media(max-width:900px){#torantejarat-main .torantejarat-product-info :is(h2,h3){font-size:15px;min-height:30px}
+#torantejarat-main .torantejarat-product-bottom .price{font-size:18px}
+#torantejarat-main .torantejarat-editorial-body :is(h2,h3){font-size:14px;min-height:65px}
+#torantejarat-main .torantejarat-catalog-grid .torantejarat-product-info :is(h2,h3){font-size:12px;min-height:44px}
+#torantejarat-main .torantejarat-catalog-grid .torantejarat-product-bottom .price{font-size:14px}
+#torantejarat-main .torantejarat-related-grid .torantejarat-product-info :is(h2,h3){font-size:12px;min-height:44px}
+#torantejarat-main .torantejarat-related-grid .torantejarat-product-bottom .price{font-size:14px}
+}
+@media(max-width:600px){#torantejarat-main .torantejarat-product-info :is(h2,h3){font-size:11px;min-height:40px}
+#torantejarat-main .torantejarat-product-bottom .price{font-size:12px;letter-spacing:-.3px}
+#torantejarat-main .torantejarat-product-bottom .price .woocommerce-Price-currencySymbol{font-size:8px}
+#torantejarat-main .torantejarat-editorial-body :is(h2,h3){font-size:17px;min-height:0}
+#torantejarat-main .torantejarat-catalog-grid .torantejarat-product-info :is(h2,h3){font-size:11px;min-height:40px}
+#torantejarat-main .torantejarat-catalog-grid .torantejarat-product-bottom .price{font-size:12px}
+#torantejarat-main .torantejarat-related-grid .torantejarat-product-info :is(h2,h3){font-size:11px;min-height:40px}
+#torantejarat-main .torantejarat-related-grid .torantejarat-product-bottom .price{font-size:12px}
+}
+@media(max-width:370px){#torantejarat-main .torantejarat-product-bottom .price,#torantejarat-main .torantejarat-catalog-grid .torantejarat-product-bottom .price,#torantejarat-main .torantejarat-related-grid .torantejarat-product-bottom .price{font-size:11px}
+}
+#torantejarat-main .torantejarat-shop-card .torantejarat-product-info :is(h2,h3){font-size:16px;min-height:0;line-height:1.9}
+#torantejarat-main .torantejarat-shop-card .torantejarat-product-bottom .price{font-size:21px}
+#torantejarat-main .torantejarat-shop-card .torantejarat-product-bottom .price .woocommerce-Price-currencySymbol{font-size:10px}
+@media(max-width:1100px){#torantejarat-main .torantejarat-shop-card .torantejarat-product-info :is(h2,h3){font-size:14px}
+#torantejarat-main .torantejarat-shop-card .torantejarat-product-bottom .price{font-size:18px}
+#torantejarat-main .torantejarat-shop-card .torantejarat-product-bottom .price .woocommerce-Price-currencySymbol{font-size:9px}
+}
+@media(max-width:900px){#torantejarat-main .torantejarat-shop-card .torantejarat-product-info :is(h2,h3){font-size:16px}
+#torantejarat-main .torantejarat-shop-card .torantejarat-product-bottom .price{font-size:21px}
+}
+@media(max-width:600px){#torantejarat-main .torantejarat-shop-card .torantejarat-product-info :is(h2,h3){font-size:17px;min-height:0}
+#torantejarat-main .torantejarat-shop-card .torantejarat-product-bottom .price{font-size:22px}
+#torantejarat-main .torantejarat-shop-card .torantejarat-product-bottom .price .woocommerce-Price-currencySymbol{font-size:10px}
+}
+
+.torantejarat-site .torantejarat-pdp-summary .woocommerce-product-details__short-description{font-size:13px;line-height:2.1;margin-top:20px;max-width:470px}
+.torantejarat-site.woocommerce div.product .torantejarat-pdp-purchase .single_add_to_cart_button:hover{background:#e96a2b;transform:translateY(-2px)}
+.torantejarat-site.woocommerce div.product .torantejarat-pdp-purchase .single_add_to_cart_button:focus-visible{outline:3px solid #c66130;outline-offset:3px}
+.torantejarat-site.woocommerce div.product .torantejarat-pdp-purchase .single_add_to_cart_button:disabled{opacity:.55;cursor:not-allowed;transform:none}
+@media(max-width:1100px){.torantejarat-site .torantejarat-pdp-purchase p.price,.torantejarat-site .torantejarat-pdp-purchase span.price{font-size:23px}}
+@media(max-width:760px){.torantejarat-site .torantejarat-pdp-summary .woocommerce-product-details__short-description{max-width:none}}
+@media(max-width:600px){.torantejarat-site .torantejarat-pdp-summary .woocommerce-product-details__short-description{font-size:12px;margin-top:17px}.torantejarat-site .torantejarat-pdp-purchase p.price,.torantejarat-site .torantejarat-pdp-purchase span.price{font-size:24px}}
+@media(prefers-reduced-motion:reduce){.torantejarat-hero-actions a{transition:none}.torantejarat-hero-actions li:first-child a:hover{transform:none}}
+
+.torantejarat-authored-sections>.torantejarat-section,.torantejarat-authored-sections>.torantejarat-benefit-strip{margin:0}
+.torantejarat-authored-sections>:not(.torantejarat-section):not(.torantejarat-benefit-strip){width:min(1280px,100% - 96px);margin:20px auto}
+.torantejarat-authored-sections .torantejarat-container>*{margin-block-start:0;margin-block-end:0}
+.torantejarat-benefit-strip .torantejarat-container>p{display:flex;gap:12px;justify-content:center;align-items:center;font-size:11px;color:#4d5f50;border-inline-start:1px solid #d5ded2;margin:0}
+.torantejarat-benefit-strip .torantejarat-container>p:first-child{border:0}
+.torantejarat-video-panel .wp-block-video{margin:0}
+.torantejarat-faq .wp-block-details{margin:0}
+.torantejarat-about-layout.torantejarat-no-aside,.torantejarat-request-layout.torantejarat-no-aside{grid-template-columns:1fr}
+.torantejarat-site .torantejarat-page-content::after,.torantejarat-site .torantejarat-prose::after{content:'';display:table;clear:both}
+.torantejarat-site .screen-reader-text{border:0;clip:rect(1px,1px,1px,1px);clip-path:inset(50%);height:1px;margin:-1px;overflow:hidden;padding:0;position:absolute!important;width:1px;word-wrap:normal!important}
+.torantejarat-site .screen-reader-text:focus{clip:auto!important;clip-path:none;height:auto;left:5px;top:5px;width:auto;padding:15px;background:#fff;color:var(--ink);z-index:100000}
+.torantejarat-site.admin-bar .torantejarat-site-header{top:var(--wp-admin--admin-bar--height,32px)}
+.torantejarat-site .torantejarat-shop-intro .woocommerce-products-header{background:none;padding:0;margin:0;border:0}
+.torantejarat-shop-intro .torantejarat-site-crumbs{padding:0;margin-bottom:24px}
+.torantejarat-site .torantejarat-catalog-toolbar .woocommerce-result-count,.torantejarat-site .torantejarat-catalog-toolbar .woocommerce-ordering{float:none;margin:0}
+.torantejarat-site ul.products.torantejarat-product-grid .stock{font-size:10px;margin:0 0 12px}
+.torantejarat-site .torantejarat-shop-card-specs{margin-inline:0}
+.torantejarat-site .torantejarat-shop-card-specs>div,.torantejarat-site .torantejarat-spec-chips>span,.torantejarat-site .torantejarat-pdp-specs>div{min-width:0;overflow-wrap:anywhere}
+.torantejarat-site .torantejarat-pdp-specs strong{text-align:start}
+.torantejarat-site .torantejarat-pdp-gallery .woocommerce-product-gallery__image{background:#f4f3ef;border:1px solid #e6e6e0;border-radius:18px;overflow:hidden}
+.torantejarat-site .torantejarat-pdp-gallery .woocommerce-product-gallery__image a>img{aspect-ratio:1;object-fit:cover;border-radius:0;background:#f4f3ef}
+.torantejarat-site.woocommerce div.product div.images .flex-control-thumbs{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0 0;padding:0;list-style:none}
+.torantejarat-site .torantejarat-pdp-gallery .flex-control-thumbs li,.woocommerce div.product div.images .flex-control-thumbs li{float:none;overflow:hidden;width:15%;aspect-ratio:1/1;height:auto;padding:2px;border-radius:9px;background:#fff;border:1px solid var(--line)}
+.torantejarat-site .torantejarat-pdp-gallery .flex-control-thumbs img{display:block;width:100%;height:100%;object-fit:cover;aspect-ratio:1/1;border-radius:5px}
+.torantejarat-site .torantejarat-pdp-gallery .flex-control-thumbs li:has(.flex-active){border-color:#ee8a53}
+.torantejarat-site .torantejarat-pdp-purchase .price del{font-size:.8em;font-weight:400}
+.torantejarat-site .torantejarat-pdp-purchase .price ins{background:none;text-decoration:none}
+.torantejarat-site .torantejarat-pdp-purchase p.stock{font-size:10px;margin:12px 0}
+.torantejarat-site .torantejarat-pdp-purchase .single_add_to_cart_button:disabled{transform:none;cursor:not-allowed}
+.torantejarat-site .torantejarat-pdp-summary .product_meta{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;font-size:10px;color:#70806c;margin:4px 0 15px}
+.torantejarat-site .torantejarat-pdp-summary .product_meta>span{display:block;margin-top:5px}
+.torantejarat-site .torantejarat-product-details table.shop_attributes{border-collapse:collapse;border:1px solid var(--line);font-size:13px;width:100%;margin:0 0 55px}
+.torantejarat-site .torantejarat-product-details table.shop_attributes th{width:32%;padding:16px 24px;text-align:start}
+.torantejarat-site .torantejarat-product-details table.shop_attributes td{padding:16px 24px;font-style:normal}
+.torantejarat-site .torantejarat-product-details table.shop_attributes p{padding:0}
+.torantejarat-site.woocommerce div.product .woocommerce-tabs ul.tabs{display:flex;gap:40px;overflow:auto;padding:0 6px;margin:0 0 30px;border-bottom:1px solid var(--line)}
+.torantejarat-site.woocommerce div.product .woocommerce-tabs ul.tabs::before,.torantejarat-site.woocommerce div.product .woocommerce-tabs ul.tabs li::before,.torantejarat-site.woocommerce div.product .woocommerce-tabs ul.tabs li::after{display:none}
+.torantejarat-site.woocommerce div.product .woocommerce-tabs ul.tabs li{background:none;border:0;border-radius:0;margin:0;padding:0;flex-shrink:0}
+.torantejarat-site.woocommerce div.product .woocommerce-tabs ul.tabs li a{font-size:12px;font-weight:600;padding:18px 0;border-bottom:2px solid transparent;color:var(--ink)}
+.torantejarat-site.woocommerce div.product .woocommerce-tabs ul.tabs li.active a,.torantejarat-site.woocommerce div.product .woocommerce-tabs ul.tabs li a:focus{border-color:var(--orange);color:#b25529}
+@media(max-width:900px){
+  .torantejarat-authored-sections>:not(.torantejarat-section):not(.torantejarat-benefit-strip){width:calc(100% - 40px)}
+  .torantejarat-benefit-strip .torantejarat-container>p{font-size:9px;gap:7px}
+}
+@media(max-width:600px){
+  .torantejarat-authored-sections>:not(.torantejarat-section):not(.torantejarat-benefit-strip){width:calc(100% - 32px)}
+  .torantejarat-benefit-strip .torantejarat-container>p{padding:12px 0;font-size:9px;justify-content:flex-start;border:0}
+  .torantejarat-benefit-strip .torantejarat-container>p:nth-child(even){padding-inline-start:12px;border-inline-start:1px solid #d6ded0}
+  .torantejarat-shop-intro .torantejarat-site-crumbs{margin-bottom:18px}
+  .torantejarat-site .torantejarat-pdp-gallery .woocommerce-product-gallery__image{border-radius:12px}
+  .torantejarat-site.woocommerce div.product .woocommerce-tabs ul.tabs{gap:23px;padding:0;margin-top:18px}
+  .torantejarat-site.woocommerce div.product .woocommerce-tabs ul.tabs li a{font-size:10px;padding:15px 0}
+  .torantejarat-site .torantejarat-product-details table.shop_attributes{font-size:11px;margin-bottom:35px}
+  .torantejarat-site .torantejarat-product-details table.shop_attributes th,.torantejarat-site .torantejarat-product-details table.shop_attributes td{padding:13px}
+  .torantejarat-site .torantejarat-product-details table.shop_attributes th{width:35%}
+  .torantejarat-site.admin-bar .torantejarat-site-header{top:0}
+}
+.torantejarat-site.search #torantejarat-main .torantejarat-header-search{margin:0 0 30px;max-width:750px}
+.torantejarat-site .torantejarat-main>.post-nav-links{width:min(1280px,100% - 96px);margin:20px auto}
+.torantejarat-prose .wp-block-table,.torantejarat-page-content .wp-block-table{max-width:100%;overflow:auto}
+.torantejarat-prose pre,.torantejarat-page-content pre{max-width:100%;overflow:auto}
+.torantejarat-prose,.torantejarat-page-content{min-width:0;overflow-wrap:anywhere}
+@media(max-width:900px){.torantejarat-site .torantejarat-main>.post-nav-links{width:calc(100% - 40px)}}
+@media(max-width:600px){.torantejarat-site .torantejarat-main>.post-nav-links{width:calc(100% - 32px)}}
+
+.torantejarat-site .torantejarat-soft-section .related>h2{margin-bottom:30px}
+.torantejarat-site .torantejarat-soft-section .related ul.products{margin-bottom:0}
+@media(max-width:600px){.torantejarat-site .torantejarat-soft-section .related>h2{margin-bottom:23px}}
+
+.torantejarat-site .torantejarat-pdp-gallery .woocommerce-product-gallery__image--placeholder{overflow:hidden;background:#f4f3ef;border:1px solid #e6e6e0;border-radius:18px}
+.torantejarat-site .torantejarat-pdp-gallery .woocommerce-product-gallery__image--placeholder img{aspect-ratio:1;object-fit:contain}
+.torantejarat-site .torantejarat-main>.woocommerce-notices-wrapper,.torantejarat-site .torantejarat-main>.woocommerce-info,.torantejarat-site .torantejarat-main>.woocommerce-error,.torantejarat-site .torantejarat-main>.post-password-form{width:min(1280px,100% - 96px);margin-inline:auto}
+@media(max-width:900px){.torantejarat-site .torantejarat-main>.woocommerce-notices-wrapper,.torantejarat-site .torantejarat-main>.woocommerce-info,.torantejarat-site .torantejarat-main>.woocommerce-error,.torantejarat-site .torantejarat-main>.post-password-form{width:calc(100% - 40px)}}
+@media(max-width:600px){
+  .torantejarat-site .torantejarat-pdp-gallery .woocommerce-product-gallery__image--placeholder{border-radius:12px}
+  .torantejarat-site .torantejarat-main>.woocommerce-notices-wrapper,.torantejarat-site .torantejarat-main>.woocommerce-info,.torantejarat-site .torantejarat-main>.woocommerce-error,.torantejarat-site .torantejarat-main>.post-password-form{width:calc(100% - 32px)}
+}
+
+.torantejarat-authored-sections .torantejarat-field-grid:has(>:only-child),.torantejarat-authored-sections .torantejarat-faq-grid:has(>:only-child){grid-template-columns:1fr}
+.torantejarat-site ul.products.torantejarat-product-grid .torantejarat-shop-card .torantejarat-product-image img{object-fit:contain;background:#edede8}
+.torantejarat-site .torantejarat-pdp-gallery>.onsale{inset-block-start:19px;inset-inline-start:19px;inset-inline-end:auto;margin:0;min-height:0;min-width:0;border-radius:6px;background:#fff;color:var(--ink);padding:5px 14px;font-size:11px;line-height:1.9;box-shadow:0 2px 12px #00000008}
+.torantejarat-site .torantejarat-footer-top>div:first-child:last-child{grid-column:1/-1;border:0;padding:0}
+@media(max-width:600px){
+  .torantejarat-hero-actions a{gap:8px}
+  .torantejarat-site ul.products.torantejarat-product-grid .onsale{font-size:7px;inset-block-start:8px;inset-inline-start:8px;padding:2px 6px}
+  .torantejarat-site ul.products.torantejarat-product-grid .torantejarat-shop-card .onsale{font-size:10px;inset-block-start:12px;inset-inline-start:12px;padding:4px 10px}
+  .torantejarat-site .torantejarat-pdp-gallery>.onsale{inset-block-start:12px;inset-inline-start:12px;font-size:9px}
+}
+@media(max-width:370px){
+  .torantejarat-hero-actions a{font-size:10px;padding:10px}
+  .torantejarat-site ul.products.torantejarat-product-grid .onsale{font-size:6px}
+  .torantejarat-site ul.products.torantejarat-product-grid .torantejarat-shop-card .onsale{font-size:10px}
+}
+
+.torantejarat-editorial-card:focus-within,.torantejarat-product-card:focus-within{outline:2px solid var(--orange);outline-offset:4px}
+.torantejarat-page-intro h1,.torantejarat-hero-copy h1,.torantejarat-pdp-summary h1{overflow-wrap:anywhere}
+
+.torantejarat-site .cross-sells ul.products.torantejarat-product-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+
+.torantejarat-article-nav{min-width:0;max-height:calc(100vh - 185px);overflow:auto}
+.torantejarat-article-nav h2{font-size:inherit;margin:0}
+.torantejarat-article-nav ul{list-style:none;margin:0;padding:0}
+.torantejarat-article-nav a{overflow-wrap:anywhere}
+.torantejarat-article-nav .torantejarat-text-link{display:flex}
+.torantejarat-article-body>:is(h2,h3,h4,h5,h6):not(:first-child){margin-block-start:40px}
+.torantejarat-article-body [id]{scroll-margin-top:185px}
+.torantejarat-article-body>:last-child{margin-bottom:0}
+.torantejarat-prose>.wp-post-image{display:block;margin-bottom:30px}
+.torantejarat-site .torantejarat-prose .torantejarat-post-meta{font-size:11px;color:var(--muted)}
+.torantejarat-site .page-numbers.dots{border:0}
+.torantejarat-site .post-nav-links{display:flex;align-items:center;flex-wrap:wrap;gap:12px;margin-block:30px}
+@media(max-width:600px){
+  .torantejarat-article-nav{max-height:none;overflow:visible}
+  .torantejarat-article-body>:is(h2,h3,h4,h5,h6):not(:first-child){margin-block-start:30px}
+  .torantejarat-article-body [id]{scroll-margin-top:160px}
+}
+
+.torantejarat-site:is(.woocommerce-cart,.woocommerce-account) .woocommerce :where(a.button,button.button,input.button){display:inline-flex;align-items:center;justify-content:center;gap:12px;min-height:48px;padding:12px 23px;border:1px solid #d5ddd5;border-radius:9px;background:transparent;color:var(--ink);font:700 13px/1.7 Vazirmatn,Tahoma,Arial,sans-serif;white-space:normal}
+.torantejarat-site:is(.woocommerce-cart,.woocommerce-account) .woocommerce :where(a.button,button.button,input.button):hover{background:var(--soft)}
+.torantejarat-site:is(.woocommerce-cart,.woocommerce-account) .woocommerce :is(.button.alt,button[name="save_account_details"],.woocommerce-form-login__submit,.woocommerce-form-register__submit){border-color:transparent;background:var(--orange);color:#211e18}
+.torantejarat-site:is(.woocommerce-cart,.woocommerce-account) .woocommerce :is(.button.alt,button[name="save_account_details"],.woocommerce-form-login__submit,.woocommerce-form-register__submit):hover{background:#e96a2b}
+.torantejarat-site:is(.woocommerce-cart,.woocommerce-account) .woocommerce .button:disabled{opacity:.5;cursor:not-allowed}
+
+.torantejarat-native-cart-layout{display:grid;grid-template-columns:minmax(0,1fr) 350px;gap:30px;align-items:start}
+.torantejarat-native-cart-layout>*{grid-column:1/-1;min-width:0}
+.torantejarat-native-cart-layout>.woocommerce-cart-form{grid-column:1;overflow-x:auto;padding:6px}
+.torantejarat-site .torantejarat-native-cart-layout>.cart-collaterals{grid-column:2;width:100%;position:sticky;top:160px}
+.torantejarat-site .torantejarat-native-cart-layout .cart_totals{float:none;width:100%;background:#f2f5ec;border:1px solid #dce5d2;border-radius:14px;padding:26px}
+.torantejarat-native-cart-layout .cart_totals h2{font-size:23px;margin-bottom:22px}
+.torantejarat-site .torantejarat-native-cart-layout table.cart{border:1px solid #e1e6dc;border-radius:14px;background:#fff;margin:0;font-size:12px}
+.torantejarat-native-cart-layout table.cart :is(th,td){padding:16px 10px;border-color:var(--line);overflow-wrap:anywhere}
+.torantejarat-site .torantejarat-native-cart-layout table.cart .product-thumbnail img{width:110px;max-width:none;height:110px;object-fit:contain;background:#f0f1eb;border-radius:10px}
+/* Branded empty-cart state (native Woo template + theme filters). */
+.torantejarat-cart-emptybox{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;background:#fff;border:1px solid var(--line);border-radius:20px;box-shadow:0 8px 28px #1723250d;padding:44px 24px;max-width:560px;margin-inline:auto}
+.torantejarat-cart-emptybox-icon{display:inline-flex;align-items:center;justify-content:center;width:80px;height:80px;border-radius:16px;background:#f4f5f1;color:var(--muted);margin-bottom:8px}
+.torantejarat-cart-emptybox-icon .torantejarat-icon{width:40px;height:40px}
+.torantejarat-cart-emptybox h2{font-size:20px}
+.torantejarat-cart-emptybox p{font-size:13px;color:var(--muted)}
+.torantejarat-cart-suggest{margin-top:36px}
+.torantejarat-native-cart-layout .return-to-shop{text-align:center;margin-top:20px}
+.torantejarat-native-cart-layout .return-to-shop .button{display:inline-flex;align-items:center;gap:10px;background:#f77b3e;background:var(--orange);color:#211e18;font-weight:700;font-size:13px;border:1px solid transparent;border-radius:9px;padding:12px 28px;min-height:48px;transition:background .2s,transform .2s}
+.torantejarat-native-cart-layout .return-to-shop .button:hover{background:#e96a2b;transform:translateY(-2px)}
+/* Branded empty-cart state for the Woo Blocks cart (client-hydrated, same tokens). */
+.wp-block-woocommerce-empty-cart-block{display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px;padding:24px 0}
+.wc-block-cart__empty-cart__title{color:var(--ink)}
+.wp-block-woocommerce-empty-cart-block p a{display:inline-flex;align-items:center;gap:10px;background:#f77b3e;background:var(--orange);color:#211e18;font-weight:700;font-size:13px;border-radius:9px;padding:12px 28px;min-height:48px;text-decoration:none;transition:background .2s,transform .2s}
+.wc-block-cart__empty-cart__title{color:var(--ink)}
+.wp-block-woocommerce-empty-cart-block p a:hover{background:#e96a2b;transform:translateY(-2px)}
+.torantejarat-cart-empty-note{font-size:13px;color:var(--muted)}
+/* Neutralize the legacy Woo notice box on the classic cart path. */
+.woocommerce-cart .woocommerce-info{border-top:0;background:#f8f9f5;border:1px solid var(--line);border-radius:12px;color:var(--ink);text-align:center;padding:14px 18px}
+.woocommerce-cart .woocommerce-info::before{display:none}
+.torantejarat-native-cart-layout table.cart .product-name{font-size:16px;line-height:1.9;min-width:120px}
+.torantejarat-native-cart-layout table.cart :is(.product-price,.product-subtotal){font-size:21px;font-weight:700}
+.torantejarat-native-cart-layout table.cart .woocommerce-Price-currencySymbol{font-size:10px;font-weight:400}
+.torantejarat-native-cart-layout table.cart :is(.variation,.backorder_notification){font-size:11px;line-height:2}
+.torantejarat-native-cart-layout .quantity{display:inline-flex;padding:5px;border:1px solid #dde5d4;background:#f8faf5;border-radius:9px}
+.torantejarat-site .torantejarat-native-cart-layout .quantity input.qty{width:4.5em;min-height:37px;padding:5px;font-size:14px}
+.torantejarat-site .torantejarat-native-cart-layout a.remove{width:38px;height:38px;line-height:38px;background:#fcf4ef;border-radius:7px}
+.torantejarat-site .torantejarat-native-cart-layout .coupon .input-text{width:150px;max-width:100%;min-height:48px}
+.torantejarat-site .torantejarat-native-cart-layout .cart_totals table{border:0;margin:0;font-size:12px}
+.torantejarat-native-cart-layout .cart_totals :is(th,td){padding:16px 0;border-color:#dce5d2;overflow-wrap:anywhere}
+.torantejarat-native-cart-layout .cart_totals .order-total{font-size:19px}
+.torantejarat-native-cart-layout .cart_totals .woocommerce-Price-currencySymbol{font-size:10px}
+.torantejarat-site .torantejarat-native-cart-layout .wc-proceed-to-checkout{padding-bottom:0}
+.torantejarat-site .torantejarat-native-cart-layout .wc-proceed-to-checkout a.checkout-button{display:flex;min-height:52px;margin:0;font-size:13px}
+.torantejarat-site.woocommerce-cart .cross-sells{float:none;width:100%;margin-top:40px}
+.torantejarat-site.woocommerce-cart .cross-sells>h2{font-size:23px;margin-bottom:23px}
+.torantejarat-site.woocommerce-cart .cart-empty{padding:65px 25px;background:radial-gradient(ellipse at top,#edf3e5,#fafbf8 65%);border:1px solid #dfe7d6;border-radius:14px;text-align:center}
+.torantejarat-site.woocommerce-cart .cart-empty::before{position:static;display:block;margin-bottom:20px}
+.torantejarat-site.woocommerce-cart .return-to-shop{text-align:center;margin-top:20px}
+@media(max-width:1000px){
+  .torantejarat-native-cart-layout{grid-template-columns:1fr}
+  .torantejarat-site .torantejarat-native-cart-layout>.cart-collaterals{grid-column:1;position:static}
+  .torantejarat-site .torantejarat-native-cart-layout table.cart .product-thumbnail img{width:100px;height:100px}
+}
+@media(max-width:768px){
+  .torantejarat-site .torantejarat-native-cart-layout table.cart td.product-thumbnail{display:block;text-align:start!important}
+  .torantejarat-native-cart-layout table.cart td.product-thumbnail::before{display:none}
+}
+@media(max-width:600px){
+  .torantejarat-site .torantejarat-native-cart-layout .cart_totals{padding:22px}
+  .torantejarat-site .torantejarat-native-cart-layout table.cart .product-thumbnail img{width:75px;height:75px}
+  .torantejarat-native-cart-layout table.cart .product-name{font-size:13px}
+  .torantejarat-native-cart-layout table.cart :is(.product-price,.product-subtotal){font-size:18px}
+  .torantejarat-site.woocommerce-cart .cart-empty{padding:42px 22px}
+}
+
+/* Legacy account layout/nav retired — account.css owns the panel design.
+ * Table/form rules below remain for native view-order tables and forms. */
+.torantejarat-site.woocommerce-account .woocommerce-orders-table{font-size:12px;border-color:var(--line)}
+.torantejarat-site.woocommerce-account .woocommerce-orders-table .nobr{white-space:normal}
+.torantejarat-site.woocommerce-account .woocommerce-orders-table :is(th,td){padding:16px 12px;border-color:var(--line)}
+.torantejarat-site.woocommerce-account .woocommerce-orders-table .button{margin:4px}
+.torantejarat-site.woocommerce-account .woocommerce-pagination{display:flex;flex-wrap:wrap;gap:12px;margin-top:30px}
+.torantejarat-site.woocommerce-account .woocommerce :is(form.login,form.register,form.lost_reset_password,.woocommerce-EditAccountForm){border:1px solid var(--line);border-radius:12px;padding:24px}
+.torantejarat-site.woocommerce-account .woocommerce .form-row label{font-size:12px;font-weight:500;margin-bottom:8px}
+.torantejarat-site.woocommerce-account .woocommerce .form-row .input-text{font-size:12px;min-height:45px}
+.torantejarat-site.woocommerce-account .woocommerce fieldset{border:1px solid var(--line);border-radius:9px;padding:20px;margin-block:25px;min-width:0}
+.torantejarat-site.woocommerce-account .woocommerce legend{padding-inline:8px;font-size:16px;font-weight:700}
+.torantejarat-site.woocommerce-account .woocommerce .form-row em{font-size:11px;color:var(--muted)}
+@media(max-width:900px){
+  .torantejarat-site.woocommerce-account .woocommerce-MyAccount-content{font-size:13px}
+}
+@media(max-width:600px){
+  .torantejarat-site.woocommerce-account .woocommerce-MyAccount-content{font-size:13px}
+  .torantejarat-site.woocommerce-account .woocommerce-MyAccount-content h2{font-size:23px}
+  .torantejarat-site.woocommerce-account .woocommerce :is(.form-row-first,.form-row-last){float:none;width:100%}
+}
+
+/* Small square thumbnails: 6 per row on desktop, 4 per row on mobile. */
+@media(max-width:600px){
+  .torantejarat-site .torantejarat-pdp-gallery .flex-control-thumbs{margin-top:12px}
+  .torantejarat-site .torantejarat-pdp-gallery .flex-control-thumbs li{width:calc((100% - 24px)/4)}
+}
+
+/* Product video — minimal centered click-to-play player. */
+.torantejarat-pdp-video-section{padding:50px 0}
+.torantejarat-pdp-video-frame{position:relative;max-width:880px;margin-inline:auto;border-radius:20px;overflow:hidden;background:#10181a;border:1px solid #e6e6e0;aspect-ratio:16/9}
+.torantejarat-pdp-video-frame video,.torantejarat-pdp-video-frame iframe{width:100%;height:100%;display:block;border:0}
+.torantejarat-video-cover{display:none;position:absolute;inset:0;width:100%;border:0;padding:0;background:#10181a;cursor:pointer;overflow:hidden;font:inherit}
+body.js .torantejarat-video-cover{display:block}
+.torantejarat-video-cover img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.55}
+.torantejarat-video-play{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:grid;place-items:center;width:76px;height:76px;border-radius:50%;background:var(--orange);color:#211e18;transition:transform .25s ease}
+.torantejarat-video-cover:hover .torantejarat-video-play{transform:translate(-50%,-50%) scale(1.08)}
+.torantejarat-pdp-video-placeholder{display:flex;max-width:880px;margin-inline:auto;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:60px 30px;border-radius:20px;background:#f4f3ef;border:1px solid #e6e6e0;text-align:center}
+.torantejarat-pdp-video-placeholder .torantejarat-icon{width:48px;height:48px;color:var(--muted)}
+.torantejarat-pdp-video-placeholder p{font-size:13px;color:var(--muted);max-width:400px;line-height:2}
+@media(max-width:600px){
+  .torantejarat-pdp-video-section{padding:35px 0}
+  .torantejarat-pdp-video-frame{border-radius:16px}
+  .torantejarat-video-play{width:64px;height:64px}
+  .torantejarat-pdp-video-placeholder{padding:40px 20px}
+}
+@media(prefers-reduced-motion:reduce){.torantejarat-video-play{transition:none}}
+
+/* Product features grid */
+.torantejarat-pdp-features{padding:50px 0}
+.torantejarat-pdp-features-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.torantejarat-pdp-feature-card{display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:12px;background:#f8f9f5;border:1px solid #e6e6e0}
+.torantejarat-pdp-feature-icon{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;flex-shrink:0;border-radius:10px;background:#fff;border:1px solid #e6e6e0}
+.torantejarat-pdp-feature-icon .torantejarat-icon{width:18px;height:18px;color:var(--orange)}
+.torantejarat-pdp-feature-card h3{font-size:13px;font-weight:700;line-height:1.7}
+.torantejarat-pdp-feature-card p{font-size:11px;color:var(--muted);line-height:1.9}
+@media(max-width:600px){
+  .torantejarat-pdp-features{padding:35px 0}
+  .torantejarat-pdp-features-grid{grid-template-columns:1fr 1fr;gap:8px}
+  .torantejarat-pdp-feature-card{padding:12px;gap:10px}
+}
+
+
+/* Recently viewed strip (client-rendered, horizontal scroll). */
+.torantejarat-recent-grid{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(140px,180px);gap:12px;overflow-x:auto;padding-bottom:8px}
+.torantejarat-recent-section{margin-top:36px}
+.torantejarat-shop-body .torantejarat-recent-section,.torantejarat-shop-intro .torantejarat-recent-section{margin-top:44px}
+.torantejarat-recent-card{display:flex;gap:12px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:14px;padding:10px 12px;min-width:0}
+.torantejarat-recent-card img{width:56px;height:56px;object-fit:contain;background:#f1f0ea;border-radius:10px;flex-shrink:0}
+.torantejarat-recent-body{display:grid;gap:2px;min-width:0}
+.torantejarat-recent-body strong{font-size:12px;line-height:1.8;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.torantejarat-recent-price{font-size:12px;font-weight:800}
+.torantejarat-recent-card{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:12px;padding:10px;background:#fff;font-size:12px;line-height:1.7}
+.torantejarat-recent-card img{width:52px;height:52px;object-fit:cover;border-radius:8px;flex-shrink:0}
+.torantejarat-recent-card span{overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+@media(max-width:600px){.torantejarat-recent-grid{grid-auto-columns:minmax(120px,150px);gap:8px}}
+
+/* Desktop primary menu: horizontal list + dropdowns (mobile keeps stacked layout). */
+@media(min-width:901px){
+  .torantejarat-main-nav .torantejarat-nav-list{display:flex;align-items:center;gap:30px;list-style:none;margin:0;padding:0}
+  .torantejarat-main-nav .torantejarat-nav-list>li{position:relative;display:flex}
+  .torantejarat-main-nav .torantejarat-nav-list a{white-space:nowrap}
+  .torantejarat-main-nav .sub-menu{position:absolute;top:100%;inset-inline-start:0;min-width:220px;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 18px 40px #17232514;padding:8px;list-style:none;margin:0;z-index:50;opacity:0;visibility:hidden;transform:translateY(8px);transition:opacity .22s ease,transform .22s ease,visibility .22s}
+  .torantejarat-main-nav li:hover>.sub-menu,.torantejarat-main-nav li:focus-within>.sub-menu{opacity:1;visibility:visible;transform:none}
+  .torantejarat-main-nav .sub-menu a{display:flex;padding:10px 12px;border-radius:8px}
+  .torantejarat-main-nav .sub-menu a:hover{background:var(--soft)}
+}
+@media(prefers-reduced-motion:reduce){.torantejarat-main-nav .sub-menu{transition:none}}
+
+/* Header account/cart links: exact reference look, lively hover only. */
+.torantejarat-header-actions .torantejarat-icon-link,.torantejarat-header-actions .torantejarat-cart-link{border-radius:9px;padding:7px 12px;background:#fdf6f0;white-space:nowrap;flex-shrink:0;transition:background .22s,color .22s,transform .22s}
+.torantejarat-header-actions .torantejarat-icon-link .torantejarat-icon,.torantejarat-header-actions .torantejarat-cart-link .torantejarat-icon{color:var(--orange);transition:color .22s,transform .22s}
+.torantejarat-header-actions .torantejarat-cart-link b{transition:transform .22s}
+.torantejarat-header-actions .torantejarat-icon-link:hover{color:#b25529}
+.torantejarat-header-actions .torantejarat-cart-link:hover{background:#f77b3e;background:var(--orange);color:#211e18;transform:translateY(-1px);box-shadow:0 6px 16px #f77b3e45}
+.torantejarat-header-actions .torantejarat-icon-link:hover .torantejarat-icon{color:var(--orange);transform:translateY(-1px)}
+.torantejarat-header-actions .torantejarat-cart-link:hover .torantejarat-icon{color:#211e18;transform:translateY(-1px)}
+.torantejarat-header-actions .torantejarat-cart-link:hover b{background:#fff;transform:scale(1.12)}
+.torantejarat-header-actions .torantejarat-icon-link:focus-visible,.torantejarat-header-actions .torantejarat-cart-link:focus-visible{outline:2px solid var(--orange);outline-offset:2px}
+.torantejarat-cart-wrap{display:flex;align-items:center;flex-shrink:0}
+/* Header mini-cart dropdown (hover + keyboard, desktop pointer only). */
+.torantejarat-cart-wrap{position:relative}
+.torantejarat-cart-dropdown{position:absolute;top:calc(100% + 12px);inset-inline-end:0;width:min(360px,86vw);background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:0 18px 50px #1723251f;padding:18px;z-index:60;opacity:0;visibility:hidden;transform:translateY(10px);transition:opacity .25s ease,transform .25s ease,visibility .25s}
+@media(hover:hover){
+  .torantejarat-cart-wrap:hover .torantejarat-cart-dropdown,.torantejarat-cart-wrap:focus-within .torantejarat-cart-dropdown{opacity:1;visibility:visible;transform:none}
+}
+.torantejarat-mini-empty{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;padding:10px 4px}
+.torantejarat-mini-empty-icon{display:inline-flex;align-items:center;justify-content:center;width:56px;height:56px;border-radius:14px;background:#f4f5f1;color:var(--muted)}
+.torantejarat-mini-empty-icon .torantejarat-icon{width:28px;height:28px}
+.torantejarat-mini-empty b{font-size:13px}
+.torantejarat-mini-empty>span{font-size:11px;color:var(--muted)}
+.torantejarat-mini-empty a{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:#f77b3e;background:var(--orange);color:#211e18;font-weight:700;font-size:12px;border-radius:9px;padding:10px 22px;margin-top:6px;transition:background .2s,transform .2s}
+.torantejarat-mini-empty a:hover{background:#e96a2b;transform:translateY(-2px)}
+.torantejarat-cart-dropdown .woocommerce-mini-cart{list-style:none;margin:0 0 14px;padding:0;display:grid;gap:12px;max-height:300px;overflow:auto}
+.torantejarat-cart-dropdown .woocommerce-mini-cart-item{display:flex;gap:10px;align-items:center;font-size:12px;line-height:1.7}
+.torantejarat-cart-dropdown .woocommerce-mini-cart-item a:not(.remove){display:flex;gap:10px;align-items:center;min-width:0}
+.torantejarat-cart-dropdown .woocommerce-mini-cart-item img{width:52px;height:52px;object-fit:cover;border-radius:8px;flex-shrink:0}
+.torantejarat-cart-dropdown .woocommerce-mini-cart-item .quantity{font-size:11px;color:var(--muted)}
+.torantejarat-cart-dropdown .woocommerce-mini-cart__total{display:flex;justify-content:space-between;align-items:center;gap:10px;border-top:1px solid var(--line);padding-top:12px;margin-bottom:12px;font-size:13px;font-weight:700}
+.torantejarat-cart-dropdown .woocommerce-mini-cart__buttons{display:grid;gap:8px;margin:0}
+.torantejarat-cart-dropdown .woocommerce-mini-cart__buttons .button{display:flex;align-items:center;justify-content:center;gap:8px;border-radius:9px;padding:11px;font-size:12px;font-weight:700;border:1px solid var(--line);background:#fff;transition:background .2s,transform .2s}
+.torantejarat-cart-dropdown .woocommerce-mini-cart__buttons .button.checkout{background:#f77b3e;background:var(--orange);color:#211e18;border-color:transparent}
+.torantejarat-cart-dropdown .woocommerce-mini-cart__buttons .button:hover{background:var(--soft)}
+.torantejarat-cart-dropdown .woocommerce-mini-cart__buttons .button.checkout:hover{background:#e96a2b;transform:translateY(-2px)}
+.torantejarat-cart-dropdown .woocommerce-mini-cart__empty-message{text-align:center;font-size:12px;color:var(--muted);padding:12px 0}
+/* Defensive: if a native empty message ever lands next to our own box, keep only ours. */
+.torantejarat-cart-dropdown .widget_shopping_cart_content:has(.torantejarat-mini-empty) .woocommerce-mini-cart__empty-message{display:none}
+
+/* Header/nav stacking guard: nav row always sits below the main header row. */
+.torantejarat-site-header{display:block}
+.torantejarat-nav-wrap{display:block;width:100%}
+@media(max-width:900px){.torantejarat-header-actions{gap:16px}.torantejarat-header-actions .torantejarat-menu-toggle{margin-inline-end:8px}}
+@media(max-width:600px){.torantejarat-cart-dropdown{display:none}}
+
+/* About CTA (kit parity: single primary action to the finder). */
+.torantejarat-about-cta{margin-top:26px}
+/* Request forms (contact / rent / repairs). */
+.torantejarat-request-formfields{display:grid;gap:16px;margin-top:24px}
+.torantejarat-request-formfields p{display:grid;gap:6px;margin:0}
+@media(min-width:700px){
+  .torantejarat-request-formfields p:has(#torantejarat-req-name),
+  .torantejarat-request-formfields p:has(#torantejarat-req-phone){grid-column:span 1}
+  .torantejarat-request-formfields{display:grid;grid-template-columns:1fr 1fr}
+  .torantejarat-request-formfields p:has(textarea),
+  .torantejarat-request-formfields p:has(select),
+  .torantejarat-request-formfields p:has(.torantejarat-btn),
+  .torantejarat-request-formfields p:has(#torantejarat-req-date),
+  .torantejarat-request-formfields p:has(#torantejarat-req-days),
+  .torantejarat-request-formfields p:has(#torantejarat-req-city),
+  .torantejarat-request-formfields p:has(#torantejarat-req-model),
+  .torantejarat-request-formfields .torantejarat-request-context{grid-column:1/-1}
+  .torantejarat-request-formfields p:has(.torantejarat-btn) .torantejarat-btn{justify-self:start}
+}
+.torantejarat-request-formfields label{font-size:12px;font-weight:700}
+.torantejarat-hp-field{display:none!important}
+.torantejarat-request-context{font-size:12px;color:var(--muted);background:#f8f9f5;border:1px solid var(--line);border-radius:10px;padding:10px 14px}
+.torantejarat-form-notice{border-radius:12px;padding:16px 18px;font-size:13px;margin-top:24px}
+.torantejarat-form-notice.is-success{background:#eef4e6;border:1px solid #cfdcc0}
+.torantejarat-form-notice.is-error{background:#fdf0e8;border:1px solid #f0c9ae}
+/* Checkout redesign: compact 7-field billing form. */
+.torantejarat-site .woocommerce-checkout .woocommerce-billing-fields h3{font-size:18px;margin-bottom:18px}
+.torantejarat-site .woocommerce-checkout .form-row{margin-bottom:16px;padding:0}
+.torantejarat-site .woocommerce-checkout .form-row label{font-size:12px;font-weight:700;display:block;margin-bottom:6px}
+.torantejarat-site .woocommerce-checkout .form-row .required{color:var(--orange);font-weight:800}
+.torantejarat-site .woocommerce-checkout .form-row input,.torantejarat-site .woocommerce-checkout .form-row select{width:100%}
+.torantejarat-site .woocommerce-checkout #place_order{width:100%;min-height:52px;font-size:14px}
+/* Request layout: grid blowout guard + mobile order (form first). */
+.torantejarat-request-layout > *,
+.torantejarat-request-formfields > *,
+.torantejarat-contact-cards > *{min-width:0}
+.torantejarat-request-formfields input,
+.torantejarat-request-formfields select,
+.torantejarat-request-formfields textarea{width:100%}
+@media(max-width:900px){
+  .torantejarat-request-layout > .torantejarat-request-form{order:-1}
+}
+/* Footer contact/social row driven by theme settings (hidden when empty). */
+.torantejarat-footer-contact{display:flex;flex-wrap:wrap;gap:8px 16px;margin-top:14px;font-size:12px}
+.torantejarat-footer-contact a{color:inherit;text-decoration:none;border-bottom:1px solid transparent}
+.torantejarat-footer-contact a:hover{border-bottom-color:currentColor}
+.torantejarat-footer-phone{font-weight:800}
+/* Contact cards + sidebar widgets (settings-driven). */
+.torantejarat-contact-cards-section{padding-bottom:0}
+.torantejarat-contact-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px}
+.torantejarat-contact-card{display:flex;gap:14px;align-items:flex-start;background:#fff;border:1px solid var(--line);border-radius:14px;padding:20px}
+.torantejarat-contact-card-icon{display:grid;place-items:center;width:46px;height:46px;flex-shrink:0;border-radius:12px;background:#f4f5f1;color:var(--ink)}
+.torantejarat-contact-card-icon .torantejarat-icon{width:24px;height:24px}
+.torantejarat-contact-card h2{font-size:14px;margin-bottom:6px}
+.torantejarat-contact-card a{font-weight:700;font-size:15px;overflow-wrap:anywhere}
+.torantejarat-contact-card p{font-size:13px}
+.torantejarat-contact-widget{border:1px solid var(--line);border-radius:14px;padding:20px;margin-top:20px;background:#fff}
+.torantejarat-contact-widget h2{font-size:15px;margin-bottom:10px}
+.torantejarat-contact-widget ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.torantejarat-contact-widget li a{font-size:13px;font-weight:600}
+.torantejarat-social-icons li a{display:inline-flex;align-items:center;gap:10px}
+.torantejarat-social-icons .torantejarat-icon{width:22px;height:22px;color:var(--ink)}
+.torantejarat-contact-map iframe{width:100%;height:260px;border:0;border-radius:10px;display:block}
+.torantejarat-contact-map-empty{font-size:12px;color:var(--muted);border:1px dashed #cfd8c6;border-radius:10px;padding:16px;text-align:center}
+/* Order pipeline timeline in customer account (RTL rail on the right). */
+.torantejarat-timeline{margin-bottom:28px}
+.torantejarat-timeline ol{list-style:none;margin:0;padding:0;display:grid;gap:0}
+.torantejarat-timeline-step{display:grid;grid-template-columns:28px minmax(0,1fr);gap:12px;position:relative;padding-bottom:22px}
+.torantejarat-timeline-step:last-child{padding-bottom:0}
+.torantejarat-timeline-step::before{content:'';position:absolute;top:28px;bottom:0;right:13px;width:2px;background:var(--line)}
+.torantejarat-timeline-step:last-child::before{display:none}
+.torantejarat-timeline-dot{width:28px;height:28px;border-radius:50%;border:2px solid var(--line);background:#fff;position:relative;z-index:1}
+.torantejarat-timeline-step.is-done .torantejarat-timeline-dot{border-color:var(--green);background:var(--green)}
+.torantejarat-timeline-step.is-done .torantejarat-timeline-dot::after{content:'';position:absolute;inset:7px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg) translate(-1px,-1px)}
+.torantejarat-timeline-step.is-current .torantejarat-timeline-dot{border-color:var(--orange)}
+.torantejarat-timeline-step.is-current .torantejarat-timeline-dot::after{content:'';position:absolute;inset:8px;border-radius:50%;background:var(--orange)}
+.torantejarat-timeline-step strong{display:block;font-size:14px}
+.torantejarat-timeline-step span{font-size:12px;color:var(--muted)}
+.torantejarat-timeline-step.is-todo strong,.torantejarat-timeline-step.is-todo span{color:#9aa79c}
+/* Order tracking code box in customer account. */
+.torantejarat-tracking-box{border:1px solid var(--line);border-radius:14px;padding:20px 22px;margin-top:24px;background:#f8f9f5}
+.torantejarat-tracking-box h2{font-size:16px;margin-bottom:8px}
+.torantejarat-tracking-box strong{font-size:20px;letter-spacing:1px}
+/* Best sellers ranked rows (reference: MiniDvPro ranked list). */
+.torantejarat-bestseller-rows{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.torantejarat-bestseller-row{display:flex;align-items:center;gap:14px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 16px;min-width:0}
+.torantejarat-bestseller-rank{display:grid;place-items:center;width:44px;height:44px;flex-shrink:0;border-radius:50%;background:#fdf0e8;color:#d3541f;font-weight:800;font-size:18px}
+.torantejarat-bestseller-thumb{width:72px;height:72px;flex-shrink:0;border-radius:10px;overflow:hidden;background:#f1f0ea}
+.torantejarat-bestseller-thumb img{width:100%;height:100%;object-fit:contain}
+.torantejarat-bestseller-thumb .torantejarat-icon{width:32px;height:32px;margin:20px;color:var(--muted)}
+.torantejarat-bestseller-body{display:grid;gap:4px;min-width:0}
+.torantejarat-bestseller-body strong{font-size:13px;line-height:1.8;overflow-wrap:anywhere}
+.torantejarat-bestseller-price{font-size:14px;font-weight:800}
+@media(max-width:700px){.torantejarat-bestseller-rows{grid-template-columns:1fr}}
+/* Amazing deals panel: promo side + slider with distinct centered cards. */
+.torantejarat-deals-panel{display:grid;grid-template-columns:280px minmax(0,1fr);gap:24px;align-items:stretch;background:linear-gradient(135deg,#f97e36,#ef6a1f);border-radius:22px;padding:28px;color:#fff;overflow:hidden}
+.torantejarat-deals-promo{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:12px;min-width:0}
+.torantejarat-deals-promo h2{color:#fff;font-size:30px}
+.torantejarat-deals-promo p{color:#ffe9d9;font-size:13px}
+.torantejarat-deals-percent{display:grid;place-items:center;width:84px;height:84px;border-radius:50%;background:#ffffff2e;font-size:44px;font-weight:900;color:#fff}
+.torantejarat-btn-dark{display:inline-flex;align-items:center;gap:8px;min-height:46px;padding:10px 22px;border-radius:10px;background:var(--ink);color:#fff;font-weight:700;font-size:13px}
+.torantejarat-btn-dark:hover{background:#000}
+.torantejarat-deals-slider{min-width:0}
+.torantejarat-deals-slider .product-slide{padding:4px}
+.torantejarat-deal-card{position:relative;display:flex;flex-direction:column;align-items:center;text-align:center;gap:0;background:#fff;border-radius:18px;padding:34px 18px 20px;height:100%}
+.torantejarat-deal-badge{position:absolute;top:12px;inset-inline-start:12px;background:#d33f1f;color:#fff;font-size:11px;font-weight:800;border-radius:20px;padding:4px 12px}
+.torantejarat-deal-image{display:block;width:100%;aspect-ratio:1/1;border-radius:12px;overflow:hidden;background:#f4f3ef}
+.torantejarat-deal-image img{width:100%;height:100%;object-fit:cover}
+.torantejarat-deal-card h3{font-size:14px;line-height:1.8;margin:14px 0 0;min-height:50px}
+.torantejarat-deal-regular{margin:10px 0 0;font-size:12px;color:var(--muted)}
+.torantejarat-deal-regular del{text-decoration-color:#d33f1f}
+.torantejarat-deal-price{margin:6px 0 0;font-size:19px}
+.torantejarat-deal-price strong{color:#d33f1f;font-weight:800}
+.torantejarat-deal-card .torantejarat-btn{width:100%;justify-content:center;margin-top:14px}
+@media(max-width:900px){.torantejarat-deals-panel{grid-template-columns:1fr}.torantejarat-deals-promo{align-items:center;text-align:center}}
+@media(max-width:900px){.torantejarat-deals-panel{grid-template-columns:1fr}.torantejarat-deals-promo{align-items:center;text-align:center}}
+/* Blog layout with professional sidebar. */
+.torantejarat-blog-layout{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:36px;align-items:start}
+.torantejarat-blog-main{min-width:0}
+.torantejarat-blog-sidebar{display:grid;gap:20px;position:sticky;top:120px}
+.torantejarat-widget{background:#fff;border:1px solid var(--line);border-radius:14px;padding:20px}
+.torantejarat-widget h2{font-size:15px;margin-bottom:14px}
+.torantejarat-widget-cats{list-style:none;margin:0;padding:0;display:grid}
+.torantejarat-widget-cats li{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid #eef1ea;font-size:13px}
+.torantejarat-widget-cats li:last-child{border-bottom:0}
+.torantejarat-widget-cats span{font-size:11px;color:var(--muted);background:#f4f5f1;border-radius:10px;padding:1px 9px}
+.torantejarat-widget-latest{list-style:none;margin:0;padding:0;display:grid;gap:14px}
+.torantejarat-widget-latest li{display:flex;gap:12px;align-items:center;min-width:0}
+.torantejarat-widget-latest img{width:56px;height:56px;object-fit:cover;border-radius:10px;flex-shrink:0}
+.torantejarat-widget-latest a{font-size:12px;font-weight:700;line-height:1.8;display:block}
+.torantejarat-widget-latest time{font-size:11px;color:var(--muted)}
+.torantejarat-widget .torantejarat-header-search{margin:0;max-width:none}
+/* Empty-search guard: positioned hint, no page change. */
+form.torantejarat-header-search{position:relative}
+form.torantejarat-header-search input:focus{outline:none;border-color:var(--line)!important;box-shadow:none!important}
+.torantejarat-header-search.is-empty input{border-color:#d33f1f!important;box-shadow:0 0 0 3px #d33f1f33}
+.torantejarat-search-hint{position:absolute;top:100%;inset-inline-start:4px;margin:6px 0 0;font-size:11px;color:#b3402e;background:#fff;border:1px solid #f0c9ae;border-radius:8px;padding:4px 10px;box-shadow:0 8px 22px #1723251a;z-index:5;white-space:nowrap}
+/* Live search modal (Digikala-style): dimmed page, focused sheet, instant results. */
+body.search-open{overflow:hidden}
+.torantejarat-search-modal{position:fixed;inset:0;z-index:80;background:#172325b8;backdrop-filter:blur(3px);display:flex;justify-content:center;align-items:flex-start;padding:8vh 16px 16px}
+.torantejarat-search-modal[hidden]{display:none}
+.torantejarat-search-box{width:min(640px,100%);max-height:82vh;overflow:auto;background:#fff;border-radius:20px;box-shadow:0 30px 80px #00000050;padding:20px}
+.torantejarat-search-bar{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:14px;padding:6px 6px 6px 14px;background:#f8f9f6}
+.torantejarat-search-bar input{flex:1;border:0!important;background:none!important;box-shadow:none!important;min-height:46px;font-size:15px;padding:0}
+.torantejarat-search-bar input:focus{outline:none!important}
+.torantejarat-search-bar button{width:40px;height:40px;border:0;border-radius:12px;background:#fff;font-size:20px;color:var(--muted);cursor:pointer;flex-shrink:0}
+.torantejarat-search-live{padding-top:6px}
+.torantejarat-search-live.is-loading{opacity:.55;pointer-events:none;transition:opacity .15s}
+.torantejarat-search-hintline{display:flex;align-items:center;justify-content:center;gap:10px;color:var(--muted);font-size:13px;padding:26px 10px;margin:0}
+.torantejarat-search-group{font-size:12px;font-weight:800;color:var(--muted);margin:16px 4px 8px}
+.torantejarat-search-cats{display:flex;flex-wrap:wrap;gap:8px}
+.torantejarat-search-cats a{font-size:12px;font-weight:700;background:#eef4e6;border-radius:20px;padding:7px 14px}
+.torantejarat-search-items{display:grid;gap:8px}
+.torantejarat-search-item{display:flex;align-items:center;gap:12px;border:1px solid var(--line);border-radius:14px;padding:10px 12px}
+.torantejarat-search-item:hover{border-color:var(--orange)}
+.torantejarat-search-item.is-active,.torantejarat-search-cats a.is-active{border-color:var(--orange);background:#fff6f0;outline:none}
+.torantejarat-search-item{scroll-margin-block:8px}
+.torantejarat-search-item img{width:56px;height:56px;object-fit:cover;border-radius:10px;background:#f4f3ef;flex-shrink:0}
+.torantejarat-search-item span{display:grid;gap:2px;min-width:0}
+.torantejarat-search-item strong{font-size:13px;line-height:1.8;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.torantejarat-search-item small{font-size:12px;font-weight:800;color:#b64b18}
+.torantejarat-search-all{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:14px;min-height:48px;border-radius:12px;background:var(--ink);color:#fff;font-size:13px;font-weight:800}
+@media(max-width:600px){
+  .torantejarat-search-modal{padding:0;align-items:stretch}
+  .torantejarat-search-box{max-height:none;height:100dvh;border-radius:0}
+}
+@media(max-width:900px){.torantejarat-blog-layout{grid-template-columns:1fr}.torantejarat-blog-sidebar{position:static;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}}
+/* Smart shop filters: sidebar + chips + mobile bottom sheet. */
+.torantejarat-catalog-layout{display:grid;grid-template-columns:250px minmax(0,1fr);gap:28px;align-items:start}
+/* Woo prints its notices wrapper inside the loop hooks — keep it out of the columns. */
+.torantejarat-catalog-layout>.woocommerce-notices-wrapper{grid-column:1/-1;grid-row:1}
+.torantejarat-catalog-layout>.woocommerce-notices-wrapper:empty{display:none}
+.torantejarat-catalog-layout>.torantejarat-filters{grid-column:1;grid-row:2}
+.torantejarat-catalog-layout>.torantejarat-catalog-results{grid-column:2;grid-row:2}
+.torantejarat-catalog-results{min-width:0}
+.torantejarat-filters{background:#fff;border:1px solid var(--line);border-radius:16px;padding:22px;position:sticky;top:120px;max-height:calc(100vh - 140px);overflow:auto}
+.torantejarat-filter-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.torantejarat-filter-head h2{font-size:15px}
+.torantejarat-filter-close{display:none}
+.torantejarat-filter-group{border:0;border-bottom:1px solid #eef1ea;padding:14px 0;margin:0}
+.torantejarat-filter-group:last-of-type{border-bottom:0}
+.torantejarat-filter-group legend{font-size:13px;font-weight:800;padding:0;margin-bottom:10px}
+.torantejarat-filter-group label{display:flex;align-items:center;gap:10px;font-size:12px;padding:6px 0;cursor:pointer;min-width:0}
+.torantejarat-filter-group label span{flex:1;overflow-wrap:anywhere}
+.torantejarat-filter-group label b{font-size:11px;font-weight:400;color:var(--muted);background:#f4f5f1;border-radius:10px;padding:1px 9px}
+.torantejarat-filter-price{display:flex;align-items:center;gap:8px}
+.torantejarat-filter-price input{width:100%;min-width:0}
+.torantejarat-filter-foot{display:grid;gap:10px;margin-top:16px}
+.torantejarat-filter-foot .torantejarat-btn{width:100%}
+.torantejarat-filter-clear{text-align:center;font-size:12px;color:var(--muted)}
+.torantejarat-shop-filterbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.torantejarat-filter-toggle{display:none;align-items:center;gap:8px;border:1px solid var(--line);background:#fff;border-radius:10px;padding:10px 16px;font-size:12px;font-weight:700}
+.torantejarat-filter-toggle b{background:var(--orange);color:#fff;border-radius:50%;min-width:22px;height:22px;display:grid;place-items:center;font-size:11px}
+.torantejarat-active-filters{display:flex;flex-wrap:wrap;gap:8px}
+.torantejarat-active-filters a{display:inline-flex;align-items:center;gap:6px;font-size:11px;background:#eaf0e2;border-radius:20px;padding:5px 12px}
+.torantejarat-active-filters a span{font-weight:800}
+.torantejarat-active-filters .torantejarat-clear-all{background:none;text-decoration:underline}
+/* Pill sort bar (count + newest / best-selling / cheapest / priciest / biggest discount). */
+.torantejarat-sortbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:#fff;border:1px solid var(--line);border-radius:30px;padding:8px 10px;box-shadow:0 6px 22px #1723250d;width:100%;margin-bottom:24px}
+.torantejarat-sortbar-count{font-size:12px;color:var(--muted);padding:6px 12px;white-space:nowrap}
+.torantejarat-sortbar-label{font-size:12px;color:var(--muted);white-space:nowrap}
+.torantejarat-sort-pill{font-size:12px;font-weight:700;color:var(--ink);border-radius:20px;padding:8px 16px;white-space:nowrap;line-height:1.5}
+.torantejarat-sort-pill:hover{background:#f4f5f1}
+.torantejarat-sort-pill.is-active{background:linear-gradient(135deg,#f97e36,#ef6a1f);color:#fff;box-shadow:0 6px 16px #ef6a1f55}
+@media(max-width:600px){.torantejarat-sortbar{flex-wrap:nowrap;overflow-x:auto;border-radius:16px}.torantejarat-sortbar-count{flex-shrink:0}}
+/* Mobile control bar (like reference): count + filters + sort sheet. Desktop pills hide. */
+.torantejarat-mobile-bar{display:none}
+@media(max-width:900px){
+  .torantejarat-sort-pills{display:none}
+  .torantejarat-sortbar{flex-wrap:nowrap;overflow:visible;border-radius:18px;padding:8px}
+  .torantejarat-sortbar-count{display:none}
+  .torantejarat-sortbar-label{display:none}
+  .torantejarat-mobile-bar{display:flex;align-items:center;gap:8px;width:100%}
+  .torantejarat-mobile-count{flex-shrink:0;font-size:12px;color:var(--muted);padding-inline-start:6px}
+  .torantejarat-mobile-bar>button{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;border:1px solid var(--line);border-radius:14px;background:#fff;font-size:13px;font-weight:700}
+  .torantejarat-mobile-bar>button b{background:var(--orange);color:#fff;border-radius:50%;min-width:22px;height:22px;display:grid;place-items:center;font-size:11px}
+  .torantejarat-mobile-bar details{flex:1;position:relative}
+  .torantejarat-mobile-bar details summary{display:flex;align-items:center;justify-content:center;gap:8px;min-height:44px;border-radius:14px;background:linear-gradient(135deg,#f97e36,#ef6a1f);color:#fff;font-size:13px;font-weight:800;list-style:none;cursor:pointer;box-shadow:0 6px 16px #ef6a1f55}
+  .torantejarat-mobile-bar details summary::-webkit-details-marker{display:none}
+  .torantejarat-mobile-bar details[open] summary{border-radius:14px 14px 0 0}
+  .torantejarat-mobile-bar details>div{position:absolute;top:100%;inset-inline:0;z-index:50;background:#fff;border:1px solid var(--line);border-radius:0 0 14px 14px;box-shadow:0 18px 44px #1723252e;display:grid;overflow:hidden}
+  .torantejarat-mobile-bar details a{padding:13px 16px;font-size:13px;font-weight:600;border-bottom:1px solid #eef1ea}
+  .torantejarat-mobile-bar details a:last-child{border-bottom:0}
+  .torantejarat-mobile-bar details a.is-active{background:#fdf0e8;color:#b64b18;font-weight:800}
+  .torantejarat-shop-filterbar .torantejarat-filter-toggle{display:none}
+}
+@media print{.torantejarat-bottommenu{display:none!important}}
+/* Fixed bottom menu (mobile/tablet portrait): 2 items per side + raised home. */
+.torantejarat-bottommenu{display:none}
+@media(max-width:900px){
+  .torantejarat-bottommenu{display:flex;align-items:stretch;position:fixed;bottom:0;inset-inline:0;z-index:40;background:#fffffff4;border-top:1px solid var(--line);padding:6px 4px calc(8px + env(safe-area-inset-bottom));box-shadow:0 -10px 30px #17232514;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+  .torantejarat-bottommenu a,.torantejarat-bottommenu button{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:3px;min-height:54px;padding:4px 2px;border:0;background:none;color:var(--muted);font-size:10px;font-weight:700;line-height:1.6;position:relative;cursor:pointer}
+  .torantejarat-bottommenu .torantejarat-icon{width:23px;height:23px}
+  .torantejarat-bottommenu a:hover{color:var(--ink)}
+  .torantejarat-bottommenu .is-active{color:#b25529}
+  .torantejarat-bottommenu a:focus-visible,.torantejarat-bottommenu button:focus-visible{outline:2px solid var(--orange);outline-offset:-2px;border-radius:12px}
+  .torantejarat-bottommenu [data-menu-cart-count]{position:absolute;top:0;inset-inline-start:calc(50% - 20px);display:grid;place-items:center;min-width:19px;height:19px;padding:0 5px;border-radius:11px;background:var(--orange);color:#211e18;font-size:10px;font-weight:800;line-height:1}
+  .torantejarat-bottommenu-home{justify-content:flex-start!important}
+  .torantejarat-bottommenu-homebtn{display:grid;place-items:center;width:56px;height:56px;margin-top:-30px;border-radius:50%;background:linear-gradient(135deg,#f97e36,#ef6a1f);color:#fff;box-shadow:0 12px 26px #ef6a1f66,0 0 0 4px #fff}
+  .torantejarat-bottommenu-homebtn .torantejarat-icon{width:26px;height:26px}
+  .torantejarat-bottommenu-home.is-active .torantejarat-bottommenu-homebtn{background:linear-gradient(135deg,#ef6a1f,#d5550f)}
+  body.torantejarat-has-bottommenu{padding-bottom:88px}
+}
+/* Card images fill their frames (no gray bands); neutral bg while loading. */
+.torantejarat-site .product-slide .torantejarat-product-image img{object-fit:cover;background:#e8e6e0;padding:0}
+.torantejarat-site ul.products.torantejarat-product-grid .torantejarat-shop-card .torantejarat-product-image img{object-fit:cover;padding:0}
+.torantejarat-site .torantejarat-bestseller-thumb img{object-fit:cover}
+.torantejarat-site .torantejarat-recent-card img{object-fit:cover}
+/* Filter toggles (iOS-style switches, no JS needed). */
+.torantejarat-filter-toggles{display:grid;gap:4px;padding:6px 0 12px;border-bottom:1px solid #eef1ea}
+.torantejarat-switch{display:flex!important;align-items:center;justify-content:space-between;gap:12px;padding:8px 0!important;cursor:pointer}
+.torantejarat-switch span{font-size:13px;font-weight:700}
+.torantejarat-switch input{position:absolute;opacity:0;pointer-events:none}
+.torantejarat-switch i{position:relative;flex-shrink:0;width:46px;height:27px;border-radius:20px;background:#d5ddd5;transition:background .2s}
+.torantejarat-switch i::after{content:'';position:absolute;top:3px;inset-inline-start:3px;width:21px;height:21px;border-radius:50%;background:#fff;box-shadow:0 2px 6px #00000030;transition:transform .2s}
+.torantejarat-switch input:checked+i{background:var(--orange)}
+.torantejarat-switch input:checked+i::after{transform:translateX(-19px)}
+.torantejarat-switch input:focus-visible+i{outline:3px solid #c66130;outline-offset:2px}
+/* Collapsible filter groups (native details, no JS needed). */
+details.torantejarat-filter-group{border:0;border-bottom:1px solid #eef1ea;padding:0;margin:0}
+details.torantejarat-filter-group summary{display:flex;align-items:center;justify-content:space-between;gap:10px;list-style:none;cursor:pointer;font-size:13px;font-weight:800;padding:14px 0}
+details.torantejarat-filter-group summary::-webkit-details-marker{display:none}
+details.torantejarat-filter-group summary::after{content:'';width:9px;height:9px;border:solid #8fa09a;border-width:0 2px 2px 0;transform:rotate(45deg);transition:transform .2s;flex-shrink:0;margin-inline-end:4px}
+details.torantejarat-filter-group[open] summary::after{transform:rotate(-135deg)}
+details.torantejarat-filter-group>div{padding-bottom:14px}
+@media(min-width:901px){
+  .torantejarat-shop-body .torantejarat-catalog-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+/* Finder + mini-compare: centered stack on mobile, flawless desktop. */
+@media(max-width:700px){
+  .torantejarat-compare-section .torantejarat-section-heading{flex-direction:column;align-items:center;text-align:center;gap:8px}
+}
+/* Attractive AJAX pagination (swapped without reload by shop-filters.js). */
+.woocommerce-pagination{margin-top:28px}
+.woocommerce nav.woocommerce-pagination ul.page-numbers{display:flex;align-items:center;justify-content:center;gap:8px;list-style:none;margin:0;padding:0;border:0;white-space:normal}
+.woocommerce nav.woocommerce-pagination ul.page-numbers::before,.woocommerce nav.woocommerce-pagination ul.page-numbers::after{display:none}
+.woocommerce nav.woocommerce-pagination ul.page-numbers li{border:0;margin:0;padding:0;overflow:visible;float:none}
+.woocommerce nav.woocommerce-pagination ul.page-numbers a.page-numbers,.woocommerce nav.woocommerce-pagination ul.page-numbers span.page-numbers{display:grid;place-items:center;min-width:42px;height:42px;padding:0 12px;border:0;border-radius:12px;background:#f4f5f1;font-size:13px;font-weight:700;color:var(--ink);text-decoration:none}
+.woocommerce nav.woocommerce-pagination ul.page-numbers a.page-numbers:hover{background:#e8eddf;color:#b64b18}
+.woocommerce nav.woocommerce-pagination ul.page-numbers span.current{background:linear-gradient(135deg,#f97e36,#ef6a1f);color:#fff;box-shadow:0 6px 16px #ef6a1f55}
+.woocommerce nav.woocommerce-pagination ul.page-numbers .prev,.woocommerce nav.woocommerce-pagination ul.page-numbers .next{padding:0 16px}
+.torantejarat-catalog-results.is-loading{opacity:.5;pointer-events:none;transition:opacity .2s}
+@media(max-width:900px){
+  .torantejarat-catalog-layout{grid-template-columns:1fr}
+  .torantejarat-filter-toggle{display:inline-flex}
+  body.js-filters .torantejarat-filters{display:none;position:fixed;inset:auto 0 0 0;z-index:60;background:#fff;border-radius:20px 20px 0 0;max-height:82vh;padding:20px 20px 28px;box-shadow:0 -12px 50px #17232533;overflow:auto}
+  body.filter-open .torantejarat-filters{display:block}
+  body.filter-open{overflow:hidden}
+  .torantejarat-filter-close{display:grid;place-items:center;width:34px;height:34px;border:1px solid var(--line);border-radius:50%;font-size:18px;background:#fff}
+  .torantejarat-filter-foot{position:sticky;bottom:0;background:#fff;padding-top:12px}
+}
+/* Scroll reveal (dependency-free): fade-up on entry, reverse on exit. */
+.reveal-init [data-reveal]{opacity:0;transform:translateY(26px);transition:opacity .55s ease var(--reveal-delay,0ms),transform .55s cubic-bezier(.22,1,.36,1) var(--reveal-delay,0ms)}
+.reveal-init [data-reveal].is-visible{opacity:1;transform:none}
+@media(prefers-reduced-motion:reduce){
+  .reveal-init [data-reveal]{opacity:1!important;transform:none!important;transition:none!important}
+}
+/* Compare AJAX refresh: lightweight loading state, no layout jump. */
+.torantejarat-compare-results{transition:opacity .2s ease}
+.torantejarat-compare-results.is-loading{opacity:.45;min-height:120px;pointer-events:none}
+
+/* Compare page pickers. */
+.torantejarat-compare-pickers{display:grid;grid-template-columns:repeat(3,1fr) auto;gap:12px;align-items:end;background:#f8f9f5;border:1px solid var(--line);border-radius:16px;padding:20px;margin-bottom:28px}
+.torantejarat-compare-pickers label{display:grid;gap:6px;font-size:12px;font-weight:700}
+.torantejarat-compare-pickers label.torantejarat-compare-diff{display:flex;align-items:center;gap:8px;font-weight:400;white-space:nowrap}
+@media(max-width:900px){.torantejarat-compare-pickers{grid-template-columns:1fr 1fr}}
+@media(max-width:600px){.torantejarat-compare-pickers{grid-template-columns:1fr}}
+
+/* Home mini-compare table (real prices and attributes, scrolls on small screens). */
+.torantejarat-compare-scroll{overflow-x:auto;border:1px solid var(--line);border-radius:16px;background:#fff}
+.torantejarat-compare-table{border-collapse:collapse;width:100%;min-width:640px;font-size:13px}
+.torantejarat-compare-table th,.torantejarat-compare-table td{padding:16px;text-align:center;border-bottom:1px solid #eef1ea;vertical-align:middle}
+.torantejarat-compare-table tbody th[scope="row"]{text-align:start;color:var(--muted);font-weight:600;font-size:12px;white-space:nowrap;background:#f8f9f5;position:sticky;inset-inline-start:0}
+.torantejarat-compare-photo{display:inline-block;border-radius:12px;overflow:hidden;background:#f4f3ef}
+.torantejarat-compare-photo img,.torantejarat-compare-photo .torantejarat-icon{width:120px;height:120px;object-fit:cover;display:block}
+.torantejarat-compare-name{display:block;font-size:13px;font-weight:700;margin-top:10px;line-height:1.8}
+.torantejarat-compare-table .torantejarat-btn{font-size:12px;min-height:44px;padding:10px 18px;white-space:nowrap}
+.torantejarat-compare-cta td,.torantejarat-compare-cta th{border-bottom:0}
+@media(max-width:600px){
+  .torantejarat-compare-table{font-size:12px}
+  .torantejarat-compare-table th,.torantejarat-compare-table td{padding:12px 10px}
+  .torantejarat-compare-photo img,.torantejarat-compare-photo .torantejarat-icon{width:88px;height:88px}
+}
+
+/* Product Finder wizard. */
+.torantejarat-finder{max-width:760px;margin-inline:auto}
+.torantejarat-finder-form{display:grid;gap:20px}
+.torantejarat-finder-step{border:1px solid var(--line);border-radius:16px;padding:24px;background:#fff}
+.torantejarat-finder-step legend{font-size:15px;font-weight:800;padding:0 8px}
+.torantejarat-finder-options{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:16px}
+.torantejarat-finder-option{position:relative;display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:12px;padding:14px 16px;cursor:pointer;transition:border-color .2s,background .2s;font-size:13px}
+.torantejarat-finder-option:hover{border-color:var(--orange)}
+.torantejarat-finder-option input{position:absolute;opacity:0;pointer-events:none}
+.torantejarat-finder-option input:checked+span{color:var(--orange);font-weight:700}
+.torantejarat-finder-option:has(input:checked){border-color:var(--orange);background:#fdf6f0}
+.torantejarat-finder-submit{justify-self:start}
+.js-finder .torantejarat-finder-step{display:none}
+.js-finder .torantejarat-finder-step.is-active{display:block;animation:torantejarat-finder-in .35s ease}
+.js-finder .torantejarat-finder-step.is-done{display:none}
+@keyframes torantejarat-finder-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){.js-finder .torantejarat-finder-step.is-active{animation:none}}
+.torantejarat-finder-results{margin-top:32px}
+.torantejarat-finder-results h2{margin-bottom:16px}
+.torantejarat-finder-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.torantejarat-finder-card{display:flex;flex-direction:column;align-items:center;text-align:center;gap:0;border:1px solid var(--line);border-radius:16px;padding:20px 16px;background:#fff}
+.torantejarat-finder-card-image{display:block;width:100%;border-radius:12px;overflow:hidden;background:#f4f3ef;aspect-ratio:1/1}
+.torantejarat-finder-card-image img{width:100%;height:100%;object-fit:cover}
+.torantejarat-finder-card h3{font-size:14px;line-height:1.8;margin:14px 0 0;min-height:50px}
+.torantejarat-finder-card-specs{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin-top:10px}
+.torantejarat-finder-card-specs span{font-size:11px;background:#f4f5f1;border:1px solid #e6e6e0;border-radius:20px;padding:3px 10px;color:#4d5f50}
+.torantejarat-finder-card-price{margin:12px 0 14px;font-size:18px}
+.torantejarat-finder-card-price strong{font-weight:800}
+.torantejarat-finder-card-price del{display:block;font-size:12px;font-weight:400;color:var(--muted);text-decoration-color:#d33f1f}
+.torantejarat-finder-card-price ins{text-decoration:none;color:#d33f1f}
+.torantejarat-finder-card-price span{font-size:11px;font-weight:400}
+.torantejarat-finder-card .torantejarat-btn{margin:auto 0 0;font-size:12px;min-height:42px;width:100%;justify-content:center}
+@media(max-width:600px){
+  .torantejarat-finder-options{grid-template-columns:1fr}
+  .torantejarat-finder-grid{grid-template-columns:1fr}
+}
+/* Finder wizard chrome: progress, hints, gated submit, result summary. */
+.torantejarat-finder-progress{font-size:12px;color:var(--muted);margin-bottom:16px}
+.torantejarat-finder-hint{font-size:12px;color:var(--muted);margin:8px 0 0}
+.torantejarat-finder-foot{display:flex;align-items:center;gap:16px;margin-top:4px}
+.torantejarat-finder-back{background:none;border:0;padding:12px 4px;font-size:12px;color:var(--muted);text-decoration:underline;text-underline-offset:4px;cursor:pointer}
+.torantejarat-finder-back:hover{color:var(--ink)}
+.js-finder .torantejarat-finder-submit{display:none}
+.torantejarat-finder-loading{display:grid;justify-items:center;gap:12px;padding:28px 0;text-align:center}
+.torantejarat-finder-loading p{font-size:13px;color:var(--muted)}
+.torantejarat-spinner{width:44px;height:44px;border-radius:50%;border:4px solid #e8eddf;border-top-color:var(--orange);animation:torantejarat-spin 0.9s linear infinite}
+@keyframes torantejarat-spin{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){.torantejarat-spinner{animation:none;border-top-color:#e8eddf}}
+.torantejarat-finder-summary{font-size:12px;color:var(--muted);margin:10px 0 22px}
+.torantejarat-finder-skipped{font-size:12px;color:#8a6d1c;background:#fdf6e3;border:1px solid #f0dfae;border-radius:10px;padding:10px 14px;margin:0 0 22px}
+.torantejarat-finder-partial{font-size:13px;font-weight:700;color:#b64b18;margin:8px 0 0}
+.torantejarat-finder-edit{margin-bottom:18px}
+.js-finder.is-submitted [data-finder-form]{display:none}
+.js-finder.is-submitted [data-finder-edit]{display:inline-flex}
+.torantejarat-finder:not(.is-submitted) [data-finder-edit]{display:none}.torantejarat-finder-range{font-size:13px;font-weight:800;color:var(--ink);background:#f4f5f1;border-radius:10px;padding:10px 14px;margin:0 0 22px;display:inline-block}
+.torantejarat-finder-note{font-size:11px;color:var(--muted);margin-top:20px}
+.torantejarat-finder-box{background:#fff;border:1px solid var(--line);border-radius:20px;padding:clamp(20px,4vw,36px);box-shadow:0 14px 44px #1723250f}
+.torantejarat-finder-box h2{margin:8px 0 0}
+.torantejarat-finder-results>p:last-child{margin-top:14px}
+
+/* Sale price in theme product cards (custom torantejarat_card_price markup). */
+.torantejarat-product-bottom strong del{font-size:.72em;font-weight:400;color:var(--muted);margin-inline-end:8px}
+.torantejarat-product-bottom strong ins{text-decoration:none}
+.torantejarat-product-bottom strong del span{font-size:.85em}
+
+/* Hero fills exactly 100% of the viewport (minus sticky header + topbar). */
+.torantejarat-hero-grid{min-height:calc(100vh - 126px);min-height:calc(100dvh - 126px)}
+@media(max-width:900px){
+  .torantejarat-hero-grid{min-height:calc(100vh - 190px);min-height:calc(100dvh - 190px)}
+}
+@media(max-width:600px){
+  .torantejarat-hero-grid{min-height:calc(100vh - 170px);min-height:calc(100dvh - 170px)}
+}
+
+/* Compact hero copy to save vertical space. */
+.torantejarat-hero-copy>p{margin-top:12px}
+.torantejarat-hero-actions{margin-top:16px}
+.torantejarat-hero-foot{margin-top:16px;padding-top:14px}
+
+/* Mobile hero: slider visual first, then title/copy — compact to fit viewport. */
+@media(max-width:600px){
+  .torantejarat-hero-visual{order:-1}
+  .torantejarat-hero-grid{gap:20px;padding-block:24px 20px}
+  .torantejarat-hero h1{font-size:34px;line-height:1.6}
+  .torantejarat-hero-copy>p{margin-top:12px}
+  .torantejarat-hero-actions{flex-wrap:wrap}
+  .torantejarat-hero-actions .torantejarat-btn{flex:1 1 200px}
+  .torantejarat-hero-foot{margin-top:16px;padding-top:14px}
+}
+/* Home polish 2026-10-05: uniform slider-card frames (mixed photo backgrounds),
+   stronger card price, green field-checklist ticks. */
+.torantejarat-site .product-slide .torantejarat-product-image{aspect-ratio:1/1}
+.torantejarat-site .product-slide .torantejarat-product-image img{object-fit:contain;background:#f1f0ea;padding:12px}
+.torantejarat-site .product-slide .torantejarat-product-bottom strong{font-size:18px;font-weight:800}
+.torantejarat-site .torantejarat-check-list svg{color:var(--green)}
+/* Compare page empty state (also reused by other pickers). */
+.torantejarat-site .torantejarat-empty-state{display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center;background:#f8f9f5;border:1px dashed #cfd8c6;border-radius:16px;padding:44px 24px;color:var(--muted)}
+.torantejarat-site .torantejarat-empty-state .torantejarat-icon{width:40px;height:40px}
+.torantejarat-site .torantejarat-empty-state p{font-size:13px}
+/* Dedicated search results (never the shop look): single-column sections, own grid. */
+.torantejarat-search-body .torantejarat-header-search{margin:0 0 18px;max-width:640px}
+.torantejarat-search-count{font-size:13px;color:var(--muted);margin:0 0 24px}
+.torantejarat-search-products{margin-bottom:44px}
+.torantejarat-search-articles{margin-bottom:8px}
+.torantejarat-site ul.products.torantejarat-search-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;list-style:none;padding:0;margin:0}
+@media(max-width:900px){.torantejarat-site ul.products.torantejarat-search-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* Invoice: order-pay + thankyou + view-order (hooks only, no Woo override). */
+.torantejarat-site .torantejarat-invoice{background:#fff;border:1px solid var(--line,#e5e7eb);border-radius:20px;padding:24px;margin:0 0 20px;box-shadow:0 8px 28px rgba(15,23,42,.06)}
+.torantejarat-site .torantejarat-invoice-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-bottom:16px;border-bottom:1px solid var(--line,#e5e7eb)}
+.torantejarat-site .torantejarat-invoice-brand{font-size:20px;font-weight:800}
+.torantejarat-site .torantejarat-invoice-sub{display:block;font-size:12px;font-weight:400;color:var(--muted,#64748b)}
+.torantejarat-site .torantejarat-invoice-badge{font-size:12px;font-weight:700;border-radius:999px;padding:6px 14px;white-space:nowrap}
+.torantejarat-site .torantejarat-invoice-badge.is-pending{background:#fff7ed;color:#c2410c;border:1px solid #fed7aa}
+.torantejarat-site .torantejarat-invoice-badge.is-paid{background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0}
+.torantejarat-site .torantejarat-invoice-badge.is-shipped{background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe}
+.torantejarat-site .torantejarat-invoice-badge.is-failed{background:#fef2f2;color:#b91c1c;border:1px solid #fecaca}
+.torantejarat-site .torantejarat-invoice-meta{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:16px 0 0;padding:0}
+.torantejarat-site .torantejarat-invoice-meta>div{background:#f8fafc;border:1px solid var(--line,#e5e7eb);border-radius:12px;padding:10px 14px}
+.torantejarat-site .torantejarat-invoice-meta dt{font-size:11px;color:var(--muted,#64748b)}
+.torantejarat-site .torantejarat-invoice-meta dd{margin:4px 0 0;font-size:14px;font-weight:800}
+.torantejarat-site .torantejarat-invoice-txn{font-size:13px;margin:12px 0 0}
+.torantejarat-site .torantejarat-invoice-customer{margin-top:12px;background:#f8fafc;border:1px dashed #cbd5e1;border-radius:12px;padding:12px 14px;font-size:13px}
+.torantejarat-site .torantejarat-invoice-customer p{margin:6px 0 0;display:flex;flex-wrap:wrap;gap:4px 12px}
+.torantejarat-site .torantejarat-pay-reminder{display:flex;flex-direction:column;gap:4px;background:#fff7ed;border:1px solid #fed7aa;border-radius:14px;padding:14px 18px;margin:0 0 16px}
+.torantejarat-site .torantejarat-pay-reminder>div{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:15px}
+.torantejarat-site .torantejarat-pay-reminder span{font-weight:800}
+.torantejarat-site .torantejarat-pay-reminder p{margin:0;font-size:12px;color:#9a3412}
+.torantejarat-site .torantejarat-invoice-actions{display:flex;align-items:center;flex-wrap:wrap;gap:12px;margin:18px 0 8px}
+.torantejarat-site form#order_review .shop_table{border:1px solid var(--line,#e5e7eb);border-radius:16px;overflow:hidden;background:#fff}
+.torantejarat-site form#order_review .shop_table thead th{background:#0f172a;color:#fff;font-size:13px;padding:12px 16px}
+.torantejarat-site form#order_review .shop_table :is(th,td){padding:12px 16px;font-size:14px}
+.torantejarat-site form#order_review #payment{background:#f8fafc;border:1px solid var(--line,#e5e7eb);border-radius:16px;padding:18px}
+.torantejarat-site form#order_review #place_order{width:100%;background:#f77b3e;border:none;border-radius:12px;font-size:16px;font-weight:800;padding:14px}
+.torantejarat-site form#order_review #place_order:hover{background:#ea6a2b}
+.torantejarat-site .woocommerce-order .woocommerce-order-overview{background:#f8fafc;border:1px solid var(--line,#e5e7eb);border-radius:16px;padding:16px 20px}
+.torantejarat-site .woocommerce-order .woocommerce-table--order-details{border:1px solid var(--line,#e5e7eb);border-radius:16px;overflow:hidden;background:#fff}
+@media(max-width:700px){.torantejarat-site .torantejarat-invoice-meta{grid-template-columns:repeat(2,minmax(0,1fr))}.torantejarat-site .torantejarat-invoice{padding:18px}}
+@media print{.torantejarat-site-header,.torantejarat-site-footer,.torantejarat-invoice-actions,form#order_review #payment{display:none}.torantejarat-site .torantejarat-invoice{box-shadow:none}}
+
+/* Receipt page (ZarinPal redirect): native duplicate list hides only when our invoice leads it. */
+.torantejarat-site .torantejarat-invoice ~ ul.order_details{display:none}
+.torantejarat-site .woocommerce ul.order_details{background:#f8fafc;border:1px solid var(--line,#e5e7eb);border-radius:16px;padding:16px 20px;margin:0 0 20px;display:flex;flex-wrap:wrap;gap:10px 32px;list-style:none}
+.torantejarat-site .woocommerce ul.order_details li{margin:0;font-size:12px;color:var(--muted,#64748b)}
+.torantejarat-site .woocommerce ul.order_details li strong{display:block;font-size:15px;color:#0f172a;margin-top:2px}
+/* Pay-form polish: gateway choices, terms, notices. */
+.torantejarat-site form#order_review ul.wc_payment_methods{list-style:none;margin:0 0 14px;padding:0;display:flex;flex-direction:column;gap:10px}
+.torantejarat-site form#order_review ul.wc_payment_methods li{background:#fff;border:1px solid var(--line,#e5e7eb);border-radius:12px;padding:12px 16px}
+.torantejarat-site form#order_review ul.wc_payment_methods li label{font-weight:700;font-size:14px;display:flex;gap:10px;align-items:center}
+.torantejarat-site form#order_review .woocommerce-terms-and-conditions-wrapper{font-size:12px;color:var(--muted,#64748b)}
+.torantejarat-site .woocommerce-notice{border-radius:12px}
+/* Thankyou overview as a tidy grid. */
+.torantejarat-site .woocommerce-order .woocommerce-order-overview{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px 24px;list-style:none;margin:0 0 20px}
+.torantejarat-site .woocommerce-order .woocommerce-order-overview li{margin:0;font-size:12px;color:var(--muted,#64748b)}
+.torantejarat-site .woocommerce-order .woocommerce-order-overview li strong{display:block;font-size:15px;color:#0f172a;margin-top:2px}
+
+/* Thankyou: native overview hides only when our invoice leads it (same guard as receipt). */
+.torantejarat-site .woocommerce-order .torantejarat-invoice ~ ul.woocommerce-order-overview{display:none}
+
+/* Tracking card: account view-order (brand orange, no color-mix for compatibility). */
+.torantejarat-site .torantejarat-tracking-card{background:#fff;border:1px solid var(--line,#e5e7eb);border-top:4px solid #f77b3e;border-radius:16px;padding:22px;margin:0 0 20px;box-shadow:0 8px 28px rgba(15,23,42,.06)}
+.torantejarat-site .torantejarat-tracking-card__head{display:flex;align-items:flex-start;gap:12px;margin-bottom:16px}
+.torantejarat-site .torantejarat-tracking-card__icon{flex:0 0 42px;width:42px;height:42px;display:grid;place-items:center;border-radius:12px;background:#fff1e6;color:#f77b3e}
+.torantejarat-site .torantejarat-tracking-card__icon .torantejarat-icon{width:22px;height:22px}
+.torantejarat-site .torantejarat-tracking-card__head>div{flex:1;min-width:0}
+.torantejarat-site .torantejarat-tracking-card__head strong{display:block;font-size:15px;font-weight:800}
+.torantejarat-site .torantejarat-tracking-card__head span{font-size:12px;color:var(--muted,#64748b)}
+.torantejarat-site .torantejarat-tracking-card__chip{font-size:12px;font-weight:700;background:#fff1e6;color:#9a4a17;border:1px solid #fed7aa;border-radius:999px;padding:4px 12px;white-space:nowrap}
+.torantejarat-site .torantejarat-tracking-card__code{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#f8fafc;border:1px solid var(--line,#e5e7eb);border-radius:12px;padding:10px 10px 10px 14px;margin-bottom:14px}
+.torantejarat-site .torantejarat-tracking-card__code span{display:block;font-size:11px;color:var(--muted,#64748b)}
+.torantejarat-site .torantejarat-tracking-card__code strong{font-size:15px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.torantejarat-site .torantejarat-btn-block{width:100%}
+@media(max-width:480px){.torantejarat-site .torantejarat-tracking-card{padding:18px 16px}}
+.torantejarat-site .torantejarat-category-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+@media(max-width:1150px){.torantejarat-site .torantejarat-category-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:900px){.torantejarat-site .torantejarat-category-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+/* Home length strip — real cable lengths only. */
+.torantejarat-site .torantejarat-length-chips{display:flex;flex-wrap:wrap;gap:12px}
+.torantejarat-site .torantejarat-length-chip{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--line,#e5e7eb);border-radius:14px;padding:12px 18px;transition:border-color .2s,transform .2s}
+.torantejarat-site .torantejarat-length-chip:hover{border-color:#f77b3e;transform:translateY(-2px)}
+.torantejarat-site .torantejarat-length-chip strong{font-size:16px;font-weight:800}
+.torantejarat-site .torantejarat-length-chip span{font-size:12px;color:var(--muted,#64748b)}
+.torantejarat-site .torantejarat-category-count{display:inline-block;font-size:11px;font-weight:700;color:#9a4a17;background:#fff1e6;border-radius:999px;padding:2px 10px;margin-top:8px}
+/* Home category cards v2: icon tile + footer row (arrow in flow, never overlapping). */
+.torantejarat-site a.torantejarat-category-card{display:flex;flex-direction:column;border-radius:18px;padding:24px 22px;min-height:100%}
+.torantejarat-site .torantejarat-category-card:hover{border-color:#f77b3e;background:#fffdf9;transform:translateY(-3px)}
+.torantejarat-site .torantejarat-category-card .torantejarat-category-icon{width:58px;height:58px;border-radius:16px;margin-bottom:18px}
+.torantejarat-site .torantejarat-category-card .torantejarat-category-icon svg{width:30px;height:30px}
+.torantejarat-site .torantejarat-category-card.is-industrial .torantejarat-category-icon{background:#e9efe4;color:#53694f}
+.torantejarat-site .torantejarat-category-card.is-monitor .torantejarat-category-icon{background:#e8f1fb;color:#1d5bbf}
+.torantejarat-site .torantejarat-category-card.is-deep-well .torantejarat-category-icon{background:#e6f4f6;color:#0e7490}
+.torantejarat-site .torantejarat-category-card.is-wifi .torantejarat-category-icon{background:#f3eafd;color:#6d3fd4}
+.torantejarat-site .torantejarat-category-card.is-imported .torantejarat-category-icon{background:#fff1e6;color:#c2571a}
+.torantejarat-site .torantejarat-category-card h3{font-size:17px}
+.torantejarat-site .torantejarat-category-card p{font-size:12px;flex:1}
+.torantejarat-site .torantejarat-category-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:16px}
+.torantejarat-site .torantejarat-category-foot .torantejarat-category-count{margin-top:0}
+.torantejarat-site .torantejarat-category-card .torantejarat-category-arrow{position:static;color:#b3541e}
+.torantejarat-site .torantejarat-category-card:hover .torantejarat-category-arrow{color:#f77b3e}
+.torantejarat-site .torantejarat-category-card .torantejarat-category-arrow svg{width:20px}
