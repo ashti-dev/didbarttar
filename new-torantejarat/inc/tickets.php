@@ -724,6 +724,249 @@ function torantejarat_tickets_handle_reopen_frontend() {
 	exit;
 }
 
+/* --------------------------------------------------------------
+   AJAX handlers (return JSON, no page refresh)
+   -------------------------------------------------------------- */
+function torantejarat_tickets_ajax_create() {
+	if ( ! is_user_logged_in() ) {
+		wp_send_json_error( array( 'message' => __( 'لطفاً وارد حساب کاربری شوید.', 'torantejarat' ) ), 403 );
+	}
+
+	check_ajax_referer( 'torantejarat-ticket-create', 'torantejarat_ticket_create_nonce' );
+
+	$title   = isset( $_POST['title'] ) ? sanitize_text_field( wp_unslash( $_POST['title'] ) ) : '';
+	$body    = isset( $_POST['body'] ) ? wp_unslash( $_POST['body'] ) : '';
+	$subject = isset( $_POST['subject_key'] ) ? sanitize_text_field( wp_unslash( $_POST['subject_key'] ) ) : 'other';
+	$order   = isset( $_POST['order_id'] ) ? absint( $_POST['order_id'] ) : 0;
+
+	if ( empty( $title ) ) {
+		wp_send_json_error( array( 'message' => __( 'عنوان تیکت الزامی است.', 'torantejarat' ) ) );
+	}
+	if ( strlen( $body ) < 2 ) {
+		wp_send_json_error( array( 'message' => __( 'پیام باید حداقل ۲ کاراکتر باشد.', 'torantejarat' ) ) );
+	}
+
+	$ticket_id = \\ToranTejarat\\Theme\\torantejarat_tickets_create( get_current_user_id(), $title, $body, $subject, $order );
+	if ( is_wp_error( $ticket_id ) ) {
+		wp_send_json_error( array( 'message' => $ticket_id->get_error_message() ) );
+	}
+
+	wp_send_json_success( array(
+		'ticket_id' => $ticket_id,
+		'message'   => __( 'تیکت با موفقیت ثبت شد.', 'torantejarat' ),
+		'view_url'  => wc_get_account_endpoint_url( 'tickets' ),
+	) );
+}
+
+function torantejarat_tickets_ajax_reply() {
+	if ( ! is_user_logged_in() ) {
+		wp_send_json_error( array( 'message' => __( 'لطفاً وارد حساب کاربری شوید.', 'torantejarat' ) ), 403 );
+	}
+
+	check_ajax_referer( 'torantejarat-ticket-reply', 'torantejarat_ticket_reply_nonce' );
+
+	$ticket_id = isset( $_POST['ticket_id'] ) ? absint( $_POST['ticket_id'] ) : 0;
+	$body      = isset( $_POST['body'] ) ? wp_unslash( $_POST['body'] ) : '';
+
+	$ticket = torantejarat_tickets_get( $ticket_id );
+	if ( ! $ticket || (int) $ticket['user_id'] !== get_current_user_id() ) {
+		wp_send_json_error( array( 'message' => __( 'تیکت یافت نشد یا به شما تعلق ندارد.', 'torantejarat' ) ) );
+	}
+
+	$result = torantejarat_tickets_add_message( $ticket_id, get_current_user_id(), $body, false );
+	if ( is_wp_error( $result ) ) {
+		wp_send_json_error( array( 'message' => $result->get_error_message() ) );
+	}
+
+	// Fetch updated ticket status for UI
+	$ticket = torantejarat_tickets_get( $ticket_id );
+
+	wp_send_json_success( array(
+		'message' => __( 'پاسخ شما ارسال شد.', 'torantejarat' ),
+		'status'  => $ticket['status'] ?? 'open',
+	) );
+}
+
+function torantejarat_tickets_ajax_close() {
+	if ( ! is_user_logged_in() ) {
+		wp_send_json_error( array( 'message' => __( 'لطفاً وارد حساب کاربری شوید.', 'torantejarat' ) ), 403 );
+	}
+
+	check_ajax_referer( 'torantejarat-ticket-close', 'torantejarat_ticket_close_nonce' );
+
+	$ticket_id = isset( $_POST['ticket_id'] ) ? absint( $_POST['ticket_id'] ) : 0;
+
+	$ticket = torantejarat_tickets_get( $ticket_id );
+	if ( ! $ticket || (int) $ticket['user_id'] !== get_current_user_id() ) {
+		wp_send_json_error( array( 'message' => __( 'تیکت یافت نشد یا به شما تعلق ندارد.', 'torantejarat' ) ) );
+	}
+
+	$result = torantejarat_tickets_set_status( $ticket_id, 'closed', get_current_user_id() );
+	if ( is_wp_error( $result ) ) {
+		wp_send_json_error( array( 'message' => $result->get_error_message() ) );
+	}
+
+	wp_send_json_success( array(
+		'message' => __( 'تیکت بسته شد.', 'torantejarat' ),
+		'status'  => 'closed',
+	) );
+}
+
+function torantejarat_tickets_ajax_delete() {
+	if ( ! is_user_logged_in() ) {
+		wp_send_json_error( array( 'message' => __( 'لطفاً وارد حساب کاربری شوید.', 'torantejarat' ) ), 403 );
+	}
+
+	check_ajax_referer( 'torantejarat-ticket-delete', 'torantejarat_ticket_delete_nonce' );
+
+	$ticket_id = isset( $_POST['ticket_id'] ) ? absint( $_POST['ticket_id'] ) : 0;
+
+	$ticket = torantejarat_tickets_get( $ticket_id );
+	if ( ! $ticket || (int) $ticket['user_id'] !== get_current_user_id() ) {
+		wp_send_json_error( array( 'message' => __( 'تیکت یافت نشد یا به شما تعلق ندارد.', 'torantejarat' ) ) );
+	}
+
+	if ( $ticket['status'] !== 'closed' ) {
+		wp_send_json_error( array( 'message' => __( 'فقط تیکت‌های بسته قابل حذف هستند.', 'torantejarat' ) ) );
+	}
+
+	global $wpdb;
+	$table_tickets = $wpdb->prefix . 'torantejarat_tickets';
+	$table_messages = $wpdb->prefix . 'torantejarat_ticket_messages';
+
+	$wpdb->delete( $table_messages, array( 'ticket_id' => $ticket_id ), array( '%d' ) );
+	$wpdb->delete( $table_tickets, array( 'id' => $ticket_id ), array( '%d' ) );
+
+	wp_send_json_success( array(
+		'message' => __( 'تیکت با موفقیت حذف شد.', 'torantejarat' ),
+	) );
+}
+
+function torantejarat_tickets_ajax_reopen() {
+	if ( ! is_user_logged_in() ) {
+		wp_send_json_error( array( 'message' => __( 'لطفاً وارد حساب کاربری شوید.', 'torantejarat' ) ), 403 );
+	}
+
+	check_ajax_referer( 'torantejarat-ticket-reopen', 'torantejarat_ticket_reopen_nonce' );
+
+	$ticket_id = isset( $_POST['ticket_id'] ) ? absint( $_POST['ticket_id'] ) : 0;
+
+	$ticket = torantejarat_tickets_get( $ticket_id );
+	if ( ! $ticket || (int) $ticket['user_id'] !== get_current_user_id() ) {
+		wp_send_json_error( array( 'message' => __( 'تیکت یافت نشد یا به شما تعلق ندارد.', 'torantejarat' ) ) );
+	}
+
+	if ( $ticket['status'] !== 'closed' ) {
+		wp_send_json_error( array( 'message' => __( 'فقط تیکت‌های بسته قابل باز کردن هستند.', 'torantejarat' ) ) );
+	}
+
+	$result = torantejarat_tickets_set_status( $ticket_id, 'reopened', get_current_user_id() );
+	if ( is_wp_error( $result ) ) {
+		wp_send_json_error( array( 'message' => $result->get_error_message() ) );
+	}
+
+	wp_send_json_success( array(
+		'message' => __( 'تیکت باز شد.', 'torantejarat' ),
+		'status'  => 'reopened',
+	) );
+}
+
+/* --------------------------------------------------------------
+   AJAX handler: return ticket detail HTML for panel
+   -------------------------------------------------------------- */
+function torantejarat_tickets_ajax_detail() {
+	if ( ! is_user_logged_in() ) {
+		wp_send_json_error( array( 'message' => __( 'لطفاً وارد حساب کاربری شوید.', 'torantejarat' ) ), 403 );
+	}
+
+	check_ajax_referer( 'torantejarat-ticket-detail', 'torantejarat_ticket_detail_nonce' );
+
+	$ticket_id = isset( $_POST['ticket_id'] ) ? absint( $_POST['ticket_id'] ) : 0;
+
+	$ticket = torantejarat_tickets_get( $ticket_id );
+	if ( ! $ticket || (int) $ticket['user_id'] !== get_current_user_id() ) {
+		wp_send_json_error( array( 'message' => __( 'تیکت یافت نشد یا به شما تعلق ندارد.', 'torantejarat' ) ) );
+	}
+
+	$view_messages = torantejarat_tickets_get_messages( $ticket_id );
+	$view_st       = isset( $ticket['status'] ) ? $ticket['status'] : 'open';
+	$can_reply     = in_array( $view_st, array( 'open', 'awaiting_support', 'awaiting_customer', 'answered' ), true );
+	$can_close     = in_array( $view_st, array( 'awaiting_support' ), true );
+	$status_badge_class = 'open' === $view_st ? 'open' : 'closed';
+	$torantejarat_statuses = torantejarat_ticket_statuses();
+
+	ob_start();
+	?>
+	<h3><?php printf( esc_html__( 'تیکت #%d', 'torantejarat' ), $ticket_id ); ?></h3>
+	<table class="ticket-view-detail-table">
+		<tr>
+			<th><?php esc_html_e( 'عنوان', 'torantejarat' ); ?></th>
+			<td><?php echo esc_html( $ticket['title'] ); ?></td>
+		</tr>
+		<tr>
+			<th><?php esc_html_e( 'وضعیت', 'torantejarat' ); ?></th>
+			<td><span class="ticket-status-badge <?php echo esc_attr( $status_badge_class ); ?>"><?php echo esc_html( $torantejarat_statuses[ $view_st ] ?? $view_st ); ?></span></td>
+		</tr>
+		<tr>
+			<th><?php esc_html_e( 'تاریخ', 'torantejarat' ); ?></th>
+			<td><?php echo esc_html( mysql2date( 'Y/m/d H:i', $ticket['created_at'] ) ); ?></td>
+		</tr>
+		<?php if ( ! empty( $ticket['order_id'] ) ) : ?>
+		<tr>
+			<th><?php esc_html_e( 'سفارش', 'torantejarat' ); ?></th>
+			<td>#<?php echo esc_html( $ticket['order_id'] ); ?></td>
+		</tr>
+		<?php endif; ?>
+	</table>
+
+	<div class="ticket-history">
+		<h4><?php esc_html_e( 'گفت‌وگو', 'torantejarat' ); ?></h4>
+		<?php if ( $view_messages ) : ?>
+			<?php foreach ( $view_messages as $msg ) : ?>
+			<div class="ticket-message <?php echo (int) $msg['is_staff'] === 1 ? 'staff' : 'customer'; ?>">
+				<strong><?php echo (int) $msg['is_staff'] === 1 ? esc_html__( 'پشتیبانی', 'torantejarat' ) : esc_html__( 'شما', 'torantejarat' ); ?></strong>
+				<span class="ticket-time"><?php echo esc_html( mysql2date( 'Y/m/d H:i', $msg['created_at'] ) ); ?></span>
+				<?php echo esc_html( $msg['body'] ); ?>
+			</div>
+			<?php endforeach; ?>
+		<?php else : ?>
+			<p><?php esc_html_e( 'هیچ پیامی ثبت نشده است.', 'torantejarat' ); ?></p>
+		<?php endif; ?>
+	</div>
+
+	<?php if ( $can_reply ) : ?>
+	<div class="ticket-reply-form ajax-reply-form">
+		<h4><?php esc_html_e( 'پاسخ جدید', 'torantejarat' ); ?></h4>
+		<form method="post" novalidate>
+			<input type="hidden" name="action" value="torantejarat_ticket_reply_ajax">
+			<input type="hidden" name="ticket_id" value="<?php echo esc_attr( $ticket_id ); ?>">
+			<?php wp_nonce_field( 'torantejarat-ticket-reply', 'torantejarat_ticket_reply_nonce' ); ?>
+			<div class="acp-field acp-full">
+				<label for="acp-tk-reply"><?php esc_html_e( 'متن پاسخ', 'torantejarat' ); ?></label>
+				<textarea id="acp-tk-reply" name="body" rows="4" required maxlength="2000"></textarea>
+			</div>
+			<button class="acp-btn acp-btn-primary" type="submit"><?php esc_html_e( 'ارسال پاسخ', 'torantejarat' ); ?></button>
+		</form>
+	</div>
+	<?php endif; ?>
+
+	<?php if ( $can_close ) : ?>
+	<div class="ticket-close-form" style="margin-top:12px;">
+		<button type="button" class="btn-ajax btn-close" data-ticket-id="<?php echo esc_attr( $ticket_id ); ?>" data-nonce="<?php echo esc_attr( wp_create_nonce( 'torantejarat-ticket-close' ) ); ?>"><?php esc_html_e( 'بستن تیکت', 'torantejarat' ); ?></button>
+	</div>
+	<?php endif; ?>
+
+	<?php if ( $view_st === 'closed' ) : ?>
+	<div class="ticket-reopen-form" style="margin-top:8px;">
+		<button type="button" class="btn-ajax btn-reopen" data-ticket-id="<?php echo esc_attr( $ticket_id ); ?>" data-nonce="<?php echo esc_attr( wp_create_nonce( 'torantejarat-ticket-reopen' ) ); ?>" style="background:#eef4fa;color:#36567a;border:1px solid #c9d6df;"><?php esc_html_e( 'باز کردن تیکت', 'torantejarat' ); ?></button>
+	</div>
+	<?php endif; ?>
+	<?php
+	$html = ob_get_clean();
+
+	wp_send_json_success( array( 'html' => $html, 'status' => $view_st ) );
+}
+
 function torantejarat_tickets_setup_capability() {
 	$role = get_role( 'administrator' );
 	if ( $role ) {
