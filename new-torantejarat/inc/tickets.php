@@ -251,12 +251,18 @@ function torantejarat_tickets_add_message( $ticket_id, $author_id, $body, $is_st
 
 	// Update ticket timestamps and status
 	$new_status = $ticket['status'];
-	if ( ! $is_staff && $ticket['status'] === 'closed' ) {
-		$new_status = 'reopened';
-	} elseif ( ! $is_staff && $ticket['status'] === 'awaiting_support' ) {
-		$new_status = 'awaiting_support';
-	} elseif ( $is_staff && $ticket['status'] === 'awaiting_customer' ) {
-		$new_status = 'awaiting_support';
+	if ( ! $is_staff ) {
+		// Customer replies
+		if ( $ticket['status'] === 'closed' ) {
+			$new_status = 'reopened';
+		} elseif ( in_array( $ticket['status'], array( 'answered', 'awaiting_support' ), true ) ) {
+			$new_status = 'awaiting_support';
+		}
+	} else {
+		// Staff/Admin replies
+		if ( in_array( $ticket['status'], array( 'open', 'awaiting_customer', 'answered', 'reopened' ), true ) ) {
+			$new_status = 'awaiting_support';
+		}
 	}
 
 	$statuses = torantejarat_ticket_statuses();
@@ -522,10 +528,8 @@ function torantejarat_tickets_notify_admin_new( $ticket_id ) {
 		esc_html( torantejarat_ticket_subjects()[ $ticket['subject_key'] ] ?? $ticket['subject_key'] )
 	);
 
-	if ( wp_schedule_single_event( time(), 'torantejarat_tickets_send_admin_email', array( 'admin', get_option( 'admin_email' ), $subject, $message ) ) === false ) {
-		// Fallback direct send if scheduling failed
-		wp_mail( get_option( 'admin_email' ), $subject, $message );
-	}
+	// Send directly (cron may not run on localhost/standalone environments)
+	wp_mail( get_option( 'admin_email' ), $subject, $message );
 }
 
 function torantejarat_tickets_notify_admin_reply( $ticket_id ) {
@@ -543,9 +547,8 @@ function torantejarat_tickets_notify_admin_reply( $ticket_id ) {
 		esc_html( $ticket['status'] )
 	);
 
-	if ( wp_schedule_single_event( time(), 'torantejarat_tickets_send_admin_email', array( 'admin_reply', get_option( 'admin_email' ), $subject, $message ) ) === false ) {
-		wp_mail( get_option( 'admin_email' ), $subject, $message );
-	}
+	// Send directly (cron may not run on localhost/standalone environments)
+	wp_mail( get_option( 'admin_email' ), $subject, $message );
 }
 
 function torantejarat_tickets_notify_customer_reply( $ticket_id ) {
@@ -568,9 +571,8 @@ function torantejarat_tickets_notify_customer_reply( $ticket_id ) {
 		esc_html( $ticket['title'] )
 	);
 
-	if ( wp_schedule_single_event( time(), 'torantejarat_tickets_send_customer_email', array( 'customer', $user->user_email, $subject, $message ) ) === false ) {
-		wp_mail( $user->user_email, $subject, $message );
-	}
+	// Send directly (cron may not run on localhost/standalone environments)
+	wp_mail( $user->user_email, $subject, $message );
 }
 
 /* --------------------------------------------------------------
@@ -680,8 +682,48 @@ function torantejarat_tickets_handle_close_frontend() {
 	}
 
 	wp_safe_redirect( add_query_arg( 'ticket_sent', '1', wc_get_account_endpoint_url( 'tickets' ) ) );
+		exit;
+	}
+
+/* --------------------------------------------------------------
+   Frontend handler: reopen ticket from /my-account/tickets/
+   -------------------------------------------------------------- */
+function torantejarat_tickets_handle_reopen_frontend() {
+	if ( ! is_user_logged_in() ) {
+		wp_safe_redirect( wp_login_url() );
+		exit;
+	}
+
+	if ( ! isset( $_POST['torantejarat_ticket_reopen_nonce'] ) || ! wp_verify_nonce( sanitize_key( wp_unslash( $_POST['torantejarat_ticket_reopen_nonce'] ) ), 'torantejarat-ticket-reopen' ) ) {
+		wp_safe_redirect( add_query_arg( 'ticket_error', 'nonce', wc_get_account_endpoint_url( 'tickets' ) ) );
+		exit;
+	}
+
+	$ticket_id = isset( $_POST['ticket_id'] ) ? absint( $_POST['ticket_id'] ) : 0;
+
+	$ticket = torantejarat_tickets_get( $ticket_id );
+	if ( ! $ticket || (int) $ticket['user_id'] !== get_current_user_id() ) {
+		wp_safe_redirect( add_query_arg( 'ticket_error', 'not_found', wc_get_account_endpoint_url( 'tickets' ) ) );
+		exit;
+	}
+
+	// Only closed tickets can be reopened by customer
+	if ( $ticket['status'] !== 'closed' ) {
+		wp_safe_redirect( add_query_arg( 'ticket_error', 'not_closed', wc_get_account_endpoint_url( 'tickets' ) ) );
+		exit;
+	}
+
+	$result = torantejarat_tickets_set_status( $ticket_id, 'reopened', get_current_user_id() );
+
+	if ( is_wp_error( $result ) ) {
+		wp_safe_redirect( add_query_arg( 'ticket_error', $result->get_error_code(), wc_get_account_endpoint_url( 'tickets' ) ) );
+		exit;
+	}
+
+	wp_safe_redirect( add_query_arg( 'ticket_sent', '1', wc_get_account_endpoint_url( 'tickets' ) ) );
 	exit;
 }
+
 function torantejarat_tickets_setup_capability() {
 	$role = get_role( 'administrator' );
 	if ( $role ) {

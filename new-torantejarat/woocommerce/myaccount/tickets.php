@@ -807,8 +807,16 @@ button.acp-btn-primary:active {
 							</form>
 						</div>
 					<?php endif; ?>
-					<?php if ( $ticket_st === 'closed' ) : ?>
-						<div class="ticket-delete-form">
+			<?php if ( $ticket_st === 'closed' ) : ?>
+				<div class="ticket-reopen-form" style="display:inline-block;margin-right:8px;">
+					<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" onsubmit="return confirm( '<?php esc_attr_e( 'آیا مطمئن هستید می‌خواهید این تیکت را باز کنید؟', 'torantejarat' ); ?>' );">
+						<?php wp_nonce_field( 'torantejarat-ticket-reopen', 'torantejarat_ticket_reopen_nonce' ); ?>
+						<input type="hidden" name="ticket_id" value="<?php echo esc_attr( $ticket_id ); ?>">
+						<input type="hidden" name="action" value="torantejarat_ticket_reopen_frontend">
+						<button type="submit" style="background:#eef4fa;color:#36567a;border:1px solid #c9d6df;"><?php esc_html_e( 'باز کردن تیکت', 'torantejarat' ); ?></button>
+					</form>
+				</div>
+				<div class="ticket-delete-form">
 							<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" onsubmit="return confirm( '<?php esc_attr_e( 'آیا مطمئن هستید می‌خواهید این تیکت را حذف کنید؟ این عمل غیرقابل‌بازگشت است.', 'torantejarat' ); ?>' );">
 								<?php wp_nonce_field( 'torantejarat-ticket-delete', 'torantejarat_ticket_delete_nonce' ); ?>
 								<input type="hidden" name="ticket_id" value="<?php echo esc_attr( $ticket_id ); ?>">
@@ -894,7 +902,7 @@ button.acp-btn-primary:active {
 	if ( $view_ticket && (int) $view_ticket['user_id'] === $user_id ) :
 		$view_messages = \ToranTejarat\Theme\torantejarat_tickets_get_messages( $view_id );
 		$view_st       = isset( $view_ticket['status'] ) ? $view_ticket['status'] : 'open';
-		$can_reply     = in_array( $view_st, array( 'open', 'awaiting_support', 'awaiting_customer' ), true );
+		$can_reply     = in_array( $view_st, array( 'open', 'awaiting_support', 'awaiting_customer', 'answered' ), true );
 		$can_close     = in_array( $view_st, array( 'awaiting_support' ), true );
 		$status_badge_class = 'open' === $view_st ? 'open' : 'closed';
 		?>
@@ -962,6 +970,17 @@ button.acp-btn-primary:active {
 					<input type="hidden" name="ticket_id" value="<?php echo esc_attr( $view_id ); ?>">
 					<input type="hidden" name="action" value="torantejarat_ticket_close_frontend">
 					<button type="submit"><?php esc_html_e( 'بستن تیکت', 'torantejarat' ); ?></button>
+				</form>
+			</div>
+			<?php endif; ?>
+
+			<?php if ( $view_st === 'closed' ) : ?>
+			<div class="ticket-reopen-form" style="margin-top:8px;">
+				<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" onsubmit="return confirm( '<?php esc_attr_e( 'آیا مطمئن هستید می‌خواهید این تیکت را باز کنید؟', 'torantejarat' ); ?>' );">
+					<?php wp_nonce_field( 'torantejarat-ticket-reopen', 'torantejarat_ticket_reopen_nonce' ); ?>
+					<input type="hidden" name="ticket_id" value="<?php echo esc_attr( $view_id ); ?>">
+					<input type="hidden" name="action" value="torantejarat_ticket_reopen_frontend">
+					<button type="submit" style="background:#eef4fa;color:#36567a;border:1px solid #c9d6df;"><?php esc_html_e( 'باز کردن تیکت', 'torantejarat' ); ?></button>
 				</form>
 			</div>
 			<?php endif; ?>
