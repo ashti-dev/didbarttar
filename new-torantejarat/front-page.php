@@ -142,7 +142,7 @@ get_header();
 							<?php if ( ! empty( $video_row['caption'] ) ) : ?><p><?php echo esc_html( $video_row['caption'] ); ?></p><?php endif; ?>
 						</div>
 						<?php endforeach;
-					else :
+					else : ?>
 							<div class="torantejarat-video-top"><span class="torantejarat-status-dot"></span><span><?php echo esc_html( torantejarat_home( 'video_label_1' ) ); ?></span><span dir="ltr"><?php echo esc_html( torantejarat_home( 'video_label_2' ) ); ?></span></div>
 							<video controls playsinline preload="none" aria-label="<?php echo esc_attr( torantejarat_home( 'video_aria' ) ); ?>">
 								<source src="<?php echo esc_url( get_template_directory_uri() . '/assets/video/tunnel-inspection.mp4' ); ?>" type="video/mp4">

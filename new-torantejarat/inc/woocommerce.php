@@ -417,7 +417,7 @@ function torantejarat_hero_slides() {
 		if ( ! $product_id ) { continue; }
 
 		$product = wc_get_product( $product_id );
-		if ( ! $product instanceof \\WC_Product || ! $product->is_visible() ) { continue; }
+		if ( ! $product instanceof \WC_Product || ! $product->is_visible() ) { continue; }
 
 		$slide = torantejarat_hero_slide_data( $product );
 		if ( ! $slide ) { continue; }
