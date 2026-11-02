@@ -133,7 +133,7 @@ function torantejarat_tickets_create( $user_id, $subject_key, $title, $body, $or
 
 	$user_id = absint( $user_id );
 	if ( $user_id <= 0 ) {
-		return new \WP_Error( 'not_logged_in', __( 'You must be logged in.', 'torantejarat' ) );
+		return new \WP_Error( 'not_logged_in', __( 'برای ثبت تیکت باید وارد حساب کاربری شوید.', 'torantejarat' ) );
 	}
 
 	$subjects = torantejarat_ticket_subjects();
@@ -143,23 +143,23 @@ function torantejarat_tickets_create( $user_id, $subject_key, $title, $body, $or
 
 	$title = sanitize_text_field( $title );
 	if ( '' === $title ) {
-		return new \WP_Error( 'empty_title', __( 'Title is required.', 'torantejarat' ) );
+		return new \WP_Error( 'empty_title', __( 'عنوان تیکت الزامی است.', 'torantejarat' ) );
 	}
 	if ( mb_strlen( $title ) > 150 ) {
-		return new \WP_Error( 'title_too_long', __( 'Title must be at most 150 characters.', 'torantejarat' ) );
+		return new \WP_Error( 'title_too_long', __( 'عنوان تیکت نباید بیشتر از ۱۵۰ کاراکتر باشد.', 'torantejarat' ) );
 	}
 
 	$order_id = absint( $order_id );
 	if ( $order_id > 0 ) {
 		$order = wc_get_order( $order_id );
 		if ( ! $order instanceof \WC_Order || (int) $order->get_customer_id() !== $user_id ) {
-			return new \WP_Error( 'invalid_order', __( 'Order is not valid or does not belong to you.', 'torantejarat' ) );
+			return new \WP_Error( 'invalid_order', __( 'سفارش انتخاب‌شده معتبر نیست یا به شما تعلق ندارد.', 'torantejarat' ) );
 		}
 	}
 
 	$body = sanitize_textarea_field( $body );
 	if ( mb_strlen( trim( $body ) ) < 10 ) {
-		return new \WP_Error( 'body_too_short', __( 'Message must be at least 10 characters.', 'torantejarat' ) );
+		return new \WP_Error( 'body_too_short', __( 'پیام باید حداقل ۱۰ کاراکتر باشد.', 'torantejarat' ) );
 	}
 
 	// Rate limit: max 3 open tickets per user (admins/staff bypass)
@@ -175,7 +175,7 @@ function torantejarat_tickets_create( $user_id, $subject_key, $title, $body, $or
 	$last_submit = (int) get_transient( torantejarat_tickets_rate_key( $user_id ) );
 	$now         = time();
 	if ( $last_submit > 0 && ( $now - $last_submit ) < 60 ) {
-		return new \WP_Error( 'rate_limit_seconds', __( 'Please wait at least 60 seconds before sending another ticket.', 'torantejarat' ) );
+		return new \WP_Error( 'rate_limit_seconds', __( 'برای ثبت تیکت جدید حداقل ۶۰ ثانیه صبر کنید.', 'torantejarat' ) );
 	}
 
 	$wpdb->insert(
@@ -194,7 +194,7 @@ function torantejarat_tickets_create( $user_id, $subject_key, $title, $body, $or
 
 	$ticket_id = (int) $wpdb->insert_id;
 	if ( $ticket_id <= 0 ) {
-		return new \WP_Error( 'db_error', __( 'Could not create ticket.', 'torantejarat' ) );
+		return new \WP_Error( 'db_error', __( 'ثبت تیکت ممکن نشد. لطفاً دوباره تلاش کنید.', 'torantejarat' ) );
 	}
 
 	// First message (customer)
@@ -904,7 +904,7 @@ function torantejarat_tickets_ajax_detail() {
 	$view_st       = isset( $ticket['status'] ) ? $ticket['status'] : 'open';
 	$can_reply     = in_array( $view_st, array( 'open', 'awaiting_support', 'awaiting_customer', 'answered' ), true );
 	$can_close     = in_array( $view_st, array( 'awaiting_support' ), true );
-	$status_badge_class = 'open' === $view_st ? 'open' : 'closed';
+	$status_badge_class = $view_st;
 	$torantejarat_statuses = torantejarat_ticket_statuses();
 
 	ob_start();

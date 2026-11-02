@@ -805,6 +805,36 @@ button.acp-btn-primary:active {
 	display: inline-block;
 }
 
+.torantejarat-tickets-table .ticket-status-badge.open {
+	background: #fef3f2;
+	color: #b42318;
+}
+
+.torantejarat-tickets-table .ticket-status-badge.closed {
+	background: #eef4fa;
+	color: #36567a;
+}
+
+.torantejarat-tickets-table .ticket-status-badge.awaiting_support {
+	background: #fff7e6;
+	color: #b26a00;
+}
+
+.torantejarat-tickets-table .ticket-status-badge.awaiting_customer {
+	background: #eef4fa;
+	color: #36567a;
+}
+
+.torantejarat-tickets-table .ticket-status-badge.answered {
+	background: #e3f2fd;
+	color: #1565c0;
+}
+
+.torantejarat-tickets-table .ticket-status-badge.reopened {
+	background: #f3e8ff;
+	color: #6b21a8;
+}
+
 .torantejarat-tickets-table .ticket-actions-cell {
 	text-align: left;
 	white-space: nowrap;
@@ -1028,7 +1058,7 @@ button.acp-btn-primary:active {
 			$ticket_st  = isset( $ticket['status'] ) ? $ticket['status'] : 'open';
 			$ticket_id  = (int) $ticket['id'];
 			$can_close  = in_array( $ticket_st, array( 'awaiting_support' ), true );
-			$status_badge_class = 'open' === $ticket_st ? 'open' : 'closed';
+			$status_badge_class = $ticket_st;
 			?>
 <td data-label="<?php esc_attr_e( 'عنوان', 'torantejarat' ); ?>">
 			<a href="<?php echo esc_url( add_query_arg( 'view_ticket', $ticket_id, wc_get_account_endpoint_url( 'tickets' ) ) ); ?>" class="ticket-table-title"><?php echo esc_html( $ticket['title'] ); ?></a>
