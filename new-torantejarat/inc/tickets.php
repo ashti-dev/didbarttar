@@ -163,6 +163,7 @@ function torantejarat_tickets_create( $user_id, $subject_key, $title, $body, $or
 	}
 
 	// Rate limit: max 3 open tickets per user (admins/staff bypass)
+	$open_count = 0;
 	if ( ! torantejarat_tickets_user_can_manage() ) {
 		$open_count = (int) get_transient( torantejarat_tickets_open_count_key( $user_id ) );
 		if ( $open_count >= 3 ) {
@@ -197,7 +198,7 @@ function torantejarat_tickets_create( $user_id, $subject_key, $title, $body, $or
 	}
 
 	// First message (customer)
-	torantejarat_tickets_add_message( $ticket_id, $user_id, $body, false );
+	torantejarat_tickets_add_message( $ticket_id, $user_id, $body, false, true );
 
 	// Update counters
 	set_transient( torantejarat_tickets_rate_key( $user_id ), $now, 60 * MINUTE_IN_SECONDS );
@@ -216,9 +217,10 @@ function torantejarat_tickets_create( $user_id, $subject_key, $title, $body, $or
  * @param int    $author_id
  * @param bool   $is_staff
  * @param string $body
+ * @param bool   $is_initial Opening message of a new ticket (keeps status "open").
  * @return int|WP_Error
  */
-function torantejarat_tickets_add_message( $ticket_id, $author_id, $body, $is_staff = false ) {
+function torantejarat_tickets_add_message( $ticket_id, $author_id, $body, $is_staff = false, $is_initial = false ) {
 	global $wpdb;
 
 	$ticket_id = absint( $ticket_id );
@@ -251,17 +253,19 @@ function torantejarat_tickets_add_message( $ticket_id, $author_id, $body, $is_st
 
 	// Update ticket timestamps and status
 	$new_status = $ticket['status'];
-	if ( ! $is_staff ) {
-		// Customer replies
-		if ( $ticket['status'] === 'closed' ) {
-			$new_status = 'reopened';
-		} elseif ( in_array( $ticket['status'], array( 'answered', 'awaiting_support' ), true ) ) {
-			$new_status = 'awaiting_support';
-		}
-	} else {
-		// Staff/Admin replies
-		if ( in_array( $ticket['status'], array( 'open', 'awaiting_customer', 'answered', 'reopened' ), true ) ) {
-			$new_status = 'awaiting_support';
+	if ( ! $is_initial ) {
+		if ( ! $is_staff ) {
+			// Customer replies
+			if ( $ticket['status'] === 'closed' ) {
+				$new_status = 'reopened';
+			} elseif ( in_array( $ticket['status'], array( 'open', 'answered', 'awaiting_support' ), true ) ) {
+				$new_status = 'awaiting_support';
+			}
+		} else {
+			// Staff/Admin replies
+			if ( in_array( $ticket['status'], array( 'open', 'awaiting_customer', 'answered', 'reopened' ), true ) ) {
+				$new_status = 'awaiting_support';
+			}
 		}
 	}
 
@@ -426,7 +430,7 @@ function torantejarat_tickets_can_transition( $from_status, $to_status, $user_id
         'awaiting_customer' => array( 'answered' ),
         'answered'          => array( 'closed', 'awaiting_support' ),
         'closed'            => array( 'reopened' ),
-        'reopened'          => array( 'awaiting_customer' ),
+        'reopened'          => array( 'awaiting_customer', 'closed' ),
         'awaiting_support'  => array( 'answered', 'closed' ),
     );
 
@@ -484,7 +488,15 @@ function torantejarat_tickets_set_status( $ticket_id, $status, $user_id ) {
 	}
 
 	if ( ! torantejarat_tickets_can_transition( $ticket['status'], $status, $user_id ) ) {
-		return new \WP_Error( 'invalid_transition', __( 'تغییر وضعیت از %1$s به %2$s مجاز نیست.', 'torantejarat' ) );
+		$labels = torantejarat_ticket_statuses();
+		return new \WP_Error(
+			'invalid_transition',
+			sprintf(
+				__( 'تغییر وضعیت از %1$s به %2$s مجاز نیست.', 'torantejarat' ),
+				isset( $labels[ $ticket['status'] ] ) ? $labels[ $ticket['status'] ] : $ticket['status'],
+				isset( $labels[ $status ] ) ? $labels[ $status ] : $status
+			)
+		);
 	}
 
 	$wpdb->update(
@@ -746,7 +758,7 @@ function torantejarat_tickets_ajax_create() {
 		wp_send_json_error( array( 'message' => __( 'پیام باید حداقل ۲ کاراکتر باشد.', 'torantejarat' ) ) );
 	}
 
-	$ticket_id = \\ToranTejarat\\Theme\\torantejarat_tickets_create( get_current_user_id(), $title, $body, $subject, $order );
+	$ticket_id = torantejarat_tickets_create( get_current_user_id(), $subject, $title, $body, $order );
 	if ( is_wp_error( $ticket_id ) ) {
 		wp_send_json_error( array( 'message' => $ticket_id->get_error_message() ) );
 	}
