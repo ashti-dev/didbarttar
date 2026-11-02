@@ -272,6 +272,19 @@ final class TT_Settings {
 					),
 					'max'              => 12,
 				),
+				'hero_slides'      => array(
+					'label'            => 'اسلایدر هیرو — محصولات گلچین',
+					'type'             => 'repeater',
+					'default'          => array(),
+					'desc'             => 'هر ردیف یک اسلاید هیرو است. محصول را از طریق شناسه (ID) انتخاب کنید؛ خالی گذاشتن ردیف، آن را نادیده می‌گیرد. حداکثر ۴ اسلاید نمایش داده می‌شود.',
+					'subfields'        => array(
+						'product_id' => array( 'label' => 'شناسه محصول (ID)', 'type' => 'number' ),
+						'label'      => array( 'label' => 'لیبل نمایشی', 'type' => 'text' ),
+						'caption'    => array( 'label' => 'کپشن کوتاه', 'type' => 'text' ),
+						'link'       => array( 'label' => 'لینک دلخواه (اختیاری)', 'type' => 'url' ),
+					),
+					'max'              => 8,
+				),
 			),
 		),
 		'contact' => array(
