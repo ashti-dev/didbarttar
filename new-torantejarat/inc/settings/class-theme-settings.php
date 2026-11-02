@@ -285,6 +285,18 @@ final class TT_Settings {
 					),
 					'max'              => 8,
 				),
+				'home_videos'      => array(
+					'label'            => 'ویدیوهای صفحه اصلی',
+					'type'             => 'repeater',
+					'default'          => array(),
+					'desc'             => 'هر ردیف یک ویدیو است. لینک مستقیماً به فایل ویدیو (mp4/webm) بدهید؛ خالی گذاشتن ردیف، آن را نادیده می‌گیرد. با پلیر سبک و شیک نمایش داده می‌شود.',
+					'subfields'        => array(
+						'title'    => array( 'label' => 'تیتر ویدیو', 'type' => 'text' ),
+						'video_url'=> array( 'label' => 'لینک فایل ویدیو', 'type' => 'url' ),
+						'caption'  => array( 'label' => 'کپشن', 'type' => 'text' ),
+					),
+					'max'              => 6,
+				),
 			),
 		),
 		'contact' => array(

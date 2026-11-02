@@ -1038,3 +1038,10 @@ details.torantejarat-filter-group>div{padding-bottom:14px}
 .torantejarat-site .torantejarat-category-card .torantejarat-category-arrow{position:static;color:#b3541e}
 .torantejarat-site .torantejarat-category-card:hover .torantejarat-category-arrow{color:#f77b3e}
 .torantejarat-site .torantejarat-category-card .torantejarat-category-arrow svg{width:20px}
+
+/* Hero video items */
+.torantejarat-video-item{margin-bottom:24px;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff}
+.torantejarat-video-item h4{font-size:14px;font-weight:800;padding:14px 16px 0;margin:0}
+.torantejarat-video-item video{width:100%;height:auto;display:block;background:#111}
+.torantejarat-video-item p{font-size:11px;padding:0 16px 16px;margin:0;color:var(--muted)}
+@media(min-width:768px){.torantejarat-video-panel{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px}.torantejarat-video-item{margin-bottom:0}}
