@@ -910,20 +910,26 @@ final class TT_Settings {
 						</button>
 					</div>
 				</div>
-				<div class="tt-contextbar">
-					<nav class="tt-context-path" aria-label="<?php esc_attr_e( 'مسیر صفحهٔ فعلی', 'torantejarat' ); ?>">
-						<span><?php esc_html_e( 'بلکوکم', 'torantejarat' ); ?></span>
+		<div class="tt-contextbar">
+			<nav class="tt-context-path" aria-label="<?php esc_attr_e( 'مسیر صفحهٔ فعلی', 'torantejarat' ); ?>">
+				<a href="<?php echo esc_url( admin_url( 'admin.php?page=torantejarat-settings' ) ); ?>" class="tt-breadcrumb-link"<?php if ( $is_dashboard ) : ?> aria-current="page"<?php endif; ?>><?php esc_html_e( 'بلکوکم', 'torantejarat' ); ?></a>
+				<span aria-hidden="true">/</span>
+				<?php if ( $is_dashboard ) : ?>
+					<span class="tt-breadcrumb-current"><?php esc_html_e( 'داشبورد', 'torantejarat' ); ?></span>
+				<?php else : ?>
+					<a href="<?php echo esc_url( admin_url( 'admin.php?page=torantejarat-settings&section=' . $active ) ); ?>" class="tt-breadcrumb-link"<?php if ( ! $current_group ) : ?> aria-current="page"<?php endif; ?>><?php echo esc_html( $nav[ $active ]['label'] ); ?></a>
+					<?php if ( $current_group ) : ?>
 						<span aria-hidden="true">/</span>
-						<?php if ( $is_dashboard ) : ?>
-							<span><?php esc_html_e( 'داشبورد', 'torantejarat' ); ?></span>
-						<?php else : ?>
-							<span><?php echo esc_html( $nav[ $active ]['label'] ); ?></span>
-							<?php if ( $current_group ) : ?>
-								<span aria-hidden="true">/</span>
-								<span><?php echo esc_html( $current_group['label'] ); ?></span>
-							<?php endif; ?>
-						<?php endif; ?>
-					</nav>
+						<span class="tt-breadcrumb-current"><?php echo esc_html( $current_group['label'] ); ?></span>
+					<?php endif; ?>
+				<?php endif; ?>
+			</nav>
+			<?php if ( ! $is_dashboard && $current_group ) : ?>
+				<a href="<?php echo esc_url( admin_url( 'admin.php?page=torantejarat-settings&section=' . $active ) ); ?>" class="button button-link tt-back-button" data-tt-back>
+					<span class="dashicons dashicons-arrow-left-alt2" aria-hidden="true"></span> <?php esc_html_e( 'بازگشت به بخش', 'torantejarat' ); ?>
+				</a>
+			<?php endif; ?>
+		</div>
 					<?php if ( $has_dirty_form ) : ?>
 						<span
 							class="tt-dirty-status"

@@ -1720,3 +1720,69 @@
 		transition: none !important;
 	}
 }
+
+/* Context breadcrumb — clickable path back through sections */
+.tt-contextbar {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	margin: 10px 20px 0;
+	flex-wrap: wrap;
+}
+
+.tt-context-path {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	font-size: 13px;
+	color: var(--tt-muted);
+}
+
+.tt-context-path .tt-breadcrumb-link {
+	color: var(--tt-accent);
+	text-decoration: underline;
+	text-decoration-thickness: 1px;
+	text-underline-offset: 2px;
+	transition: color 0.15s, text-decoration-color 0.15s;
+}
+
+.tt-context-path .tt-breadcrumb-link:hover,
+.tt-context-path .tt-breadcrumb-link:focus {
+	color: var(--tt-accent-bright);
+	text-decoration-color: var(--tt-accent-bright);
+}
+
+.tt-context-path .tt-breadcrumb-link[aria-current="page"] {
+	color: var(--tt-ink);
+	text-decoration: none;
+	cursor: default;
+}
+
+.tt-breadcrumb-current {
+	color: var(--tt-ink);
+	font-weight: 600;
+}
+
+.tt-back-button {
+	font-size: 13px;
+	padding: 6px 14px;
+	border: 1px solid var(--tt-line);
+	background: var(--tt-paper);
+	border-radius: 8px;
+	color: var(--tt-ink);
+	transition: all 0.15s;
+}
+
+.tt-back-button:hover,
+.tt-back-button:focus {
+	border-color: var(--tt-accent);
+	color: var(--tt-accent);
+	box-shadow: 0 2px 6px rgba(184, 78, 32, 0.12);
+}
+
+.tt-back-button .dashicons {
+	width: 16px;
+	height: 16px;
+	top: 2px;
+}
