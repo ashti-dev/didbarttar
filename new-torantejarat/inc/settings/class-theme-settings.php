@@ -290,9 +290,10 @@ final class TT_Settings {
 				'home_videos'      => array(
 					'label'            => 'ویدیوهای صفحه اصلی',
 					'type'             => 'repeater',
+					'control'          => 'video-picker',
 					'row_label'        => 'ویدیو %s',
 					'default'          => array(),
-					'desc'             => 'هر ردیف یک ویدیو است. لینک مستقیماً به فایل ویدیو (mp4/webm) بدهید؛ خالی گذاشتن ردیف، آن را نادیده می‌گیرد. با پلیر سبک و شیک نمایش داده می‌شود.',
+					'desc'             => 'هر ردیف یک ویدیو است. فایل را از کتابخانه رسانه انتخاب کنید (یا لینک مستقیم mp4/webm بدهید)؛ تیتر و کپشن اختیاری‌اند. ردیف خالی نادیده گرفته می‌شود.',
 					'subfields'        => array(
 						'title'    => array( 'label' => 'تیتر ویدیو', 'type' => 'text' ),
 						'video_url'=> array( 'label' => 'لینک فایل ویدیو', 'type' => 'url' ),
@@ -1635,6 +1636,10 @@ final class TT_Settings {
 			$this->render_product_picker_field( $tab_key, $key, $field, $value );
 			return;
 		}
+		if ( isset( $field['control'] ) && 'video-picker' === $field['control'] ) {
+			$this->render_video_picker_field( $tab_key, $key, $field, $value );
+			return;
+		}
 		$rows = is_array( $value ) ? array_values( $value ) : array();
 		$max  = isset( $field['max'] ) ? (int) $field['max'] : 0;
 		if ( $max < 1 || count( $rows ) < $max ) {
@@ -1913,6 +1918,118 @@ final class TT_Settings {
 	}
 
 	/**
+	 * Video picker: rows of video cards, each backed by the WordPress media
+	 * library. Storage shape stays `home_videos[i][title|video_url|caption]`.
+	 *
+	 * @param string $tab_key Tab key.
+	 * @param string $key     Field key.
+	 * @param array  $field   Field definition.
+	 * @param mixed  $value   Stored rows.
+	 */
+	private function render_video_picker_field( $tab_key, $key, array $field, $value ) {
+		$rows       = is_array( $value ) ? array_values( $value ) : array();
+		$base       = 'torantejarat_' . $tab_key . '[' . $key . ']';
+		$wrapper_id = torantejarat_panel_field_dom_id( $tab_key, $key, true );
+		$can_media  = current_user_can( 'upload_files' );
+		?>
+		<div
+			class="tt-field tt-field-picker tt-field-video"
+			id="<?php echo esc_attr( $wrapper_id ); ?>"
+			data-tt-video-picker
+			data-tt-base="<?php echo esc_attr( $base ); ?>"
+			role="group"
+			aria-labelledby="<?php echo esc_attr( $wrapper_id . '-label' ); ?>"
+		>
+			<div class="tt-repeater-head">
+				<span class="tt-label" id="<?php echo esc_attr( $wrapper_id . '-label' ); ?>"><?php echo esc_html( $field['label'] ); ?></span>
+				<?php if ( ! empty( $field['desc'] ) ) : ?>
+					<p class="description" id="<?php echo esc_attr( $wrapper_id . '-description' ); ?>"><?php echo esc_html( $field['desc'] ); ?></p>
+				<?php endif; ?>
+			</div>
+			<div class="tt-control">
+				<ul class="tt-picker-list tt-video-list" data-tt-video-list>
+					<?php foreach ( $rows as $index => $row ) : ?>
+						<?php $this->render_video_picker_item( $base, (int) $index, is_array( $row ) ? $row : array(), $can_media ); ?>
+					<?php endforeach; ?>
+				</ul>
+				<p class="tt-picker-empty" data-tt-video-empty<?php echo $rows ? ' hidden' : ''; ?>>
+					<?php esc_html_e( 'هنوز ویدیویی اضافه نشده است. با دکمهٔ «افزودن ویدیو» شروع کنید.', 'torantejarat' ); ?>
+				</p>
+				<p class="tt-video-actions">
+					<button type="button" class="button" data-tt-video-add hidden><?php esc_html_e( 'افزودن ویدیو', 'torantejarat' ); ?></button>
+					<span class="description"><?php esc_html_e( 'فایل‌های mp4 یا webm بهترین نتیجه را می‌دهند.', 'torantejarat' ); ?></span>
+				</p>
+			</div>
+			<noscript>
+				<p class="description"><?php esc_html_e( 'افزودن ردیف و انتخاب از کتابخانه رسانه به جاوااسکریپت نیاز دارد؛ در این حالت لینک فایل را دستی در ردیف‌های موجود وارد کنید.', 'torantejarat' ); ?></p>
+			</noscript>
+			<template data-tt-video-template>
+				<?php $this->render_video_picker_item( $base, 0, array(), $can_media ); ?>
+			</template>
+		</div>
+		<?php
+	}
+
+	/**
+	 * One video row (also used as the JS template).
+	 *
+	 * @param string $base      Field name prefix.
+	 * @param int    $index     Row index.
+	 * @param array  $row       Stored row values.
+	 * @param bool   $can_media Whether the media library is available.
+	 */
+	private function render_video_picker_item( $base, $index, array $row, $can_media ) {
+		$video_url = isset( $row['video_url'] ) ? (string) $row['video_url'] : '';
+		$title     = isset( $row['title'] ) ? (string) $row['title'] : '';
+		$caption   = isset( $row['caption'] ) ? (string) $row['caption'] : '';
+		?>
+		<li class="tt-picker-item tt-video-item" data-tt-video-item>
+			<div class="tt-video-row">
+				<span class="tt-video-preview<?php echo $video_url ? ' has-video' : ''; ?>" data-tt-video-preview>
+					<?php if ( $video_url ) : ?>
+						<video src="<?php echo esc_url( $video_url ); ?>" preload="metadata" controls muted playsinline></video>
+					<?php else : ?>
+						<span class="dashicons dashicons-video-alt3" aria-hidden="true"></span>
+					<?php endif; ?>
+				</span>
+				<div class="tt-video-fields">
+					<label class="tt-picker-field">
+						<span class="tt-picker-field-label"><?php esc_html_e( 'تیتر ویدیو', 'torantejarat' ); ?></span>
+						<input type="text" name="<?php echo esc_attr( $base . '[' . $index . '][title]' ); ?>" data-tt-name="<?php echo esc_attr( $base . '[%i%][title]' ); ?>" value="<?php echo esc_attr( $title ); ?>" placeholder="<?php esc_attr_e( 'خالی = بدون تیتر', 'torantejarat' ); ?>">
+					</label>
+					<div class="tt-video-source">
+						<label class="tt-picker-field">
+							<span class="tt-picker-field-label"><?php esc_html_e( 'فایل ویدیو', 'torantejarat' ); ?></span>
+							<input type="url" dir="ltr" name="<?php echo esc_attr( $base . '[' . $index . '][video_url]' ); ?>" data-tt-video-url data-tt-name="<?php echo esc_attr( $base . '[%i%][video_url]' ); ?>" value="<?php echo esc_attr( $video_url ); ?>" placeholder="https://…/video.mp4">
+						</label>
+						<button type="button" class="button" data-tt-video-select<?php echo $can_media ? '' : ' hidden'; ?>><?php esc_html_e( 'انتخاب از کتابخانه', 'torantejarat' ); ?></button>
+						<button type="button" class="button-link" data-tt-video-clear hidden><?php esc_html_e( 'پاک کردن', 'torantejarat' ); ?></button>
+					</div>
+					<label class="tt-picker-field">
+						<span class="tt-picker-field-label"><?php esc_html_e( 'کپشن', 'torantejarat' ); ?></span>
+						<input type="text" name="<?php echo esc_attr( $base . '[' . $index . '][caption]' ); ?>" data-tt-name="<?php echo esc_attr( $base . '[%i%][caption]' ); ?>" value="<?php echo esc_attr( $caption ); ?>">
+					</label>
+				</div>
+				<div class="tt-picker-actions tt-video-controls">
+					<button type="button" class="button-link tt-picker-move" data-tt-video-up hidden>
+						<span class="dashicons dashicons-arrow-up-alt2" aria-hidden="true"></span>
+						<span class="screen-reader-text"><?php esc_html_e( 'انتقال به بالا', 'torantejarat' ); ?></span>
+					</button>
+					<button type="button" class="button-link tt-picker-move" data-tt-video-down hidden>
+						<span class="dashicons dashicons-arrow-down-alt2" aria-hidden="true"></span>
+						<span class="screen-reader-text"><?php esc_html_e( 'انتقال به پایین', 'torantejarat' ); ?></span>
+					</button>
+					<button type="button" class="button-link tt-picker-remove" data-tt-video-remove hidden>
+						<span aria-hidden="true"><?php esc_html_e( 'حذف', 'torantejarat' ); ?></span>
+						<span class="screen-reader-text"><?php esc_html_e( 'حذف این ویدیو', 'torantejarat' ); ?></span>
+					</button>
+				</div>
+			</div>
+		</li>
+		<?php
+	}
+
+	/**
 	 * Render one repeater sub-field input, reusing the same type vocabulary as
 	 * flat fields (text | url | email | tel | textarea | embed | select | color | checkbox).
 	 *
@@ -2051,9 +2168,13 @@ final class TT_Settings {
 		}
 		$sub = isset( $_GET['sub'] ) ? sanitize_key( wp_unslash( $_GET['sub'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Asset route only.
 
-		// Only the logo field needs Media Library. Users without upload_files
-		// keep the same manual URL input and never receive an unusable button.
-		$media_enabled = ( 'login' === $section && 'content' === $sub && current_user_can( 'upload_files' ) );
+		// Media Library is needed by the login logo and by the homepage video
+		// picker. Users without upload_files keep the manual URL input and
+		// never receive an unusable button.
+		$media_enabled = (
+			( 'login' === $section && 'content' === $sub )
+			|| ( 'home' === $section && 'field' === $sub )
+		) && current_user_can( 'upload_files' );
 		if ( $media_enabled ) {
 			wp_enqueue_media();
 		}
@@ -2073,6 +2194,12 @@ final class TT_Settings {
 					'enabled' => $media_enabled,
 					'title'   => __( 'انتخاب لوگوی صفحه ورود', 'torantejarat' ),
 					'button'  => __( 'استفاده از این تصویر', 'torantejarat' ),
+				),
+				'video' => array(
+					'enabled' => $media_enabled,
+					'title'   => __( 'انتخاب ویدیو', 'torantejarat' ),
+					'button'  => __( 'استفاده از این ویدیو', 'torantejarat' ),
+					'empty'   => __( 'هنوز ویدیویی اضافه نشده است. با دکمهٔ «افزودن ویدیو» شروع کنید.', 'torantejarat' ),
 				),
 				'productSearch' => array(
 					'noResult' => __( 'محصولی با این عنوان پیدا نشد.', 'torantejarat' ),

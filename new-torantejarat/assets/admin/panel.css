@@ -1597,12 +1597,117 @@
 	padding: 10px;
 }
 
+/* Video picker (homepage videos): media-library rows with preview. */
+.tt-field-picker {
+	display: block;
+}
+
+.tt-video-list:empty {
+	display: none;
+}
+
+.tt-video-row {
+	align-items: flex-start;
+	display: flex;
+	gap: 14px;
+	min-width: 0;
+	padding: 12px;
+}
+
+.tt-video-preview {
+	align-items: center;
+	background: #101828;
+	border-radius: 10px;
+	color: #667085;
+	display: inline-flex;
+	flex: 0 0 auto;
+	height: 90px;
+	justify-content: center;
+	overflow: hidden;
+	width: 160px;
+}
+
+.tt-video-preview .dashicons {
+	font-size: 28px;
+	height: 28px;
+	width: 28px;
+}
+
+.tt-video-preview video {
+	background: #000;
+	display: block;
+	height: 100%;
+	max-width: 100%;
+	object-fit: contain;
+	width: 100%;
+}
+
+.tt-video-fields {
+	display: grid;
+	flex: 1 1 auto;
+	gap: 10px;
+	min-width: 0;
+}
+
+.tt-video-source {
+	align-items: flex-end;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+
+.tt-video-source .tt-picker-field {
+	flex: 1 1 240px;
+}
+
+.tt-video-source .button {
+	flex: 0 0 auto;
+}
+
+.tt-video-controls {
+	align-items: flex-start;
+	padding-top: 2px;
+}
+
+.tt-video-actions {
+	align-items: center;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+	margin: 0;
+}
+
+.tt-video-actions .description {
+	margin: 0;
+}
+
+.tt-video-actions .button {
+	margin: 0;
+}
+
 @media (max-width: 782px) {
 	.tt-picker-main {
 		flex-wrap: wrap;
 	}
 
 	.tt-picker-actions {
+		margin-inline-start: auto;
+	}
+
+	.tt-video-row {
+		flex-wrap: wrap;
+	}
+
+	.tt-video-preview {
+		height: 72px;
+		width: 128px;
+	}
+
+	.tt-video-fields {
+		flex-basis: 100%;
+	}
+
+	.tt-video-controls {
 		margin-inline-start: auto;
 	}
 }

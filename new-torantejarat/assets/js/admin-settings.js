@@ -946,4 +946,214 @@
 			renumber();
 		} );
 	}() );
+
+	/**
+	 * Video picker (homepage videos): rows backed by the WordPress media
+	 * library. Storage stays `home_videos[i][title|video_url|caption]`; the
+	 * media frame only writes the attachment URL, so nothing is deleted and
+	 * the server-side sanitizer stays unchanged.
+	 */
+	( function () {
+		var cfg   = ( window.ttSettingsControls && window.ttSettingsControls.video ) || {};
+		var wraps = document.querySelectorAll( '[data-tt-video-picker]' );
+		if ( ! wraps.length ) {
+			return;
+		}
+
+		function el( tag, className, text ) {
+			var node = document.createElement( tag );
+			if ( className ) {
+				node.className = className;
+			}
+			if ( 'undefined' !== typeof text ) {
+				node.textContent = text;
+			}
+			return node;
+		}
+
+		function icon( name ) {
+			var span = el( 'span', 'dashicons dashicons-' + name );
+			span.setAttribute( 'aria-hidden', 'true' );
+			return span;
+		}
+
+		function fmt( number ) {
+			try {
+				return number.toLocaleString( document.documentElement.lang || 'fa-IR' );
+			} catch ( error ) {
+				return String( number );
+			}
+		}
+
+		wraps.forEach( function ( wrap ) {
+			var list     = wrap.querySelector( '[data-tt-video-list]' );
+			var add      = wrap.querySelector( '[data-tt-video-add]' );
+			var empty    = wrap.querySelector( '[data-tt-video-empty]' );
+			var template = wrap.querySelector( '[data-tt-video-template]' );
+			if ( ! list || ! add ) {
+				return;
+			}
+
+			var canMedia = !!( window.wp && 'function' === typeof window.wp.media );
+			var frame    = null;
+			var target   = null;
+
+			function rows() {
+				return Array.prototype.slice.call( list.querySelectorAll( '[data-tt-video-item]' ) );
+			}
+
+			function field( item, key ) {
+				return item.querySelector( '[data-tt-name$="[' + key + ']"]' );
+			}
+
+			function fillPreview( item ) {
+				var preview = item.querySelector( '[data-tt-video-preview]' );
+				var input   = item.querySelector( '[data-tt-video-url]' );
+				var clear   = item.querySelector( '[data-tt-video-clear]' );
+				if ( ! preview || ! input ) {
+					return;
+				}
+
+				var url = input.value.trim();
+				preview.textContent = '';
+				preview.classList.toggle( 'has-video', !! url );
+				if ( url ) {
+					var video = el( 'video' );
+					video.src = url;
+					video.preload = 'metadata';
+					video.controls = true;
+					video.muted = true;
+					video.setAttribute( 'playsinline', '' );
+					preview.appendChild( video );
+				} else {
+					preview.appendChild( icon( 'video-alt3' ) );
+				}
+				if ( clear ) {
+					clear.hidden = ! url;
+				}
+			}
+
+			function renumber() {
+				var count = rows().length;
+				rows().forEach( function ( item, index ) {
+					item.querySelectorAll( '[data-tt-name]' ).forEach( function ( input ) {
+						var pattern = input.getAttribute( 'data-tt-name' );
+						if ( pattern ) {
+							input.name = pattern.replace( '%i%', index );
+						}
+					} );
+					item.setAttribute( 'aria-label', ( cfg.row || 'ویدیو' ) + ' ' + fmt( index + 1 ) );
+				} );
+				if ( empty ) {
+					empty.hidden = count > 0;
+				}
+				add.hidden = false;
+				rows().forEach( function ( item ) {
+					item.querySelectorAll( '[data-tt-video-up], [data-tt-video-down], [data-tt-video-remove]' ).forEach( function ( button ) {
+						button.hidden = false;
+					} );
+					var select = item.querySelector( '[data-tt-video-select]' );
+					if ( select ) {
+						select.hidden = ! canMedia;
+					}
+					fillPreview( item );
+				} );
+				list.dispatchEvent( new Event( 'input', { bubbles: true } ) );
+			}
+
+			function addRow() {
+				if ( ! template || ! template.content ) {
+					return;
+				}
+				var item = template.content.firstElementChild.cloneNode( true );
+				list.appendChild( item );
+				renumber();
+				var title = field( item, 'title' );
+				if ( title ) {
+					title.focus();
+				}
+			}
+
+			function openFrame( item ) {
+				if ( ! canMedia ) {
+					return;
+				}
+				if ( ! frame ) {
+					frame = window.wp.media( {
+						title: cfg.title || '',
+						library: { type: 'video' },
+						button: { text: cfg.button || '' },
+						multiple: false
+					} );
+					frame.on( 'select', function () {
+						var selection = frame.state().get( 'selection' ).first();
+						if ( ! selection || ! target ) {
+							return;
+						}
+						var data  = selection.toJSON();
+						var input = target.querySelector( '[data-tt-video-url]' );
+						if ( input && data.url ) {
+							input.value = data.url;
+						}
+						var title = field( target, 'title' );
+						if ( title && ! title.value.trim() && data.title ) {
+							title.value = data.title;
+						}
+						fillPreview( target );
+						target.dispatchEvent( new Event( 'input', { bubbles: true } ) );
+					} );
+				}
+				target = item;
+				frame.open();
+			}
+
+			add.addEventListener( 'click', addRow );
+
+			wrap.addEventListener( 'click', function ( event ) {
+				var item = event.target.closest( '[data-tt-video-item]' );
+				if ( ! item ) {
+					return;
+				}
+				if ( event.target.closest( '[data-tt-video-remove]' ) ) {
+					item.remove();
+					renumber();
+					return;
+				}
+				if ( event.target.closest( '[data-tt-video-up]' ) && item.previousElementSibling ) {
+					list.insertBefore( item, item.previousElementSibling );
+					renumber();
+					return;
+				}
+				if ( event.target.closest( '[data-tt-video-down]' ) && item.nextElementSibling ) {
+					list.insertBefore( item.nextElementSibling, item );
+					renumber();
+					return;
+				}
+				if ( event.target.closest( '[data-tt-video-clear]' ) ) {
+					var input = item.querySelector( '[data-tt-video-url]' );
+					if ( input ) {
+						input.value = '';
+						fillPreview( item );
+						input.dispatchEvent( new Event( 'input', { bubbles: true } ) );
+					}
+					return;
+				}
+				if ( event.target.closest( '[data-tt-video-select]' ) ) {
+					openFrame( item );
+				}
+			} );
+
+			wrap.addEventListener( 'change', function ( event ) {
+				if ( ! event.target.matches( '[data-tt-video-url]' ) ) {
+					return;
+				}
+				var item = event.target.closest( '[data-tt-video-item]' );
+				if ( item ) {
+					fillPreview( item );
+				}
+			} );
+
+			renumber();
+		} );
+	}() );
 }() );
