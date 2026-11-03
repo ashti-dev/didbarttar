@@ -593,4 +593,357 @@
 			event.returnValue = '';
 		} );
 	}() );
+
+	/**
+	 * Product picker: search products and add them as slides, instead of
+	 * typing IDs. Rows post the same names as the repeater (product_id, label,
+	 * caption, link), so the server-side sanitizer and the front end do not
+	 * care how a row was created.
+	 */
+	( function () {
+		var cfg = ( window.ttSettingsControls && window.ttSettingsControls.productSearch ) || {};
+		var pickers = document.querySelectorAll( '[data-tt-product-picker]' );
+		if ( ! pickers.length ) {
+			return;
+		}
+
+		function el( tag, className, text ) {
+			var node = document.createElement( tag );
+			if ( className ) {
+				node.className = className;
+			}
+			if ( 'undefined' !== typeof text ) {
+				node.textContent = text;
+			}
+			return node;
+		}
+
+		function icon( name ) {
+			var span = el( 'span', 'dashicons dashicons-' + name );
+			span.setAttribute( 'aria-hidden', 'true' );
+			return span;
+		}
+
+		document.querySelectorAll( '[data-tt-product-picker]' ).forEach( function ( wrap ) {
+			var list      = wrap.querySelector( '[data-tt-picker-list]' );
+			var search    = wrap.querySelector( '[data-tt-picker-search]' );
+			var results   = wrap.querySelector( '[data-tt-picker-results]' );
+			var status    = wrap.querySelector( '[data-tt-picker-status]' );
+			var emptyNote = wrap.querySelector( '[data-tt-picker-empty]' );
+			var note      = wrap.querySelector( '[data-tt-picker-note]' );
+			var spinner   = wrap.querySelector( '[data-tt-picker-spinner]' );
+			var base      = wrap.getAttribute( 'data-tt-base' ) || '';
+			var ajaxUrl   = wrap.getAttribute( 'data-tt-ajax' ) || '';
+			var nonce     = wrap.getAttribute( 'data-tt-nonce' ) || '';
+			var max       = parseInt( wrap.getAttribute( 'data-tt-max' ), 10 ) || 0;
+			var timer     = 0;
+			var request   = null;
+
+			if ( ! list || ! search || ! results ) {
+				return;
+			}
+
+			function fmt( number ) {
+				try {
+					return number.toLocaleString( document.documentElement.lang || 'fa-IR' );
+				} catch ( error ) {
+					return String( number );
+				}
+			}
+
+			function items() {
+				return Array.prototype.slice.call( list.querySelectorAll( '[data-tt-picker-item]' ) );
+			}
+
+			function renumber() {
+				items().forEach( function ( item, index ) {
+					item.querySelectorAll( '[data-tt-name]' ).forEach( function ( input ) {
+						var template = input.getAttribute( 'data-tt-name' );
+						if ( template ) {
+							input.name = template.replace( '%i%', index );
+						}
+					} );
+					var position = item.querySelector( '[data-tt-picker-position], .tt-picker-position' );
+					if ( position ) {
+						position.textContent = fmt( index + 1 );
+					}
+				} );
+				var count = items().length;
+				if ( emptyNote ) {
+					emptyNote.hidden = count > 0;
+				}
+				if ( note ) {
+					var full = max > 0 && count >= max;
+					note.textContent = note.getAttribute( full ? 'data-tt-text-limit' : 'data-tt-text-guide' );
+					note.classList.toggle( 'is-limit', full );
+				}
+				if ( max > 0 ) {
+					var fullNow = count >= max;
+					search.disabled = fullNow;
+					if ( fullNow ) {
+						hideResults();
+					}
+				}
+				list.dispatchEvent( new Event( 'input', { bubbles: true } ) );
+			}
+
+			function makeField( key, label, type, value ) {
+				var field = el( 'label', 'tt-picker-field' );
+				field.appendChild( el( 'span', 'tt-picker-field-label', label ) );
+				var input = el( 'input' );
+				input.type = type;
+				input.value = value || '';
+				input.setAttribute( 'data-tt-name', base + '[%i%][' + key + ']' );
+				field.appendChild( input );
+				return field;
+			}
+
+			function buildItem( product ) {
+				var item = el( 'li', 'tt-picker-item' );
+				item.setAttribute( 'data-tt-picker-item', '' );
+				item.setAttribute( 'data-product-id', String( product.id ) );
+
+				var main = el( 'div', 'tt-picker-main' );
+				var thumb = el( 'span', 'tt-picker-thumb' + ( product.thumb ? '' : ' is-empty' ) );
+				if ( product.thumb ) {
+					var img = el( 'img' );
+					img.src = product.thumb;
+					img.alt = '';
+					img.width = 48;
+					img.height = 48;
+					img.loading = 'lazy';
+					thumb.appendChild( img );
+				} else {
+					thumb.appendChild( icon( 'format-image' ) );
+				}
+				main.appendChild( thumb );
+
+				var info = el( 'div', 'tt-picker-info' );
+				info.appendChild( el( 'strong', 'tt-picker-name', product.name || cfg.fallback || '' ) );
+				var meta = el( 'span', 'tt-picker-meta' );
+				meta.appendChild( el( 'span', 'tt-picker-position', '' ) );
+				meta.lastChild.setAttribute( 'data-tt-picker-position', '' );
+				meta.appendChild( el( 'span', 'tt-picker-sep', '·' ) );
+				var idText = el( 'span', '', '#' + product.id );
+				idText.setAttribute( 'dir', 'ltr' );
+				meta.appendChild( idText );
+				if ( product.sku ) {
+					meta.appendChild( el( 'span', 'tt-picker-sep', '·' ) );
+					var skuText = el( 'span', '', product.sku );
+					skuText.setAttribute( 'dir', 'ltr' );
+					meta.appendChild( skuText );
+				}
+				info.appendChild( meta );
+				main.appendChild( info );
+
+				var actions = el( 'div', 'tt-picker-actions' );
+				var up = el( 'button', 'button-link tt-picker-move' );
+				up.type = 'button';
+				up.setAttribute( 'data-tt-picker-up', '' );
+				up.appendChild( icon( 'arrow-up-alt2' ) );
+				up.appendChild( el( 'span', 'screen-reader-text', cfg.up || '' ) );
+				var down = el( 'button', 'button-link tt-picker-move' );
+				down.type = 'button';
+				down.setAttribute( 'data-tt-picker-down', '' );
+				down.appendChild( icon( 'arrow-down-alt2' ) );
+				down.appendChild( el( 'span', 'screen-reader-text', cfg.down || '' ) );
+				var remove = el( 'button', 'button-link tt-picker-remove' );
+				remove.type = 'button';
+				remove.setAttribute( 'data-tt-picker-remove', '' );
+				remove.appendChild( el( 'span', '', cfg.remove || '' ) );
+				remove.appendChild( el( 'span', 'screen-reader-text', cfg.remove || '' ) );
+				actions.appendChild( up );
+				actions.appendChild( down );
+				actions.appendChild( remove );
+				main.appendChild( actions );
+				item.appendChild( main );
+
+				var details = el( 'details', 'tt-picker-more' );
+				details.appendChild( el( 'summary', '', cfg.more || '' ) );
+				var fields = el( 'div', 'tt-picker-fields' );
+				var labels = cfg.fields || {};
+				fields.appendChild( makeField( 'product_id', labels.product_id || 'ID', 'number', product.id ) );
+				fields.appendChild( makeField( 'label', labels.label || 'Label', 'text', '' ) );
+				fields.appendChild( makeField( 'caption', labels.caption || 'Caption', 'text', '' ) );
+				fields.appendChild( makeField( 'link', labels.link || 'Link', 'url', '' ) );
+				details.appendChild( fields );
+				details.appendChild( el( 'p', 'description', cfg.hint || '' ) );
+				item.appendChild( details );
+
+				return item;
+			}
+
+			function hideResults() {
+				results.hidden = true;
+				results.textContent = '';
+			}
+
+			function showStatus( text ) {
+				if ( status ) {
+					status.textContent = text || '';
+				}
+			}
+
+			function renderResults( products ) {
+				results.textContent = '';
+				results.hidden = false;
+
+				if ( ! products.length ) {
+					results.appendChild( el( 'p', 'tt-picker-no-result', cfg.noResult || '' ) );
+					return;
+				}
+
+				products.forEach( function ( product ) {
+					var button = el( 'button', 'tt-picker-result' );
+					button.type = 'button';
+					button.setAttribute( 'data-id', String( product.id ) );
+
+					var thumb = el( 'span', 'tt-picker-thumb' + ( product.thumb ? '' : ' is-empty' ) );
+					if ( product.thumb ) {
+						var img = el( 'img' );
+						img.src = product.thumb;
+						img.alt = '';
+						img.width = 40;
+						img.height = 40;
+						img.loading = 'lazy';
+						thumb.appendChild( img );
+					} else {
+						thumb.appendChild( icon( 'format-image' ) );
+					}
+					button.appendChild( thumb );
+
+					var text = el( 'span', 'tt-picker-result-text' );
+					text.appendChild( el( 'strong', '', product.name ) );
+					var meta = el( 'small', '' );
+					var bits = [ '#' + product.id, product.sku, product.price ].filter( Boolean );
+					meta.textContent = bits.join( ' · ' );
+					if ( product.sku || product.price ) {
+						meta.setAttribute( 'dir', 'ltr' );
+					}
+					text.appendChild( meta );
+					button.appendChild( text );
+
+					button.appendChild( el( 'span', 'tt-picker-add', cfg.add || '' ) );
+
+					button.addEventListener( 'click', function () {
+						if ( list.querySelector( '[data-product-id="' + product.id + '"]' ) ) {
+							showStatus( product.name );
+							hideResults();
+							search.value = '';
+							return;
+						}
+						if ( max > 0 && items().length >= max ) {
+							renumber();
+							return;
+						}
+						list.appendChild( buildItem( product ) );
+						renumber();
+						showStatus( product.name );
+						hideResults();
+						search.value = '';
+						search.focus();
+					} );
+
+					results.appendChild( button );
+				} );
+			}
+
+			function runSearch() {
+				var query = search.value.replace( /\s+/g, ' ' ).trim();
+				if ( query.length < 2 ) {
+					hideResults();
+					showStatus( '' );
+					return;
+				}
+
+				if ( request ) {
+					request.abort();
+				}
+				request = window.AbortController ? new AbortController() : null;
+
+				if ( spinner ) {
+					spinner.classList.add( 'is-active' );
+				}
+				showStatus( cfg.loading || '' );
+
+				var url = new URL( ajaxUrl, window.location.origin );
+				url.searchParams.set( 'action', 'torantejarat_product_search' );
+				url.searchParams.set( 'nonce', nonce );
+				url.searchParams.set( 'q', query );
+				items().forEach( function ( item ) {
+					url.searchParams.append( 'exclude[]', item.getAttribute( 'data-product-id' ) );
+				} );
+
+				fetch( url.toString(), {
+					credentials: 'same-origin',
+					signal: request ? request.signal : undefined
+				} )
+					.then( function ( response ) {
+						return response.json();
+					} )
+					.then( function ( json ) {
+						if ( ! json || ! json.success ) {
+							throw new Error( 'request failed' );
+						}
+						showStatus( '' );
+						renderResults( json.data || [] );
+					} )
+					.catch( function ( error ) {
+						if ( 'AbortError' === error.name ) {
+							return;
+						}
+						showStatus( cfg.error || '' );
+					} )
+					.finally( function () {
+						if ( spinner ) {
+							spinner.classList.remove( 'is-active' );
+						}
+					} );
+			}
+
+			search.addEventListener( 'input', function () {
+				window.clearTimeout( timer );
+				timer = window.setTimeout( runSearch, 250 );
+			} );
+
+			search.addEventListener( 'keydown', function ( event ) {
+				if ( 'Escape' === event.key ) {
+					hideResults();
+				}
+			} );
+
+			document.addEventListener( 'click', function ( event ) {
+				if ( ! wrap.contains( event.target ) ) {
+					hideResults();
+				}
+			} );
+
+			wrap.addEventListener( 'click', function ( event ) {
+				var item = event.target.closest( '[data-tt-picker-item]' );
+				if ( ! item ) {
+					return;
+				}
+
+				if ( event.target.closest( '[data-tt-picker-remove]' ) ) {
+					item.remove();
+					renumber();
+					search.focus();
+					return;
+				}
+
+				if ( event.target.closest( '[data-tt-picker-up]' ) && item.previousElementSibling ) {
+					list.insertBefore( item, item.previousElementSibling );
+					renumber();
+					return;
+				}
+
+				if ( event.target.closest( '[data-tt-picker-down]' ) && item.nextElementSibling ) {
+					list.insertBefore( item.nextElementSibling, item );
+					renumber();
+				}
+			} );
+
+			renumber();
+		} );
+	}() );
 }() );
