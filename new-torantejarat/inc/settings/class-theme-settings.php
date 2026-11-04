@@ -910,35 +910,39 @@ final class TT_Settings {
 						</button>
 					</div>
 				</div>
-		<div class="tt-contextbar">
-			<nav class="tt-context-path" aria-label="<?php esc_attr_e( 'مسیر صفحهٔ فعلی', 'torantejarat' ); ?>">
-				<a href="<?php echo esc_url( admin_url( 'admin.php?page=torantejarat-settings' ) ); ?>" class="tt-breadcrumb-link"<?php if ( $is_dashboard ) : ?> aria-current="page"<?php endif; ?>><?php esc_html_e( 'بلکوکم', 'torantejarat' ); ?></a>
-				<span aria-hidden="true">/</span>
-				<?php if ( $is_dashboard ) : ?>
-					<span class="tt-breadcrumb-current"><?php esc_html_e( 'داشبورد', 'torantejarat' ); ?></span>
-				<?php else : ?>
-					<a href="<?php echo esc_url( admin_url( 'admin.php?page=torantejarat-settings&section=' . $active ) ); ?>" class="tt-breadcrumb-link"<?php if ( ! $current_group ) : ?> aria-current="page"<?php endif; ?>><?php echo esc_html( $nav[ $active ]['label'] ); ?></a>
-					<?php if ( $current_group ) : ?>
+				<div class="tt-contextbar">
+					<nav class="tt-context-path" aria-label="<?php esc_attr_e( 'مسیر صفحهٔ فعلی', 'torantejarat' ); ?>">
+						<a href="<?php echo esc_url( admin_url( 'admin.php?page=torantejarat-settings' ) ); ?>" class="tt-breadcrumb-link"<?php if ( $is_dashboard ) : ?> aria-current="page"<?php endif; ?>><?php esc_html_e( 'بلکوکم', 'torantejarat' ); ?></a>
 						<span aria-hidden="true">/</span>
-						<span class="tt-breadcrumb-current"><?php echo esc_html( $current_group['label'] ); ?></span>
-					<?php endif; ?>
-				<?php endif; ?>
-			</nav>
-			<?php if ( ! $is_dashboard && $current_group ) : ?>
-				<a href="<?php echo esc_url( admin_url( 'admin.php?page=torantejarat-settings&section=' . $active ) ); ?>" class="button button-link tt-back-button" data-tt-back>
-					<span class="dashicons dashicons-arrow-left-alt2" aria-hidden="true"></span> <?php esc_html_e( 'بازگشت به بخش', 'torantejarat' ); ?>
-				</a>
-			<?php endif; ?>
-		</div>
-					<?php if ( $has_dirty_form ) : ?>
-						<span
-							class="tt-dirty-status"
-							data-tt-dirty-status
-							data-tt-clean-label="<?php esc_attr_e( 'بدون تغییر ذخیره‌نشده', 'torantejarat' ); ?>"
-							data-tt-dirty-label="<?php esc_attr_e( 'تغییرات ذخیره‌نشده دارید', 'torantejarat' ); ?>"
-							role="status"
-							aria-live="polite"
-						><?php esc_html_e( 'بدون تغییر ذخیره‌نشده', 'torantejarat' ); ?></span>
+						<?php if ( $is_dashboard ) : ?>
+							<span class="tt-breadcrumb-current"><?php esc_html_e( 'داشبورد', 'torantejarat' ); ?></span>
+						<?php else : ?>
+							<a href="<?php echo esc_url( admin_url( 'admin.php?page=torantejarat-settings&section=' . $active ) ); ?>" class="tt-breadcrumb-link"<?php if ( ! $current_group ) : ?> aria-current="page"<?php endif; ?>><?php echo esc_html( $nav[ $active ]['label'] ); ?></a>
+							<?php if ( $current_group ) : ?>
+								<span aria-hidden="true">/</span>
+								<span class="tt-breadcrumb-current"><?php echo esc_html( $current_group['label'] ); ?></span>
+							<?php endif; ?>
+						<?php endif; ?>
+					</nav>
+					<?php if ( ( ! $is_dashboard && $current_group ) || $has_dirty_form ) : ?>
+						<div class="tt-context-tools">
+							<?php if ( ! $is_dashboard && $current_group ) : ?>
+								<a href="<?php echo esc_url( admin_url( 'admin.php?page=torantejarat-settings&section=' . $active ) ); ?>" class="button tt-back-button">
+									<span class="dashicons dashicons-arrow-right-alt2" aria-hidden="true"></span>
+									<span><?php esc_html_e( 'بازگشت به بخش', 'torantejarat' ); ?></span>
+								</a>
+							<?php endif; ?>
+							<?php if ( $has_dirty_form ) : ?>
+								<span
+									class="tt-dirty-status"
+									data-tt-dirty-status
+									data-tt-clean-label="<?php esc_attr_e( 'بدون تغییر ذخیره‌نشده', 'torantejarat' ); ?>"
+									data-tt-dirty-label="<?php esc_attr_e( 'تغییرات ذخیره‌نشده دارید', 'torantejarat' ); ?>"
+									role="status"
+									aria-live="polite"
+								><?php esc_html_e( 'بدون تغییر ذخیره‌نشده', 'torantejarat' ); ?></span>
+							<?php endif; ?>
+						</div>
 					<?php endif; ?>
 				</div>
 			</header>
