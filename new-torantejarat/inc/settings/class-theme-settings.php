@@ -44,6 +44,30 @@ final class TT_Settings {
 					'desc'     => 'اختیاری — کل متن تاپ‌بار را کلیک‌پذیر می‌کند.',
 					'sanitize' => 'esc_url_raw',
 				),
+				'topbar_admin_links' => array(
+					'label'    => 'میان‌برهای مدیریت',
+					'type'     => 'select',
+					'default'  => 'yes',
+					'desc'     => 'چهار لینک داشبورد، محصولات، سفارشات و تیکت‌ها فقط برای مدیران فروشگاه دیده می‌شوند؛ بازدیدکنندگان عادی این موارد را نمی‌بینند.',
+					'control'  => 'segments',
+					'options'  => array(
+						'yes' => 'نمایش',
+						'no'  => 'پنهان',
+					),
+					'sanitize' => 'sanitize_key',
+				),
+				'topbar_links' => array(
+					'label'       => 'لینک‌های سریع نوار بالا',
+					'type'        => 'repeater',
+					'default'     => array(),
+					'row_label'   => 'لینک %s',
+					'desc'        => 'اختیاری — برای همهٔ بازدیدکنندگان نمایش داده می‌شود و جای میان‌برهای مدیریت را می‌گیرد. خالی = میان‌برهای مدیریت (در صورت روشن بودن).',
+					'subfields'   => array(
+						'label' => array( 'label' => 'متن', 'type' => 'text' ),
+						'url'   => array( 'label' => 'نشانی', 'type' => 'url' ),
+					),
+					'max'         => 6,
+				),
 				'preview_note' => array(
 					'label'    => 'حالت پیش‌نمایش',
 					'type'     => 'select',

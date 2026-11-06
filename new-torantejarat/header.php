@@ -16,9 +16,9 @@ $torantejarat_can_manage  = current_user_can( 'manage_options' ) || current_user
 $torantejarat_topbar_text = torantejarat_option( 'general', 'topbar_text', get_bloginfo( 'description' ) );
 $torantejarat_topbar_link = torantejarat_option( 'general', 'topbar_link' );
 
-$torantejarat_admin_links = array();
+$torantejarat_builtin_admin_links = array();
 if ( $torantejarat_can_manage ) {
-	$torantejarat_admin_links = array(
+	$torantejarat_builtin_admin_links = array(
 		array(
 			'label' => __( 'داشبورد', 'torantejarat' ),
 			'url'   => admin_url(),
@@ -40,6 +40,35 @@ if ( $torantejarat_can_manage ) {
 			'icon'  => 'ticket',
 		),
 	);
+}
+
+// Optional quick links managed in Settings → نوار بالای سایت. When filled they
+// replace the built-in admin shortcuts and are shown to every visitor.
+$torantejarat_topbar_links_source = torantejarat_option( 'general', 'topbar_links', array() );
+$torantejarat_custom_links        = array();
+if ( is_array( $torantejarat_topbar_links_source ) ) {
+	foreach ( $torantejarat_topbar_links_source as $torantejarat_link_row ) {
+		if ( ! is_array( $torantejarat_link_row ) ) {
+			continue;
+		}
+		$torantejarat_link_label = isset( $torantejarat_link_row['label'] ) ? trim( (string) $torantejarat_link_row['label'] ) : '';
+		$torantejarat_link_url   = isset( $torantejarat_link_row['url'] ) ? trim( (string) $torantejarat_link_row['url'] ) : '';
+		if ( '' === $torantejarat_link_label || '' === $torantejarat_link_url ) {
+			continue;
+		}
+		$torantejarat_custom_links[] = array(
+			'label' => $torantejarat_link_label,
+			'url'   => $torantejarat_link_url,
+			'icon'  => 'globe',
+		);
+	}
+}
+
+$torantejarat_admin_links = array();
+if ( $torantejarat_custom_links ) {
+	$torantejarat_admin_links = $torantejarat_custom_links;
+} elseif ( 'no' !== torantejarat_option( 'general', 'topbar_admin_links', 'yes' ) ) {
+	$torantejarat_admin_links = $torantejarat_builtin_admin_links;
 }
 
 $torantejarat_contact_items = array();
