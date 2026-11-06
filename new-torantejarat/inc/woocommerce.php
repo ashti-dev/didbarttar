@@ -403,28 +403,34 @@ function torantejarat_archive_categories() {
  */
 function torantejarat_hero_slides() {
 	if ( ! torantejarat_woocommerce_available() ) { return array(); }
+
+	$settings = get_option( 'torantejarat_home', array() );
+	$slide_rows = isset( $settings['hero_slides'] ) && is_array( $settings['hero_slides'] )
+		? $settings['hero_slides']
+		: array();
+
 	$slides = array();
-	foreach ( array( 'SB-CASE', 'SB-PRO', 'SB-G52', 'SB-HEAD' ) as $sku ) {
-		$found = wc_get_products( array( 'status' => 'publish', 'limit' => 1, 'sku' => $sku ) );
-		if ( ! $found || ! $found[0] instanceof \WC_Product ) { continue; }
-		$slide = torantejarat_hero_slide_data( $found[0] );
-		if ( $slide ) { $slides[] = $slide; }
+	foreach ( $slide_rows as $row ) {
+		if ( ! is_array( $row ) ) { continue; }
+
+		$product_id = isset( $row['product_id'] ) ? absint( $row['product_id'] ) : 0;
+		if ( ! $product_id ) { continue; }
+
+		$product = wc_get_product( $product_id );
+		if ( ! $product instanceof \WC_Product || ! $product->is_visible() ) { continue; }
+
+		$slide = torantejarat_hero_slide_data( $product );
+		if ( ! $slide ) { continue; }
+
+		// Allow admin overrides from settings
+		if ( ! empty( $row['label'] ) )   { $slide['label']  = sanitize_text_field( $row['label'] ); }
+		if ( ! empty( $row['caption'] ) ) { $slide['caption'] = sanitize_text_field( $row['caption'] ); }
+		if ( ! empty( $row['link'] ) )    { $slide['link']   = esc_url_raw( $row['link'] ); }
+
+		$slides[] = $slide;
 		if ( count( $slides ) >= 4 ) { break; }
 	}
-	if ( count( $slides ) < 2 ) {
-		$fallback = wc_get_products( array( 'status' => 'publish', 'visibility' => 'catalog', 'limit' => 4, 'orderby' => 'date', 'order' => 'DESC' ) );
-		foreach ( $fallback as $product ) {
-			if ( ! $product instanceof \WC_Product || ! $product->is_visible() ) { continue; }
-			$exists = false;
-			foreach ( $slides as $slide ) {
-				if ( isset( $slide['id'] ) && (int) $slide['id'] === $product->get_id() ) { $exists = true; break; }
-			}
-			if ( $exists ) { continue; }
-			$slide = torantejarat_hero_slide_data( $product );
-			if ( $slide ) { $slides[] = $slide; }
-			if ( count( $slides ) >= 4 ) { break; }
-		}
-	}
+
 	return array_values( $slides );
 }
 

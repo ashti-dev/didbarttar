@@ -272,6 +272,35 @@ final class TT_Settings {
 					),
 					'max'              => 12,
 				),
+				'hero_slides'      => array(
+					'label'            => 'اسلایدر هیرو — محصولات گلچین',
+					'type'             => 'repeater',
+					'control'          => 'product-picker',
+					'row_label'        => 'اسلاید %s',
+					'default'          => array(),
+					'desc'             => 'محصول را جستجو و انتخاب کنید؛ نام، کپشن و لینک هر اسلاید به‌صورت خودکار از مشخصات همان محصول خوانده می‌شود. حداکثر ۴ اسلاید نمایش داده می‌شود.',
+					'subfields'        => array(
+						'product_id' => array( 'label' => 'شناسه محصول (ID)', 'type' => 'number' ),
+						'label'      => array( 'label' => 'لیبل نمایشی', 'type' => 'text' ),
+						'caption'    => array( 'label' => 'کپشن کوتاه', 'type' => 'text' ),
+						'link'       => array( 'label' => 'لینک دلخواه (اختیاری)', 'type' => 'url' ),
+					),
+					'max'              => 4,
+				),
+				'home_videos'      => array(
+					'label'            => 'ویدیوهای صفحه اصلی',
+					'type'             => 'repeater',
+					'control'          => 'video-picker',
+					'row_label'        => 'ویدیو %s',
+					'default'          => array(),
+					'desc'             => 'هر ردیف یک ویدیو است. فایل را از کتابخانه رسانه انتخاب کنید (یا لینک مستقیم mp4/webm بدهید)؛ تیتر و کپشن اختیاری‌اند. ردیف خالی نادیده گرفته می‌شود.',
+					'subfields'        => array(
+						'title'    => array( 'label' => 'تیتر ویدیو', 'type' => 'text' ),
+						'video_url'=> array( 'label' => 'لینک فایل ویدیو', 'type' => 'url' ),
+						'caption'  => array( 'label' => 'کپشن', 'type' => 'text' ),
+					),
+					'max'              => 6,
+				),
 			),
 		),
 		'contact' => array(
@@ -510,6 +539,7 @@ final class TT_Settings {
 		add_action( 'admin_bar_menu', array( $this, 'admin_bar_menu' ), 50 );
 		add_action( 'admin_init', array( $this, 'register_settings' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_styles' ) );
+		add_action( 'wp_ajax_torantejarat_product_search', array( $this, 'ajax_search_products' ) );
 	}
 
 	public function register_menu() {
@@ -880,20 +910,26 @@ final class TT_Settings {
 						</button>
 					</div>
 				</div>
-				<div class="tt-contextbar">
-					<nav class="tt-context-path" aria-label="<?php esc_attr_e( 'مسیر صفحهٔ فعلی', 'torantejarat' ); ?>">
-						<span><?php esc_html_e( 'بلکوکم', 'torantejarat' ); ?></span>
+		<div class="tt-contextbar">
+			<nav class="tt-context-path" aria-label="<?php esc_attr_e( 'مسیر صفحهٔ فعلی', 'torantejarat' ); ?>">
+				<a href="<?php echo esc_url( admin_url( 'admin.php?page=torantejarat-settings' ) ); ?>" class="tt-breadcrumb-link"<?php if ( $is_dashboard ) : ?> aria-current="page"<?php endif; ?>><?php esc_html_e( 'بلکوکم', 'torantejarat' ); ?></a>
+				<span aria-hidden="true">/</span>
+				<?php if ( $is_dashboard ) : ?>
+					<span class="tt-breadcrumb-current"><?php esc_html_e( 'داشبورد', 'torantejarat' ); ?></span>
+				<?php else : ?>
+					<a href="<?php echo esc_url( admin_url( 'admin.php?page=torantejarat-settings&section=' . $active ) ); ?>" class="tt-breadcrumb-link"<?php if ( ! $current_group ) : ?> aria-current="page"<?php endif; ?>><?php echo esc_html( $nav[ $active ]['label'] ); ?></a>
+					<?php if ( $current_group ) : ?>
 						<span aria-hidden="true">/</span>
-						<?php if ( $is_dashboard ) : ?>
-							<span><?php esc_html_e( 'داشبورد', 'torantejarat' ); ?></span>
-						<?php else : ?>
-							<span><?php echo esc_html( $nav[ $active ]['label'] ); ?></span>
-							<?php if ( $current_group ) : ?>
-								<span aria-hidden="true">/</span>
-								<span><?php echo esc_html( $current_group['label'] ); ?></span>
-							<?php endif; ?>
-						<?php endif; ?>
-					</nav>
+						<span class="tt-breadcrumb-current"><?php echo esc_html( $current_group['label'] ); ?></span>
+					<?php endif; ?>
+				<?php endif; ?>
+			</nav>
+			<?php if ( ! $is_dashboard && $current_group ) : ?>
+				<a href="<?php echo esc_url( admin_url( 'admin.php?page=torantejarat-settings&section=' . $active ) ); ?>" class="button button-link tt-back-button" data-tt-back>
+					<span class="dashicons dashicons-arrow-left-alt2" aria-hidden="true"></span> <?php esc_html_e( 'بازگشت به بخش', 'torantejarat' ); ?>
+				</a>
+			<?php endif; ?>
+		</div>
 					<?php if ( $has_dirty_form ) : ?>
 						<span
 							class="tt-dirty-status"
@@ -1602,6 +1638,14 @@ final class TT_Settings {
 		if ( ! $subfields ) {
 			return;
 		}
+		if ( isset( $field['control'] ) && 'product-picker' === $field['control'] ) {
+			$this->render_product_picker_field( $tab_key, $key, $field, $value );
+			return;
+		}
+		if ( isset( $field['control'] ) && 'video-picker' === $field['control'] ) {
+			$this->render_video_picker_field( $tab_key, $key, $field, $value );
+			return;
+		}
 		$rows = is_array( $value ) ? array_values( $value ) : array();
 		$max  = isset( $field['max'] ) ? (int) $field['max'] : 0;
 		if ( $max < 1 || count( $rows ) < $max ) {
@@ -1609,13 +1653,14 @@ final class TT_Settings {
 		}
 		$base       = 'torantejarat_' . $tab_key . '[' . $key . ']';
 		$wrapper_id = torantejarat_panel_field_dom_id( $tab_key, $key, true );
+		$row_label  = isset( $field['row_label'] ) ? (string) $field['row_label'] : __( 'پرسش %s', 'torantejarat' );
 		?>
 		<div
 			class="tt-field tt-field-repeater"
 			id="<?php echo esc_attr( $wrapper_id ); ?>"
 			data-tt-repeater
 			data-tt-max="<?php echo esc_attr( (string) $max ); ?>"
-			data-tt-row-label="<?php esc_attr_e( 'پرسش', 'torantejarat' ); ?>"
+			data-tt-row-label="<?php echo esc_attr( trim( str_replace( '%s', '', $row_label ) ) ); ?>"
 			role="group"
 			aria-labelledby="<?php echo esc_attr( $wrapper_id . '-label' ); ?>"
 			<?php if ( ! empty( $field['desc'] ) ) : ?>aria-describedby="<?php echo esc_attr( $wrapper_id . '-description' ); ?>"<?php endif; ?>
@@ -1629,7 +1674,7 @@ final class TT_Settings {
 			<div class="tt-control">
 				<div class="tt-repeater-list" data-tt-repeater-list>
 					<?php foreach ( $rows as $index => $row ) : ?>
-						<?php $this->render_repeater_row( $base, (int) $index, $subfields, is_array( $row ) ? $row : array() ); ?>
+						<?php $this->render_repeater_row( $base, (int) $index, $subfields, is_array( $row ) ? $row : array(), $row_label ); ?>
 					<?php endforeach; ?>
 				</div>
 				<noscript>
@@ -1667,10 +1712,11 @@ final class TT_Settings {
 	 * @param array  $subfields Sub-field definitions.
 	 * @param array  $row       Stored row values.
 	 */
-	private function render_repeater_row( $base, $index, array $subfields, array $row ) {
+	private function render_repeater_row( $base, $index, array $subfields, array $row, $row_label = '' ) {
+		$pattern   = '' !== $row_label ? $row_label : __( 'پرسش %s', 'torantejarat' );
 		$row_label = sprintf(
 			/* translators: %s: repeater row number. */
-			__( 'پرسش %s', 'torantejarat' ),
+			$pattern,
 			number_format_i18n( $index + 1 )
 		);
 		?>
@@ -1714,6 +1760,278 @@ final class TT_Settings {
 				<?php endforeach; ?>
 			</div>
 		</div>
+		<?php
+	}
+
+	/**
+	 * Product picker: search WooCommerce products and pick slides instead of
+	 * typing product IDs. Rows keep the exact same storage shape as the
+	 * repeater (product_id | label | caption | link), so the front end and the
+	 * sanitizer stay untouched.
+	 *
+	 * @param string $tab_key Tab key, e.g. "home".
+	 * @param string $key     Field key, e.g. "hero_slides".
+	 * @param array  $field   Field definition.
+	 * @param mixed  $value   Stored rows.
+	 */
+	private function render_product_picker_field( $tab_key, $key, array $field, $value ) {
+		$subfields  = isset( $field['subfields'] ) && is_array( $field['subfields'] ) ? $field['subfields'] : array();
+		$rows       = is_array( $value ) ? array_values( $value ) : array();
+		$max        = isset( $field['max'] ) ? (int) $field['max'] : 0;
+		$base       = 'torantejarat_' . $tab_key . '[' . $key . ']';
+		$wrapper_id = torantejarat_panel_field_dom_id( $tab_key, $key, true );
+		$search_id  = $wrapper_id . '-search';
+		$can_search = function_exists( 'wc_get_products' );
+		?>
+		<div
+			class="tt-field tt-field-picker"
+			id="<?php echo esc_attr( $wrapper_id ); ?>"
+			data-tt-product-picker
+			data-tt-max="<?php echo esc_attr( (string) $max ); ?>"
+			data-tt-base="<?php echo esc_attr( $base ); ?>"
+			data-tt-ajax="<?php echo esc_attr( admin_url( 'admin-ajax.php' ) ); ?>"
+			data-tt-nonce="<?php echo esc_attr( wp_create_nonce( 'torantejarat_product_search' ) ); ?>"
+			role="group"
+			aria-labelledby="<?php echo esc_attr( $wrapper_id . '-label' ); ?>"
+		>
+			<div class="tt-repeater-head">
+				<span class="tt-label" id="<?php echo esc_attr( $wrapper_id . '-label' ); ?>"><?php echo esc_html( $field['label'] ); ?></span>
+				<?php if ( ! empty( $field['desc'] ) ) : ?>
+					<p class="description" id="<?php echo esc_attr( $wrapper_id . '-description' ); ?>"><?php echo esc_html( $field['desc'] ); ?></p>
+				<?php endif; ?>
+			</div>
+			<div class="tt-control">
+				<div class="tt-picker-search">
+					<span class="dashicons dashicons-search" aria-hidden="true"></span>
+					<label class="screen-reader-text" for="<?php echo esc_attr( $search_id ); ?>"><?php esc_html_e( 'جستجوی محصول', 'torantejarat' ); ?></label>
+					<input
+						type="search"
+						id="<?php echo esc_attr( $search_id ); ?>"
+						class="tt-picker-search-input"
+						data-tt-picker-search
+						placeholder="<?php esc_attr_e( 'نام یا SKU محصول را بنویسید…', 'torantejarat' ); ?>"
+						autocomplete="off"
+						<?php disabled( ! $can_search ); ?>
+					>
+					<span class="spinner" data-tt-picker-spinner aria-hidden="true"></span>
+				</div>
+				<?php if ( ! $can_search ) : ?>
+					<p class="description"><?php esc_html_e( 'ووکامرس فعال نیست؛ برای انتخاب محصول، شناسه را دستی وارد کنید.', 'torantejarat' ); ?></p>
+				<?php endif; ?>
+				<div class="tt-picker-results" data-tt-picker-results hidden></div>
+				<p class="tt-picker-status" data-tt-picker-status role="status" aria-live="polite"></p>
+				<ul class="tt-picker-list" data-tt-picker-list>
+					<?php foreach ( $rows as $index => $row ) : ?>
+						<?php $this->render_product_picker_item( $base, (int) $index, $subfields, is_array( $row ) ? $row : array() ); ?>
+					<?php endforeach; ?>
+				</ul>
+				<p class="tt-picker-empty" data-tt-picker-empty<?php echo $rows ? ' hidden' : ''; ?>>
+					<?php esc_html_e( 'هنوز محصولی انتخاب نشده است. نام محصول را جستجو کنید و از فهرست انتخاب کنید.', 'torantejarat' ); ?>
+				</p>
+				<?php if ( $max > 0 ) : ?>
+					<p class="tt-picker-note" data-tt-picker-note
+						data-tt-text-guide="<?php echo esc_attr( sprintf( /* translators: %s: maximum number of slides. */ __( 'حداکثر %s اسلاید. برای افزودن بیشتر، ابتدا یک اسلاید را حذف کنید.', 'torantejarat' ), number_format_i18n( $max ) ) ); ?>"
+						data-tt-text-limit="<?php echo esc_attr( __( 'به سقف رسیدید؛ برای انتخاب اسلاید تازه، ابتدا یکی را حذف کنید.', 'torantejarat' ) ); ?>"
+					><?php echo esc_html( sprintf( /* translators: %s: maximum number of slides. */ __( 'حداکثر %s اسلاید. برای افزودن بیشتر، ابتدا یک اسلاید را حذف کنید.', 'torantejarat' ), number_format_i18n( $max ) ) ); ?></p>
+				<?php endif; ?>
+			</div>
+			<noscript>
+				<p class="description"><?php esc_html_e( 'جستجو و انتخاب محصول به جاوااسکریپت نیاز دارد. در این حالت شناسه هر محصول را در بخش «متن و لینک دلخواه» ویرایش کنید.', 'torantejarat' ); ?></p>
+			</noscript>
+		</div>
+		<?php
+	}
+
+	/**
+	 * One selected product inside the picker.
+	 *
+	 * @param string $base      Field name prefix, without the row index.
+	 * @param int    $index     Row index.
+	 * @param array  $subfields Sub-field definitions.
+	 * @param array  $row       Stored row values.
+	 */
+	private function render_product_picker_item( $base, $index, array $subfields, array $row ) {
+		$product_id = isset( $row['product_id'] ) ? absint( $row['product_id'] ) : 0;
+		$product    = $product_id && function_exists( 'wc_get_product' ) ? wc_get_product( $product_id ) : null;
+		$name       = $product ? $product->get_name() : '';
+		if ( ! $name ) {
+			$name = $product_id
+				/* translators: %s: product ID. */
+				? sprintf( __( 'محصول #%s', 'torantejarat' ), number_format_i18n( $product_id ) )
+				: __( 'محصول انتخاب‌نشده', 'torantejarat' );
+		}
+		$sku   = $product ? (string) $product->get_sku() : '';
+		$thumb = $product && $product->get_image_id() ? wp_get_attachment_image_url( $product->get_image_id(), 'thumbnail' ) : '';
+		?>
+		<li class="tt-picker-item" data-tt-picker-item data-product-id="<?php echo esc_attr( (string) $product_id ); ?>">
+			<div class="tt-picker-main">
+				<span class="tt-picker-thumb<?php echo $thumb ? '' : ' is-empty'; ?>">
+					<?php if ( $thumb ) : ?>
+						<img src="<?php echo esc_url( $thumb ); ?>" alt="" width="48" height="48" loading="lazy">
+					<?php else : ?>
+						<span class="dashicons dashicons-format-image" aria-hidden="true"></span>
+					<?php endif; ?>
+				</span>
+				<div class="tt-picker-info">
+					<strong class="tt-picker-name"><?php echo esc_html( $name ); ?></strong>
+					<span class="tt-picker-meta">
+						<span class="tt-picker-position" data-tt-picker-position><?php echo esc_html( number_format_i18n( $index + 1 ) ); ?></span>
+						<span class="tt-picker-sep" aria-hidden="true">·</span>
+						<span dir="ltr">#<?php echo esc_html( (string) $product_id ); ?></span>
+						<?php if ( $sku ) : ?>
+							<span class="tt-picker-sep" aria-hidden="true">·</span>
+							<span dir="ltr"><?php echo esc_html( $sku ); ?></span>
+						<?php endif; ?>
+					</span>
+				</div>
+				<div class="tt-picker-actions">
+					<button type="button" class="button-link tt-picker-move" data-tt-picker-up>
+						<span class="dashicons dashicons-arrow-up-alt2" aria-hidden="true"></span>
+						<span class="screen-reader-text"><?php esc_html_e( 'انتقال به بالا', 'torantejarat' ); ?></span>
+					</button>
+					<button type="button" class="button-link tt-picker-move" data-tt-picker-down>
+						<span class="dashicons dashicons-arrow-down-alt2" aria-hidden="true"></span>
+						<span class="screen-reader-text"><?php esc_html_e( 'انتقال به پایین', 'torantejarat' ); ?></span>
+					</button>
+					<button type="button" class="button-link tt-picker-remove" data-tt-picker-remove>
+						<span aria-hidden="true"><?php esc_html_e( 'حذف', 'torantejarat' ); ?></span>
+						<span class="screen-reader-text"><?php esc_html_e( 'حذف این اسلاید', 'torantejarat' ); ?></span>
+					</button>
+				</div>
+			</div>
+			<details class="tt-picker-more">
+				<summary><?php esc_html_e( 'متن و لینک دلخواه', 'torantejarat' ); ?></summary>
+				<div class="tt-picker-fields">
+					<?php foreach ( $subfields as $sub_key => $sub ) : ?>
+						<label class="tt-picker-field">
+							<span class="tt-picker-field-label"><?php echo esc_html( isset( $sub['label'] ) ? $sub['label'] : $sub_key ); ?></span>
+							<?php
+							$this->render_subfield_input(
+								$base,
+								$index,
+								(string) $sub_key,
+								$sub,
+								isset( $row[ $sub_key ] ) ? $row[ $sub_key ] : ''
+							);
+							?>
+						</label>
+					<?php endforeach; ?>
+				</div>
+				<p class="description"><?php esc_html_e( 'خالی بگذارید تا لیبل از SKU، کپشن از توضیح کوتاه و لینک از صفحه محصول خوانده شود.', 'torantejarat' ); ?></p>
+			</details>
+		</li>
+		<?php
+	}
+
+	/**
+	 * Video picker: rows of video cards, each backed by the WordPress media
+	 * library. Storage shape stays `home_videos[i][title|video_url|caption]`.
+	 *
+	 * @param string $tab_key Tab key.
+	 * @param string $key     Field key.
+	 * @param array  $field   Field definition.
+	 * @param mixed  $value   Stored rows.
+	 */
+	private function render_video_picker_field( $tab_key, $key, array $field, $value ) {
+		$rows       = is_array( $value ) ? array_values( $value ) : array();
+		$base       = 'torantejarat_' . $tab_key . '[' . $key . ']';
+		$wrapper_id = torantejarat_panel_field_dom_id( $tab_key, $key, true );
+		$can_media  = current_user_can( 'upload_files' );
+		?>
+		<div
+			class="tt-field tt-field-picker tt-field-video"
+			id="<?php echo esc_attr( $wrapper_id ); ?>"
+			data-tt-video-picker
+			data-tt-base="<?php echo esc_attr( $base ); ?>"
+			role="group"
+			aria-labelledby="<?php echo esc_attr( $wrapper_id . '-label' ); ?>"
+		>
+			<div class="tt-repeater-head">
+				<span class="tt-label" id="<?php echo esc_attr( $wrapper_id . '-label' ); ?>"><?php echo esc_html( $field['label'] ); ?></span>
+				<?php if ( ! empty( $field['desc'] ) ) : ?>
+					<p class="description" id="<?php echo esc_attr( $wrapper_id . '-description' ); ?>"><?php echo esc_html( $field['desc'] ); ?></p>
+				<?php endif; ?>
+			</div>
+			<div class="tt-control">
+				<ul class="tt-picker-list tt-video-list" data-tt-video-list>
+					<?php foreach ( $rows as $index => $row ) : ?>
+						<?php $this->render_video_picker_item( $base, (int) $index, is_array( $row ) ? $row : array(), $can_media ); ?>
+					<?php endforeach; ?>
+				</ul>
+				<p class="tt-picker-empty" data-tt-video-empty<?php echo $rows ? ' hidden' : ''; ?>>
+					<?php esc_html_e( 'هنوز ویدیویی اضافه نشده است. با دکمهٔ «افزودن ویدیو» شروع کنید.', 'torantejarat' ); ?>
+				</p>
+				<p class="tt-video-actions">
+					<button type="button" class="button" data-tt-video-add hidden><?php esc_html_e( 'افزودن ویدیو', 'torantejarat' ); ?></button>
+					<span class="description"><?php esc_html_e( 'فایل‌های mp4 یا webm بهترین نتیجه را می‌دهند.', 'torantejarat' ); ?></span>
+				</p>
+			</div>
+			<noscript>
+				<p class="description"><?php esc_html_e( 'افزودن ردیف و انتخاب از کتابخانه رسانه به جاوااسکریپت نیاز دارد؛ در این حالت لینک فایل را دستی در ردیف‌های موجود وارد کنید.', 'torantejarat' ); ?></p>
+			</noscript>
+			<template data-tt-video-template>
+				<?php $this->render_video_picker_item( $base, 0, array(), $can_media ); ?>
+			</template>
+		</div>
+		<?php
+	}
+
+	/**
+	 * One video row (also used as the JS template).
+	 *
+	 * @param string $base      Field name prefix.
+	 * @param int    $index     Row index.
+	 * @param array  $row       Stored row values.
+	 * @param bool   $can_media Whether the media library is available.
+	 */
+	private function render_video_picker_item( $base, $index, array $row, $can_media ) {
+		$video_url = isset( $row['video_url'] ) ? (string) $row['video_url'] : '';
+		$title     = isset( $row['title'] ) ? (string) $row['title'] : '';
+		$caption   = isset( $row['caption'] ) ? (string) $row['caption'] : '';
+		?>
+		<li class="tt-picker-item tt-video-item" data-tt-video-item>
+			<div class="tt-video-row">
+				<span class="tt-video-preview<?php echo $video_url ? ' has-video' : ''; ?>" data-tt-video-preview>
+					<?php if ( $video_url ) : ?>
+						<video src="<?php echo esc_url( $video_url ); ?>" preload="metadata" controls muted playsinline></video>
+					<?php else : ?>
+						<span class="dashicons dashicons-video-alt3" aria-hidden="true"></span>
+					<?php endif; ?>
+				</span>
+				<div class="tt-video-fields">
+					<label class="tt-picker-field">
+						<span class="tt-picker-field-label"><?php esc_html_e( 'تیتر ویدیو', 'torantejarat' ); ?></span>
+						<input type="text" name="<?php echo esc_attr( $base . '[' . $index . '][title]' ); ?>" data-tt-name="<?php echo esc_attr( $base . '[%i%][title]' ); ?>" value="<?php echo esc_attr( $title ); ?>" placeholder="<?php esc_attr_e( 'خالی = بدون تیتر', 'torantejarat' ); ?>">
+					</label>
+					<div class="tt-video-source">
+						<label class="tt-picker-field">
+							<span class="tt-picker-field-label"><?php esc_html_e( 'فایل ویدیو', 'torantejarat' ); ?></span>
+							<input type="url" dir="ltr" name="<?php echo esc_attr( $base . '[' . $index . '][video_url]' ); ?>" data-tt-video-url data-tt-name="<?php echo esc_attr( $base . '[%i%][video_url]' ); ?>" value="<?php echo esc_attr( $video_url ); ?>" placeholder="https://…/video.mp4">
+						</label>
+						<button type="button" class="button" data-tt-video-select<?php echo $can_media ? '' : ' hidden'; ?>><?php esc_html_e( 'انتخاب از کتابخانه', 'torantejarat' ); ?></button>
+						<button type="button" class="button-link" data-tt-video-clear hidden><?php esc_html_e( 'پاک کردن', 'torantejarat' ); ?></button>
+					</div>
+					<label class="tt-picker-field">
+						<span class="tt-picker-field-label"><?php esc_html_e( 'کپشن', 'torantejarat' ); ?></span>
+						<input type="text" name="<?php echo esc_attr( $base . '[' . $index . '][caption]' ); ?>" data-tt-name="<?php echo esc_attr( $base . '[%i%][caption]' ); ?>" value="<?php echo esc_attr( $caption ); ?>">
+					</label>
+				</div>
+				<div class="tt-picker-actions tt-video-controls">
+					<button type="button" class="button-link tt-picker-move" data-tt-video-up hidden>
+						<span class="dashicons dashicons-arrow-up-alt2" aria-hidden="true"></span>
+						<span class="screen-reader-text"><?php esc_html_e( 'انتقال به بالا', 'torantejarat' ); ?></span>
+					</button>
+					<button type="button" class="button-link tt-picker-move" data-tt-video-down hidden>
+						<span class="dashicons dashicons-arrow-down-alt2" aria-hidden="true"></span>
+						<span class="screen-reader-text"><?php esc_html_e( 'انتقال به پایین', 'torantejarat' ); ?></span>
+					</button>
+					<button type="button" class="button-link tt-picker-remove" data-tt-video-remove hidden>
+						<span aria-hidden="true"><?php esc_html_e( 'حذف', 'torantejarat' ); ?></span>
+						<span class="screen-reader-text"><?php esc_html_e( 'حذف این ویدیو', 'torantejarat' ); ?></span>
+					</button>
+				</div>
+			</div>
+		</li>
 		<?php
 	}
 
@@ -1777,6 +2095,62 @@ final class TT_Settings {
 		);
 	}
 
+	/**
+	 * AJAX: search published products for the hero product picker.
+	 * Returns a small, presentation-ready list; the client only renders it.
+	 */
+	public function ajax_search_products() {
+		check_ajax_referer( 'torantejarat_product_search', 'nonce' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => __( 'دسترسی مجاز نیست.', 'torantejarat' ) ), 403 );
+		}
+
+		$term = isset( $_GET['q'] ) ? sanitize_text_field( wp_unslash( $_GET['q'] ) ) : '';
+		$term = trim( $term );
+
+		$exclude = array();
+		if ( isset( $_GET['exclude'] ) ) {
+			$exclude = array_map( 'absint', (array) wp_unslash( $_GET['exclude'] ) );
+		}
+
+		if ( mb_strlen( $term ) < 2 || ! function_exists( 'wc_get_products' ) ) {
+			wp_send_json_success( array() );
+		}
+
+		$args = array(
+			'limit'   => 12,
+			'status'  => 'publish',
+			'orderby' => 'title',
+			'order'   => 'ASC',
+			'return'  => 'objects',
+		);
+
+		if ( ctype_digit( $term ) ) {
+			$args['include'] = array( (int) $term );
+			unset( $args['orderby'], $args['order'] );
+		} else {
+			$args['s'] = $term;
+		}
+
+		$items = array();
+		foreach ( wc_get_products( $args ) as $product ) {
+			if ( ! $product instanceof \WC_Product || in_array( $product->get_id(), $exclude, true ) ) {
+				continue;
+			}
+			$image_id = $product->get_image_id();
+			$items[]  = array(
+				'id'    => $product->get_id(),
+				'name'  => $product->get_name(),
+				'sku'   => (string) $product->get_sku(),
+				'thumb' => $image_id ? (string) wp_get_attachment_image_url( $image_id, 'thumbnail' ) : '',
+				'price' => wp_strip_all_tags( (string) $product->get_price_html() ),
+			);
+		}
+
+		wp_send_json_success( $items );
+	}
+
 	public function enqueue_styles( $hook ) {
 		if ( 'toplevel_page_torantejarat-settings' !== $hook ) {
 			return;
@@ -1800,9 +2174,13 @@ final class TT_Settings {
 		}
 		$sub = isset( $_GET['sub'] ) ? sanitize_key( wp_unslash( $_GET['sub'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Asset route only.
 
-		// Only the logo field needs Media Library. Users without upload_files
-		// keep the same manual URL input and never receive an unusable button.
-		$media_enabled = ( 'login' === $section && 'content' === $sub && current_user_can( 'upload_files' ) );
+		// Media Library is needed by the login logo and by the homepage video
+		// picker. Users without upload_files keep the manual URL input and
+		// never receive an unusable button.
+		$media_enabled = (
+			( 'login' === $section && 'content' === $sub )
+			|| ( 'home' === $section && 'field' === $sub )
+		) && current_user_can( 'upload_files' );
 		if ( $media_enabled ) {
 			wp_enqueue_media();
 		}
@@ -1822,6 +2200,30 @@ final class TT_Settings {
 					'enabled' => $media_enabled,
 					'title'   => __( 'انتخاب لوگوی صفحه ورود', 'torantejarat' ),
 					'button'  => __( 'استفاده از این تصویر', 'torantejarat' ),
+				),
+				'video' => array(
+					'enabled' => $media_enabled,
+					'title'   => __( 'انتخاب ویدیو', 'torantejarat' ),
+					'button'  => __( 'استفاده از این ویدیو', 'torantejarat' ),
+					'empty'   => __( 'هنوز ویدیویی اضافه نشده است. با دکمهٔ «افزودن ویدیو» شروع کنید.', 'torantejarat' ),
+				),
+				'productSearch' => array(
+					'noResult' => __( 'محصولی با این عنوان پیدا نشد.', 'torantejarat' ),
+					'error'    => __( 'جستجو ناموفق بود؛ دوباره تلاش کنید.', 'torantejarat' ),
+					'loading'  => __( 'در حال جستجو…', 'torantejarat' ),
+					'add'      => __( 'افزودن به اسلایدر', 'torantejarat' ),
+					'remove'   => __( 'حذف', 'torantejarat' ),
+					'up'       => __( 'انتقال به بالا', 'torantejarat' ),
+					'down'     => __( 'انتقال به پایین', 'torantejarat' ),
+					'fields'   => array(
+						'product_id' => __( 'شناسه محصول (ID)', 'torantejarat' ),
+						'label'      => __( 'لیبل نمایشی', 'torantejarat' ),
+						'caption'    => __( 'کپشن کوتاه', 'torantejarat' ),
+						'link'       => __( 'لینک دلخواه (اختیاری)', 'torantejarat' ),
+					),
+					'more'     => __( 'متن و لینک دلخواه', 'torantejarat' ),
+					'hint'     => __( 'خالی بگذارید تا لیبل از SKU، کپشن از توضیح کوتاه و لینک از صفحه محصول خوانده شود.', 'torantejarat' ),
+					'fallback' => __( 'محصول انتخاب‌نشده', 'torantejarat' ),
 				),
 			)
 		);

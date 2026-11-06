@@ -121,12 +121,35 @@ get_header();
 					<?php endif; ?>
 				</div>
 				<div class="torantejarat-video-panel">
-					<div class="torantejarat-video-top"><span class="torantejarat-status-dot"></span><span><?php echo esc_html( torantejarat_home( 'video_label_1' ) ); ?></span><span dir="ltr"><?php echo esc_html( torantejarat_home( 'video_label_2' ) ); ?></span></div>
-					<video controls playsinline preload="none" aria-label="<?php echo esc_attr( torantejarat_home( 'video_aria' ) ); ?>">
-						<source src="<?php echo esc_url( get_template_directory_uri() . '/assets/video/tunnel-inspection.mp4' ); ?>" type="video/mp4">
-						<?php esc_html_e( 'مرورگر شما پخش ویدیو را پشتیبانی نمی‌کند.', 'torantejarat' ); ?>
-					</video>
-					<p><?php echo esc_html( torantejarat_home( 'video_caption' ) ); ?></p>
+					<?php
+					$torantejarat_home_settings = get_option( 'torantejarat_home', array() );
+					$torantejarat_videos = isset( $torantejarat_home_settings['home_videos'] ) && is_array( $torantejarat_home_settings['home_videos'] )
+						? $torantejarat_home_settings['home_videos']
+					: array();
+
+					if ( $torantejarat_videos ) :
+						foreach ( $torantejarat_videos as $video_row ) :
+							if ( ! is_array( $video_row ) ) { continue; }
+							$video_url = isset( $video_row['video_url'] ) ? esc_url_raw( $video_row['video_url'] ) : '';
+							if ( ! $video_url ) { continue; }
+						?>
+						<div class="torantejarat-video-item">
+							<?php if ( ! empty( $video_row['title'] ) ) : ?><h4><?php echo esc_html( $video_row['title'] ); ?></h4><?php endif; ?>
+							<video controls playsinline preload="none" aria-label="<?php echo esc_attr( $video_row['title'] ?? '' ); ?>">
+								<source src="<?php echo esc_url( $video_url ); ?>" type="video/mp4">
+								<?php esc_html_e( 'مرورگر شما پخش ویدیو را پشتیبانی نمی‌کند.', 'torantejarat' ); ?>
+							</video>
+							<?php if ( ! empty( $video_row['caption'] ) ) : ?><p><?php echo esc_html( $video_row['caption'] ); ?></p><?php endif; ?>
+						</div>
+						<?php endforeach;
+					else : ?>
+							<div class="torantejarat-video-top"><span class="torantejarat-status-dot"></span><span><?php echo esc_html( torantejarat_home( 'video_label_1' ) ); ?></span><span dir="ltr"><?php echo esc_html( torantejarat_home( 'video_label_2' ) ); ?></span></div>
+							<video controls playsinline preload="none" aria-label="<?php echo esc_attr( torantejarat_home( 'video_aria' ) ); ?>">
+								<source src="<?php echo esc_url( get_template_directory_uri() . '/assets/video/tunnel-inspection.mp4' ); ?>" type="video/mp4">
+								<?php esc_html_e( 'مرورگر شما پخش ویدیو را پشتیبانی نمی‌کند.', 'torantejarat' ); ?>
+							</video>
+							<p><?php echo esc_html( torantejarat_home( 'video_caption' ) ); ?></p>
+					<?php endif; ?>
 				</div>
 			</div></section>
 

@@ -81,8 +81,8 @@ function torantejarat_panel_nav_map() {
 				'id'     => 'hero',
 				'label'  => 'هیرو',
 				'icon'   => 'dashicons-cover-image',
-				'desc'   => 'متن اصلی و دکمه‌های نخستین بخش صفحهٔ اصلی. تصاویر اسلایدر از محصولات واقعی می‌آیند.',
-				'fields' => array( 'hero_kicker', 'hero_title_1', 'hero_title_2', 'hero_lead', 'hero_cta_primary', 'hero_cta_secondary', 'hero_foot_1', 'hero_foot_2' ),
+				'desc'   => 'متن اصلی و دکمه‌های نخستین بخش صفحهٔ اصلی. اسلایدهای هیرو از محصولات گلچینِ همین صفحه ساخته می‌شوند.',
+				'fields' => array( 'hero_kicker', 'hero_title_1', 'hero_title_2', 'hero_lead', 'hero_cta_primary', 'hero_cta_secondary', 'hero_foot_1', 'hero_foot_2', 'hero_slides' ),
 			),
 			array(
 				'id'     => 'trust',
@@ -102,8 +102,8 @@ function torantejarat_panel_nav_map() {
 				'id'     => 'field',
 				'label'  => 'بخش فنی و ویدیو',
 				'icon'   => 'dashicons-video-alt3',
-				'desc'   => 'متن بخش فنی، چک‌لیست و برچسب‌های ویدیو. فایل ویدیوی فعلی از Assets قالب پخش می‌شود.',
-				'fields' => array( 'field_eyebrow', 'field_title', 'field_text', 'field_check_1', 'field_check_2', 'field_check_3', 'field_link_label', 'video_label_1', 'video_label_2', 'video_aria', 'video_caption' ),
+				'desc'   => 'متن بخش فنی، چک‌لیست، برچسب‌های ویدیو و فهرست ویدیوها. خالی‌بودن فهرست، ویدیوی پیش‌فرض قالب را نمایش می‌دهد.',
+				'fields' => array( 'field_eyebrow', 'field_title', 'field_text', 'field_check_1', 'field_check_2', 'field_check_3', 'field_link_label', 'video_label_1', 'video_label_2', 'video_aria', 'video_caption', 'home_videos' ),
 			),
 			array(
 				'id'     => 'blog',

@@ -22,6 +22,7 @@ $torantejarat_desc    = isset( $args['description'] ) ? (string) $args['descript
 $torantejarat_link    = isset( $args['link_url'] ) ? (string) $args['link_url'] : '';
 $torantejarat_link_tx = isset( $args['link_text'] ) ? (string) $args['link_text'] : '';
 $torantejarat_visible = min( 3, count( $torantejarat_items ) );
+$torantejarat_has_slider = count( $torantejarat_items ) > $torantejarat_visible;
 ?>
 <section class="torantejarat-section torantejarat-soft-section torantejarat-product-slider-section"><div class="torantejarat-container woocommerce">
 	<div class="torantejarat-section-heading">
@@ -33,7 +34,7 @@ $torantejarat_visible = min( 3, count( $torantejarat_items ) );
 		<?php if ( '' !== $torantejarat_link && '' !== $torantejarat_link_tx ) : ?><a class="torantejarat-text-link" href="<?php echo esc_url( $torantejarat_link ); ?>"><?php echo esc_html( $torantejarat_link_tx ); ?> <?php torantejarat_icon( 'arrow' ); ?></a><?php endif; ?>
 	</div>
 	<div class="product-slider-wrap"
-		data-slider
+		<?php if ( $torantejarat_has_slider ) : ?>data-slider<?php endif; ?>
 		data-slides-desktop="<?php echo esc_attr( $torantejarat_visible ); ?>"
 		data-slides-tablet="2"
 		data-slides-mobile="1"

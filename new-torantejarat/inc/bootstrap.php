@@ -69,7 +69,14 @@ add_action( 'admin_post_torantejarat_ticket_create_frontend', __NAMESPACE__ . '\
 add_action( 'admin_post_torantejarat_ticket_reply_frontend', __NAMESPACE__ . '\\torantejarat_tickets_handle_reply_frontend' );
 add_action( 'admin_post_torantejarat_ticket_close_frontend', __NAMESPACE__ . '\\torantejarat_tickets_handle_close_frontend' );
 add_action( 'admin_post_torantejarat_ticket_delete_frontend', __NAMESPACE__ . '\\torantejarat_tickets_handle_delete_frontend' );
+add_action( 'admin_post_torantejarat_ticket_reopen_frontend', __NAMESPACE__ . '\\torantejarat_tickets_handle_reopen_frontend' );
 add_action( 'admin_post_torantejarat_ticket_delete_selected_admin', __NAMESPACE__ . '\\torantejarat_tickets_handle_admin_delete_selected' );
+add_action( 'wp_ajax_torantejarat_ticket_create_ajax', __NAMESPACE__ . '\\torantejarat_tickets_ajax_create' );
+add_action( 'wp_ajax_torantejarat_ticket_reply_ajax', __NAMESPACE__ . '\\torantejarat_tickets_ajax_reply' );
+add_action( 'wp_ajax_torantejarat_ticket_close_ajax', __NAMESPACE__ . '\\torantejarat_tickets_ajax_close' );
+add_action( 'wp_ajax_torantejarat_ticket_delete_ajax', __NAMESPACE__ . '\\torantejarat_tickets_ajax_delete' );
+add_action( 'wp_ajax_torantejarat_ticket_reopen_ajax', __NAMESPACE__ . '\\torantejarat_tickets_ajax_reopen' );
+add_action( 'wp_ajax_torantejarat_ticket_detail_ajax', __NAMESPACE__ . '\\torantejarat_tickets_ajax_detail' );
 add_action( 'wp_ajax_torantejarat_tickets_load_more', __NAMESPACE__ . '\\torantejarat_tickets_load_more' );
 add_action( 'wp_ajax_nopriv_torantejarat_tickets_load_more', '__return_false' );
 add_action( 'add_meta_boxes_torantejarat_request', __NAMESPACE__ . '\\torantejarat_ticket_admin_metabox' );
