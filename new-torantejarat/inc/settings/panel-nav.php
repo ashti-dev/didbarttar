@@ -65,8 +65,8 @@ function torantejarat_panel_nav_map() {
 				'id'     => 'topbar',
 				'label'  => 'نوار بالای سایت',
 				'icon'   => 'dashicons-admin-links',
-				'desc'   => 'متن و مقصد لینک نواری که بالای همهٔ صفحه‌های سایت دیده می‌شود.',
-				'fields' => array( 'topbar_text', 'topbar_link' ),
+				'desc'   => 'متن، لینک و دسترسی‌های سریع نواری که بالای همهٔ صفحه‌های سایت دیده می‌شود. شماره، ایمیل و نشانی از بخش «اطلاعات تماس» و آیکون‌های شبکه‌های اجتماعی از بخش «شبکه‌های اجتماعی» خوانده می‌شوند.',
+				'fields' => array( 'topbar_text', 'topbar_link', 'topbar_admin_links', 'topbar_links' ),
 			),
 			array(
 				'id'     => 'preview',
