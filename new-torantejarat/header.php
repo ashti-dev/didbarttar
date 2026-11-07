@@ -179,7 +179,13 @@ $torantejarat_show_topbar  = $torantejarat_has_utility || $torantejarat_has_cont
 					: home_url( '/' );
 				?>
 				<div class="torantejarat-nav-actions">
-					<a class="torantejarat-nav-btn" href="<?php echo esc_url( $torantejarat_support_url ); ?>"><?php torantejarat_icon( 'chat' ); ?><span><?php esc_html_e( 'پشتیبانی', 'torantejarat' ); ?></span></a>
+					<div class="torantejarat-support-wrap">
+\t\t\t\t\t\t<button class="torantejarat-nav-btn torantejarat-support-btn" aria-haspopup="true" aria-expanded="false"><?php torantejarat_icon( 'chat' ); ?><span><?php esc_html_e( 'پشتیبانی', 'torantejarat' ); ?></span></button>
+\t\t\t\t\t\t<ul class="torantejarat-support-submenu">
+\t\t\t\t\t\t\t<li><a href="<?php echo esc_url( wc_get_account_endpoint_url( 'tickets' ) ); ?>"><?php esc_html_e( 'لیست تیکت‌ها', 'torantejarat' ); ?></a></li>
+\t\t\t\t\t\t\t<li><a href="<?php echo esc_url( wc_get_account_endpoint_url( 'tickets' ) ); ?>#torantejarat-new-ticket"><?php esc_html_e( 'ایجاد تیکت', 'torantejarat' ); ?></a></li>
+\t\t\t\t\t\t</ul>
+\t\t\t\t\t</div>
 					<a class="torantejarat-nav-btn is-deals" href="<?php echo esc_url( $torantejarat_deals_url ); ?>"><?php torantejarat_icon( 'percent' ); ?><span><?php esc_html_e( 'شگفت‌انگیزها', 'torantejarat' ); ?></span></a>
 				</div>
 			</nav>
