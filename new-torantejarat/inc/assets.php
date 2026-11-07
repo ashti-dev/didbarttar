@@ -176,5 +176,34 @@ function torantejarat_enqueue_assets() {
 				'restNonce'  => wp_create_nonce( 'wp_rest' ),
 			)
 		);
+
+		// Ticket styles/scripts are scoped to .ttk, so they are safe to load on
+		// every account screen (endpoint detection can be unreliable here).
+		wp_enqueue_style( 'torantejarat-tickets', get_template_directory_uri() . '/assets/css/tickets.css', array( 'torantejarat-account' ), torantejarat_asset_version( 'assets/css/tickets.css' ) );
+		wp_enqueue_script( 'torantejarat-tickets', get_template_directory_uri() . '/assets/js/tickets.js', array(), torantejarat_asset_version( 'assets/js/tickets.js' ), array( 'in_footer' => true, 'strategy' => 'defer' ) );
+		wp_localize_script(
+			'torantejarat-tickets',
+			'ttkData',
+			array(
+				'ajaxUrl'     => admin_url( 'admin-ajax.php' ),
+				'ticketsUrl'  => wc_get_account_endpoint_url( 'tickets' ),
+				'createNonce' => wp_create_nonce( 'torantejarat-ticket-create' ),
+				'replyNonce'  => wp_create_nonce( 'torantejarat-ticket-reply' ),
+				'uploadNonce' => wp_create_nonce( 'torantejarat-ticket-upload' ),
+				'maxFiles'    => \ToranTejarat\Theme\torantejarat_tickets_max_attachments(),
+				'maxSize'     => \ToranTejarat\Theme\torantejarat_tickets_max_upload_size(),
+				'i18n'        => array(
+					'uploading'   => __( 'در حال بارگذاری...', 'torantejarat' ),
+					'uploadError' => __( 'بارگذاری فایل انجام نشد.', 'torantejarat' ),
+					'tooLarge'    => __( 'حجم فایل باید کمتر از ۵ مگابایت باشد.', 'torantejarat' ),
+					'tooMany'     => __( 'حداکثر ۳ فایل برای هر پیام مجاز است.', 'torantejarat' ),
+					'remove'      => __( 'حذف فایل', 'torantejarat' ),
+					'sending'     => __( 'در حال ارسال...', 'torantejarat' ),
+					'generic'     => __( 'خطای نامشخص رخ داد. دوباره تلاش کنید.', 'torantejarat' ),
+					'linkPrompt'  => __( 'نشانی اینترنتی را وارد کنید', 'torantejarat' ),
+					'textHint'    => __( 'در حالت متن می‌توانید از نشانه‌گذاری ساده HTML استفاده کنید.', 'torantejarat' ),
+				),
+			)
+		);
 	}
 }

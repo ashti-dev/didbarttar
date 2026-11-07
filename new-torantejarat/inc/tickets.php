@@ -21,7 +21,7 @@ if ( ! defined( 'ABSPATH' ) ) {
    Schema version
    -------------------------------------------------------------- */
 function torantejarat_tickets_schema_version() {
-	return '1.0.0';
+	return '1.1.0';
 }
 
 /* --------------------------------------------------------------
@@ -53,6 +53,7 @@ function torantejarat_tickets_maybe_create_tables() {
 		subject_key VARCHAR(50) NOT NULL DEFAULT 'other',
 		title VARCHAR(150) NOT NULL DEFAULT '',
 		status VARCHAR(30) NOT NULL DEFAULT 'open',
+		priority VARCHAR(20) NOT NULL DEFAULT 'normal',
 		created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 		updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 		last_reply_by VARCHAR(20) DEFAULT NULL,
@@ -70,6 +71,7 @@ function torantejarat_tickets_maybe_create_tables() {
 		author_id BIGINT UNSIGNED NOT NULL,
 		is_staff TINYINT(1) NOT NULL DEFAULT 0,
 		body TEXT NOT NULL,
+		attachments LONGTEXT DEFAULT NULL,
 		created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 		PRIMARY KEY (id),
 		KEY ticket_created (ticket_id, created_at),
@@ -92,6 +94,434 @@ function torantejarat_tickets_capability() {
 
 function torantejarat_tickets_user_can_manage() {
 	return current_user_can( torantejarat_tickets_capability() );
+}
+
+/* --------------------------------------------------------------
+   Priorities & safe message formatting
+   -------------------------------------------------------------- */
+function torantejarat_tickets_priorities() {
+	return array(
+		'low'    => __( 'کم', 'torantejarat' ),
+		'normal' => __( 'متوسط', 'torantejarat' ),
+		'high'   => __( 'زیاد', 'torantejarat' ),
+	);
+}
+
+function torantejarat_tickets_priority_label( $priority ) {
+	$priorities = torantejarat_tickets_priorities();
+	return $priorities[ $priority ] ?? $priorities['normal'];
+}
+
+function torantejarat_tickets_subject_label( $subject_key ) {
+	$subjects = torantejarat_ticket_subjects();
+	if ( isset( $subjects[ $subject_key ] ) ) {
+		return $subjects[ $subject_key ];
+	}
+	return __( 'سایر', 'torantejarat' );
+}
+
+/**
+ * Convert Latin digits to Persian digits for display.
+ *
+ * @param string|int $value Value.
+ * @return string
+ */
+function torantejarat_tickets_fa_digits( $value ) {
+	return str_replace(
+		array( '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' ),
+		array( '۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹' ),
+		(string) $value
+	);
+}
+
+/**
+ * Format a stored MySQL date as Jalali, optionally with the time.
+ *
+ * @param string $mysql_date MySQL date in site timezone.
+ * @param bool   $with_time  Include H:i.
+ * @return string
+ */
+function torantejarat_tickets_format_datetime( $mysql_date, $with_time = true ) {
+	$date = date_create( (string) $mysql_date, wp_timezone() );
+	if ( ! $date ) {
+		return (string) $mysql_date;
+	}
+
+	$formatted = \ToranTejarat\Theme\torantejarat_jalali_ymd(
+		(int) $date->format( 'Y' ),
+		(int) $date->format( 'n' ),
+		(int) $date->format( 'j' )
+	);
+
+	if ( $with_time ) {
+		$formatted .= ' ' . torantejarat_tickets_fa_digits( $date->format( 'H:i' ) );
+	}
+
+	return $formatted;
+}
+
+/**
+ * Allowed markup for ticket messages (customer + staff).
+ *
+ * @return array
+ */
+function torantejarat_tickets_allowed_html() {
+	return array(
+		'p'          => array(),
+		'br'         => array(),
+		'strong'     => array(),
+		'b'          => array(),
+		'em'         => array(),
+		'i'          => array(),
+		'u'          => array(),
+		's'          => array(),
+		'ul'         => array(),
+		'ol'         => array(),
+		'li'         => array(),
+		'a'          => array(
+			'href'   => true,
+			'title'  => true,
+			'target' => true,
+			'rel'    => true,
+		),
+		'blockquote' => array(),
+		'code'       => array(),
+		'pre'        => array(),
+		'h3'         => array(),
+		'h4'         => array(),
+		'span'       => array(),
+		'div'        => array(),
+	);
+}
+
+/**
+ * Sanitize a ticket message while keeping the safe rich-text markup
+ * produced by the customer editor.
+ *
+ * @param string $body Raw body.
+ * @return string
+ */
+function torantejarat_tickets_sanitize_body( $body ) {
+	$body = wp_unslash( (string) $body );
+	$body = wp_kses( $body, torantejarat_tickets_allowed_html() );
+	return trim( $body );
+}
+
+/**
+ * Number of visible characters in a ticket body (tags excluded).
+ *
+ * @param string $body Sanitized body.
+ * @return int
+ */
+function torantejarat_tickets_body_length( $body ) {
+	$text = wp_strip_all_tags( (string) $body );
+	$text = html_entity_decode( $text, ENT_QUOTES, 'UTF-8' );
+	$text = str_replace( "\xC2\xA0", ' ', $text );
+	$text = preg_replace( '/\s+/u', ' ', $text );
+	return mb_strlen( trim( (string) $text ) );
+}
+
+/**
+ * Render a stored message body. Legacy plain-text rows are converted to
+ * line breaks; rich rows are printed as sanitized HTML.
+ *
+ * @param string $body Stored body.
+ * @return string
+ */
+function torantejarat_tickets_render_body( $body ) {
+	$body = (string) $body;
+	if ( '' === trim( $body ) ) {
+		return '';
+	}
+	if ( preg_match( '/<(p|div|ul|ol|li|h[1-6]|blockquote)\b/i', $body ) ) {
+		return wp_kses_post( $body );
+	}
+	return wp_kses_post( nl2br( $body, false ) );
+}
+
+/* --------------------------------------------------------------
+   Attachments (uploaded through a nonce-protected AJAX endpoint)
+   -------------------------------------------------------------- */
+function torantejarat_tickets_allowed_upload_mimes() {
+	return array(
+		'jpg|jpeg|jpe' => 'image/jpeg',
+		'png'          => 'image/png',
+		'gif'          => 'image/gif',
+		'webp'         => 'image/webp',
+		'pdf'          => 'application/pdf',
+		'zip'          => 'application/zip',
+		'doc'          => 'application/msword',
+		'docx'         => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+		'xls'          => 'application/vnd.ms-excel',
+		'xlsx'         => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+		'txt'          => 'text/plain',
+	);
+}
+
+function torantejarat_tickets_max_upload_size() {
+	return 5 * MB_IN_BYTES;
+}
+
+function torantejarat_tickets_max_attachments() {
+	return 3;
+}
+
+function torantejarat_tickets_upload_registry_key( $user_id ) {
+	return 'ttk_uploads_' . absint( $user_id );
+}
+
+/**
+ * Decode stored attachments into a normalized array.
+ *
+ * @param mixed $raw JSON string or array.
+ * @return array
+ */
+function torantejarat_tickets_decode_attachments( $raw ) {
+	if ( is_string( $raw ) ) {
+		$raw = '' === trim( $raw ) ? array() : json_decode( $raw, true );
+	}
+	if ( ! is_array( $raw ) ) {
+		return array();
+	}
+
+	$out = array();
+	foreach ( $raw as $item ) {
+		if ( ! is_array( $item ) || empty( $item['url'] ) ) {
+			continue;
+		}
+		$url = esc_url_raw( $item['url'] );
+		if ( '' === $url ) {
+			continue;
+		}
+		$out[] = array(
+			'token'    => isset( $item['token'] ) ? sanitize_text_field( $item['token'] ) : '',
+			'name'     => isset( $item['name'] ) ? sanitize_text_field( $item['name'] ) : wp_basename( $url ),
+			'url'      => $url,
+			'file'     => isset( $item['file'] ) ? sanitize_text_field( $item['file'] ) : '',
+			'mime'     => isset( $item['mime'] ) ? sanitize_text_field( $item['mime'] ) : '',
+			'size'     => isset( $item['size'] ) ? absint( $item['size'] ) : 0,
+			'is_image' => ! empty( $item['is_image'] ),
+		);
+		if ( count( $out ) >= torantejarat_tickets_max_attachments() ) {
+			break;
+		}
+	}
+
+	return $out;
+}
+
+/**
+ * Resolve AJAX-uploaded tokens into stored attachment descriptors.
+ * Tokens are kept in a per-user transient for one hour, which proves
+ * that the current user performed the upload.
+ *
+ * @param int   $user_id Current user ID.
+ * @param mixed $raw     JSON string/array of tokens.
+ * @return array
+ */
+function torantejarat_tickets_resolve_attachments( $user_id, $raw ) {
+	$user_id = absint( $user_id );
+	if ( $user_id <= 0 ) {
+		return array();
+	}
+
+	if ( is_string( $raw ) ) {
+		$raw = wp_unslash( $raw );
+		$raw = '' === trim( $raw ) ? array() : json_decode( $raw, true );
+	}
+	if ( ! is_array( $raw ) ) {
+		return array();
+	}
+
+	$tokens = array();
+	foreach ( $raw as $item ) {
+		if ( is_string( $item ) ) {
+			$tokens[] = sanitize_text_field( $item );
+		} elseif ( is_array( $item ) && ! empty( $item['token'] ) ) {
+			$tokens[] = sanitize_text_field( $item['token'] );
+		}
+	}
+	$tokens = array_slice( array_unique( array_filter( $tokens ) ), 0, torantejarat_tickets_max_attachments() );
+	if ( ! $tokens ) {
+		return array();
+	}
+
+	$key      = torantejarat_tickets_upload_registry_key( $user_id );
+	$registry = get_transient( $key );
+	$registry = is_array( $registry ) ? $registry : array();
+
+	$out = array();
+	foreach ( $tokens as $token ) {
+		if ( empty( $registry[ $token ] ) || ! is_array( $registry[ $token ] ) ) {
+			continue;
+		}
+		$out[] = torantejarat_tickets_decode_attachments( array( $registry[ $token ] ) )[0] ?? array();
+		unset( $registry[ $token ] );
+	}
+
+	$out = array_values( array_filter( $out ) );
+	set_transient( $key, $registry, HOUR_IN_SECONDS );
+
+	return $out;
+}
+
+function torantejarat_tickets_format_size( $bytes ) {
+	$bytes = absint( $bytes );
+	if ( $bytes <= 0 ) {
+		return '';
+	}
+	if ( $bytes >= MB_IN_BYTES ) {
+		return number_format_i18n( $bytes / MB_IN_BYTES, 1 ) . ' ' . __( 'مگابایت', 'torantejarat' );
+	}
+	return number_format_i18n( max( 1, round( $bytes / KB_IN_BYTES ) ) ) . ' ' . __( 'کیلوبایت', 'torantejarat' );
+}
+
+/**
+ * Attachment chips used in the customer thread and admin details.
+ *
+ * @param mixed  $attachments Stored attachments.
+ * @param string $variant     Optional CSS variant.
+ * @return string
+ */
+function torantejarat_tickets_attachments_html( $attachments, $variant = '' ) {
+	$attachments = torantejarat_tickets_decode_attachments( $attachments );
+	if ( ! $attachments ) {
+		return '';
+	}
+
+	$class = 'ttk-attachments';
+	if ( '' !== $variant ) {
+		$class .= ' ttk-attachments--' . sanitize_html_class( $variant );
+	}
+
+	$html = '<div class="' . esc_attr( $class ) . '">';
+	foreach ( $attachments as $attachment ) {
+		$url  = esc_url( $attachment['url'] );
+		$name = $attachment['name'] ? $attachment['name'] : wp_basename( $attachment['url'] );
+		$size = torantejarat_tickets_format_size( $attachment['size'] );
+
+		$html .= '<a class="ttk-attachment" href="' . $url . '" target="_blank" rel="noopener noreferrer">';
+		$html .= '<svg class="ttk-attachment__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.44 11.05 12.25 20.24a6 6 0 0 1-8.49-8.49l8.57-8.57a4 4 0 0 1 5.66 5.66l-8.58 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>';
+		$html .= '<span class="ttk-attachment__name">' . esc_html( $name ) . '</span>';
+		if ( $size ) {
+			$html .= '<span class="ttk-attachment__size">' . esc_html( $size ) . '</span>';
+		}
+		$html .= '</a>';
+	}
+	$html .= '</div>';
+
+	return $html;
+}
+
+/**
+ * Custom upload directory for ticket attachments.
+ *
+ * @param array $dirs Upload directory data.
+ * @return array
+ */
+function torantejarat_tickets_upload_dir( $dirs ) {
+	$subdir = '/torantejarat-tickets' . $dirs['subdir'];
+
+	$dirs['path']   = $dirs['basedir'] . $subdir;
+	$dirs['url']    = $dirs['baseurl'] . $subdir;
+	$dirs['subdir'] = $subdir;
+
+	return $dirs;
+}
+
+/**
+ * AJAX: upload a single attachment for a ticket message.
+ */
+function torantejarat_tickets_ajax_upload() {
+	if ( ! is_user_logged_in() ) {
+		wp_send_json_error( array( 'message' => __( 'لطفاً وارد حساب کاربری شوید.', 'torantejarat' ) ), 403 );
+	}
+
+	check_ajax_referer( 'torantejarat-ticket-upload', 'nonce' );
+
+	if ( empty( $_FILES['file'] ) || ! is_array( $_FILES['file'] ) ) {
+		wp_send_json_error( array( 'message' => __( 'فایلی برای بارگذاری انتخاب نشده است.', 'torantejarat' ) ) );
+	}
+
+	$file = $_FILES['file']; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- validated below.
+	if ( ! isset( $file['error'] ) || UPLOAD_ERR_OK !== (int) $file['error'] ) {
+		wp_send_json_error( array( 'message' => __( 'بارگذاری فایل انجام نشد. دوباره تلاش کنید.', 'torantejarat' ) ) );
+	}
+	if ( (int) $file['size'] > torantejarat_tickets_max_upload_size() ) {
+		wp_send_json_error( array( 'message' => __( 'حجم فایل باید کمتر از ۵ مگابایت باشد.', 'torantejarat' ) ) );
+	}
+
+	require_once ABSPATH . 'wp-admin/includes/file.php';
+
+	$uploads = wp_upload_dir();
+	$base    = trailingslashit( wp_normalize_path( $uploads['basedir'] ) );
+
+	add_filter( 'upload_dir', 'ToranTejarat\\Theme\\torantejarat_tickets_upload_dir' );
+	$overrides = array(
+		'test_form' => false,
+		'test_type' => true,
+		'mimes'     => torantejarat_tickets_allowed_upload_mimes(),
+		'unique_filename_callback' => static function ( $dir, $name, $ext ) {
+			$base = sanitize_file_name( pathinfo( $name, PATHINFO_FILENAME ) );
+			$base = mb_substr( $base, 0, 50 );
+			return wp_generate_password( 10, false, false ) . ( '' !== $base ? '-' . $base : '' ) . $ext;
+		},
+	);
+	$moved = wp_handle_upload( $file, $overrides );
+	remove_filter( 'upload_dir', 'ToranTejarat\\Theme\\torantejarat_tickets_upload_dir' );
+
+	if ( ! is_array( $moved ) || isset( $moved['error'] ) ) {
+		$message = is_array( $moved ) && isset( $moved['error'] ) ? wp_strip_all_tags( $moved['error'] ) : __( 'بارگذاری فایل انجام نشد.', 'torantejarat' );
+		wp_send_json_error( array( 'message' => $message ) );
+	}
+
+	$token      = wp_generate_password( 20, false, false );
+	$relative   = str_replace( $base, '', wp_normalize_path( $moved['file'] ) );
+	$attachment = array(
+		'token'    => $token,
+		'name'     => sanitize_text_field( $file['name'] ),
+		'url'      => esc_url_raw( $moved['url'] ),
+		'file'     => sanitize_text_field( ltrim( $relative, '/\\' ) ),
+		'mime'     => sanitize_text_field( $moved['type'] ),
+		'size'     => absint( $file['size'] ),
+		'is_image' => 0 === strpos( (string) $moved['type'], 'image/' ),
+	);
+
+	$key      = torantejarat_tickets_upload_registry_key( get_current_user_id() );
+	$registry = get_transient( $key );
+	$registry = is_array( $registry ) ? $registry : array();
+	$registry = array_slice( $registry, -20, 20, true );
+	$registry[ $token ] = $attachment;
+	set_transient( $key, $registry, HOUR_IN_SECONDS );
+
+	wp_send_json_success( array( 'attachment' => $attachment ) );
+}
+
+/**
+ * Delete uploaded files that belong to a ticket before its rows go away.
+ *
+ * @param int $ticket_id Ticket ID.
+ */
+function torantejarat_tickets_delete_files( $ticket_id ) {
+	$messages = torantejarat_tickets_get_messages( $ticket_id );
+	if ( ! $messages ) {
+		return;
+	}
+
+	$uploads = wp_upload_dir();
+	$base    = trailingslashit( wp_normalize_path( $uploads['basedir'] ) );
+	foreach ( $messages as $message ) {
+		foreach ( torantejarat_tickets_decode_attachments( $message['attachments'] ?? '' ) as $attachment ) {
+			if ( empty( $attachment['file'] ) ) {
+				continue;
+			}
+			$file = wp_normalize_path( $attachment['file'] );
+			$path = 0 === strpos( $file, $base ) ? $file : $base . ltrim( $file, '/\\' );
+			if ( is_file( $path ) ) {
+				wp_delete_file( $path );
+			}
+		}
+	}
 }
 
 /* --------------------------------------------------------------
@@ -128,7 +558,7 @@ function torantejarat_tickets_messages_table() {
  * @param string $body         First message body
  * @return int|WP_Error Ticket ID on success
  */
-function torantejarat_tickets_create( $user_id, $subject_key, $title, $body, $order_id = 0 ) {
+function torantejarat_tickets_create( $user_id, $subject_key, $title, $body, $order_id = 0, $priority = 'normal', $attachments = array() ) {
 	global $wpdb;
 
 	$user_id = absint( $user_id );
@@ -157,10 +587,17 @@ function torantejarat_tickets_create( $user_id, $subject_key, $title, $body, $or
 		}
 	}
 
-	$body = sanitize_textarea_field( $body );
-	if ( mb_strlen( trim( $body ) ) < 10 ) {
+	$body = torantejarat_tickets_sanitize_body( $body );
+	if ( torantejarat_tickets_body_length( $body ) < 10 ) {
 		return new \WP_Error( 'body_too_short', __( 'پیام باید حداقل ۱۰ کاراکتر باشد.', 'torantejarat' ) );
 	}
+
+	$priority = sanitize_key( $priority );
+	if ( ! array_key_exists( $priority, torantejarat_tickets_priorities() ) ) {
+		$priority = 'normal';
+	}
+
+	$attachments = torantejarat_tickets_decode_attachments( $attachments );
 
 	// Rate limit: max 3 open tickets per user (admins/staff bypass)
 	$open_count = 0;
@@ -186,10 +623,11 @@ function torantejarat_tickets_create( $user_id, $subject_key, $title, $body, $or
 			'subject_key' => $subject_key,
 			'title'       => $title,
 			'status'      => 'open',
+			'priority'    => $priority,
 			'created_at'  => current_time( 'mysql' ),
 			'updated_at'  => current_time( 'mysql' ),
 		),
-		array( '%d', '%d', '%s', '%s', '%s', '%s', '%s' )
+		array( '%d', '%d', '%s', '%s', '%s', '%s', '%s', '%s' )
 	);
 
 	$ticket_id = (int) $wpdb->insert_id;
@@ -198,7 +636,7 @@ function torantejarat_tickets_create( $user_id, $subject_key, $title, $body, $or
 	}
 
 	// First message (customer)
-	torantejarat_tickets_add_message( $ticket_id, $user_id, $body, false, true );
+	torantejarat_tickets_add_message( $ticket_id, $user_id, $body, false, true, $attachments );
 
 	// Update counters
 	set_transient( torantejarat_tickets_rate_key( $user_id ), $now, 60 * MINUTE_IN_SECONDS );
@@ -220,17 +658,20 @@ function torantejarat_tickets_create( $user_id, $subject_key, $title, $body, $or
  * @param bool   $is_initial Opening message of a new ticket (keeps status "open").
  * @return int|WP_Error
  */
-function torantejarat_tickets_add_message( $ticket_id, $author_id, $body, $is_staff = false, $is_initial = false ) {
+function torantejarat_tickets_add_message( $ticket_id, $author_id, $body, $is_staff = false, $is_initial = false, $attachments = array() ) {
 	global $wpdb;
 
 	$ticket_id = absint( $ticket_id );
 	$author_id = absint( $author_id );
 	$is_staff  = $is_staff ? 1 : 0;
-	$body      = sanitize_textarea_field( $body );
+	$body      = torantejarat_tickets_sanitize_body( $body );
 
-	if ( mb_strlen( trim( $body ) ) < 2 ) {
+	if ( torantejarat_tickets_body_length( $body ) < 2 ) {
 		return new \WP_Error( 'empty_body', __( 'Message is required.', 'torantejarat' ) );
 	}
+
+	$attachments    = torantejarat_tickets_decode_attachments( $attachments );
+	$attachments_db = $attachments ? wp_json_encode( $attachments ) : null;
 
 	$ticket = torantejarat_tickets_get( $ticket_id );
 	if ( ! $ticket ) {
@@ -240,13 +681,14 @@ function torantejarat_tickets_add_message( $ticket_id, $author_id, $body, $is_st
 	$wpdb->insert(
 		torantejarat_tickets_messages_table(),
 		array(
-			'ticket_id' => $ticket_id,
-			'author_id' => $author_id,
-			'is_staff'  => $is_staff,
-			'body'      => $body,
-			'created_at'=> current_time( 'mysql' ),
+			'ticket_id'  => $ticket_id,
+			'author_id'  => $author_id,
+			'is_staff'    => $is_staff,
+			'body'        => $body,
+			'attachments' => $attachments_db,
+			'created_at'  => current_time( 'mysql' ),
 		),
-		array( '%d', '%d', '%d', '%s', '%s' )
+		array( '%d', '%d', '%d', '%s', '%s', '%s' )
 	);
 
 	$message_id = (int) $wpdb->insert_id;
@@ -413,10 +855,16 @@ function torantejarat_tickets_get_messages( $ticket_id ) {
 
 	$ticket_id = absint( $ticket_id );
 
-	return $wpdb->get_results(
+	$rows = $wpdb->get_results(
 		$wpdb->prepare( "SELECT * FROM " . torantejarat_tickets_messages_table() . " WHERE ticket_id = %d ORDER BY created_at ASC", $ticket_id ),
 		ARRAY_A
 	);
+
+	foreach ( $rows as $index => $row ) {
+		$rows[ $index ]['attachments'] = torantejarat_tickets_decode_attachments( $row['attachments'] ?? '' );
+	}
+
+	return $rows;
 }
 
 /* --------------------------------------------------------------
@@ -618,8 +1066,10 @@ function torantejarat_tickets_handle_create_frontend() {
 	$title       = isset( $_POST['title'] ) ? wp_unslash( $_POST['title'] ) : '';
 	$order_id    = isset( $_POST['order_id'] ) ? absint( $_POST['order_id'] ) : 0;
 	$body        = isset( $_POST['body'] ) ? wp_unslash( $_POST['body'] ) : '';
+	$priority    = isset( $_POST['priority'] ) ? sanitize_key( wp_unslash( $_POST['priority'] ) ) : 'normal';
+	$attachments = torantejarat_tickets_resolve_attachments( get_current_user_id(), $_POST['attachments'] ?? '' );
 
-	$result = torantejarat_tickets_create( get_current_user_id(), $subject_key, $title, $body, $order_id );
+	$result = torantejarat_tickets_create( get_current_user_id(), $subject_key, $title, $body, $order_id, $priority, $attachments );
 
 	if ( is_wp_error( $result ) ) {
 		wp_safe_redirect( add_query_arg( 'ticket_error', $result->get_error_code(), wc_get_account_endpoint_url( 'tickets' ) ) );
@@ -646,6 +1096,7 @@ function torantejarat_tickets_handle_reply_frontend() {
 
 	$ticket_id = isset( $_POST['ticket_id'] ) ? absint( $_POST['ticket_id'] ) : 0;
 	$body      = isset( $_POST['body'] ) ? wp_unslash( $_POST['body'] ) : '';
+	$attachments = torantejarat_tickets_resolve_attachments( get_current_user_id(), $_POST['attachments'] ?? '' );
 
 	$ticket = torantejarat_tickets_get( $ticket_id );
 	if ( ! $ticket || (int) $ticket['user_id'] !== get_current_user_id() ) {
@@ -653,7 +1104,7 @@ function torantejarat_tickets_handle_reply_frontend() {
 		exit;
 	}
 
-	$result = torantejarat_tickets_add_message( $ticket_id, get_current_user_id(), $body, false );
+	$result = torantejarat_tickets_add_message( $ticket_id, get_current_user_id(), $body, false, false, $attachments );
 
 	if ( is_wp_error( $result ) ) {
 		wp_safe_redirect( add_query_arg( array( 'view_ticket' => $ticket_id, 'ticket_error' => $result->get_error_code() ), wc_get_account_endpoint_url( 'tickets' ) ) );
@@ -748,17 +1199,19 @@ function torantejarat_tickets_ajax_create() {
 
 	$title   = isset( $_POST['title'] ) ? sanitize_text_field( wp_unslash( $_POST['title'] ) ) : '';
 	$body    = isset( $_POST['body'] ) ? wp_unslash( $_POST['body'] ) : '';
-	$subject = isset( $_POST['subject_key'] ) ? sanitize_text_field( wp_unslash( $_POST['subject_key'] ) ) : 'other';
+	$subject = isset( $_POST['subject_key'] ) ? sanitize_key( wp_unslash( $_POST['subject_key'] ) ) : 'other';
 	$order   = isset( $_POST['order_id'] ) ? absint( $_POST['order_id'] ) : 0;
+	$priority = isset( $_POST['priority'] ) ? sanitize_key( wp_unslash( $_POST['priority'] ) ) : 'normal';
+	$attachments = torantejarat_tickets_resolve_attachments( get_current_user_id(), $_POST['attachments'] ?? '' );
 
 	if ( empty( $title ) ) {
 		wp_send_json_error( array( 'message' => __( 'عنوان تیکت الزامی است.', 'torantejarat' ) ) );
 	}
-	if ( strlen( $body ) < 2 ) {
+	if ( torantejarat_tickets_body_length( torantejarat_tickets_sanitize_body( $body ) ) < 2 ) {
 		wp_send_json_error( array( 'message' => __( 'پیام باید حداقل ۲ کاراکتر باشد.', 'torantejarat' ) ) );
 	}
 
-	$ticket_id = torantejarat_tickets_create( get_current_user_id(), $subject, $title, $body, $order );
+	$ticket_id = torantejarat_tickets_create( get_current_user_id(), $subject, $title, $body, $order, $priority, $attachments );
 	if ( is_wp_error( $ticket_id ) ) {
 		wp_send_json_error( array( 'message' => $ticket_id->get_error_message() ) );
 	}
@@ -779,13 +1232,14 @@ function torantejarat_tickets_ajax_reply() {
 
 	$ticket_id = isset( $_POST['ticket_id'] ) ? absint( $_POST['ticket_id'] ) : 0;
 	$body      = isset( $_POST['body'] ) ? wp_unslash( $_POST['body'] ) : '';
+	$attachments = torantejarat_tickets_resolve_attachments( get_current_user_id(), $_POST['attachments'] ?? '' );
 
 	$ticket = torantejarat_tickets_get( $ticket_id );
 	if ( ! $ticket || (int) $ticket['user_id'] !== get_current_user_id() ) {
 		wp_send_json_error( array( 'message' => __( 'تیکت یافت نشد یا به شما تعلق ندارد.', 'torantejarat' ) ) );
 	}
 
-	$result = torantejarat_tickets_add_message( $ticket_id, get_current_user_id(), $body, false );
+	$result = torantejarat_tickets_add_message( $ticket_id, get_current_user_id(), $body, false, false, $attachments );
 	if ( is_wp_error( $result ) ) {
 		wp_send_json_error( array( 'message' => $result->get_error_message() ) );
 	}
@@ -846,6 +1300,7 @@ function torantejarat_tickets_ajax_delete() {
 	$table_tickets = $wpdb->prefix . 'torantejarat_tickets';
 	$table_messages = $wpdb->prefix . 'torantejarat_ticket_messages';
 
+	torantejarat_tickets_delete_files( $ticket_id );
 	$wpdb->delete( $table_messages, array( 'ticket_id' => $ticket_id ), array( '%d' ) );
 	$wpdb->delete( $table_tickets, array( 'id' => $ticket_id ), array( '%d' ) );
 
@@ -938,7 +1393,8 @@ function torantejarat_tickets_ajax_detail() {
 			<div class="ticket-message <?php echo (int) $msg['is_staff'] === 1 ? 'staff' : 'customer'; ?>">
 				<strong><?php echo (int) $msg['is_staff'] === 1 ? esc_html__( 'پشتیبانی', 'torantejarat' ) : esc_html__( 'شما', 'torantejarat' ); ?></strong>
 				<span class="ticket-time"><?php echo esc_html( mysql2date( 'Y/m/d H:i', $msg['created_at'] ) ); ?></span>
-				<?php echo esc_html( $msg['body'] ); ?>
+				<div class="ticket-message-body"><?php echo \ToranTejarat\Theme\torantejarat_tickets_render_body( $msg['body'] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></div>
+				<?php echo \ToranTejarat\Theme\torantejarat_tickets_attachments_html( $msg['attachments'] ?? '' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 			</div>
 			<?php endforeach; ?>
 		<?php else : ?>
@@ -1015,6 +1471,7 @@ function torantejarat_tickets_handle_delete_frontend() {
 	}
 
 	global $wpdb;
+	torantejarat_tickets_delete_files( $ticket_id );
 	// Delete messages first
 	$wpdb->delete(
 		torantejarat_tickets_messages_table(),
@@ -1844,7 +2301,8 @@ function torantejarat_tickets_admin_details_page( $ticket_id ) {
 				<div class="ticket-message <?php echo $msg['is_staff'] ? 'staff' : 'customer'; ?>">
 					<strong><?php echo $msg['is_staff'] ? esc_html__( 'پشتیبانی', 'torantejarat' ) : esc_html__( 'مشتری', 'torantejarat' ); ?></strong>
 					<span class="ticket-time"><?php echo esc_html( mysql2date( 'Y/m/d H:i', $msg['created_at'] ) ); ?></span>
-					<p><?php echo esc_html( $msg['body'] ); ?></p>
+					<div class="ticket-message-body"><?php echo \ToranTejarat\Theme\torantejarat_tickets_render_body( $msg['body'] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></div>
+					<?php echo \ToranTejarat\Theme\torantejarat_tickets_attachments_html( $msg['attachments'] ?? '' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 				</div>
 			<?php endforeach; ?>
 		<?php else : ?>

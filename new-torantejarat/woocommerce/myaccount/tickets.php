@@ -1,1420 +1,439 @@
 <?php
 /**
- * Tickets endpoint — list + new ticket form + threads.
- * Uses the independent torantejarat_tickets tables (not CPT torantejarat_request).
+ * Tickets endpoint — list, create and thread views.
+ * Uses the independent torantejarat_tickets tables (not the CPT).
  *
  * @package ToranTejarat
  */
 
 defined( 'ABSPATH' ) || exit;
 
-$torantejarat_subjects = \ToranTejarat\Theme\torantejarat_ticket_subjects();
-$torantejarat_statuses = \ToranTejarat\Theme\torantejarat_ticket_statuses();
+$user_id    = get_current_user_id();
+$tickets    = \ToranTejarat\Theme\torantejarat_tickets_get_user_tickets( $user_id );
+$subjects   = \ToranTejarat\Theme\torantejarat_ticket_subjects();
+$statuses   = \ToranTejarat\Theme\torantejarat_ticket_statuses();
+$priorities = \ToranTejarat\Theme\torantejarat_tickets_priorities();
 
-$user_id = get_current_user_id();
-$tickets = \ToranTejarat\Theme\torantejarat_tickets_get_user_tickets( $user_id );
-
-$ticket_sent   = isset( $_GET['ticket_sent'] ) && '1' === $_GET['ticket_sent'];
+$ticket_sent    = isset( $_GET['ticket_sent'] ) && '1' === $_GET['ticket_sent'];
+$ticket_created = isset( $_GET['ticket_created'] ) && '1' === $_GET['ticket_created'];
 $ticket_deleted = isset( $_GET['ticket_deleted'] ) && '1' === $_GET['ticket_deleted'];
-$ticket_error  = isset( $_GET['ticket_error'] ) ? sanitize_key( wp_unslash( $_GET['ticket_error'] ) ) : '';
+$ticket_error   = isset( $_GET['ticket_error'] ) ? sanitize_key( wp_unslash( $_GET['ticket_error'] ) ) : '';
 
 $torantejarat_ticket_error_messages = array(
-	'nonce'           => __( 'درخواست نامعتبر است.', 'torantejarat' ),
-	'not_found'       => __( 'تیکت یافت نشد.', 'torantejarat' ),
-	'empty_title'     => __( 'عنوان تیکت الزامی است.', 'torantejarat' ),
-	'title_too_long'  => __( 'عنوان حداکثر ۱۵۰ کاراکتر می‌تواند باشد.', 'torantejarat' ),
-	'body_too_short'  => __( 'پیام باید حداقل ۱۰ کاراکتر باشد.', 'torantejarat' ),
-	'invalid_order'   => __( 'سفارش معتبر نیست یا به شما تعلق ندارد.', 'torantejarat' ),
-	'rate_limit_open' => __( 'شما دارای ۳ تیکت باز هستید. تا بستن یکی از آن‌ها صبر کنید.', 'torantejarat' ),
-	'rate_limit_seconds'=> __( 'لطفاً حداقل ۶۰ ثانیه قبل از ارسال تیکت دیگر صبر کنید.', 'torantejarat' ),
-	'forbidden'       => __( 'شما دسترسی به این تیکت را ندارید.', 'torantejarat' ),
-	'db_error'        => __( 'خطا در ذخیره تیکت.', 'torantejarat' ),
-	'not_closed'      => __( 'فقط تیکت‌های بسته قابل حذف هستند.', 'torantejarat' ),
-	'invalid_transition'=> __( 'تغییر وضعیت مجاز نیست.', 'torantejarat' ),
+	'nonce'              => __( 'درخواست نامعتبر است.', 'torantejarat' ),
+	'not_found'          => __( 'تیکت یافت نشد.', 'torantejarat' ),
+	'empty_title'        => __( 'عنوان تیکت الزامی است.', 'torantejarat' ),
+	'title_too_long'     => __( 'عنوان حداکثر ۱۵۰ کاراکتر می‌تواند باشد.', 'torantejarat' ),
+	'body_too_short'     => __( 'پیام باید حداقل ۱۰ کاراکتر باشد.', 'torantejarat' ),
+	'invalid_order'      => __( 'سفارش معتبر نیست یا به شما تعلق ندارد.', 'torantejarat' ),
+	'rate_limit_open'    => __( 'شما دارای ۳ تیکت باز هستید. تا بستن یکی از آن‌ها صبر کنید.', 'torantejarat' ),
+	'rate_limit_seconds' => __( 'لطفاً حداقل ۶۰ ثانیه قبل از ارسال تیکت دیگر صبر کنید.', 'torantejarat' ),
+	'forbidden'          => __( 'شما دسترسی به این تیکت را ندارید.', 'torantejarat' ),
+	'db_error'           => __( 'خطا در ذخیره تیکت.', 'torantejarat' ),
+	'not_closed'         => __( 'فقط تیکت‌های بسته قابل بازگشایی هستند.', 'torantejarat' ),
+	'invalid_transition' => __( 'تغییر وضعیت مجاز نیست.', 'torantejarat' ),
 );
 $torantejarat_ticket_error_msg = $torantejarat_ticket_error_messages[ $ticket_error ] ?? esc_html( ucfirst( str_replace( '_', ' ', $ticket_error ) ) );
 
-// AJAX data for ticket forms (nonces + ajaxurl)
-$tt_ajax_nonces = array(
-	'create' => wp_create_nonce( 'torantejarat-ticket-create' ),
-	'reply'  => wp_create_nonce( 'torantejarat-ticket-reply' ),
-	'close'  => wp_create_nonce( 'torantejarat-ticket-close' ),
-	'delete' => wp_create_nonce( 'torantejarat-ticket-delete' ),
-	'reopen' => wp_create_nonce( 'torantejarat-ticket-reopen' ),
-	'detail' => wp_create_nonce( 'torantejarat-ticket-detail' ),
-);
+$endpoint_url = wc_get_account_endpoint_url( 'tickets' );
+$create_url   = add_query_arg( 'ticket_view', 'new', $endpoint_url );
+
+$view_id     = isset( $_GET['view_ticket'] ) ? absint( $_GET['view_ticket'] ) : 0;
+$view_ticket = null;
+
+if ( $view_id ) {
+	$view_ticket = \ToranTejarat\Theme\torantejarat_tickets_get( $view_id );
+	if ( ! $view_ticket || (int) $view_ticket['user_id'] !== (int) $user_id ) {
+		$view_ticket = null;
+		$ticket_error = 'forbidden';
+		$torantejarat_ticket_error_msg = $torantejarat_ticket_error_messages['forbidden'];
+	}
+}
+
+$view_mode   = isset( $_GET['ticket_view'] ) ? sanitize_key( wp_unslash( $_GET['ticket_view'] ) ) : '';
+$show_create = ( 'new' === $view_mode ) && ! $view_ticket;
+$messages    = $view_ticket ? \ToranTejarat\Theme\torantejarat_tickets_get_messages( $view_id ) : array();
+
+// Orders used by the "اکانت مورد نظر" selector.
+$order_objects = array();
+if ( isset( $orders ) && is_array( $orders ) ) {
+	foreach ( $orders as $order_item ) {
+		if ( $order_item instanceof \WC_Order ) {
+			$order_objects[] = $order_item;
+		} elseif ( is_numeric( $order_item ) ) {
+			$order_object = wc_get_order( absint( $order_item ) );
+			if ( $order_object ) {
+				$order_objects[] = $order_object;
+			}
+		}
+	}
+}
+if ( ! $order_objects ) {
+	$order_objects = wc_get_orders(
+		array(
+			'customer_id' => $user_id,
+			'limit'       => 20,
+			'orderby'     => 'date',
+			'order'       => 'DESC',
+		)
+	);
+}
+
+$default_order_id = isset( $_GET['order_id'] ) ? absint( $_GET['order_id'] ) : 0;
+$default_priority = 'low';
 ?>
-<script>
-var torantejarat_ajax = {
-	ajaxurl : '<?php echo esc_url_raw( admin_url( 'admin-ajax.php' ) ); ?>',
-	nonces  : <?php echo wp_json_encode( $tt_ajax_nonces ); ?>,
-};
-</script>
-<style>
-:root {
-	--tt-color-primary: #f77b3e;
-	--tt-color-primary-dark: #e96a2b;
-	--tt-color-bg: #fafaf7;
-	--tt-color-card: #ffffff;
-	--tt-color-text: #172325;
-	--tt-color-text-muted: #606c68;
-	--tt-color-border: #e2e5df;
-	--tt-color-success: #247348;
-	--tt-color-success-bg: #eff9f2;
-	--tt-color-error: #b42318;
-	--tt-color-error-bg: #fef3f2;
-	--tt-radius: 12px;
-	--tt-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-	--tt-shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.08);
-	--tt-font-family: Vazirmatn, Tahoma, Arial, sans-serif;
-}
-
-.torantejarat-tickets-wrap {
-	direction: rtl;
-	text-align: right;
-	font-family: var(--tt-font-family);
-	background: var(--tt-color-bg);
-	min-height: 100vh;
-	padding: 24px 16px;
-	box-sizing: border-box;
-}
-
-.torantejarat-tickets-wrap h2,
-.torantejarat-tickets-wrap h3,
-.torantejarat-tickets-wrap h4 {
-	text-align: right;
-	color: var(--tt-color-text);
-	margin-top: 0;
-}
-
-.acp__hello {
-	margin-bottom: 24px;
-	text-align: right;
-}
-
-.acp__hello h2 {
-	font-size: 24px;
-	font-weight: 800;
-	margin-bottom: 6px;
-}
-
-.acp__hello p {
-	font-size: 15px;
-	color: var(--tt-color-text-muted);
-	margin: 0;
-}
-
-/* Notices */
-.torantejarat-tickets-notice {
-	padding: 14px 18px;
-	border-radius: 10px;
-	margin-bottom: 16px;
-	font-size: 14px;
-	text-align: right;
-	box-shadow: var(--tt-shadow);
-	animation: ttSlideIn 0.3s ease;
-}
-
-@keyframes ttSlideIn {
-	from { opacity: 0; transform: translateY(-8px); }
-	to { opacity: 1; transform: translateY(0); }
-}
-
-.torantejarat-tickets-notice.is-success {
-	background: var(--tt-color-success-bg);
-	color: var(--tt-color-success);
-	border: 1px solid #d1e9dd;
-}
-
-.torantejarat-tickets-notice.is-error {
-	background: var(--tt-color-error-bg);
-	color: var(--tt-color-error);
-	border: 1px solid #f5c7c3;
-}
-
-.torantejarat-tickets-notice strong {
-	display: block;
-	margin-bottom: 4px;
-	font-size: 15px;
-}
-
-/* Empty state */
-.torantejarat-tickets-empty {
-	text-align: center;
-	padding: 60px 20px;
-	background: var(--tt-color-card);
-	border-radius: 16px;
-	border: 2px dashed var(--tt-color-border);
-	margin-bottom: 24px;
-}
-
-.torantejarat-tickets-empty h3 {
-	color: var(--tt-color-text);
-	font-size: 18px;
-	margin-bottom: 8px;
-}
-
-.torantejarat-tickets-empty p {
-	color: var(--tt-color-text-muted);
-	font-size: 14px;
-	margin-bottom: 20px;
-}
-
-/* Ticket list */
-.torantejarat-tickets-list {
-	list-style: none;
-	margin: 0;
-	padding: 0;
-	display: flex;
-	flex-direction: column;
-	gap: 10px;
-}
-
-.torantejarat-tickets-list li {
-	display: flex;
-	flex-direction: column;
-	align-items: flex-start;
-	justify-content: space-between;
-	padding: 18px 20px;
-	border: 1px solid var(--tt-color-border);
-	border-radius: var(--tt-radius);
-	margin-bottom: 0;
-	background: var(--tt-color-card);
-	box-shadow: var(--tt-shadow);
-	transition: box-shadow 0.2s ease, border-color 0.2s ease;
-	cursor: pointer;
-	position: relative;
-}
-
-.torantejarat-tickets-list li:hover {
-	box-shadow: var(--tt-shadow-hover);
-	border-color: #d4d8d2;
-}
-
-.torantejarat-tickets-list li .ticket-info {
-	width: 100%;
-	margin-bottom: 10px;
-}
-
-.torantejarat-tickets-list li .ticket-title {
-	display: block;
-	font-weight: 800;
-	color: var(--tt-color-text);
-	margin-bottom: 4px;
-	font-size: 15px;
-	text-decoration: none;
-}
-
-.torantejarat-tickets-list li .ticket-title a {
-	color: inherit;
-	text-decoration: none;
-}
-
-.torantejarat-tickets-list li .ticket-meta {
-	display: block;
-	font-size: 12px;
-	color: var(--tt-color-text-muted);
-}
-
-.torantejarat-tickets-list li .ticket-actions {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 8px;
-	align-items: center;
-	width: 100%;
-	justify-content: flex-end;
-	margin-top: 8px;
-}
-
-.torantejarat-tickets-list li .ticket-badge {
-	font-size: 11px;
-	font-weight: 800;
-	padding: 5px 11px;
-	border-radius: 20px;
-	margin-left: 0;
-	margin-right: 8px;
-}
-
-.torantejarat-tickets-list li .ticket-badge.open {
-	background: #fef3f2;
-	color: #b42318;
-}
-
-.torantejarat-tickets-list li .ticket-badge.closed {
-	background: #eef4fa;
-	color: #36567a;
-}
-
-.torantejarat-tickets-list li .ticket-badge.awaiting_support {
-	background: #fff7e6;
-	color: #b26a00;
-}
-
-.torantejarat-tickets-list li .ticket-badge.awaiting_customer {
-	background: #eef4fa;
-	color: #36567a;
-}
-
-.torantejarat-tickets-list li .ticket-badge.answered {
-	background: #e3f2fd;
-	color: #1565c0;
-}
-
-.ticket-close-form {
-	margin-top: 8px;
-	display: inline-block;
-	text-align: right;
-}
-
-.ticket-close-form button {
-	background: #fef3f2;
-	color: #b42318;
-	border: 1px solid #f5c7c3;
-	border-radius: 8px;
-	padding: 8px 16px;
-	font-size: 13px;
-	font-weight: 700;
-	cursor: pointer;
-	transition: all 0.2s ease;
-}
-
-.ticket-close-form button:hover {
-	background: #fdecea;
-	border-color: #f5c7c3;
-}
-
-.ticket-delete-form {
-	display: inline-block;
-	margin-top: 8px;
-}
-
-.ticket-delete-form button {
-	background: #fef3f2;
-	color: #b42318;
-	border: 1px solid #f5c7c3;
-	border-radius: 8px;
-	padding: 8px 16px;
-	font-size: 13px;
-	font-weight: 700;
-	cursor: pointer;
-	transition: all 0.2s ease;
-}
-
-.ticket-delete-form button:hover {
-	background: #fdecea;
-	border-color: #f5c7c3;
-}
-
-/* Ticket thread toggle */
-.ticket-thread-toggle {
-	margin-top: 8px;
-	cursor: pointer;
-	text-align: right;
-	width: 100%;
-}
-
-.ticket-thread-toggle button {
-	background: none;
-	border: 1px solid #dce1db;
-	border-radius: 8px;
-	padding: 6px 12px;
-	font-size: 12px;
-	cursor: pointer;
-	color: #606c68;
-	transition: all 0.2s ease;
-}
-
-.ticket-thread-toggle button:hover {
-	border-color: var(--tt-color-primary);
-	color: var(--tt-color-primary);
-}
-
-.ticket-messages {
-	margin-top: 10px;
-	padding: 12px;
-	background: #f4f3ef;
-	border-radius: 10px;
-	border: 1px solid #e2e5df;
-	width: 100%;
-}
-
-.ticket-messages p {
-	margin: 0 0 8px;
-	font-size: 13px;
-	color: #172325;
-}
-
-.ticket-messages p strong {
-	color: #f77b3e;
-}
-
-/* New ticket form */
-.torantejarat-tickets-form {
-	margin-top: 24px;
-	border: 1px solid var(--tt-color-border);
-	border-radius: 16px;
-	padding: 24px;
-	background: var(--tt-color-card);
-	box-shadow: var(--tt-shadow);
-}
-
-.torantejarat-tickets-form h3 {
-	font-size: 18px;
-	color: var(--tt-color-text);
-	margin-bottom: 18px;
-	text-align: right;
-}
-
-.acp-field {
-	margin-bottom: 14px;
-	text-align: right;
-}
-
-.acp-field label {
-	display: block;
-	font-size: 13px;
-	font-weight: 800;
-	color: var(--tt-color-text);
-	margin-bottom: 6px;
-	text-align: right;
-}
-
-.acp-field select,
-.acp-field input[type="text"],
-.acp-field textarea {
-	width: 100%;
-	padding: 11px 14px;
-	padding-inline-end: 36px;
-	border: 1px solid #dce1db;
-	border-radius: 10px;
-	font-size: 14px;
-	font-family: inherit;
-	box-sizing: border-box;
-	direction: rtl;
-	text-align: right;
-	transition: border-color 0.2s ease, box-shadow 0.2s ease;
-	background: #fff;
-}
-
-.acp-field select:focus,
-.acp-field input[type="text"]:focus,
-.acp-field textarea:focus {
-	outline: none;
-	border-color: var(--tt-color-primary);
-	box-shadow: 0 0 0 3px rgba(247, 123, 62, 0.15);
-}
-
-.acp-field textarea {
-	min-height: 120px;
-	resize: vertical;
-	text-align: right;
-}
-
-.acp-full {
-	grid-column: 1 / -1;
-}
-
-button.acp-btn-primary {
-	background: var(--tt-color-primary);
-	color: #fff;
-	border: none;
-	border-radius: 8px;
-	padding: 12px 28px;
-	font-size: 14px;
-	font-weight: 700;
-	cursor: pointer;
-	transition: background 0.2s ease, transform 0.1s ease;
-}
-
-button.acp-btn-primary:hover {
-	background: var(--tt-color-primary-dark);
-}
-
-button.acp-btn-primary:active {
-	transform: scale(0.98);
-}
-
-.acp-btn {
-	display: inline-block;
-}
-
-/* Honeypot */
-.torantejarat-hp-field {
-	display: none !important;
-}
-
-/* Ticket detail view */
-.ticket-view-detail {
-	margin-top: 24px;
-	border: 1px solid var(--tt-color-border);
-	border-radius: 16px;
-	padding: 24px;
-	background: var(--tt-color-card);
-	box-shadow: var(--tt-shadow);
-	text-align: right;
-	max-width: 100%;
-	box-sizing: border-box;
-}
-
-.ticket-view-detail h3 {
-	margin-top: 0;
-	margin-bottom: 16px;
-	font-size: 18px;
-	color: var(--tt-color-text);
-}
-
-.ticket-view-detail table {
-	width: 100%;
-	border-collapse: collapse;
-	margin-bottom: 20px;
-}
-
-.ticket-view-detail th,
-.ticket-view-detail td {
-	padding: 11px 12px;
-	text-align: right;
-	border-bottom: 1px solid #f2f3ef;
-}
-
-.ticket-view-detail th {
-	font-weight: 800;
-	color: var(--tt-color-text);
-	width: 30%;
-}
-
-.ticket-view-detail td {
-	color: var(--tt-color-text-muted);
-}
-
-.ticket-view-detail tr:last-child td,
-.ticket-view-detail tr:last-child th {
-	border-bottom: none;
-}
-
-.ticket-history {
-	margin-bottom: 20px;
-	background: #f4f3ef;
-	border: 1px solid #e2e5df;
-	border-radius: 12px;
-	padding: 16px;
-}
-
-.ticket-history h4 {
-	margin-top: 0;
-	margin-bottom: 10px;
-	font-size: 15px;
-	color: var(--tt-color-text);
-}
-
-.ticket-message {
-	margin-bottom: 12px;
-	padding: 11px 14px;
-	border-radius: 10px;
-	direction: rtl;
-	animation: ttMsgSlide 0.3s ease;
-}
-
-@keyframes ttMsgSlide {
-	from { opacity: 0; transform: translateX(12px); }
-	to { opacity: 1; transform: translateX(0); }
-}
-
-.ticket-message.customer {
-	background: #eef4fa;
-	border-right: 4px solid #36567a;
-}
-
-.ticket-message.staff {
-	background: #eff9f2;
-	border-right: 4px solid #247348;
-}
-
-.ticket-message strong {
-	display: block;
-	font-size: 12px;
-	text-transform: uppercase;
-	letter-spacing: 0.05em;
-	margin-bottom: 4px;
-	color: var(--tt-color-text);
-}
-
-.ticket-message .ticket-time {
-	font-size: 11px;
-	color: var(--tt-color-text-muted);
-	display: block;
-	margin-top: 2px;
-	text-align: right;
-}
-
-.ticket-reply-form {
-	margin-top: 20px;
-	border-top: 1px solid #f2f3ef;
-	padding-top: 20px;
-	text-align: right;
-	padding-bottom: 20px;
-	background: #fafaf7;
-	border-radius: 12px;
-}
-
-.ticket-reply-form h4 {
-	margin-top: 0;
-	margin-bottom: 12px;
-	font-size: 15px;
-	color: var(--tt-color-text);
-}
-
-/* Back button */
-.ticket-back-btn {
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	gap: 6px;
-	background: #f4f3ef;
-	color: var(--tt-color-text-muted);
-	border: 1px solid #dce1db;
-	border-radius: 8px;
-	padding: 10px 16px;
-	font-size: 13px;
-	font-weight: 700;
-	cursor: pointer;
-	text-decoration: none;
-	margin-bottom: 20px;
-	transition: all 0.2s ease;
-}
-
-.ticket-back-btn:hover {
-	background: #e9ece8;
-	color: var(--tt-color-text);
-	border-color: #c9cfc6;
-}
-
-/* =========================================
-   MOBILE RESPONSIVE (≤768px)
-   ========================================= */
-@media (max-width: 768px) {
-	.torantejarat-tickets-wrap {
-		padding: 16px 12px;
-	}
-
-	.acp__hello h2 {
-		font-size: 20px;
-	}
-
-	.acp__hello p {
-		font-size: 14px;
-	}
-
-	.torantejarat-tickets-list li {
-		padding: 16px 18px;
-	}
-
-	.torantejarat-tickets-list li .ticket-actions {
-		flex-direction: column;
-		align-items: flex-end;
-		width: 100%;
-	}
-
-	.torantejarat-tickets-list li .ticket-badge {
-		margin: 0 0 8px 0;
-		width: fit-content;
-	}
-
-	.ticket-close-form,
-	.ticket-delete-form {
-		width: 100%;
-		text-align: center;
-		margin-top: 10px;
-	}
-
-	.ticket-close-form button,
-	.ticket-delete-form button {
-		width: 100%;
-		padding: 12px 0;
-		font-size: 14px;
-	}
-
-	.ticket-thread-toggle button {
-		width: 100%;
-		justify-content: center;
-		display: flex;
-		justify-content: center;
-	}
-
-	.torantejarat-tickets-form {
-		padding: 18px 16px;
-		margin-top: 16px;
-	}
-
-	.acp-field {
-		margin-bottom: 12px;
-	}
-
-	.acp-field select,
-	.acp-field input[type="text"],
-	.acp-field textarea {
-		padding: 12px 16px;
-		font-size: 16px; /* Prevent zoom on iOS */
-	}
-
-	button.acp-btn-primary {
-		width: 100%;
-		padding: 14px 0;
-		font-size: 16px;
-	}
-
-	.ticket-view-detail {
-		padding: 18px 16px;
-		margin-top: 16px;
-	}
-
-	.ticket-view-detail h3 {
-		font-size: 17px;
-	}
-
-	.ticket-view-detail table {
-		font-size: 14px;
-	}
-
-	.ticket-view-detail th,
-	.ticket-view-detail td {
-		padding: 10px 12px;
-		font-size: 14px;
-	}
-
-	.ticket-message {
-		padding: 10px 12px;
-		font-size: 13px;
-	}
-
-	.ticket-reply-form {
-		padding: 16px;
-		margin-top: 16px;
-	}
-
-	.ticket-back-btn {
-		width: 100%;
-		justify-content: center;
-		padding: 12px 0;
-		font-size: 14px;
-	}
-}
-
-/* =========================================
-   EXTRA SMALL MOBILE (≤480px)
-   ========================================= */
-@media (max-width: 480px) {
-	.torantejarat-tickets-wrap {
-		padding: 12px 10px;
-	}
-
-	.acp__hello h2 {
-		font-size: 18px;
-	}
-
-	.torantejarat-tickets-list li {
-		padding: 14px 16px;
-	}
-
-	.torantejarat-tickets-list li .ticket-title {
-		font-size: 14px;
-	}
-
-	.torantejarat-tickets-list li .ticket-meta {
-		font-size: 11px;
-	}
-
-	.ticket-badge {
-		font-size: 10px;
-		padding: 4px 9px;
-	}
-
-	.ticket-view-detail {
-		padding: 14px 12px;
-	}
-
-	.ticket-view-detail h3 {
-		font-size: 16px;
-	}
-
-	button.acp-btn-primary {
-		padding: 16px 0;
-		font-size: 15px;
-	}
-
-	.acp-field select,
-	.acp-field input[type="text"],
-	.acp-field textarea {
-		font-size: 16px;
-		padding: 12px 14px;
-	}
-}
-
-/* =========================================
-   Compact ticket list table
-   ========================================= */
-.torantejarat-tickets-table {
-	width: 100%;
-	border-collapse: collapse;
-	margin: 0 0 16px 0;
-	background: var(--tt-color-card);
-	border-radius: var(--tt-radius);
-	overflow: hidden;
-	border: 1px solid var(--tt-color-border);
-	box-shadow: var(--tt-shadow);
-}
-
-.torantejarat-tickets-table th,
-.torantejarat-tickets-table td {
-	padding: 10px 14px;
-	text-align: right;
-	border-bottom: 1px solid var(--tt-color-border);
-	font-size: 14px;
-}
-
-.torantejarat-tickets-table th {
-	background: #f9faf8;
-	font-weight: 800;
-	color: var(--tt-color-text);
-	font-size: 13px;
-	text-transform: uppercase;
-	letter-spacing: 0.03em;
-}
-
-.torantejarat-tickets-table td {
-	color: var(--tt-color-text-muted);
-}
-
-.torantejarat-tickets-table tr {
-	cursor: pointer;
-	transition: background 0.15s ease;
-}
-
-.torantejarat-tickets-table tr:hover {
-	background: #f5f7f4;
-}
-
-.torantejarat-tickets-table tr:last-child td {
-	border-bottom: none;
-}
-
-.torantejarat-tickets-table .ticket-status-badge {
-	font-size: 11px;
-	font-weight: 800;
-	padding: 4px 10px;
-	border-radius: 20px;
-	display: inline-block;
-}
-
-.torantejarat-tickets-table .ticket-status-badge.open {
-	background: #fef3f2;
-	color: #b42318;
-}
-
-.torantejarat-tickets-table .ticket-status-badge.closed {
-	background: #eef4fa;
-	color: #36567a;
-}
-
-.torantejarat-tickets-table .ticket-status-badge.awaiting_support {
-	background: #fff7e6;
-	color: #b26a00;
-}
-
-.torantejarat-tickets-table .ticket-status-badge.awaiting_customer {
-	background: #eef4fa;
-	color: #36567a;
-}
-
-.torantejarat-tickets-table .ticket-status-badge.answered {
-	background: #e3f2fd;
-	color: #1565c0;
-}
-
-.torantejarat-tickets-table .ticket-status-badge.reopened {
-	background: #f3e8ff;
-	color: #6b21a8;
-}
-
-.torantejarat-tickets-table .ticket-actions-cell {
-	text-align: left;
-	white-space: nowrap;
-}
-
-.torantejarat-tickets-table .ticket-actions-cell button {
-	font-size: 12px;
-	padding: 6px 12px;
-	border-radius: 6px;
-	border: 1px solid var(--tt-color-border);
-	background: #fff;
-	cursor: pointer;
-	margin-left: 4px;
-	transition: all 0.15s ease;
-}
-
-.torantejarat-tickets-table .ticket-actions-cell button:hover {
-	border-color: var(--tt-color-primary);
-	color: var(--tt-color-primary);
-}
-
-.torantejarat-tickets-table .ticket-actions-cell .btn-reopen {
-	background: #eef4fa;
-	color: #36567a;
-	border-color: #c9d6df;
-}
-
-/* Ticket detail panel (AJAX-loaded, separate detail view) */
-.ticket-detail-panel {
-	display: none;
-	margin-top: 20px;
-	border: 1px solid var(--tt-color-border);
-	border-radius: 16px;
-	background: var(--tt-color-card);
-	box-shadow: var(--tt-shadow);
-	overflow: hidden;
-	animation: ttSlideIn 0.3s ease;
-}
-
-.ticket-detail-panel .ticket-detail-header {
-	padding: 16px 20px;
-	border-bottom: 1px solid var(--tt-color-border);
-	background: #f9faf8;
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-}
-
-.ticket-detail-panel .ticket-detail-back {
-	background: none;
-	border: none;
-	color: var(--tt-color-primary);
-	cursor: pointer;
-	font-size: 14px;
-	font-weight: 700;
-	display: inline-flex;
-	align-items: center;
-	gap: 6px;
-	padding: 8px 12px;
-	border-radius: 6px;
-	transition: all 0.15s ease;
-}
-
-.ticket-detail-panel .ticket-detail-back:hover {
-	background: #f4f3ef;
-	color: var(--tt-color-primary-dark);
-}
-
-.ticket-detail-panel .ticket-detail-content {
-	padding: 20px;
-}
-
-.ticket-detail-panel .ticket-detail-reply {
-	margin-top: 20px;
-	border-top: 1px solid var(--tt-color-border);
-	padding-top: 20px;
-	background: #fafaf7;
-	border-radius: 12px;
-}
-
-/* AJAX loading states */
-.ticket-ajax-loading {
-	opacity: 0.6;
-	pointer-events: none;
-	position: relative;
-}
-
-.ticket-ajax-loading::after {
-	content: '';
-	position: absolute;
-	top: 50%;
-	left: 50%;
-	width: 16px;
-	height: 16px;
-	margin: -8px 0 0 -8px;
-	border: 2px solid var(--tt-color-border);
-	border-top-color: var(--tt-color-primary);
-	border-radius: 50%;
-	animation: ttSpin 0.8s linear infinite;
-}
-
-@keyframes ttSpin {
-	to { transform: rotate(360deg); }
-}
-
-/* Notice for AJAX results */
-.torantejarat-tickets-ajax-notice {
-	margin-bottom: 16px;
-	padding: 12px 16px;
-	border-radius: 10px;
-	font-size: 14px;
-	display: none;
-	animation: ttSlideIn 0.3s ease;
-}
-
-.torantejarat-tickets-ajax-notice.is-success {
-	background: var(--tt-color-success-bg);
-	color: var(--tt-color-success);
-	border: 1px solid #d1e9dd;
-}
-
-.torantejarat-tickets-ajax-notice.is-error {
-	background: var(--tt-color-error-bg);
-	color: var(--tt-color-error);
-	border: 1px solid #f5c7c3;
-}
-
-@media (max-width: 768px) {
-	.torantejarat-tickets-table,
-	.torantejarat-tickets-table thead,
-	.torantejarat-tickets-table tbody,
-	.torantejarat-tickets-table th,
-	.torantejarat-tickets-table td,
-	.torantejarat-tickets-table tr {
-		display: block;
-	}
-
-	.torantejarat-tickets-table thead tr {
-		position: absolute;
-		top: -9999px;
-		left: -9999px;
-	}
-
-	.torantejarat-tickets-table tr {
-		margin-bottom: 10px;
-	}
-
-	.torantejarat-tickets-table td {
-		border: none;
-		border-bottom: 1px solid var(--tt-color-border);
-		position: relative;
-		padding-left: 50%;
-		text-align: right;
-	}
-
-	.torantejarat-tickets-table td::before {
-		content: attr(data-label);
-		position: absolute;
-		left: 12px;
-		width: 45%;
-		padding-right: 10px;
-		white-space: nowrap;
-		font-weight: 800;
-		font-size: 12px;
-		color: var(--tt-color-text-muted);
-		text-align: right;
-	}
-
-	.torantejarat-tickets-table .ticket-actions-cell {
-		text-align: right;
-	}
-
-	.torantejarat-tickets-table .ticket-actions-cell button {
-		display: block;
-		width: 100%;
-		margin-left: 0;
-		margin-top: 6px;
-	}
-}
-</style>
-<?php if ( $ticket_sent ) : ?>
-	<div class="torantejarat-tickets-notice is-success" role="status">
-		<strong><?php esc_html_e( 'تیکت با موفقیت ثبت شد.', 'torantejarat' ); ?></strong>
-		<?php esc_html_e( 'پشتیبانی تیکت را بررسی می‌کند و پاسخ در حساب کاربری شما درج می‌شود.', 'torantejarat' ); ?>
-	</div>
-<?php endif; ?>
-
-<?php if ( $ticket_deleted ) : ?>
-	<div class="torantejarat-tickets-notice is-success" role="status">
-		<strong><?php esc_html_e( 'تیکت با موفقیت حذف شد.', 'torantejarat' ); ?></strong>
-	</div>
-<?php endif; ?>
-
-<?php if ( $ticket_error ) : ?>
-	<div class="torantejarat-tickets-notice is-error" role="alert">
-		<strong><?php esc_html_e( 'ثبت تیکت انجام نشد.', 'torantejarat' ); ?></strong>
-		<?php echo $torantejarat_ticket_error_msg; ?>
-	</div>
-<?php endif; ?>
-
-<div class="acp__hello">
-	<h2><?php esc_html_e( 'پشتیبانی', 'torantejarat' ); ?></h2>
-	<p><?php esc_html_e( 'درخواست‌های خود را پیگیری کنید.', 'torantejarat' ); ?></p>
-</div>
-
-<?php if ( $tickets ) : ?>
-	<div class="torantejarat-tickets-table-wrap">
-	<table class="torantejarat-tickets-table">
-		<thead>
-			<tr>
-				<th><?php esc_html_e( 'عنوان', 'torantejarat' ); ?></th>
-				<th><?php esc_html_e( 'وضعیت', 'torantejarat' ); ?></th>
-				<th><?php esc_html_e( 'تاریخ', 'torantejarat' ); ?></th>
-				<th><?php esc_html_e( 'عمليات', 'torantejarat' ); ?></th>
-			</tr>
-		</thead>
-		<tbody>
-		<?php foreach ( $tickets as $ticket ) : ?>
-			<?php
-			$messages   = \ToranTejarat\Theme\torantejarat_tickets_get_messages( $ticket['id'] );
-			$ticket_st  = isset( $ticket['status'] ) ? $ticket['status'] : 'open';
-			$ticket_id  = (int) $ticket['id'];
-			$can_close  = in_array( $ticket_st, array( 'awaiting_support' ), true );
-			$status_badge_class = $ticket_st;
-			?>
-<td data-label="<?php esc_attr_e( 'عنوان', 'torantejarat' ); ?>">
-			<a href="<?php echo esc_url( add_query_arg( 'view_ticket', $ticket_id, wc_get_account_endpoint_url( 'tickets' ) ) ); ?>" class="ticket-table-title"><?php echo esc_html( $ticket['title'] ); ?></a>
-			<div class="ticket-table-meta">
-				<?php echo esc_html( mysql2date( 'Y/m/d', $ticket['created_at'] ) ); ?>
-				<?php if ( ! empty( $ticket['order_id'] ) ) : ?>
-					&nbsp;·&nbsp;<?php printf( esc_html__( 'سفارش #%s', 'torantejarat' ), esc_html( $ticket['order_id'] ) ); ?>
-				<?php endif; ?>
-			</div>
-		</td>
-		<td data-label="<?php esc_attr_e( 'وضعیت', 'torantejarat' ); ?>">
-			<span class="ticket-status-badge <?php echo esc_attr( $status_badge_class ); ?>">
-				<?php echo esc_html( $torantejarat_statuses[ $ticket_st ] ?? $ticket_st ); ?>
-			</span>
-		</td>
-		<td data-label="<?php esc_attr_e( 'تاریخ', 'torantejarat' ); ?>">
-			<?php echo esc_html( mysql2date( 'Y/m/d', $ticket['created_at'] ) ); ?>
-		</td>
-		<td data-label="<?php esc_attr_e( 'عمليات', 'torantejarat' ); ?>" class="ticket-actions-cell">
-			<?php if ( $messages ) : ?>
-				<button type="button" class="btn-toggle-thread" data-toggle-ticket="ticket-<?php echo esc_attr( $ticket_id ); ?>" aria-expanded="false"><?php esc_html_e( 'گفت‌وگو', 'torantejarat' ); ?></button>
-			<?php endif; ?>
-			<?php if ( $can_close ) : ?>
-				<button type="button" class="btn-ajax btn-close" data-ticket-id="<?php echo esc_attr( $ticket_id ); ?>" data-nonce="<?php echo esc_attr( $tt_ajax_nonces['close'] ); ?>"><?php esc_html_e( 'بستن', 'torantejarat' ); ?></button>
-			<?php endif; ?>
-			<?php if ( $ticket_st === 'closed' ) : ?>
-				<button type="button" class="btn-ajax btn-reopen" data-ticket-id="<?php echo esc_attr( $ticket_id ); ?>" data-nonce="<?php echo esc_attr( $tt_ajax_nonces['reopen'] ); ?>"><?php esc_html_e( 'باز کردن', 'torantejarat' ); ?></button>
-				<button type="button" class="btn-ajax btn-delete" data-ticket-id="<?php echo esc_attr( $ticket_id ); ?>" data-nonce="<?php echo esc_attr( $tt_ajax_nonces['delete'] ); ?>"><?php esc_html_e( 'حذف', 'torantejarat' ); ?></button>
-			<?php endif; ?>
-		</td>
-	</tr>
-	<tr class="ticket-thread-row" id="ticket-<?php echo esc_attr( $ticket_id ); ?>" style="display:none;">
-		<td colspan="4">
-			<div class="ticket-messages">
-				<?php foreach ( $messages as $msg ) : ?>
-					<p>
-						<strong><?php echo (int) $msg['is_staff'] === 1 ? esc_html__( 'پشتیبانی', 'torantejarat' ) : esc_html__( 'شما', 'torantejarat' ); ?>:</strong>
-						<?php echo esc_html( $msg['body'] ); ?>
-					</p>
-				<?php endforeach; ?>
-			</div>
-		</td>
-	</tr>
-		<?php endforeach; ?>
-		</tbody>
-	</table>
-</div>
-<?php else : ?>
-	<div class="torantejarat-tickets-empty">
-		<h3><?php esc_html_e( 'تیکتی ثبت نشده است.', 'torantejarat' ); ?></h3>
-		<p><?php esc_html_e( 'سؤال یا مشکلی دارید؟ از فرم زیر بنویسید.', 'torantejarat' ); ?></p>
-	</div>
-<?php endif; ?>
-
-	<?php if ( empty( $_GET["view_ticket"] ) ) : ?>
-<div class="torantejarat-tickets-form">
-	<h3><?php esc_html_e( 'ثبت تیکت جدید', 'torantejarat' ); ?></h3>
-	<form class="acp-form-grid ajax-ticket-form" id="acp-ticket-form" data-ajax-action="torantejarat_ticket_create_ajax" novalidate>
-		<input type="hidden" name="action" value="torantejarat_ticket_create_ajax">
-		<?php wp_nonce_field( 'torantejarat-ticket-create', 'torantejarat_ticket_create_nonce' ); ?>
-
-		<!-- Honeypot for spam protection -->
-		<p class="torantejarat-hp-field" aria-hidden="true" style="display:none;"><label><?php esc_html_e( 'این فیلد را خالی بگذارید', 'torantejarat' ); ?> <input type="text" name="company" value="" tabindex="-1" autocomplete="off"></label></p>
-
-		<div class="acp-field">
-			<label for="acp-tk-subject"><?php esc_html_e( 'موضوع', 'torantejarat' ); ?></label>
-			<select id="acp-tk-subject" name="subject_key">
-				<?php foreach ( $torantejarat_subjects as $key => $label ) : ?>
-				<option value="<?php echo esc_attr( $key ); ?>"><?php echo esc_html( $label ); ?></option>
-				<?php endforeach; ?>
-			</select>
-		</div>
-
-		<div class="acp-field">
-			<label for="acp-tk-title"><?php esc_html_e( 'عنوان تیکت', 'torantejarat' ); ?></label>
-			<input id="acp-tk-title" name="title" type="text" required maxlength="150" placeholder="<?php esc_attr_e( 'مثال: مشکل در فاکتور سفارش شماره ۱۲۳', 'torantejarat' ); ?>">
-		</div>
-
-		<div class="acp-field">
-			<label for="acp-tk-order"><?php esc_html_e( 'سفارش مرتبط (اختیاری)', 'torantejarat' ); ?></label>
-			<select id="acp-tk-order" name="order_id">
-				<option value="0"><?php esc_html_e( 'بدون سفارش', 'torantejarat' ); ?></option>
+<div class="ttk" dir="rtl">
+
+	<?php if ( $ticket_sent ) : ?>
+		<div class="ttk-notice ttk-notice--success" role="status">
+			<strong>
 				<?php
-				$default_order_id = isset( $_GET['order_id'] ) ? absint( $_GET['order_id'] ) : 0;
-				$orders = wc_get_orders(
-					array(
-						'customer_id' => $user_id,
-						'limit'       => 10,
-						'orderby'     => 'date',
-						'order'       => 'DESC',
-						'return'      => 'ids',
-					)
-				);
-				foreach ( $orders as $oid ) :
-					$selected = selected( $default_order_id, $oid, false );
+				if ( $ticket_created ) {
+					esc_html_e( 'تیکت با موفقیت ثبت شد.', 'torantejarat' );
+				} elseif ( $view_ticket ) {
+					esc_html_e( 'پاسخ شما با موفقیت ثبت شد.', 'torantejarat' );
+				} else {
+					esc_html_e( 'تیکت با موفقیت ثبت شد.', 'torantejarat' );
+				}
 				?>
-				<option value="<?php echo esc_attr( $oid ); ?>"<?php echo $selected; ?>><?php printf( esc_html__( '#%s', 'torantejarat' ), esc_html( $oid ) ); ?></option>
-				<?php endforeach; ?>
-			</select>
+			</strong>
+			<span><?php esc_html_e( 'پشتیبانی در اسرع وقت به درخواست شما پاسخ می‌دهد.', 'torantejarat' ); ?></span>
 		</div>
-
-		<div class="acp-field acp-full">
-			<label for="acp-tk-msg"><?php esc_html_e( 'متن پیام', 'torantejarat' ); ?></label>
-			<textarea id="acp-tk-msg" name="body" rows="5" required maxlength="2000"><?php echo esc_textarea( isset( $_POST['body'] ) ? wp_unslash( $_POST['body'] ) : '' ); ?></textarea>
-		</div>
-
-		<div class="acp-full">
-			<button class="acp-btn acp-btn-primary" type="submit"><?php esc_html_e( 'ارسال تیکت', 'torantejarat' ); ?></button>
-		</div>
-	</form>
-</div>
 	<?php endif; ?>
 
-<div class="ticket-detail-panel" id="ticket-detail-panel">
-	<div class="ticket-detail-header">
-		<button class="ticket-detail-back" id="ticket-detail-back">
-			<span>↩</span> <?php esc_html_e( 'بازگشت به لیست', 'torantejarat' ); ?>
-		</button>
-		<span class="ticket-detail-title" id="ticket-detail-title"></span>
-	</div>
-	<div class="ticket-detail-content" id="ticket-detail-content">
-		<!-- Projon baraye kheili AJAX barmigardade -->
-	</div>
+	<?php if ( $ticket_deleted ) : ?>
+		<div class="ttk-notice ttk-notice--success" role="status">
+			<strong><?php esc_html_e( 'تیکت با موفقیت حذف شد.', 'torantejarat' ); ?></strong>
+		</div>
+	<?php endif; ?>
+
+	<?php if ( $ticket_error ) : ?>
+		<div class="ttk-notice ttk-notice--error" role="alert">
+			<strong><?php esc_html_e( 'انجام درخواست ممکن نشد.', 'torantejarat' ); ?></strong>
+			<span><?php echo esc_html( $torantejarat_ticket_error_msg ); ?></span>
+		</div>
+	<?php endif; ?>
+
+	<?php if ( $view_ticket ) : ?>
+		<?php
+		$current_status   = isset( $view_ticket['status'] ) ? $view_ticket['status'] : 'open';
+		$current_priority = isset( $view_ticket['priority'] ) ? $view_ticket['priority'] : 'normal';
+		$current_subject  = isset( $view_ticket['subject_key'] ) ? $view_ticket['subject_key'] : 'other';
+		$status_label     = $statuses[ $current_status ] ?? $current_status;
+		$priority_label   = $priorities[ $current_priority ] ?? $priorities['normal'];
+		$subject_label    = \ToranTejarat\Theme\torantejarat_tickets_subject_label( $current_subject );
+		$can_reply        = in_array( $current_status, array( 'open', 'awaiting_support', 'awaiting_customer', 'answered', 'reopened' ), true );
+		$can_close        = ( 'awaiting_support' === $current_status );
+		$is_closed        = ( 'closed' === $current_status );
+		$owner            = get_userdata( (int) $view_ticket['user_id'] );
+		$owner_name       = $owner ? $owner->display_name : __( 'مشتری', 'torantejarat' );
+		?>
+
+		<a class="ttk-back" href="<?php echo esc_url( $endpoint_url ); ?>">
+			<span aria-hidden="true">→</span>
+			<?php esc_html_e( 'بازگشت به لیست تیکت ها', 'torantejarat' ); ?>
+		</a>
+
+		<article class="ttk-thread">
+			<header class="ttk-thread__head">
+				<div class="ttk-thread__heading">
+					<h2 class="ttk-thread__title"><?php echo esc_html( $view_ticket['title'] ); ?></h2>
+					<div class="ttk-thread__meta">
+						<span class="ttk-badge ttk-badge--status-<?php echo esc_attr( $current_status ); ?>"><?php echo esc_html( $status_label ); ?></span>
+						<span class="ttk-badge ttk-badge--priority-<?php echo esc_attr( $current_priority ); ?>"><?php echo esc_html( $priority_label ); ?></span>
+						<span><?php echo esc_html( $subject_label ); ?></span>
+						<span><?php echo esc_html( \ToranTejarat\Theme\torantejarat_tickets_format_datetime( $view_ticket['created_at'] ) ); ?></span>
+						<?php if ( $can_close ) : ?>
+							<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="ttk-inline-form">
+								<input type="hidden" name="action" value="torantejarat_ticket_close_frontend">
+								<input type="hidden" name="ticket_id" value="<?php echo esc_attr( $view_ticket['id'] ); ?>">
+								<?php wp_nonce_field( 'torantejarat-ticket-close', 'torantejarat_ticket_close_nonce' ); ?>
+								<button type="submit" class="ttk-btn ttk-btn--ghost"><?php esc_html_e( 'بستن تیکت', 'torantejarat' ); ?></button>
+							</form>
+						<?php endif; ?>
+					</div>
+				</div>
+				<span class="ttk-thread__id" dir="ltr">#<?php echo esc_html( \ToranTejarat\Theme\torantejarat_tickets_fa_digits( $view_ticket['id'] ) ); ?></span>
+			</header>
+
+			<div class="ttk-thread__body">
+				<?php if ( $messages ) : ?>
+					<?php foreach ( $messages as $message ) : ?>
+						<?php
+						$is_staff      = (int) $message['is_staff'] === 1;
+						$author        = get_userdata( (int) $message['author_id'] );
+						$author_name   = $author ? $author->display_name : ( $is_staff ? __( 'پشتیبانی', 'torantejarat' ) : $owner_name );
+						$author_letter = mb_substr( trim( $author_name ), 0, 1, 'UTF-8' );
+						$avatar        = get_avatar(
+							(int) $message['author_id'],
+							84,
+							'',
+							$author_name,
+							array( 'class' => 'ttk-avatar-img' )
+						);
+						?>
+						<div class="ttk-msg <?php echo $is_staff ? 'ttk-msg--staff' : 'ttk-msg--customer'; ?>">
+							<div class="ttk-msg__who">
+								<span class="ttk-msg__avatar"><?php echo $avatar ? $avatar : esc_html( $author_letter ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></span>
+								<span class="ttk-msg__name"><?php echo esc_html( $author_name ); ?></span>
+							</div>
+							<div class="ttk-msg__content">
+								<div class="ttk-msg__bubble">
+									<div class="ttk-msg__text"><?php echo \ToranTejarat\Theme\torantejarat_tickets_render_body( $message['body'] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></div>
+									<?php echo \ToranTejarat\Theme\torantejarat_tickets_attachments_html( $message['attachments'] ?? '' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+									<div class="ttk-msg__date"><?php echo esc_html( \ToranTejarat\Theme\torantejarat_tickets_format_datetime( $message['created_at'] ) ); ?></div>
+								</div>
+							</div>
+						</div>
+					<?php endforeach; ?>
+				<?php else : ?>
+					<div class="ttk-empty ttk-empty--inline">
+						<p><?php esc_html_e( 'هنوز پیامی در این تیکت ثبت نشده است.', 'torantejarat' ); ?></p>
+					</div>
+				<?php endif; ?>
+			</div>
+
+			<footer class="ttk-thread__foot">
+				<div class="ttk-thread__reply-tab"><span><?php esc_html_e( 'پاسخ به این تیکت', 'torantejarat' ); ?></span></div>
+
+				<?php if ( $can_reply ) : ?>
+					<form class="ttk-reply" id="ttk-reply-form" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" enctype="multipart/form-data" novalidate>
+						<input type="hidden" name="action" value="torantejarat_ticket_reply_frontend">
+						<input type="hidden" name="ticket_id" value="<?php echo esc_attr( $view_ticket['id'] ); ?>">
+						<?php wp_nonce_field( 'torantejarat-ticket-reply', 'torantejarat_ticket_reply_nonce' ); ?>
+						<input type="hidden" name="attachments" value="[]">
+
+						<label class="ttk-reply__label" for="ttk-reply-body"><?php esc_html_e( 'پیام خود را بنویسید', 'torantejarat' ); ?></label>
+						<textarea class="ttk-textarea" id="ttk-reply-body" name="body" rows="4" maxlength="5000" placeholder="<?php esc_attr_e( 'پاسخ خود را بنویسید...', 'torantejarat' ); ?>"></textarea>
+
+						<div class="ttk-form__error" data-ttk-error role="alert" hidden></div>
+						<div class="ttk-chips" data-ttk-chips="reply"></div>
+						<input type="file" class="ttk-file" data-ttk-files multiple accept="image/*,.pdf,.zip,.doc,.docx,.xls,.xlsx,.txt">
+
+						<div class="ttk-reply__actions">
+							<button type="button" class="ttk-btn ttk-btn--gold" data-ttk-pick="reply"><?php esc_html_e( 'افزودن فایل', 'torantejarat' ); ?></button>
+							<button type="submit" class="ttk-btn ttk-btn--navy"><?php esc_html_e( 'ارسال پاسخ', 'torantejarat' ); ?></button>
+						</div>
+					</form>
+				<?php elseif ( $is_closed ) : ?>
+					<div class="ttk-reply ttk-reply--closed">
+						<p><?php esc_html_e( 'این تیکت بسته شده است. برای ادامه گفت‌وگو آن را باز کنید.', 'torantejarat' ); ?></p>
+						<div class="ttk-thread__actions">
+							<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+								<input type="hidden" name="action" value="torantejarat_ticket_reopen_frontend">
+								<input type="hidden" name="ticket_id" value="<?php echo esc_attr( $view_ticket['id'] ); ?>">
+								<?php wp_nonce_field( 'torantejarat-ticket-reopen', 'torantejarat_ticket_reopen_nonce' ); ?>
+								<button type="submit" class="ttk-btn ttk-btn--outline"><?php esc_html_e( 'باز کردن تیکت', 'torantejarat' ); ?></button>
+							</form>
+							<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" onsubmit="return confirm('<?php echo esc_js( __( 'آیا از حذف این تیکت مطمئن هستید؟ این عمل قابل بازگشت نیست.', 'torantejarat' ) ); ?>');">
+								<input type="hidden" name="action" value="torantejarat_ticket_delete_frontend">
+								<input type="hidden" name="ticket_id" value="<?php echo esc_attr( $view_ticket['id'] ); ?>">
+								<?php wp_nonce_field( 'torantejarat-ticket-delete', 'torantejarat_ticket_delete_nonce' ); ?>
+								<button type="submit" class="ttk-btn ttk-btn--ghost"><?php esc_html_e( 'حذف تیکت', 'torantejarat' ); ?></button>
+							</form>
+						</div>
+					</div>
+				<?php endif; ?>
+			</footer>
+		</article>
+
+	<?php else : ?>
+
+		<nav class="ttk-nav" aria-label="<?php esc_attr_e( 'بخش تیکت ها', 'torantejarat' ); ?>">
+			<a href="<?php echo esc_url( $endpoint_url ); ?>" class="<?php echo $show_create ? '' : 'is-active'; ?>"<?php echo $show_create ? '' : ' aria-current="page"'; ?>>
+				<span class="ttk-nav__icon" aria-hidden="true">
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="9" y1="6" x2="21" y2="6"/><line x1="9" y1="12" x2="21" y2="12"/><line x1="9" y1="18" x2="21" y2="18"/><circle cx="4" cy="6" r="1" fill="currentColor" stroke="none"/><circle cx="4" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="4" cy="18" r="1" fill="currentColor" stroke="none"/></svg>
+				</span>
+				<span class="ttk-nav__label"><?php esc_html_e( 'لیست تیکت ها', 'torantejarat' ); ?></span>
+			</a>
+			<a href="<?php echo esc_url( $create_url ); ?>" class="<?php echo $show_create ? 'is-active' : ''; ?>"<?php echo $show_create ? ' aria-current="page"' : ''; ?>>
+				<span class="ttk-nav__icon" aria-hidden="true">
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+				</span>
+				<span class="ttk-nav__label"><?php esc_html_e( 'ایجاد تیکت', 'torantejarat' ); ?></span>
+			</a>
+		</nav>
+
+		<?php if ( $show_create ) : ?>
+
+			<div class="ttk-page-head">
+				<h2 class="ttk-page-title"><?php esc_html_e( 'ارسال تیکت', 'torantejarat' ); ?></h2>
+				<span class="ttk-page-head__icon" aria-hidden="true">
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
+				</span>
+			</div>
+
+			<form class="ttk-form" id="ttk-create-form" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" enctype="multipart/form-data" novalidate>
+				<input type="hidden" name="action" value="torantejarat_ticket_create_frontend">
+				<?php wp_nonce_field( 'torantejarat-ticket-create', 'torantejarat_ticket_create_nonce' ); ?>
+				<input type="hidden" name="attachments" value="[]">
+
+				<p class="ttk-hp" aria-hidden="true">
+					<label><?php esc_html_e( 'این فیلد را خالی بگذارید', 'torantejarat' ); ?>
+						<input type="text" name="company" value="" tabindex="-1" autocomplete="off">
+					</label>
+				</p>
+
+				<div class="ttk-field">
+					<label for="ttk-department"><?php esc_html_e( 'دپارتمان مورد نظر', 'torantejarat' ); ?></label>
+					<select class="ttk-select" id="ttk-department" name="subject_key" required>
+						<option value="" selected disabled><?php esc_html_e( 'لطفا دپارتمان مورد نظر خود را انتخاب نمایید.', 'torantejarat' ); ?></option>
+						<?php foreach ( $subjects as $subject_key => $subject_label ) : ?>
+							<option value="<?php echo esc_attr( $subject_key ); ?>"><?php echo esc_html( $subject_label ); ?></option>
+						<?php endforeach; ?>
+					</select>
+				</div>
+
+				<div class="ttk-field">
+					<label for="ttk-account"><?php esc_html_e( 'اکانت مورد نظر', 'torantejarat' ); ?></label>
+					<select class="ttk-select" id="ttk-account" name="order_id">
+						<option value="0"><?php esc_html_e( 'انتخاب اکانت', 'torantejarat' ); ?></option>
+						<?php foreach ( $order_objects as $order_object ) : ?>
+							<?php
+							$order_number = $order_object->get_order_number();
+							$order_date   = $order_object->get_date_created();
+							$order_label  = '#' . $order_number;
+							if ( $order_date ) {
+								$order_label .= ' — ' . \ToranTejarat\Theme\torantejarat_tickets_format_datetime( $order_date->date( 'Y-m-d H:i:s' ), false );
+							}
+							?>
+							<option value="<?php echo esc_attr( $order_object->get_id() ); ?>"<?php echo (int) $default_order_id === (int) $order_object->get_id() ? ' selected' : ''; ?>><?php echo esc_html( $order_label ); ?></option>
+						<?php endforeach; ?>
+					</select>
+					<?php if ( ! $order_objects ) : ?>
+						<p class="ttk-hint"><?php esc_html_e( 'در حال حاضر اکانت فعالی برای انتخاب وجود ندارد.', 'torantejarat' ); ?></p>
+					<?php endif; ?>
+				</div>
+
+				<div class="ttk-row">
+					<div class="ttk-field">
+						<label for="ttk-title"><?php esc_html_e( 'عنوان تیکت', 'torantejarat' ); ?></label>
+						<input class="ttk-input" id="ttk-title" name="title" type="text" required maxlength="150" placeholder="<?php esc_attr_e( 'عنوان تیکت را وارد کنید', 'torantejarat' ); ?>">
+					</div>
+					<div class="ttk-field">
+						<label for="ttk-priority"><?php esc_html_e( 'اولویت', 'torantejarat' ); ?></label>
+						<select class="ttk-select" id="ttk-priority" name="priority">
+							<?php foreach ( $priorities as $priority_key => $priority_label ) : ?>
+								<option value="<?php echo esc_attr( $priority_key ); ?>"<?php echo $default_priority === $priority_key ? ' selected' : ''; ?>><?php echo esc_html( $priority_label ); ?></option>
+							<?php endforeach; ?>
+						</select>
+					</div>
+				</div>
+
+				<div class="ttk-field">
+					<label><?php esc_html_e( 'پیام', 'torantejarat' ); ?></label>
+
+					<div class="ttk-editor" data-ttk-editor data-mode="text">
+						<div class="ttk-editor__tabs" role="tablist">
+							<button type="button" class="ttk-tab is-active" data-ttk-tab="text" role="tab" aria-selected="true"><?php esc_html_e( 'متن', 'torantejarat' ); ?></button>
+							<button type="button" class="ttk-tab" data-ttk-tab="visual" role="tab" aria-selected="false"><?php esc_html_e( 'دیداری', 'torantejarat' ); ?></button>
+						</div>
+
+						<div class="ttk-toolbar" data-ttk-toolbar role="toolbar" aria-label="<?php esc_attr_e( 'ابزارهای قالب‌بندی متن', 'torantejarat' ); ?>">
+							<button type="button" class="ttk-toolbar__btn" data-ttk-cmd="formatBlock" title="<?php esc_attr_e( 'پاراگراف', 'torantejarat' ); ?>" aria-label="<?php esc_attr_e( 'پاراگراف', 'torantejarat' ); ?>">
+								<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 4v16"/><path d="M17 4v16"/><path d="M19 16H7.5a3.5 3.5 0 0 1 0-7H13"/></svg>
+							</button>
+							<button type="button" class="ttk-toolbar__btn" data-ttk-cmd="undo" title="<?php esc_attr_e( 'واگرد', 'torantejarat' ); ?>" aria-label="<?php esc_attr_e( 'واگرد', 'torantejarat' ); ?>">
+								<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg>
+							</button>
+							<button type="button" class="ttk-toolbar__btn" data-ttk-cmd="redo" title="<?php esc_attr_e( 'از نو', 'torantejarat' ); ?>" aria-label="<?php esc_attr_e( 'از نو', 'torantejarat' ); ?>">
+								<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 14 5-5-5-5"/><path d="M20 9H10a6 6 0 0 0 0 12h3"/></svg>
+							</button>
+							<span class="ttk-toolbar__sep" aria-hidden="true"></span>
+							<button type="button" class="ttk-toolbar__btn" data-ttk-cmd="removeFormat" title="<?php esc_attr_e( 'حذف قالب‌بندی', 'torantejarat' ); ?>" aria-label="<?php esc_attr_e( 'حذف قالب‌بندی', 'torantejarat' ); ?>">
+								<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7V4h16v3"/><path d="M9 20h6"/><path d="m12 4-3 16"/><path d="m3 3 18 18"/></svg>
+							</button>
+							<button type="button" class="ttk-toolbar__btn" data-ttk-cmd="createLink" title="<?php esc_attr_e( 'درج پیوند', 'torantejarat' ); ?>" aria-label="<?php esc_attr_e( 'درج پیوند', 'torantejarat' ); ?>">
+								<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.07 0l2-2a5 5 0 0 0-7.07-7.07l-1.5 1.5"/><path d="M14 11a5 5 0 0 0-7.07 0l-2 2a5 5 0 0 0 7.07 7.07l1.5-1.5"/></svg>
+							</button>
+							<span class="ttk-toolbar__sep" aria-hidden="true"></span>
+							<button type="button" class="ttk-toolbar__btn" data-ttk-cmd="insertOrderedList" title="<?php esc_attr_e( 'فهرست شماره‌دار', 'torantejarat' ); ?>" aria-label="<?php esc_attr_e( 'فهرست شماره‌دار', 'torantejarat' ); ?>">
+								<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="10" y1="6" x2="21" y2="6"/><line x1="10" y1="12" x2="21" y2="12"/><line x1="10" y1="18" x2="21" y2="18"/><path d="M4 6h1v4"/><path d="M4 10h2"/><path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1"/></svg>
+							</button>
+							<button type="button" class="ttk-toolbar__btn" data-ttk-cmd="insertUnorderedList" title="<?php esc_attr_e( 'فهرست نقطه‌ای', 'torantejarat' ); ?>" aria-label="<?php esc_attr_e( 'فهرست نقطه‌ای', 'torantejarat' ); ?>">
+								<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="9" y1="6" x2="21" y2="6"/><line x1="9" y1="12" x2="21" y2="12"/><line x1="9" y1="18" x2="21" y2="18"/><circle cx="4" cy="6" r="1.4" fill="currentColor" stroke="none"/><circle cx="4" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="4" cy="18" r="1.4" fill="currentColor" stroke="none"/></svg>
+							</button>
+							<span class="ttk-toolbar__sep" aria-hidden="true"></span>
+							<button type="button" class="ttk-toolbar__btn" data-ttk-cmd="underline" title="<?php esc_attr_e( 'زیرخط', 'torantejarat' ); ?>" aria-label="<?php esc_attr_e( 'زیرخط', 'torantejarat' ); ?>"><u>U</u></button>
+							<button type="button" class="ttk-toolbar__btn" data-ttk-cmd="italic" title="<?php esc_attr_e( 'ایتالیک', 'torantejarat' ); ?>" aria-label="<?php esc_attr_e( 'ایتالیک', 'torantejarat' ); ?>"><i>I</i></button>
+							<button type="button" class="ttk-toolbar__btn" data-ttk-cmd="bold" title="<?php esc_attr_e( 'درشت', 'torantejarat' ); ?>" aria-label="<?php esc_attr_e( 'درشت', 'torantejarat' ); ?>"><b>B</b></button>
+						</div>
+
+						<div class="ttk-editor__pane" data-ttk-pane="text">
+							<textarea class="ttk-textarea" id="ttk-body" name="body" rows="12" maxlength="5000" placeholder="<?php esc_attr_e( 'متن پیام خود را بنویسید...', 'torantejarat' ); ?>"></textarea>
+						</div>
+						<div class="ttk-editor__pane" data-ttk-pane="visual" hidden>
+							<div class="ttk-rich" contenteditable="true" role="textbox" aria-multiline="true" data-ttk-rich data-placeholder="<?php esc_attr_e( 'متن پیام خود را بنویسید...', 'torantejarat' ); ?>"></div>
+						</div>
+					</div>
+				</div>
+
+				<div class="ttk-attach">
+					<div class="ttk-attach__head">
+						<span class="ttk-attach__label"><?php esc_html_e( 'ضمیمه تیکت', 'torantejarat' ); ?></span>
+						<button type="button" class="ttk-btn ttk-btn--outline" data-ttk-pick="create"><?php esc_html_e( 'افزودن فایل', 'torantejarat' ); ?></button>
+					</div>
+					<input type="file" class="ttk-file" data-ttk-files multiple accept="image/*,.pdf,.zip,.doc,.docx,.xls,.xlsx,.txt">
+					<div class="ttk-drop" data-ttk-drop tabindex="0" role="button" aria-label="<?php esc_attr_e( 'افزودن فایل', 'torantejarat' ); ?>">
+						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 16.2A4.5 4.5 0 0 0 17.5 8h-1.8A7 7 0 1 0 4 14.9"/><path d="M12 12v9"/><path d="m8 17 4-4 4 4"/></svg>
+						<span><?php esc_html_e( 'برای بارگذاری تصویر (کشیدن / کلیک کنید)', 'torantejarat' ); ?></span>
+					</div>
+					<div class="ttk-chips" data-ttk-chips="create"></div>
+				</div>
+
+				<div class="ttk-form__error" data-ttk-error role="alert" hidden></div>
+
+				<div class="ttk-form__actions">
+					<button type="submit" class="ttk-btn ttk-btn--primary"><?php esc_html_e( 'ارسال تیکت', 'torantejarat' ); ?></button>
+				</div>
+			</form>
+
+		<?php else : ?>
+
+			<div class="ttk-list">
+				<div class="ttk-list__head">
+					<h2><?php esc_html_e( 'تیکت های من', 'torantejarat' ); ?></h2>
+					<span class="ttk-list__count"><?php printf( esc_html__( '%s تیکت', 'torantejarat' ), esc_html( \ToranTejarat\Theme\torantejarat_tickets_fa_digits( number_format_i18n( count( $tickets ) ) ) ) ); ?></span>
+				</div>
+
+				<?php if ( $tickets ) : ?>
+					<div class="ttk-cards">
+						<?php foreach ( $tickets as $ticket_item ) : ?>
+							<?php
+							$item_id       = (int) $ticket_item['id'];
+							$item_status   = isset( $ticket_item['status'] ) ? $ticket_item['status'] : 'open';
+							$item_priority = isset( $ticket_item['priority'] ) ? $ticket_item['priority'] : 'normal';
+							$item_subject  = isset( $ticket_item['subject_key'] ) ? $ticket_item['subject_key'] : 'other';
+							$item_url      = add_query_arg( 'view_ticket', $item_id, $endpoint_url );
+							?>
+							<a class="ttk-card" href="<?php echo esc_url( $item_url ); ?>">
+								<div class="ttk-card__main">
+									<div class="ttk-card__title"><?php echo esc_html( $ticket_item['title'] ); ?></div>
+									<div class="ttk-card__meta">
+										<span><?php echo esc_html( \ToranTejarat\Theme\torantejarat_tickets_subject_label( $item_subject ) ); ?></span>
+										<span dir="ltr">#<?php echo esc_html( \ToranTejarat\Theme\torantejarat_tickets_fa_digits( $item_id ) ); ?></span>
+										<span><?php echo esc_html( \ToranTejarat\Theme\torantejarat_tickets_format_datetime( $ticket_item['created_at'], false ) ); ?></span>
+									</div>
+								</div>
+								<div class="ttk-card__side">
+									<span class="ttk-badge ttk-badge--priority-<?php echo esc_attr( $item_priority ); ?>"><?php echo esc_html( $priorities[ $item_priority ] ?? $priorities['normal'] ); ?></span>
+									<span class="ttk-badge ttk-badge--status-<?php echo esc_attr( $item_status ); ?>"><?php echo esc_html( $statuses[ $item_status ] ?? $item_status ); ?></span>
+									<span class="ttk-card__chevron" aria-hidden="true">‹</span>
+								</div>
+							</a>
+						<?php endforeach; ?>
+					</div>
+				<?php else : ?>
+					<div class="ttk-empty">
+						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+						<h3><?php esc_html_e( 'تیکتی ثبت نشده است.', 'torantejarat' ); ?></h3>
+						<p><?php esc_html_e( 'برای ارتباط با پشتیبانی، اولین تیکت خود را ارسال کنید.', 'torantejarat' ); ?></p>
+						<a class="ttk-btn ttk-btn--primary" href="<?php echo esc_url( $create_url ); ?>"><?php esc_html_e( 'ایجاد تیکت', 'torantejarat' ); ?></a>
+					</div>
+				<?php endif; ?>
+			</div>
+
+		<?php endif; ?>
+
+	<?php endif; ?>
 </div>
-
-<!-- Fallback for direct ?view_ticket= URLs (non-JS or direct access) -->
-<?php if ( ! empty( $_GET['view_ticket'] ) && is_numeric( $_GET['view_ticket'] ) ) : ?>
-	<div class="torantejarat-tickets-ajax-notice is-error" style="display:block;">
-		<?php esc_html_e( 'لطفاً از دکمه‌های تیکت در لیست استفاده کنید یا صفحه را رفرش نمایید.', 'torantejarat' ); ?>
-	</div>
-<?php endif; ?>
-
-
-<script>
-var torantejaratTickets = (function() {
-	'use strict';
-
-	var panel   = document.getElementById('ticket-detail-panel');
-	var backBtn = document.getElementById('ticket-detail-back');
-	var titleEl = document.getElementById('ticket-detail-title');
-	var content = document.getElementById('ticket-detail-content');
-	var noticeWrap = document.createElement('div');
-	noticeWrap.className = 'torantejarat-tickets-ajax-notice';
-	panel.parentNode.insertBefore(noticeWrap, panel);
-
-	function showNotice(msg, type) {
-		noticeWrap.className = 'torantejarat-tickets-ajax-notice is-' + type;
-		noticeWrap.textContent = msg;
-		noticeWrap.style.display = 'block';
-		setTimeout(function() { noticeWrap.style.display = 'none'; }, 5000);
-	}
-
-	function ajax(action, data, onSuccess, onError) {
-		data = data || {};
-		data.action = action;
-		if (typeof torantejarat_ajax !== 'undefined' && torantejarat_ajax.nonces) {
-			var nonceMap = {
-				'torantejarat_ticket_create_ajax': 'create',
-				'torantejarat_ticket_reply_ajax': 'reply',
-				'torantejarat_ticket_close_ajax': 'close',
-				'torantejarat_ticket_delete_ajax': 'delete',
-				'torantejarat_ticket_reopen_ajax': 'reopen'
-			};
-			var key = nonceMap[action];
-			if (key) {
-				data['torantejarat_ticket_' + key + '_nonce'] = torantejarat_ajax.nonces[key];
-			}
-		}
-
-		var formData = new FormData();
-		for (var k in data) {
-			formData.append(k, data[k]);
-		}
-
-		fetch(torantejarat_ajax.ajaxurl, {
-			method: 'POST',
-			body: formData,
-			credentials: 'same-origin'
-		}).then(function(r) { return r.json(); }).then(function(res) {
-			if (res.success) {
-				if (onSuccess) onSuccess(res.data);
-			} else {
-				if (onError) onError(res.data || { message: 'خطای نامشخص' });
-				else showNotice((res.data && res.data.message) || 'خطای نامشخص', 'error');
-			}
-		}).catch(function() {
-			showNotice('اتصال به سرور برقرار نشد.', 'error');
-		});
-	}
-
-	// --- Create ticket form (AJAX) ---
-	var createForm = document.getElementById('acp-ticket-form');
-	if (createForm) {
-		createForm.addEventListener('submit', function(e) {
-			e.preventDefault();
-			var form = e.target;
-			var btn = form.querySelector('button[type="submit"]');
-			btn.disabled = true;
-			btn.textContent = 'در حال ارسال...';
-
-			var fd = new FormData(form);
-			var fdObj = {};
-			fd.forEach(function(v, k) { fdObj[k] = v; });
-			ajax('torantejarat_ticket_create_ajax', fdObj, function(data) {
-				showNotice(data.message || 'تیکت ثبت شد.', 'success');
-				form.reset();
-				window.location.reload();
-			}, function(err) {
-				showNotice(err.message || 'خطا در ثبت تیکت.', 'error');
-				btn.disabled = false;
-				btn.textContent = 'ارسال تیکت';
-			});
-		});
-	}
-
-	// --- Reply form (AJAX) ---
-	document.addEventListener('submit', function(e) {
-		if (e.target.classList.contains('ajax-reply-form')) {
-			e.preventDefault();
-			var form = e.target;
-			var btn = form.querySelector('button[type="submit"]');
-			btn.disabled = true;
-			btn.textContent = 'در حال ارسال...';
-
-			var fd = new FormData(form);
-			var fdObj = {};
-			fd.forEach(function(v, k) { fdObj[k] = v; });
-			ajax('torantejarat_ticket_reply_ajax', fdObj, function(data) {
-				showNotice(data.message || 'پاسخ ارسال شد.', 'success');
-				form.reset();
-				var ticketId = form.querySelector('input[name="ticket_id"]').value;
-				loadDetail(ticketId);
-			}, function(err) {
-				showNotice(err.message || 'خطا در ارسال پاسخ.', 'error');
-				btn.disabled = false;
-				btn.textContent = 'ارسال پاسخ';
-			});
-		}
-	});
-
-	// --- AJAX buttons (close, reopen, delete) ---
-	document.addEventListener('click', function(e) {
-		var btn = e.target.closest('.btn-ajax');
-		if (!btn) return;
-
-		e.preventDefault();
-		e.stopPropagation();
-
-		var action = btn.classList.contains('btn-close')    ? 'torantejarat_ticket_close_ajax' :
-		             btn.classList.contains('btn-reopen')   ? 'torantejarat_ticket_reopen_ajax' :
-		             btn.classList.contains('btn-delete')   ? 'torantejarat_ticket_delete_ajax' : null;
-		if (!action) return;
-
-		var ticketId = btn.getAttribute('data-ticket-id');
-		var nonce    = btn.getAttribute('data-nonce');
-
-		var msg = btn.classList.contains('btn-delete')
-			? 'آیا مطمئن هستید می‌خواهید این تیکت را حذف کنید؟ این عمل غیرقابل‌بازگشت است.'
-			: btn.classList.contains('btn-reopen')
-			? 'آیا مطمئن هستید می‌خواهید این تیکت را باز کنید؟'
-			: 'آیا مطمئن هستید می‌خواهید این تیکت را ببندید؟';
-
-		if (!confirm(msg)) return;
-
-		btn.disabled = true;
-		btn.textContent = 'در حال پردازش...';
-
-		var nonceKey = action.indexOf('close') > -1 ? 'close' : action.indexOf('reopen') > -1 ? 'reopen' : 'delete';
-		ajax(action, {
-			ticket_id: ticketId,
-			'torantejarat_ticket_' + nonceKey + '_nonce': nonce
-		}, function(data) {
-			showNotice(data.message || 'انجام شد.', 'success');
-			if (data.status) {
-				var row = document.querySelector('tr[data-view-url*="view_ticket=' + ticketId + '"]');
-				if (row) {
-					var badge = row.querySelector('.ticket-status-badge');
-					if (badge) {
-						badge.textContent = data.status;
-						badge.className = 'ticket-status-badge ' + data.status;
-					}
-				}
-				if (panel.style.display !== 'none' && titleEl.textContent.indexOf(ticketId) > -1) {
-					loadDetail(ticketId);
-				}
-			}
-			window.location.reload();
-		}, function(err) {
-			showNotice(err.message || 'خطا در انجام عملیات.', 'error');
-			btn.disabled = false;
-		});
-	});
-
-	// --- Load ticket detail via AJAX ---
-	window.loadDetail = function(ticketId) {
-		panel.classList.add('ticket-ajax-loading');
-		content.innerHTML = '<p style="text-align:center;color:#606c68;">در حال بارگذاری...</p>';
-		panel.style.display = 'block';
-		titleEl.textContent = 'تیکت #' + ticketId;
-
-		ajax('torantejarat_ticket_detail_ajax', {
-			ticket_id: ticketId,
-			'torantejarat_ticket_detail_nonce': torantejarat_ajax.nonces.detail
-		}, function(data) {
-			panel.classList.remove('ticket-ajax-loading');
-			content.innerHTML = data.html;
-		}, function(err) {
-			panel.classList.remove('ticket-ajax-loading');
-			showNotice(err.message || 'امکان بارگذاری جزئیات تیکت وجود ندارد.', 'error');
-		});
-	};
-
-	// --- Row click → load detail ---
-	document.addEventListener('click', function(e) {
-		var row = e.target.closest('tr.ticket-row');
-		if (!row) return;
-
-		if (e.target.tagName === 'A' || e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') {
-			return;
-		}
-
-		e.preventDefault();
-		e.stopPropagation();
-
-		var url = row.getAttribute('data-view-url');
-		if (!url) return;
-
-		var ticketId = url.match(/view_ticket=(\d+)/);
-		if (ticketId) {
-			loadDetail(ticketId[1]);
-		}
-	});
-
-	// --- Back button ---
-	if (backBtn) {
-		backBtn.addEventListener('click', function(e) {
-			e.preventDefault();
-			panel.style.display = 'none';
-			content.innerHTML = '';
-			titleEl.textContent = '';
-		});
-	}
-
-	// Thread toggle (for inline messages in table rows)
-	document.addEventListener('click', function(e) {
-		var btn = e.target.closest('.btn-toggle-thread');
-		if (!btn) return;
-		e.stopPropagation();
-		var ticketId = btn.getAttribute('data-toggle-ticket');
-		var box = document.getElementById(ticketId);
-		if (box) {
-			var expanded = btn.getAttribute('aria-expanded') === 'true';
-			btn.setAttribute('aria-expanded', !expanded);
-			box.style.display = expanded ? 'none' : 'table-row';
-		}
-	});
-
-})();
-</script>

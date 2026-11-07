@@ -77,6 +77,7 @@ add_action( 'wp_ajax_torantejarat_ticket_close_ajax', __NAMESPACE__ . '\\torante
 add_action( 'wp_ajax_torantejarat_ticket_delete_ajax', __NAMESPACE__ . '\\torantejarat_tickets_ajax_delete' );
 add_action( 'wp_ajax_torantejarat_ticket_reopen_ajax', __NAMESPACE__ . '\\torantejarat_tickets_ajax_reopen' );
 add_action( 'wp_ajax_torantejarat_ticket_detail_ajax', __NAMESPACE__ . '\\torantejarat_tickets_ajax_detail' );
+add_action( 'wp_ajax_torantejarat_ticket_upload', __NAMESPACE__ . '\\torantejarat_tickets_ajax_upload' );
 add_action( 'wp_ajax_torantejarat_tickets_load_more', __NAMESPACE__ . '\\torantejarat_tickets_load_more' );
 add_action( 'wp_ajax_nopriv_torantejarat_tickets_load_more', '__return_false' );
 add_action( 'add_meta_boxes_torantejarat_request', __NAMESPACE__ . '\\torantejarat_ticket_admin_metabox' );
