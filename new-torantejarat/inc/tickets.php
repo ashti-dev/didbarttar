@@ -222,6 +222,18 @@ function torantejarat_tickets_body_length( $body ) {
 }
 
 /**
+ * Maximum number of visible characters allowed in a ticket message.
+ *
+ * The HTML `maxlength` attribute is only a client-side hint, so the same
+ * limit is enforced here before anything is written to the database.
+ *
+ * @return int
+ */
+function torantejarat_tickets_max_body_length() {
+	return 20000;
+}
+
+/**
  * Render a stored message body. Legacy plain-text rows are converted to
  * line breaks; rich rows are printed as sanitized HTML.
  *
@@ -268,6 +280,19 @@ function torantejarat_tickets_max_attachments() {
 
 function torantejarat_tickets_upload_registry_key( $user_id ) {
 	return 'ttk_uploads_' . absint( $user_id );
+}
+
+function torantejarat_tickets_upload_rate_key( $user_id ) {
+	return 'ttk_upload_rate_' . absint( $user_id );
+}
+
+/**
+ * How many files a single user may upload per hour.
+ *
+ * @return int
+ */
+function torantejarat_tickets_upload_rate_limit() {
+	return 20;
 }
 
 /**
@@ -377,13 +402,54 @@ function torantejarat_tickets_format_size( $bytes ) {
 }
 
 /**
+ * Signature used by the attachment download endpoint.
+ *
+ * @param int    $ticket_id Ticket ID.
+ * @param string $file      Relative upload path.
+ * @return string
+ */
+function torantejarat_tickets_download_signature( $ticket_id, $file ) {
+	$payload = absint( $ticket_id ) . '|' . wp_normalize_path( ltrim( (string) $file, '/\\' ) );
+	return substr( hash_hmac( 'sha256', $payload, wp_salt( 'auth' ) ), 0, 24 );
+}
+
+/**
+ * Build a ticket-bound download URL for an attachment.
+ *
+ * Direct file URLs bypass the ownership check, so stored attachments are
+ * served through admin-post.php instead. Legacy rows without a relative
+ * path fall back to their public URL.
+ *
+ * @param array $attachment Decoded attachment.
+ * @param int   $ticket_id  Owning ticket ID.
+ * @return string
+ */
+function torantejarat_tickets_download_url( $attachment, $ticket_id = 0 ) {
+	$file = isset( $attachment['file'] ) ? (string) $attachment['file'] : '';
+	if ( '' === $file || $ticket_id <= 0 ) {
+		return isset( $attachment['url'] ) ? $attachment['url'] : '';
+	}
+
+	return add_query_arg(
+		array(
+			'action' => 'torantejarat_ticket_download',
+			'tk'     => absint( $ticket_id ),
+			'f'      => ltrim( wp_normalize_path( $file ), '/\\' ),
+			'sig'    => torantejarat_tickets_download_signature( $ticket_id, $file ),
+		),
+		admin_url( 'admin-post.php' )
+	);
+}
+
+/**
  * Attachment chips used in the customer thread and admin details.
  *
  * @param mixed  $attachments Stored attachments.
  * @param string $variant     Optional CSS variant.
+ * @param int    $ticket_id   Owning ticket ID (for the download endpoint).
  * @return string
  */
-function torantejarat_tickets_attachments_html( $attachments, $variant = '' ) {
+function torantejarat_tickets_attachments_html( $attachments, $variant = '', $ticket_id = 0 ) {
 	$attachments = torantejarat_tickets_decode_attachments( $attachments );
 	if ( ! $attachments ) {
 		return '';
@@ -396,7 +462,7 @@ function torantejarat_tickets_attachments_html( $attachments, $variant = '' ) {
 
 	$html = '<div class="' . esc_attr( $class ) . '">';
 	foreach ( $attachments as $attachment ) {
-		$url  = esc_url( $attachment['url'] );
+		$url  = esc_url( torantejarat_tickets_download_url( $attachment, $ticket_id ) );
 		$name = $attachment['name'] ? $attachment['name'] : wp_basename( $attachment['url'] );
 		$size = torantejarat_tickets_format_size( $attachment['size'] );
 
@@ -430,6 +496,44 @@ function torantejarat_tickets_upload_dir( $dirs ) {
 }
 
 /**
+ * Add hardening files to the ticket attachment directory.
+ *
+ * Attachments are served directly by the web server, so deny execution of
+ * script extensions and stop MIME sniffing as a defence-in-depth measure.
+ *
+ * @param string $dir Absolute directory path.
+ */
+function torantejarat_tickets_protect_upload_dir( $dir ) {
+	$dir = wp_normalize_path( (string) $dir );
+	if ( '' === $dir || ! is_dir( $dir ) ) {
+		return;
+	}
+
+	$htaccess = trailingslashit( $dir ) . '.htaccess';
+	if ( ! file_exists( $htaccess ) ) {
+		$rules = "# Ticket attachments - never execute code in this directory.\n"
+			. "<IfModule mod_headers.c>\n"
+			. "Header set X-Content-Type-Options \"nosniff\"\n"
+			. "</IfModule>\n"
+			. "<FilesMatch \"\\.(php|phtml|phar|php3|php4|php5|php7|php8|pl|py|cgi|sh|htm|html|svg)$\">\n"
+			. "\t<IfModule mod_authz_core.c>\n"
+			. "\t\tRequire all denied\n"
+			. "\t</IfModule>\n"
+			. "\t<IfModule !mod_authz_core.c>\n"
+			. "\t\tOrder allow,deny\n"
+			. "\t\tDeny from all\n"
+			. "\t</IfModule>\n"
+			. "</FilesMatch>\n";
+		@file_put_contents( $htaccess, $rules ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents, WordPress.PHP.NoSilencedErrors.Discouraged -- best-effort hardening file.
+	}
+
+	$index = trailingslashit( $dir ) . 'index.php';
+	if ( ! file_exists( $index ) ) {
+		@file_put_contents( $index, "<?php\n// Silence is golden.\n" ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents, WordPress.PHP.NoSilencedErrors.Discouraged -- best-effort directory index.
+	}
+}
+
+/**
  * AJAX: upload a single attachment for a ticket message.
  */
 function torantejarat_tickets_ajax_upload() {
@@ -438,6 +542,12 @@ function torantejarat_tickets_ajax_upload() {
 	}
 
 	check_ajax_referer( 'torantejarat-ticket-upload', 'nonce' );
+
+	$rate_key   = torantejarat_tickets_upload_rate_key( get_current_user_id() );
+	$rate_count = (int) get_transient( $rate_key );
+	if ( $rate_count >= torantejarat_tickets_upload_rate_limit() ) {
+		wp_send_json_error( array( 'message' => __( 'تعداد بارگذاری فایل در ساعت بیش از حد مجاز است. لطفاً بعداً تلاش کنید.', 'torantejarat' ) ), 429 );
+	}
 
 	if ( empty( $_FILES['file'] ) || ! is_array( $_FILES['file'] ) ) {
 		wp_send_json_error( array( 'message' => __( 'فایلی برای بارگذاری انتخاب نشده است.', 'torantejarat' ) ) );
@@ -475,6 +585,8 @@ function torantejarat_tickets_ajax_upload() {
 		wp_send_json_error( array( 'message' => $message ) );
 	}
 
+	torantejarat_tickets_protect_upload_dir( $base . 'torantejarat-tickets' );
+
 	$token      = wp_generate_password( 20, false, false );
 	$relative   = str_replace( $base, '', wp_normalize_path( $moved['file'] ) );
 	$attachment = array(
@@ -493,8 +605,80 @@ function torantejarat_tickets_ajax_upload() {
 	$registry = array_slice( $registry, -20, 20, true );
 	$registry[ $token ] = $attachment;
 	set_transient( $key, $registry, HOUR_IN_SECONDS );
+	set_transient( $rate_key, $rate_count + 1, HOUR_IN_SECONDS );
 
 	wp_send_json_success( array( 'attachment' => $attachment ) );
+}
+
+/**
+ * Stream a ticket attachment after checking ownership and signature.
+ *
+ * Attachments live under uploads/, so they are reachable directly. The UI
+ * links here instead: the signature binds the file to a ticket and the
+ * session check limits downloads to the ticket owner or support staff.
+ */
+function torantejarat_tickets_download_attachment() {
+	if ( ! is_user_logged_in() ) {
+		auth_redirect();
+	}
+
+	$ticket_id = isset( $_GET['tk'] ) ? absint( $_GET['tk'] ) : 0;
+	$file      = isset( $_GET['f'] ) ? sanitize_text_field( wp_unslash( $_GET['f'] ) ) : '';
+	$signature = isset( $_GET['sig'] ) ? sanitize_text_field( wp_unslash( $_GET['sig'] ) ) : '';
+
+	if ( $ticket_id <= 0 || '' === $file || ! hash_equals( torantejarat_tickets_download_signature( $ticket_id, $file ), $signature ) ) {
+		wp_die( esc_html__( 'لینک دانلود معتبر نیست.', 'torantejarat' ), 403 );
+	}
+
+	$ticket = torantejarat_tickets_get( $ticket_id );
+	if ( ! $ticket ) {
+		wp_die( esc_html__( 'تیکت یافت نشد.', 'torantejarat' ), 404 );
+	}
+
+	if ( (int) $ticket['user_id'] !== get_current_user_id() && ! torantejarat_tickets_user_can_manage() ) {
+		wp_die( esc_html__( 'شما دسترسی به این فایل ندارید.', 'torantejarat' ), 403 );
+	}
+
+	// The requested path must be one of the files attached to this ticket.
+	$found = null;
+	foreach ( torantejarat_tickets_get_messages( $ticket_id ) as $message ) {
+		foreach ( torantejarat_tickets_decode_attachments( $message['attachments'] ?? '' ) as $attachment ) {
+			if ( '' !== $attachment['file'] && wp_normalize_path( $attachment['file'] ) === wp_normalize_path( $file ) ) {
+				$found = $attachment;
+				break 2;
+			}
+		}
+	}
+
+	if ( ! $found ) {
+		wp_die( esc_html__( 'فایل مورد نظر یافت نشد.', 'torantejarat' ), 404 );
+	}
+
+	$uploads = wp_upload_dir();
+	$base    = trailingslashit( wp_normalize_path( $uploads['basedir'] ) );
+	$path    = wp_normalize_path( $file );
+	$abs     = 0 === strpos( $path, $base ) ? $path : $base . ltrim( $path, '/\\' );
+	$abs     = wp_normalize_path( $abs );
+
+	if ( 0 !== strpos( $abs, $base ) || ! is_file( $abs ) ) {
+		wp_die( esc_html__( 'فایل مورد نظر یافت نشد.', 'torantejarat' ), 404 );
+	}
+
+	$name = $found['name'] ? $found['name'] : wp_basename( $abs );
+	$type = $found['mime'] ? $found['mime'] : 'application/octet-stream';
+
+	nocache_headers();
+	header( 'X-Content-Type-Options: nosniff' );
+	header( 'Content-Type: ' . $type );
+	header( 'Content-Disposition: attachment; filename="' . sanitize_file_name( $name ) . '"' );
+	header( 'Content-Length: ' . (string) filesize( $abs ) );
+
+	while ( ob_get_level() > 0 ) {
+		ob_end_clean();
+	}
+
+	readfile( $abs ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_readfile -- streaming an uploaded file.
+	exit;
 }
 
 /**
@@ -591,6 +775,9 @@ function torantejarat_tickets_create( $user_id, $subject_key, $title, $body, $or
 	if ( torantejarat_tickets_body_length( $body ) < 10 ) {
 		return new \WP_Error( 'body_too_short', __( 'پیام باید حداقل ۱۰ کاراکتر باشد.', 'torantejarat' ) );
 	}
+	if ( torantejarat_tickets_body_length( $body ) > torantejarat_tickets_max_body_length() ) {
+		return new \WP_Error( 'body_too_long', __( 'متن پیام بیش از حد طولانی است.', 'torantejarat' ) );
+	}
 
 	$priority = sanitize_key( $priority );
 	if ( ! array_key_exists( $priority, torantejarat_tickets_priorities() ) ) {
@@ -668,6 +855,9 @@ function torantejarat_tickets_add_message( $ticket_id, $author_id, $body, $is_st
 
 	if ( torantejarat_tickets_body_length( $body ) < 2 ) {
 		return new \WP_Error( 'empty_body', __( 'Message is required.', 'torantejarat' ) );
+	}
+	if ( torantejarat_tickets_body_length( $body ) > torantejarat_tickets_max_body_length() ) {
+		return new \WP_Error( 'body_too_long', __( 'Message is too long.', 'torantejarat' ) );
 	}
 
 	$attachments    = torantejarat_tickets_decode_attachments( $attachments );
@@ -1062,6 +1252,12 @@ function torantejarat_tickets_handle_create_frontend() {
 		exit;
 	}
 
+	// Honeypot: real customers never see or fill this field.
+	if ( ! empty( $_POST['company'] ) ) {
+		wp_safe_redirect( add_query_arg( 'ticket_error', 'spam', wc_get_account_endpoint_url( 'tickets' ) ) );
+		exit;
+	}
+
 	$subject_key = isset( $_POST['subject_key'] ) ? sanitize_key( wp_unslash( $_POST['subject_key'] ) ) : 'other';
 	$title       = isset( $_POST['title'] ) ? wp_unslash( $_POST['title'] ) : '';
 	$order_id    = isset( $_POST['order_id'] ) ? absint( $_POST['order_id'] ) : 0;
@@ -1196,6 +1392,11 @@ function torantejarat_tickets_ajax_create() {
 	}
 
 	check_ajax_referer( 'torantejarat-ticket-create', 'torantejarat_ticket_create_nonce' );
+
+	// Honeypot: real customers never see or fill this field.
+	if ( ! empty( $_POST['company'] ) ) {
+		wp_send_json_error( array( 'message' => __( 'درخواست شما قابل پردازش نیست.', 'torantejarat' ) ), 400 );
+	}
 
 	$title   = isset( $_POST['title'] ) ? sanitize_text_field( wp_unslash( $_POST['title'] ) ) : '';
 	$body    = isset( $_POST['body'] ) ? wp_unslash( $_POST['body'] ) : '';
@@ -1394,7 +1595,7 @@ function torantejarat_tickets_ajax_detail() {
 				<strong><?php echo (int) $msg['is_staff'] === 1 ? esc_html__( 'پشتیبانی', 'torantejarat' ) : esc_html__( 'شما', 'torantejarat' ); ?></strong>
 				<span class="ticket-time"><?php echo esc_html( mysql2date( 'Y/m/d H:i', $msg['created_at'] ) ); ?></span>
 				<div class="ticket-message-body"><?php echo \ToranTejarat\Theme\torantejarat_tickets_render_body( $msg['body'] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></div>
-				<?php echo \ToranTejarat\Theme\torantejarat_tickets_attachments_html( $msg['attachments'] ?? '' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+				<?php echo \ToranTejarat\Theme\torantejarat_tickets_attachments_html( $msg['attachments'] ?? '', '', $ticket_id ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 			</div>
 			<?php endforeach; ?>
 		<?php else : ?>
@@ -2302,7 +2503,7 @@ function torantejarat_tickets_admin_details_page( $ticket_id ) {
 					<strong><?php echo $msg['is_staff'] ? esc_html__( 'پشتیبانی', 'torantejarat' ) : esc_html__( 'مشتری', 'torantejarat' ); ?></strong>
 					<span class="ticket-time"><?php echo esc_html( mysql2date( 'Y/m/d H:i', $msg['created_at'] ) ); ?></span>
 					<div class="ticket-message-body"><?php echo \ToranTejarat\Theme\torantejarat_tickets_render_body( $msg['body'] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></div>
-					<?php echo \ToranTejarat\Theme\torantejarat_tickets_attachments_html( $msg['attachments'] ?? '' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+					<?php echo \ToranTejarat\Theme\torantejarat_tickets_attachments_html( $msg['attachments'] ?? '', '', $ticket_id ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 				</div>
 			<?php endforeach; ?>
 		<?php else : ?>

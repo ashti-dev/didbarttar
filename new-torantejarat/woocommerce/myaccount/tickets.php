@@ -25,6 +25,9 @@ $torantejarat_ticket_error_messages = array(
 	'empty_title'        => __( 'عنوان تیکت الزامی است.', 'torantejarat' ),
 	'title_too_long'     => __( 'عنوان حداکثر ۱۵۰ کاراکتر می‌تواند باشد.', 'torantejarat' ),
 	'body_too_short'     => __( 'پیام باید حداقل ۱۰ کاراکتر باشد.', 'torantejarat' ),
+	'body_too_long'      => __( 'متن پیام بیش از حد مجاز است.', 'torantejarat' ),
+	'empty_body'         => __( 'متن پاسخ الزامی است.', 'torantejarat' ),
+	'spam'               => __( 'درخواست شما قابل پردازش نیست.', 'torantejarat' ),
 	'invalid_order'      => __( 'سفارش معتبر نیست یا به شما تعلق ندارد.', 'torantejarat' ),
 	'rate_limit_open'    => __( 'شما دارای ۳ تیکت باز هستید. تا بستن یکی از آن‌ها صبر کنید.', 'torantejarat' ),
 	'rate_limit_seconds' => __( 'لطفاً حداقل ۶۰ ثانیه قبل از ارسال تیکت دیگر صبر کنید.', 'torantejarat' ),
@@ -180,7 +183,7 @@ $default_priority = 'low';
 							<div class="ttk-msg__content">
 								<div class="ttk-msg__bubble">
 									<div class="ttk-msg__text"><?php echo \ToranTejarat\Theme\torantejarat_tickets_render_body( $message['body'] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></div>
-									<?php echo \ToranTejarat\Theme\torantejarat_tickets_attachments_html( $message['attachments'] ?? '' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+									<?php echo \ToranTejarat\Theme\torantejarat_tickets_attachments_html( $message['attachments'] ?? '', '', $view_ticket['id'] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 									<div class="ttk-msg__date"><?php echo esc_html( \ToranTejarat\Theme\torantejarat_tickets_format_datetime( $message['created_at'] ) ); ?></div>
 								</div>
 							</div>
