@@ -239,21 +239,6 @@ $default_priority = 'low';
 
 	<?php else : ?>
 
-		<nav class="ttk-nav" aria-label="<?php esc_attr_e( 'بخش تیکت ها', 'torantejarat' ); ?>">
-			<a href="<?php echo esc_url( $endpoint_url ); ?>" class="<?php echo $show_create ? '' : 'is-active'; ?>"<?php echo $show_create ? '' : ' aria-current="page"'; ?>>
-				<span class="ttk-nav__icon" aria-hidden="true">
-					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="9" y1="6" x2="21" y2="6"/><line x1="9" y1="12" x2="21" y2="12"/><line x1="9" y1="18" x2="21" y2="18"/><circle cx="4" cy="6" r="1" fill="currentColor" stroke="none"/><circle cx="4" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="4" cy="18" r="1" fill="currentColor" stroke="none"/></svg>
-				</span>
-				<span class="ttk-nav__label"><?php esc_html_e( 'لیست تیکت ها', 'torantejarat' ); ?></span>
-			</a>
-			<a href="<?php echo esc_url( $create_url ); ?>" class="<?php echo $show_create ? 'is-active' : ''; ?>"<?php echo $show_create ? ' aria-current="page"' : ''; ?>>
-				<span class="ttk-nav__icon" aria-hidden="true">
-					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-				</span>
-				<span class="ttk-nav__label"><?php esc_html_e( 'ایجاد تیکت', 'torantejarat' ); ?></span>
-			</a>
-		</nav>
-
 		<?php if ( $show_create ) : ?>
 
 			<div class="ttk-page-head">
