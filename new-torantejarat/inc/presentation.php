@@ -49,6 +49,10 @@ function torantejarat_icon( $name ) {
 		'ticket'  => 'M3 9a2 2 0 0 0 0 4v4h18v-4a2 2 0 0 0 0-4V5H3zM14 5v3M14 11v2M14 16v3',
 		'logout'  => 'M15 4h4v16h-4M10 12h10M13 8l-4 4 4 4',
 		'trash'   => 'M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13',
+		'calendar' => 'M4 5h16v16H4zM8 3v4M16 3v4M4 9h16',
+		'refresh'  => 'M20 11a8 8 0 1 0-2.35 5.65M20 5v6h-6',
+		'share'    => 'M15 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM6 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM18 22a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM8.6 10.6l6.8-4.2M8.6 13.4l6.8 4.2',
+		'link'     => 'M10 13a5 5 0 0 0 7.1 0l2.1-2.1a5 5 0 0 0-7.1-7.1L11 4.9M14 11a5 5 0 0 0-7.1 0l-2.1 2.1a5 5 0 0 0 7.1 7.1L13 19.1',
 	);
 	$path = $paths[ $name ] ?? $paths['scan'];
 	$size = 'chevron' === $name ? 14 : 24;

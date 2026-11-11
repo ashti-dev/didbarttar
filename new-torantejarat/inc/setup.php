@@ -35,6 +35,18 @@ function torantejarat_setup() {
 		)
 	);
 
+	register_sidebar(
+		array(
+			'id'            => 'torantejarat-article-sidebar',
+			'name'          => __( 'سایدبار مقاله تکی', 'torantejarat' ),
+			'description'   => __( 'ابزارک‌های ستون کنار صفحه مقاله. اگر مقاله سرفصل داشته باشد، فهرست مطالب خودکار بالای این ستون اضافه می‌شود؛ اگر هم ابزارکی اضافه نکنید، کارت‌های پیشنهادی پیش‌فرض نمایش داده می‌شوند.', 'torantejarat' ),
+			'before_widget' => '<div class="torantejarat-widget %2$s">',
+			'after_widget'  => '</div>',
+			'before_title'  => '<h2>',
+			'after_title'   => '</h2>',
+		)
+	);
+
 	register_nav_menus(
 		array(
 			'torantejarat-primary'        => __( 'منوی اصلی', 'torantejarat' ),

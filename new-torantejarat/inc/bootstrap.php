@@ -12,6 +12,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 require_once __DIR__ . '/presentation.php';
+require_once __DIR__ . '/article.php';
 require_once __DIR__ . '/patterns.php';
 require_once __DIR__ . '/setup.php';
 require_once __DIR__ . '/assets.php';
