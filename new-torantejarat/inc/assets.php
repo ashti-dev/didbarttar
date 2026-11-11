@@ -158,6 +158,18 @@ function torantejarat_enqueue_assets() {
 			)
 		);
 	}
+	if ( is_singular( 'post' ) ) {
+		wp_enqueue_style( 'torantejarat-article', get_template_directory_uri() . '/assets/css/article.css', array( 'torantejarat-native' ), torantejarat_asset_version( 'assets/css/article.css' ) );
+		wp_enqueue_script( 'torantejarat-article', get_template_directory_uri() . '/assets/js/article.js', array(), torantejarat_asset_version( 'assets/js/article.js' ), array( 'in_footer' => true, 'strategy' => 'defer' ) );
+		wp_localize_script(
+			'torantejarat-article',
+			'torantejaratArticle',
+			array(
+				'copyDone' => __( 'لینک کپی شد.', 'torantejarat' ),
+				'copyFail' => __( 'کپی انجام نشد؛ لینک را دستی بردارید.', 'torantejarat' ),
+			)
+		);
+	}
 	if ( torantejarat_woocommerce_available() && function_exists( 'is_order_received_page' ) && is_order_received_page() ) {
 		wp_enqueue_style( 'torantejarat-thankyou', get_template_directory_uri() . '/assets/css/thankyou.css', array( 'torantejarat-native' ), torantejarat_asset_version( 'assets/css/thankyou.css' ) );
 	}
