@@ -70,6 +70,7 @@
 	padding: 20px;
 	position: sticky;
 	top: 120px;
+	z-index: 20;
 	display: flex;
 	flex-direction: column;
 	gap: 18px;
@@ -195,6 +196,105 @@
 .acp__nav li.is-active a .acp-count {
 	background: rgba(255, 255, 255, .16);
 	color: #fff;
+}
+
+/* Support submenu: لیست تیکت ها / ایجاد تیکت */
+.acp__nav-item--has-sub {
+	position: relative;
+}
+
+.acp__caret {
+	width: 15px;
+	height: 15px;
+	flex: none;
+	margin-inline-start: auto;
+	color: var(--ac-muted);
+	transition: transform .18s ease;
+}
+
+.acp__nav li.is-active .acp__caret {
+	color: rgba(255, 255, 255, .72);
+}
+
+.acp__nav-item--has-sub:hover .acp__caret,
+.acp__nav-item--has-sub:focus-within .acp__caret {
+	transform: rotate(180deg);
+}
+
+.acp__nav .acp__subnav {
+	position: absolute;
+	top: calc(100% + 6px);
+	inset-inline: 0;
+	z-index: 32;
+	display: none;
+	flex-direction: column;
+	gap: 2px;
+	margin: 0;
+	padding: 6px;
+	list-style: none;
+	background: #fff;
+	border: 1px solid var(--ac-line);
+	border-radius: 12px;
+	box-shadow: 0 14px 34px rgba(23, 35, 37, .14);
+}
+
+.acp__nav-item--has-sub:hover .acp__subnav,
+.acp__nav-item--has-sub:focus-within .acp__subnav {
+	display: flex;
+}
+
+/* Keep the submenu open while the pointer crosses the gap. */
+.acp__nav-item--has-sub:hover::after,
+.acp__nav-item--has-sub:focus-within::after {
+	content: "";
+	position: absolute;
+	inset-inline: 0;
+	top: 100%;
+	height: 8px;
+}
+
+.acp__nav .acp__subnav a {
+	min-height: 40px;
+	padding: 9px 10px;
+	gap: 9px;
+	font-size: 13px;
+	font-weight: 600;
+	color: var(--ac-ink);
+	border-radius: 8px;
+}
+
+.acp__nav .acp__subnav a:hover {
+	background: var(--ac-soft);
+}
+
+.acp__nav li.is-active .acp__subnav a {
+	background: transparent;
+	color: var(--ac-ink);
+}
+
+.acp__nav li.is-active .acp__subnav a:hover {
+	background: var(--ac-soft);
+}
+
+.acp__nav .acp__subnav a[aria-current="page"] {
+	background: var(--ac-soft);
+	color: #1765cc;
+}
+
+.acp__subnav-icon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 18px;
+	height: 18px;
+	flex: none;
+	color: #1a73e8;
+}
+
+.acp__subnav-icon svg {
+	width: 17px;
+	height: 17px;
+	display: block;
 }
 
 .acp__foot {
@@ -1218,6 +1318,34 @@
 
 .acp-sheet a[aria-current="page"] {
 	color: var(--ac-link-h);
+}
+
+.acp-sheet a.acp-sheet__sublink {
+	min-height: 44px;
+	padding-inline-start: 40px;
+	font-size: 13px;
+	font-weight: 600;
+	color: var(--ac-muted);
+}
+
+.acp-sheet a.acp-sheet__sublink[aria-current="page"] {
+	color: #1765cc;
+}
+
+.acp-sheet__subicon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 18px;
+	height: 18px;
+	flex: none;
+	color: #1a73e8;
+}
+
+.acp-sheet__subicon svg {
+	width: 17px;
+	height: 17px;
+	display: block;
 }
 
 .acp-scrim {
